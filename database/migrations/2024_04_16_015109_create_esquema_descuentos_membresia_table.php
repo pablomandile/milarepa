@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('esquema_descuentos_membresia', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->unsignedInteger('esquemaDescuentos_id');
+            $table->unsignedInteger('membresia_id');
         });
     }
 

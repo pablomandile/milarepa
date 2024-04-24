@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('esquema_precios', function (Blueprint $table) {
             $table->id();
+            $table->string('esquema', 30);
+            $table->float('precio', 100);
+            $table->unsignedInteger('moneda_id');
             $table->timestamps();
         });
     }

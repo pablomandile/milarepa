@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('aplica_descuento_lugares', function (Blueprint $table) {
             $table->id();
+            $table->string('lugares_desc');
             $table->timestamps();
         });
     }

@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('esquema_descuentos', function (Blueprint $table) {
             $table->id();
+            $table->unsignedInteger('membresia_id');
+            $table->string('descripcion', 30);
+            $table->integer('descuento');
             $table->timestamps();
         });
     }

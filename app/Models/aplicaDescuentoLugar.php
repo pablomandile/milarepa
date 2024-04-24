@@ -9,4 +9,6 @@ class aplicaDescuentoLugar extends Model
 {
     use HasFactory;
     protected $table = 'aplicaDescuentoLugares';
+    
+    
 }

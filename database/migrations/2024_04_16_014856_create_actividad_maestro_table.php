@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('actividad_maestro', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->unsignedInteger('actividad_id');
+            $table->unsignedInteger('maestro_id');
         });
     }
 

@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('esquema_precios_moneda', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->unsignedInteger('esquemaPrecios_id');
+            $table->unsignedInteger('moneda_id');
         });
     }
 

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('tipo_actividades', function (Blueprint $table) {
             $table->id();
+            $table->string('tipo', 20);
             $table->timestamps();
         });
     }

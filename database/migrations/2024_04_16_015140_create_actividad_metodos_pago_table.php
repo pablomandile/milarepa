@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('actividad_metodos_pago', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->unsignedInteger('actividad_id');
+            $table->unsignedInteger('metodosPago_id');
         });
     }
 
