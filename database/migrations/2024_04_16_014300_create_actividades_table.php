@@ -13,21 +13,21 @@ return new class extends Migration
     {
         Schema::create('actividades', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('tipo_actividad_id');
+            $table->foreignId('tipo_actividad_id')->constrained('tipo_actividades');
             $table->string('nombre', 30);
             $table->string('descripcion', 50);
             $table->string('imageUri', 255);
             $table->date('fechaInicio');
             $table->date('fechaFin');
             $table->time('horaInicio');
-            $table->unsignedInteger('lugar_id');
-            $table->unsignedInteger('disponibilidad_id');
-            $table->unsignedInteger('maestro_id');
-            $table->unsignedInteger('coordinador_id');
-            $table->unsignedInteger('moneda_id');
-            $table->unsignedInteger('esquemaPrecios_id');
-            $table->unsignedInteger('aplicaDescuento_id');
-            $table->unsignedInteger('esquemaDescuentos_id');
+            $table->foreignId('lugar_id')->constrained('lugares');
+            $table->foreignId('disponibilidad_id')->constrained('disponibilidades');
+            $table->foreignId('maestro_id')->constrained('maestros');
+            $table->foreignId('coordinador_id')->constrained('coordinadores');
+            $table->foreignId('moneda_id')->constrained('monedas');
+            $table->foreignId('esquemaPrecios_id')->constrained('esquema_precios');
+            $table->foreignId('aplicaDescuentoLugares_id')->constrained('aplica_descuento_lugares');
+            $table->foreignId('esquemaDescuentos_id')->constrained('esquema_descuentos');
             $table->date('pagoAmticipado');
             $table->string('linkGrabacion', 255);
             $table->string('linkWeb', 255);
@@ -35,11 +35,12 @@ return new class extends Migration
             $table->text('programa');
             $table->text('infoExtra');
             $table->boolean('online');
-            $table->unsignedInteger('metodosPago_id');
-            $table->unsignedInteger('comidas_id');
-            $table->unsignedInteger('hospedaje_id');
-            $table->unsignedInteger('transporte_id');
+            $table->foreignId('metodosPago_id')->constrained('metodos_pago');
+            $table->foreignId('comidas_id')->constrained('comidas');
+            $table->foreignId('hospedaje_id')->constrained('hospedajes');
+            $table->foreignId('transporte_id')->constrained('transportes');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -48,6 +49,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('actividads');
+        Schema::dropIfExists('actividades');
     }
 };

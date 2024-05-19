@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('monedas', function (Blueprint $table) {
             $table->id();
-            $table->string('descripcion', 30);
+            $table->string('nombre', 30);
             $table->string('simbolo', 5);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

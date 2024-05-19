@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('lugares_desc');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
