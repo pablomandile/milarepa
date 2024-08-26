@@ -2,34 +2,36 @@
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TipoActividadController;
+use App\Http\Controllers\LugaresController;
+use App\Http\Controllers\DisponibilidadesController;
+use App\Http\Controllers\MaestrosController;
+use App\Http\Controllers\CoordinadoresController;
+use App\Http\Controllers\MonedasController;
+use App\Http\Controllers\MetodosPagoController;
+use App\Http\Controllers\EsquemaDescuentosController;
+use App\Http\Controllers\EsquemasPrecioController;
+use App\Http\Controllers\AplicaDescuentoLugaresController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+Route::get('/', [DashboardController::class, 'index']);
 
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified',
-])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+    Route::resource('/lugares', LugaresController::class);
+    Route::resource('/tipo-actividad', TipoActividadController::class);
+    Route::resource('/disponibilidades', DisponibilidadesController::class);
+    Route::resource('/maestros', MaestrosController::class);
+    Route::resource('/coordinadores', CoordinadoresController::class);
+    Route::resource('/monedas', MonedasController::class);
+    Route::resource('/metodos-pago', MetodosPagoController::class);
+    Route::resource('/esquema-precios', EsquemasPrecioController::class);
+    Route::resource('/aplica-descuento-lugares', AplicaDescuentoLugaresController::class);
+    Route::resource('/esquema-descuentos', EsquemaDescuentosController::class);
+
+
+
+
+
 });
