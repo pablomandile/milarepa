@@ -29,6 +29,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/esquema-precios', EsquemasPrecioController::class);
     Route::resource('/aplica-descuento-lugares', AplicaDescuentoLugaresController::class);
     Route::resource('/esquema-descuentos', EsquemaDescuentosController::class);
+    Route::resource('/actividades', EsquemaDescuentosController::class);
+
 
 
 

@@ -47,10 +47,113 @@ const logout = () => {
                             </div>
 
                             <!-- Navigation Links -->
+                            <!-- Gestión Dropdown -->
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
                                 </NavLink>
+                            </div>
+                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                                <Dropdown>
+                                    <template #trigger>
+                                        <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                            Gestión
+                                            <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+                                     </template>
+
+                                    <template #content>
+                                        <DropdownLink :href="route('disponibilidades.index')" :active="route().current('disponibilidades.*')">
+                                            Disponibilidades
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('maestros.index')" :active="route().current('maestros.*')">
+                                            Maestros
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
+                                            Coordinadores
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('lugares.index')" :active="route().current('lugares.*')">
+                                            Lugares
+                                        </DropdownLink>
+                                    </template>
+                                </Dropdown>
+                            </div>
+                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                                <Dropdown>
+                                    <template #trigger>
+                                        <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                            Actividades
+                                            <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+                                     </template>
+
+                                    <template #content>
+                                        <DropdownLink :href="route('actividades.index')" :active="route().current('actividades.*')">
+                                            Actividades
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('tipo-actividad.index')" :active="route().current('tipo-actividad.*')">
+                                            Tipos de Actividad
+                                        </DropdownLink>
+                                    </template>
+                                </Dropdown>
+                            </div>
+                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                                <Dropdown>
+                                    <template #trigger>
+                                        <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                            Precios
+                                            <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+                                     </template>
+
+                                    <template #content>
+                                        <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
+                                            Monedas
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('metodosPago.index')" :active="route().current('metodos-pago.*')">
+                                            Métodos de Pago
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('esquemaPrecios.index')" :active="route().current('esquema-precios.*')">
+                                            Esquema de Precios
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('esquemaDescuentos.index')" :active="route().current('esquema-descuentos.*')">
+                                            Esquema de Descuentos
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('aplicaDescuentoLugar.index')" :active="route().current('aplica-descuento-lugar.*')">
+                                            Lugares Aplica Descuento
+                                        </DropdownLink>
+                                    </template>
+                                </Dropdown>
+                            </div>
+                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                                <Dropdown>
+                                    <template #trigger>
+                                        <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                            Usuarios
+                                            <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+                                     </template>
+
+                                    <template #content>
+                                        <DropdownLink :href="route('usuarios.index')" :active="route().current('usuarios.*')">
+                                            Usuarios
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('Perfiles.index')" :active="route().current('perfiles.*')">
+                                            Perfiles
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('Roles.index')" :active="route().current('roles.*')">
+                                            Roles
+                                        </DropdownLink>
+                                    </template>
+                                </Dropdown>
                             </div>
                         </div>
 
