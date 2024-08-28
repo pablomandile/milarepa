@@ -13,7 +13,9 @@ use App\Http\Controllers\MetodosPagoController;
 use App\Http\Controllers\EsquemaDescuentosController;
 use App\Http\Controllers\EsquemasPrecioController;
 use App\Http\Controllers\AplicaDescuentoLugaresController;
-
+use App\Http\Controllers\PerfilesController;
+use App\Http\Controllers\RolesController;
+use App\Http\Controllers\UsuariosController;
 
 Route::get('/', [DashboardController::class, 'index']);
 
@@ -30,9 +32,15 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/aplica-descuento-lugares', AplicaDescuentoLugaresController::class);
     Route::resource('/esquema-descuentos', EsquemaDescuentosController::class);
     Route::resource('/actividades', EsquemaDescuentosController::class);
-
-
-
+    Route::resource('/usuarios', UsuariosController::class);
+    Route::resource('/perfiles', PerfilesController::class);
+    Route::resource('/roles', RolesController::class);
+    Route::resource('/membresias', RolesController::class);
+    Route::resource('/comidas', RolesController::class);
+    Route::resource('/hospedajes', RolesController::class);
+    Route::resource('/transportes', RolesController::class);
+    Route::resource('/inscripciones', RolesController::class);
+    Route::resource('/estado-inscripciones', RolesController::class);
 
 
 

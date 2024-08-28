@@ -77,6 +77,18 @@ const logout = () => {
                                         <DropdownLink :href="route('lugares.index')" :active="route().current('lugares.*')">
                                             Lugares
                                         </DropdownLink>
+                                        <DropdownLink :href="route('membresias.index')" :active="route().current('membresias.*')">
+                                            Membresías
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('comidas.index')" :active="route().current('comidas.*')">
+                                            Comidas
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('hospedajes.index')" :active="route().current('hospedajes.*')">
+                                            Hospedajes
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('transportes.index')" :active="route().current('transportes.*')">
+                                            Transportes
+                                        </DropdownLink>
                                     </template>
                                 </Dropdown>
                             </div>
@@ -98,6 +110,12 @@ const logout = () => {
                                         <DropdownLink :href="route('tipo-actividad.index')" :active="route().current('tipo-actividad.*')">
                                             Tipos de Actividad
                                         </DropdownLink>
+                                        <DropdownLink :href="route('inscripciones.index')" :active="route().current('inscripciones.*')">
+                                            Inscripciones
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('estado-inscripciones.index')" :active="route().current('estado-inscripciones.*')">
+                                            Estado de Inscripciones
+                                        </DropdownLink>
                                     </template>
                                 </Dropdown>
                             </div>
@@ -116,17 +134,17 @@ const logout = () => {
                                         <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
                                             Monedas
                                         </DropdownLink>
-                                        <DropdownLink :href="route('metodosPago.index')" :active="route().current('metodos-pago.*')">
+                                        <DropdownLink :href="route('metodos-pago.index')" :active="route().current('metodos-pago.*')">
                                             Métodos de Pago
                                         </DropdownLink>
-                                        <DropdownLink :href="route('esquemaPrecios.index')" :active="route().current('esquema-precios.*')">
+                                        <DropdownLink :href="route('esquema-precios.index')" :active="route().current('esquema-precios.*')">
                                             Esquema de Precios
                                         </DropdownLink>
-                                        <DropdownLink :href="route('esquemaDescuentos.index')" :active="route().current('esquema-descuentos.*')">
+                                        <DropdownLink :href="route('esquema-descuentos.index')" :active="route().current('esquema-descuentos.*')">
                                             Esquema de Descuentos
                                         </DropdownLink>
-                                        <DropdownLink :href="route('aplicaDescuentoLugar.index')" :active="route().current('aplica-descuento-lugar.*')">
-                                            Lugares Aplica Descuento
+                                        <DropdownLink :href="route('aplica-descuento-lugares.index')" :active="route().current('aplica-descuento-lugares.*')">
+                                            Lugares donde se Aplica Descuento
                                         </DropdownLink>
                                     </template>
                                 </Dropdown>
@@ -146,10 +164,10 @@ const logout = () => {
                                         <DropdownLink :href="route('usuarios.index')" :active="route().current('usuarios.*')">
                                             Usuarios
                                         </DropdownLink>
-                                        <DropdownLink :href="route('Perfiles.index')" :active="route().current('perfiles.*')">
+                                        <DropdownLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
                                             Perfiles
                                         </DropdownLink>
-                                        <DropdownLink :href="route('Roles.index')" :active="route().current('roles.*')">
+                                        <DropdownLink :href="route('roles.index')" :active="route().current('roles.*')">
                                             Roles
                                         </DropdownLink>
                                     </template>
