@@ -34,7 +34,7 @@ class DisponibilidadesController extends Controller
     public function store(DisponibilidadRequest $request)
     {
         Disponibilidad::create($request->validated());
-        return redirect()->route('disponibilidad.index');
+        return redirect()->route('disponibilidades.index');
     }
 
     /**

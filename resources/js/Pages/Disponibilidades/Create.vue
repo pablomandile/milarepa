@@ -10,7 +10,7 @@
     import DisponibilidadForm from '@/Components/Disponibilidades/Form.vue'
 
     const form = useForm({
-        name: ''
+        descripcion: ''
     })
 </script>
 

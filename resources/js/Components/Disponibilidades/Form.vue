@@ -24,6 +24,7 @@ import TextInput from '../TextInput.vue';
     })
 
     defineEmits(['submit'])
+
 </script>
 
 <template>

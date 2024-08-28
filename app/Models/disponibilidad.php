@@ -9,4 +9,8 @@ class Disponibilidad extends Model
 {
     use HasFactory;
     protected $table = 'disponibilidades';
+    Protected $fillable = [
+        'descripcion',
+    ];
+
 }
