@@ -47,25 +47,46 @@ class DisponibilidadesController extends Controller
 
     /**
      * Show the form for editing the specified resource.
+     * @param int $id
+     * @return \Illuminate\Http\Response
      */
-    public function edit(string $id)
+    // public function edit(Disponibilidad $disponibilidad)
+    // {
+    //     if ($disponibilidad) {
+    //         dump($disponibilidad);
+    //     }
+    //     return inertia('Disponibilidades/Edit', ['disponibilidad' => $disponibilidad]);
+    // }
+    public function edit($id)
     {
-        //
+        // dd(gettype($id), $id);
+
+        $disponibilidad = Disponibilidad::find($id);
+
+        return inertia('Disponibilidades/Edit', ['disponibilidad' => $disponibilidad]);
     }
 
     /**
      * Update the specified resource in storage.
+     * @param App\Http\Requests\DisponibilidadRequest $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, string $id)
+    public function update(DisponibilidadRequest $request, $id)
     {
-        //
+        $disponibilidad = Disponibilidad::findOrFail($id);
+
+        $disponibilidad->update($request->validated());
+
+        return redirect()->route('disponibilidades.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Disponibilidad  $disponibilidad)
     {
-        //
+        $disponibilidad->delete();
+        return redirect()->route('disponibilidades.index');
     }
 }

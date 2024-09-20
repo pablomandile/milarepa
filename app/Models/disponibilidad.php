@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Disponibilidad extends Model
 {
     use HasFactory;
+
     protected $table = 'disponibilidades';
-    Protected $fillable = [
-        'descripcion',
-    ];
+    
+    protected $fillable = ['descripcion'];
 
 }

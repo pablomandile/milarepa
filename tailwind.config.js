@@ -17,6 +17,9 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            boxShadow: {
+                'soft-indigo': '0 4px 6px rgba(99, 102, 241, 0.2), 0 1px 3px rgba(99, 102, 241, 0.08)',
+            },
         },
     },
 

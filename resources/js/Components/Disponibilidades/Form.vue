@@ -16,7 +16,7 @@ import TextInput from '../TextInput.vue';
         type: Object,
         required: true
     },
-    updating: {
+        updating: {
         type: Boolean,
         required: true,
         default: false
@@ -33,11 +33,11 @@ import TextInput from '../TextInput.vue';
             {{ updating ? 'Actualizar Disponibilidad' : 'Crear Disponibilidad' }}
         </template>
         <template #description>
-            {{ updating ? 'Actualizando la Disponibilidad seleccionada' : 'Creando una nueva Disponibilidad' }}
+            {{ updating ? 'Actualizando la Disponibilidad seleccionada' : 'Creando una nueva Disponibilidad horaria para limitar la visualización de las enseñanzas en la modalidad Online' }}
         </template>
         <template #form>
             <div class="col-span-6 sm:col-span-6">
-                <InputLabel for="descripcion" value="Descripcion" />
+                <InputLabel for="descripcion" value="Descripción" :required="true"/>
                 <TextInput id="descripcion" v-model="form.descripcion" type="text" autocomplete="descripcion" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />
             </div>
