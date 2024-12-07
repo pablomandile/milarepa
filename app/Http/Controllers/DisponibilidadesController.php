@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\DisponibilidadRequest;
 use Illuminate\Http\Request;
 use App\Models\Disponibilidad;
-use Inertia\Response;
+use Inertia\Inertia;
 
 class DisponibilidadesController extends Controller
 {
@@ -59,11 +59,13 @@ class DisponibilidadesController extends Controller
     // }
     public function edit($id)
     {
-        // dd(gettype($id), $id);
+        // Obtener el dispo a editar
+        $dispo = Disponibilidad::findOrFail($id);
 
-        $disponibilidad = Disponibilidad::find($id);
-
-        return inertia('Disponibilidades/Edit', ['disponibilidad' => $disponibilidad]);
+        // Devolver la vista de edición
+        return Inertia::render('Disponibilidades/Edit', [
+            'disponibilidad' => $dispo,
+        ]);
     }
 
     /**
@@ -84,9 +86,15 @@ class DisponibilidadesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Disponibilidad  $disponibilidad)
+    public function destroy($id)
     {
-        $disponibilidad->delete();
-        return redirect()->route('disponibilidades.index');
+        // dd($disponibilidad->id);
+        try {
+            $disponibilidad = Disponibilidad::findorfail($id);
+            $disponibilidad->delete();
+            return redirect()->route('disponibilidades.index')->with('success', 'Disponibilidad eliminada con éxito.');
+        } catch (\Exception $e) {
+            return redirect()->route('disponibilidades.index')->with('error', 'Error al eliminar la disponibilidad: ' . $e->getMessage());
+        }
     }
 }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fb587c78986e70172803c6c20355e1e1",
+    "content-hash": "28265cebcb9521d9f74ab643692cf5f6",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -5993,16 +5993,16 @@
         },
         {
             "name": "tightenco/ziggy",
-            "version": "v2.1.0",
+            "version": "v2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tighten/ziggy.git",
-                "reference": "f2ce6091078109f434e295a17adfac7378257ace"
+                "reference": "5395ba7c6d6ea1709acf5435694c4732c2912b5e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tighten/ziggy/zipball/f2ce6091078109f434e295a17adfac7378257ace",
-                "reference": "f2ce6091078109f434e295a17adfac7378257ace",
+                "url": "https://api.github.com/repos/tighten/ziggy/zipball/5395ba7c6d6ea1709acf5435694c4732c2912b5e",
+                "reference": "5395ba7c6d6ea1709acf5435694c4732c2912b5e",
                 "shasum": ""
             },
             "require": {
@@ -6011,8 +6011,10 @@
                 "php": ">=8.1"
             },
             "require-dev": {
+                "laravel/folio": "^1.1",
                 "orchestra/testbench": "^7.0 || ^8.0 || ^9.0",
-                "phpunit/phpunit": "^9.5 || ^10.3"
+                "pestphp/pest": "^2.26",
+                "pestphp/pest-plugin-laravel": "^2.4"
             },
             "type": "library",
             "extra": {
@@ -6055,9 +6057,9 @@
             ],
             "support": {
                 "issues": "https://github.com/tighten/ziggy/issues",
-                "source": "https://github.com/tighten/ziggy/tree/v2.1.0"
+                "source": "https://github.com/tighten/ziggy/tree/v2.3.0"
             },
-            "time": "2024-03-26T16:04:23+00:00"
+            "time": "2024-07-21T16:18:39+00:00"
         },
         {
             "name": "tijsverkoyen/css-to-inline-styles",

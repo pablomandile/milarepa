@@ -24,6 +24,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/lugares', LugaresController::class);
     Route::resource('/tipo-actividad', TipoActividadController::class);
     Route::resource('/disponibilidades', DisponibilidadesController::class);
+    // ->except(['create', 'edit']);
+    // Route::get('/disponibilidades/create', DisponibilidadesController::class, 'create')->name('disponibilidades.create');
+    // Route::get('/disponibilidades{id}/edit', DisponibilidadesController::class, 'edit')->name('disponibilidades.edit');
     Route::resource('/maestros', MaestrosController::class);
     Route::resource('/coordinadores', CoordinadoresController::class);
     Route::resource('/monedas', MonedasController::class);

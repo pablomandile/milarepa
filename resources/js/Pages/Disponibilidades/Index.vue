@@ -6,9 +6,10 @@
 
 <script setup>
     import AppLayout from '@/Layouts/AppLayout.vue';
-    import { Link } from '@inertiajs/vue3';
+    import { Link, router } from '@inertiajs/vue3';
     import { PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/solid';
     import { Inertia } from '@inertiajs/inertia';
+    import Swal from "sweetalert2";
     
     defineProps({
         disponibilidades: {
@@ -17,11 +18,27 @@
         }
     })
 
-    const deleteDisponibilidad = id => {
-        if (confirm('Quiere borrar la disponibilidad?')){
-            Inertia.delete(route('disponibilidades.destroy', id))
-        }
-    }
+    const deleteDisponibilidad = (id) => {
+    Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Esta acción no se puede deshacer.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+    }).then((result) => {
+        if (result.isConfirmed) {
+        router.delete(route('disponibilidades.destroy', id), {
+                onSuccess: () => {
+                Swal.fire("¡Eliminado!", "El curso ha sido eliminado.", "success");
+                },
+                onError: () => {
+                Swal.fire("Error", "Hubo un problema al eliminar el curso.", "error");
+                },
+            });
+            }
+        });
+    };
     
 </script>
 
@@ -53,7 +70,7 @@
                                         <PencilSquareIcon class="w-6 h-6 text-indigo-500" />
                                         </Link>
                                         <Link @click="deleteDisponibilidad(parseInt(disponibilidad.id))" v-if="$page.props.user.permissions.includes('delete disponibilidades')">
-                                        <TrashIcon class="w-6 h-6 text-indigo-500" />
+                                        <TrashIcon class="w-6 h-6 text-red-300" />
                                         </Link>
                                     </div>
                                 </div>
