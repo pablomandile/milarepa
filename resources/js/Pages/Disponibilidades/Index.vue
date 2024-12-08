@@ -4,41 +4,80 @@
     }
 </script>
 
-<script setup>
+<script>
     import AppLayout from '@/Layouts/AppLayout.vue';
     import { Link, router } from '@inertiajs/vue3';
     import { PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/solid';
     import { Inertia } from '@inertiajs/inertia';
     import Swal from "sweetalert2";
-    
-    defineProps({
+    import DataTable from 'primevue/datatable';
+    import Column from 'primevue/column';
+
+    export default {
+    name: 'DisponibilidadesIndex',
+    components: {
+        AppLayout,
+        DataTable,
+        Column,
+    },
+    props: {
         disponibilidades: {
             type: Object,
-            required: true
-        }
-    })
-
-    const deleteDisponibilidad = (id) => {
-    Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Esta acción no se puede deshacer.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Sí, eliminar",
-        cancelButtonText: "Cancelar",
-    }).then((result) => {
-        if (result.isConfirmed) {
-        router.delete(route('disponibilidades.destroy', id), {
-                onSuccess: () => {
-                Swal.fire("¡Eliminado!", "El curso ha sido eliminado.", "success");
-                },
-                onError: () => {
-                Swal.fire("Error", "Hubo un problema al eliminar el curso.", "error");
-                },
+            required: true,
+        },
+    },
+    methods: {
+        deleteDisponibilidad(id) {
+            Swal.fire({
+                title: "¿Estás seguro?",
+                text: "Esta acción no se puede deshacer.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    router.delete(route('disponibilidades.destroy', id), {
+                        onSuccess: () => {
+                            Swal.fire("¡Eliminado!", "La disponibilidad ha sido eliminada.", "success");
+                        },
+                        onError: () => {
+                            Swal.fire("Error", "Hubo un problema al eliminar la disponibilidad.", "error");
+                        },
+                    });
+                }
             });
-            }
-        });
-    };
+        },
+    },
+};
+    // defineProps({
+    //     disponibilidades: {
+    //         type: Object,
+    //         required: true
+    //     }
+    // })
+
+    // const deleteDisponibilidad = (id) => {
+    // Swal.fire({
+    //     title: "¿Estás seguro?",
+    //     text: "Esta acción no se puede deshacer.",
+    //     icon: "warning",
+    //     showCancelButton: true,
+    //     confirmButtonText: "Sí, eliminar",
+    //     cancelButtonText: "Cancelar",
+    // }).then((result) => {
+    //     if (result.isConfirmed) {
+    //     router.delete(route('disponibilidades.destroy', id), {
+    //             onSuccess: () => {
+    //             Swal.fire("¡Eliminado!", "El curso ha sido eliminado.", "success");
+    //             },
+    //             onError: () => {
+    //             Swal.fire("Error", "Hubo un problema al eliminar el curso.", "error");
+    //             },
+    //         });
+    //         }
+    //     });
+    // };
     
 </script>
 
@@ -57,7 +96,7 @@
                     </div>
                 
                     <div class="mt-4">
-                        <ul role="list" class="divide-y divide-gray-100">
+                        <!-- <ul role="list" class="divide-y divide-gray-100">
                             <li class="flex justify-between gap-x-6 py-5" v-for="disponibilidad in disponibilidades.data">
                                 <div class="flex min-w-0 gap-x-4">
                                     <div class="min-w-0 flex-auto">
@@ -75,7 +114,28 @@
                                     </div>
                                 </div>
                             </li>
-                        </ul>
+                        </ul> -->
+                        <DataTable :value="disponibilidades.data" responsive-layout="scroll">
+                            <Column field="descripcion" header="Descripción"></Column>
+                            <Column header="Acciones">
+                                <template #body="slotProps">
+                                    <div class="flex space-x-2">
+                                        <Link
+                                            :href="route('disponibilidades.edit', parseInt(slotProps.data.id))"
+                                            v-if="$page.props.user.permissions.includes('update disponibilidades')"
+                                        >
+                                            <i class="pi pi-pencil text-indigo-500"></i>
+                                        </Link>
+                                        <a
+                                            @click.prevent="deleteDisponibilidad(parseInt(slotProps.data.id))"
+                                            v-if="$page.props.user.permissions.includes('delete disponibilidades')"
+                                        >
+                                            <i class="pi pi-trash text-red-500"></i>
+                                        </a>
+                                    </div>
+                                </template>
+                            </Column>
+                        </DataTable>
                     </div>
                 </div>
             </div>
