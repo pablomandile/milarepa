@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Maestro;
+use Inertia\Inertia;
+use App\Http\Requests\MaestroRequest;
+
 
 class MaestrosController extends Controller
 {
@@ -11,7 +15,8 @@ class MaestrosController extends Controller
      */
     public function index()
     {
-        //
+        $maestros = Maestro::paginate(15);
+        return inertia('Maestros/Index', ['maestros' => $maestros]);
     }
 
     /**
@@ -19,15 +24,18 @@ class MaestrosController extends Controller
      */
     public function create()
     {
-        //
+        return inertia('Maestros/Create');
     }
 
     /**
      * Store a newly created resource in storage.
+     * @param App\Http\Requests\MaestroRequest
+     * @param \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(MaestroRequest $request)
     {
-        //
+        Maestro::create($request->validated());
+        return redirect()->route('maestros.index');
     }
 
     /**

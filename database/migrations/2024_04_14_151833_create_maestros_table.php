@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('maestros', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre', 30);
-            $table->string('telefono', 50);
+            $table->string('nombre', 50);
+            $table->string('telefono', 50)->nullable();
+            $table->string('email', 255)->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class DisponibilidadRequest extends FormRequest
+class MaestroRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,13 +23,15 @@ class DisponibilidadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'descripcion' => ['required', 'string', 'max:50', Rule::unique(table: 'disponibilidades', column: 'descripcion')->ignore(id: request('disponibilidad'), idColumn: 'id')]
+            'nombre' => ['required', 'string', 'max:50'],
+            'telefono' => ['string', 'max:50'],
+            'email' => ['string', 'max:255']
         ];
     }
 
     public function messages():array {
         return [
-            'descripcion.unique' => __('La Disponibilidad ya existe')
+            'nombre.required' => __('El nombre no puede quedar vacío')
         ];
     }
 }
