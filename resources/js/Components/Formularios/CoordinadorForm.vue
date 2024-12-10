@@ -1,6 +1,6 @@
 <script>
     export default {
-        name: 'MaestrosForm'
+        name: 'CoordinadoresForm'
     }
 </script>
 

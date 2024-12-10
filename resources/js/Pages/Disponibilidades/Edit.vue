@@ -7,7 +7,7 @@
 <script setup>
     import { useForm } from '@inertiajs/vue3';
     import AppLayout from '@/Layouts/AppLayout.vue'
-    import DisponibilidadForm from '@/Components/Disponibilidades/Form.vue'
+    import DisponibilidadForm from '@/Components/Formularios/DisponibilidadForm.vue'
 
     const props = defineProps({
         disponibilidad:{

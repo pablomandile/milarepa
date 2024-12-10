@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Coordinador;
 
 class CoordinadoresController extends Controller
 {
@@ -11,7 +12,8 @@ class CoordinadoresController extends Controller
      */
     public function index()
     {
-        //
+        $coordinadores = Coordinador::paginate(15);
+        return inertia('Coordinadores/Index', ['coordinadores' => $coordinadores]);
     }
 
     /**
@@ -19,7 +21,7 @@ class CoordinadoresController extends Controller
      */
     public function create()
     {
-        //
+        return inertia('Maestros/Create');
     }
 
     /**
@@ -27,7 +29,8 @@ class CoordinadoresController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        Coordinador::create($request->validated());
+        return redirect()->route('maestros.index');
     }
 
     /**

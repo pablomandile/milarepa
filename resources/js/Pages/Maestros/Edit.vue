@@ -1,33 +1,35 @@
 <script>
     export default {
-        name: 'DisponibilidadesEdit'
+        name: 'MaestrosEdit'
     }
 </script>
 
 <script setup>
     import { useForm } from '@inertiajs/vue3';
     import AppLayout from '@/Layouts/AppLayout.vue'
-    import DisponibilidadForm from '@/Components/Disponibilidades/Form.vue'
+    import MaestroForm from '@/Components/Formularios/MaestroForm.vue'
 
     const props = defineProps({
-        disponibilidad:{
+        maestro:{
             type: Object,
             required: true
         }
     });
-    // console.log(props.disponibilidad);
-    if (!props.disponibilidad) {
-        console.error('La disponibilidad no está definida');
+    // console.log(props.maestro);
+    if (!props.maestro) {
+        console.error('La maestro no está definido');
     }
 
     const form = useForm({
-        descripcion: props.disponibilidad.descripcion
+        nombre: props.maestro.nombre,
+        telefono: props.maestro.telefono,
+        email: props.maestro.email
     });
 
     const handleSubmit = () => {
-        form.put(route('disponibilidades.update', props.disponibilidad.id), {
+        form.put(route('maestros.update', props.maestro.id), {
             onSuccess: () => {
-                console.log('Disponibilidad actualizada exitosamente');
+                console.log('Maestro actualizado exitosamente');
             },
             onError: errors => {
                 console.log('Errores al actualizar:', errors);
@@ -37,9 +39,9 @@
 </script>
 
 <template>
-    <AppLayout title="Editar Disponibilidad">
+    <AppLayout title="Editar Maestro">
         <template #header>
-            <h1 class="font-semibold text-lx text-gray-800 leading-tight" >Editar Disponibilidad</h1>
+            <h1 class="font-semibold text-lx text-gray-800 leading-tight" >Editar maestro</h1>
         </template>
 
         <div class="py-12">
@@ -47,7 +49,7 @@
                 <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
                     <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white border-b border-gray-200">
-                            <DisponibilidadForm 
+                            <MaestroForm 
                             :updating="true" 
                             :form="form" 
                             @submit="handleSubmit"/>

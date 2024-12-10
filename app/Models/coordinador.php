@@ -10,4 +10,10 @@ class Coordinador extends Model
     use HasFactory;
     
     protected $table = 'coordinadores';
+
+    protected $fillable = [
+        'nombre', 
+        'telefono', 
+        'email'
+    ];
 }
