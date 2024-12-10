@@ -8,8 +8,9 @@
     import AppLayout from '@/Layouts/AppLayout.vue';
     import { Link, router } from '@inertiajs/vue3';
     import { PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/solid';
-    import { Inertia } from '@inertiajs/inertia';
     import Swal from "sweetalert2";
+    import DataTable from 'primevue/datatable';
+    import Column from 'primevue/column';
     
     defineProps({
         maestros: {
@@ -45,43 +46,38 @@
 <template>
     <AppLayout>
         <template #header>
-                <h1 class="font-semibold text-xl text-gray-800 leading-tight">Maestros</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Maestros</h1>
         </template>
         <div class="py-12">
-            <div class="max-w-7xl mx-auto-sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-3xl mx-auto">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="p-6 bg-white border-b border-gray-200 max-w-4xl mx-auto">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create maestros')">
                         <Link :href="route('maestros.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
                             NUEVO MAESTRO
                         </Link>
                     </div>
-                
                     <div class="mt-4">
-                        <ul role="list" class="divide-y divide-gray-100">
-                            <li class="flex justify-between gap-x-6 py-5" v-for="maestro in maestros.data">
-                                <div class="flex min-w-0 gap-x-4">
-                                    <div class="min-w-0 flex-auto">
-                                        <p class="text-md font-semibold leading-6 text-gray-900">{{ maestro.nombre }}</p>
-                                    </div>
-                                    <div class="min-w-0 flex-auto">
-                                        <p class="text-md font-semibold leading-6 text-gray-900">{{ maestro.telefono }}</p>
-                                    </div>
-                                    <div class="min-w-0 flex-auto">
-                                        <p class="text-md font-semibold leading-6 text-gray-900">{{ maestro.email }}</p>
-                                    </div>
-                                </div>
-                                <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                                    <div class="flex space-x-4">
-                                        <Link :href="route('maestros.edit', parseInt(maestro.id))" v-if="$page.props.user.permissions.includes('update maestros')">
-                                        <PencilSquareIcon class="w-6 h-6 text-indigo-500" />
+                        <DataTable :value="maestros.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                            <Column field="nombre" header="Nombre"></Column>
+                            <Column field="telefono" header="Telefono"></Column>
+                            <Column field="email" header="Correo electrónico"></Column>
+                            <Column header="Acciones">
+                                <template #body="slotProps">
+                                    <div class="flex space-x-2">
+                                        <Link
+                                            :href="route('maestros.edit', parseInt(slotProps.data.id))"
+                                            v-if="$page.props.user.permissions.includes('update maestros')">
+                                            <i class="pi pi-pencil text-indigo-500 mr-2"></i>
                                         </Link>
-                                        <Link @click="deleteaestro(parseInt(maestro.id))" v-if="$page.props.user.permissions.includes('delete maestros')">
-                                        <TrashIcon class="w-6 h-6 text-red-300" />
-                                        </Link>
+                                        <a
+                                            @click.prevent="deleteMaestro(parseInt(slotProps.data.id))"
+                                            v-if="$page.props.user.permissions.includes('delete maestros')">
+                                            <i class="pi pi-trash text-red-500"></i>
+                                        </a>
                                     </div>
-                                </div>
-                            </li>
-                        </ul>
+                                </template>
+                            </Column>
+                        </DataTable>
                     </div>
                 </div>
             </div>

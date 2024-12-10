@@ -21,9 +21,10 @@
     "dependencies": {
         "@heroicons/vue": "^2.1.5",
         "@inertiajs/inertia": "^0.11.1",
+        "@primevue/themes": "^4.2.4",
         "primeflex": "^3.3.1",
         "primeicons": "^7.0.0",
-        "primevue": "^4.2.4",
+        "primevue": "^3.53.0",
         "sweetalert2": "^11.14.5",
         "ziggy-js": "^2.3.0"
     }
