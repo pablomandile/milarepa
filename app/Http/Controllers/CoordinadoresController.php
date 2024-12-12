@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Coordinador;
+use App\Http\Requests\CoordinadorRequest;
+
 
 class CoordinadoresController extends Controller
 {
@@ -21,16 +23,16 @@ class CoordinadoresController extends Controller
      */
     public function create()
     {
-        return inertia('Maestros/Create');
+        return inertia('Coordinadores/Create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CoordinadorRequest $request)
     {
         Coordinador::create($request->validated());
-        return redirect()->route('maestros.index');
+        return redirect()->route('coordinadores.index');
     }
 
     /**
