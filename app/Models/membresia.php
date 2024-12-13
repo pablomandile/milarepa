@@ -12,5 +12,6 @@ class Membresia extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
+        'entidad_id'
     ];
 }

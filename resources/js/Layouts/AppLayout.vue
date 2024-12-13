@@ -71,7 +71,7 @@ const logout = () => {
                                         <DropdownLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
                                             Coordinadores
                                         </DropdownLink>
-                                        <DropdownLink :href="route('lugares.index')" :active="route().current('lugares.*')">
+                                        <DropdownLink :href="route('entidades.index')" :active="route().current('entidades.*')">
                                             Entidades
                                         </DropdownLink>
                                         <DropdownLink :href="route('membresias.index')" :active="route().current('membresias.*')">
@@ -169,6 +169,33 @@ const logout = () => {
                                         </DropdownLink>
                                         <DropdownLink :href="route('roles.index')" :active="route().current('roles.*')">
                                             Roles
+                                        </DropdownLink>
+                                    </template>
+                                </Dropdown>
+                            </div>
+                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                                <Dropdown>
+                                    <template #trigger>
+                                        <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                            Ayuda
+                                            <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+                                     </template>
+
+                                    <template #content>
+                                        <DropdownLink :href="route('usuarios.index')" :active="route().current('usuarios.*')">
+                                            Centro de ayuda
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
+                                            Acerca de
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('roles.index')" :active="route().current('roles.*')">
+                                            Novedades
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('roles.index')" :active="route().current('roles.*')">
+                                            Reportar un error
                                         </DropdownLink>
                                     </template>
                                 </Dropdown>

@@ -4,9 +4,10 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TipoActividadController;
-use App\Http\Controllers\LugaresController;
+use App\Http\Controllers\EntidadesController;
 use App\Http\Controllers\DisponibilidadesController;
 use App\Http\Controllers\MaestrosController;
+use App\Http\Controllers\MembresiasController;
 use App\Http\Controllers\CoordinadoresController;
 use App\Http\Controllers\MonedasController;
 use App\Http\Controllers\MetodosPagoController;
@@ -21,7 +22,7 @@ Route::get('/', [DashboardController::class, 'index']);
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
-    Route::resource('/lugares', LugaresController::class);
+    Route::resource('/entidades', EntidadesController::class);
     Route::resource('/tipo-actividad', TipoActividadController::class);
     Route::resource('/disponibilidades', DisponibilidadesController::class);
     Route::resource('/maestros', MaestrosController::class);
@@ -35,7 +36,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/usuarios', UsuariosController::class);
     Route::resource('/perfiles', PerfilesController::class);
     Route::resource('/roles', RolesController::class);
-    Route::resource('/membresias', RolesController::class);
+    Route::resource('/membresias', MembresiasController::class);
     Route::resource('/comidas', RolesController::class);
     Route::resource('/hospedajes', RolesController::class);
     Route::resource('/transportes', RolesController::class);

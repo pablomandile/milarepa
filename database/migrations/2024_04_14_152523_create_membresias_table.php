@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nombre', 20);
             $table->string('descripcion', 50);
+            $table->unsignedInteger('entidad_id');
             $table->timestamps();
             $table->softDeletes();
         });

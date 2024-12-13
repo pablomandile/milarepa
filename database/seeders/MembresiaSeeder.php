@@ -15,9 +15,9 @@ class MembresiaSeeder extends Seeder
     {
         // Datos a poblar
         $membresias = [
-            ['nombre' => 'TK Clases', 'descripcion' => 'Tarjeta Kadampa Clases'],
-            ['nombre' => 'TK Corazón', 'descripcion' => 'Tarjeta Kadampa Corazón'],
-            ['nombre' => 'TK Benefactor', 'descripcion' => 'Tarjeta Kadampa Benefactor'],
+            ['nombre' => 'TK Clases', 'descripcion' => 'Tarjeta Kadampa Clases', 'entidad_id' => '1'],
+            ['nombre' => 'TK Corazón', 'descripcion' => 'Tarjeta Kadampa Corazón', 'entidad_id' => '1'],
+            ['nombre' => 'TK Benefactor', 'descripcion' => 'Tarjeta Kadampa Benefactor', 'entidad_id' => '1'],
         ];
 
         // Iterar sobre los datos y crear registros en la tabla

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Membresia;
+
 
 class MembresiasController extends Controller
 {
@@ -11,7 +13,8 @@ class MembresiasController extends Controller
      */
     public function index()
     {
-        //
+        $membresias = Membresia::paginate(15);
+        return inertia('Membresias/Index', ['membresias' => $membresias]);
     }
 
     /**

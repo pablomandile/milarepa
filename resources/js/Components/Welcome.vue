@@ -21,7 +21,7 @@ export default {
           </h1>
       </div>
       <div class="flex justify-center mt-4 mb-4">
-        <h1>Powered by MILAREPA 1.0</h1>
+        <h1>Powered by MILAREPA</h1>
       </div>
       <div class="flex justify-center mb-20">
           <img :src="logo" alt="Logo" class="block h-80 w-auto" />
