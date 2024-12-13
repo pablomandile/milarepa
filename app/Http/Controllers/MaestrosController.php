@@ -51,7 +51,6 @@ class MaestrosController extends Controller
      */
     public function edit($id)
     {
-        // Obtener el dispo a editar
         $maestro = Maestro::findOrFail($id);
 
         // Devolver la vista de edición

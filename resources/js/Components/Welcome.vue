@@ -15,12 +15,15 @@ export default {
 
 <template>
     <div>
-      <div class="flex justify-center mt-4 mb-4">
+      <div class="flex justify-center mt-20 mb-4">
           <h1 class="font-semibold text-xl text-gray-800 leading-tight">
-            SISTEMA DE INSCRIPCIONES MILAREPA 1.0
+            SISTEMA DE INSCRIPCIONES {{ 'entidad_principal' }}
           </h1>
       </div>
-      <div class="flex justify-center">
+      <div class="flex justify-center mt-4 mb-4">
+        <h1>Powered by MILAREPA 1.0</h1>
+      </div>
+      <div class="flex justify-center mb-20">
           <img :src="logo" alt="Logo" class="block h-80 w-auto" />
       </div>
 

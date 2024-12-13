@@ -24,14 +24,16 @@ class MaestroRequest extends FormRequest
     {
         return [
             'nombre' => ['required', 'string', 'max:50'],
-            'telefono' => ['nullable','string', 'max:50'],
-            'email' => ['nullable','string', 'max:255']
+            'email' => ['required','string', 'max:255'],
+            'telefono' => ['nullable','string', 'max:50']
         ];
     }
 
     public function messages():array {
         return [
-            'nombre.required' => __('El nombre no puede quedar vacío')
+            'nombre.required' => __('El nombre no puede quedar vacío'),
+            'email.required' => __('El correo no puede quedar vacío')
+
         ];
     }
 }

@@ -30,10 +30,10 @@ import TextInput from '../TextInput.vue';
 <template>
     <FormSection @submitted="$emit('submit')">
         <template #title>
-            {{ updating ? 'Actualizar Maestro' : 'Nuevo Maestro' }}
+            {{ updating ? 'Actualizar Coordinador' : 'Nuevo Coordinador' }}
         </template>
         <template #description>
-            {{ updating ? 'Actualizando el Maestro seleccionado' : 'Agregando un nuevo Maestro/a para estar a cargo de actividades.' }}
+            {{ updating ? 'Actualizando el Coordinador seleccionado' : 'Agregando un nuevo Coordinador/a para estar a cargo de actividades.' }}
         </template>
         <template #form>
             <div class="col-span-6 sm:col-span-6">
@@ -42,14 +42,14 @@ import TextInput from '../TextInput.vue';
                 <InputError :message="$page.props.errors.nombre" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6">
+                <InputLabel for="email" value="Correo electrónico" :required="true"/>
+                <TextInput id="email" v-model="form.email" type="text" autocomplete="email" class="mt-1 block w-full" />
+                <InputError :message="$page.props.errors.email" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6">
                 <InputLabel for="telefono" value="Telefono" :required="false"/>
                 <TextInput id="telefono" v-model="form.telefono" type="text" autocomplete="telefono" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.telefono" class="mt-2" />
-            </div>
-            <div class="col-span-6 sm:col-span-6">
-                <InputLabel for="email" value="Correo electrónico" :required="false"/>
-                <TextInput id="email" v-model="form.email" type="text" autocomplete="email" class="mt-1 block w-full" />
-                <InputError :message="$page.props.errors.email" class="mt-2" />
             </div>
         </template>
         <template #actions>

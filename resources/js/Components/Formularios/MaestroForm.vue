@@ -42,15 +42,16 @@ import TextInput from '../TextInput.vue';
                 <InputError :message="$page.props.errors.nombre" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6">
+                <InputLabel for="email" value="Correo electrónico" :required="true"/>
+                <TextInput id="email" v-model="form.email" type="text" autocomplete="email" class="mt-1 block w-full" />
+                <InputError :message="$page.props.errors.email" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6">
                 <InputLabel for="telefono" value="Telefono" :required="false"/>
                 <TextInput id="telefono" v-model="form.telefono" type="text" autocomplete="telefono" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.telefono" class="mt-2" />
             </div>
-            <div class="col-span-6 sm:col-span-6">
-                <InputLabel for="email" value="Correo electrónico" :required="false"/>
-                <TextInput id="email" v-model="form.email" type="text" autocomplete="email" class="mt-1 block w-full" />
-                <InputError :message="$page.props.errors.email" class="mt-2" />
-            </div>
+
         </template>
         <template #actions>
             <PrimaryButton>

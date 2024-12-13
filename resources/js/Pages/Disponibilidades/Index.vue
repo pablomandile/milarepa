@@ -51,25 +51,27 @@ const deleteDisponibilidad = (id) => {
                     <div class="mt-4">
                         <DataTable :value="disponibilidades.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="descripcion" header="Descripción"></Column>
-                            <Column header="Acciones">
+
+                            <Column header="" headerClass="text-right" >
                                 <template #body="slotProps">
-                                    <div class="flex space-x-2">
+                                    <div class="flex justify-end space-x-2">
                                         <Link
                                             :href="route('disponibilidades.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update disponibilidades')"
-                                        >
-                                            <i class="pi pi-pencil text-indigo-500 mr-2"></i>
+                                            class="text-indigo-500">
+                                            <i class="pi pi-pencil text-indigo-500 mr-2"></i>Editar
                                         </Link>
                                         <a
                                             @click.prevent="deleteDisponibilidad(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete disponibilidades')"
-                                        >
-                                            <i class="pi pi-trash text-red-500"></i>
+                                            class="text-red-500 cursor-pointer">
+                                            <i class="pi pi-trash text-red-500"></i> Eliminar
                                         </a>
                                     </div>
                                 </template>
                             </Column>
                         </DataTable>
+
                     </div>
                 </div>
             </div>
