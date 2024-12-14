@@ -30,10 +30,10 @@
         if (result.isConfirmed) {
         router.delete(route('maestros.destroy', id), {
                 onSuccess: () => {
-                Swal.fire("¡Eliminado!", "El curso ha sido eliminado.", "success");
+                Swal.fire("¡Eliminado!", "El Maestro ha sido eliminado.", "success");
                 },
                 onError: () => {
-                Swal.fire("Error", "Hubo un problema al eliminar el curso.", "error");
+                Swal.fire("Error", "Hubo un problema al eliminar el Maestro.", "error");
                 },
             });
             }

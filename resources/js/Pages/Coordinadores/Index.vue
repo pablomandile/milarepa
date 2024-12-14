@@ -30,10 +30,10 @@
         if (result.isConfirmed) {
         router.delete(route('coordinadores.destroy', id), {
                 onSuccess: () => {
-                Swal.fire("¡Eliminado!", "El curso ha sido eliminado.", "success");
+                Swal.fire("¡Eliminado!", "El Coordinador ha sido eliminado.", "success");
                 },
                 onError: () => {
-                Swal.fire("Error", "Hubo un problema al eliminar el curso.", "error");
+                Swal.fire("Error", "Hubo un problema al eliminar el Coordinador.", "error");
                 },
             });
             }

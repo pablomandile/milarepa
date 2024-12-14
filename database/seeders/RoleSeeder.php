@@ -22,10 +22,10 @@ class RoleSeeder extends Seeder
         $permission_create_role = Permission::create(['name' => 'update roles']);
         $permission_create_role = Permission::create(['name' => 'delete roles']);
 
-        $permission_create_lugares = Permission::create(['name' => 'create lugares']);
-        $permission_create_lugares = Permission::create(['name' => 'update lugares']);
-        $permission_create_lugares = Permission::create(['name' => 'read lugares']);
-        $permission_create_lugares = Permission::create(['name' => 'delete lugares']);
+        $permission_create_entidades = Permission::create(['name' => 'create entidades']);
+        $permission_create_entidades = Permission::create(['name' => 'update entidades']);
+        $permission_create_entidades = Permission::create(['name' => 'read entidades']);
+        $permission_create_entidades = Permission::create(['name' => 'delete entidades']);
 
         $permission_create_disponibilidades = Permission::create(['name' => 'create disponibilidades']);
         $permission_create_disponibilidades = Permission::create(['name' => 'update disponibilidades']);
@@ -87,10 +87,10 @@ class RoleSeeder extends Seeder
             'read roles',
             'update roles',
             'delete roles',
-            'create lugares',
-            'update lugares',
-            'read lugares',
-            'delete lugares',
+            'create entidades',
+            'update entidades',
+            'read entidades',
+            'delete entidades',
             'create disponibilidades',
             'update disponibilidades',
             'read disponibilidades',
@@ -138,10 +138,10 @@ class RoleSeeder extends Seeder
         ];
         
         $permissions_editor = [
-            'create lugares',
-            'update lugares',
-            'read lugares',
-            'delete lugares',
+            'create entidades',
+            'update entidades',
+            'read entidades',
+            'delete entidades',
             'create disponibilidades',
             'update disponibilidades',
             'read disponibilidades',
@@ -189,10 +189,10 @@ class RoleSeeder extends Seeder
         ];
 
         $permissions_data_entry = [
-            'create lugares',
-            'update lugares',
-            'read lugares',
-            'delete lugares',
+            'create entidades',
+            'update entidades',
+            'read entidades',
+            'delete entidades',
             'create coordinadores',
             'update coordinadores',
             'read coordinadores',

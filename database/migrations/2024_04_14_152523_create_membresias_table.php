@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('membresias', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 20);
-            $table->string('descripcion', 50);
+            $table->string('descripcion', 50)->nullable();
             $table->unsignedInteger('entidad_id');
             $table->timestamps();
             $table->softDeletes();

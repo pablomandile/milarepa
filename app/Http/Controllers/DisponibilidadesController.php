@@ -94,7 +94,7 @@ class DisponibilidadesController extends Controller
             $disponibilidad->delete();
             return redirect()->route('disponibilidades.index')->with('success', 'Disponibilidad eliminada con éxito.');
         } catch (\Exception $e) {
-            return redirect()->route('disponibilidades.index')->with('error', 'Error al eliminar la disponibilidad: ' . $e->getMessage());
+            return redirect()->route('disponibilidades.index')->with('error', 'Error al eliminar la Disponibilidad: ' . $e->getMessage());
         }
     }
 }

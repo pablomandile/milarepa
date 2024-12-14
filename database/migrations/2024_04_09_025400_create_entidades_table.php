@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('instagram_uri', 255)->nullable();
             $table->string('facebook_uri', 255)->nullable();
             $table->string('youtube_uri', 255)->nullable();
-            $table->string('Logo_uri', 255)->nullable();
+            $table->string('logo_uri', 255)->nullable();
             $table->string('email1',50)->nullable();
             $table->string('email2',50)->nullable();
             $table->boolean('entidad_principal');

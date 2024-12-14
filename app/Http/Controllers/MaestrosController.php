@@ -7,7 +7,6 @@ use App\Models\Maestro;
 use Inertia\Inertia;
 use App\Http\Requests\MaestroRequest;
 
-
 class MaestrosController extends Controller
 {
     /**
@@ -81,7 +80,7 @@ class MaestrosController extends Controller
             $maestro->delete();
             return redirect()->route('maestros.index')->with('success', 'Maestro eliminado con éxito.');
         } catch (\Exception $e) {
-            return redirect()->route('maestros.index')->with('error', 'Error al eliminar la disponibilidad: ' . $e->getMessage());
+            return redirect()->route('maestros.index')->with('error', 'Error al eliminar el Maestro: ' . $e->getMessage());
         }
     }
 }

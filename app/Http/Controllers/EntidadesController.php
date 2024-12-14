@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Entidad;
+use Inertia\Inertia;
+use App\Http\Requests\EntidadRequest;
 
 class EntidadesController extends Controller
 {
@@ -11,7 +14,8 @@ class EntidadesController extends Controller
      */
     public function index()
     {
-        //
+        $entidades = Entidad::paginate(15);
+        return inertia('Entidades/Index', ['entidades' => $entidades]);
     }
 
     /**
@@ -19,15 +23,18 @@ class EntidadesController extends Controller
      */
     public function create()
     {
-        //
+        return inertia('Entidades/Create');
     }
 
     /**
      * Store a newly created resource in storage.
+     * @param App\Http\Requests\EntidadRequest
+     * @param \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(EntidadRequest $request)
     {
-        //
+        Entidad::create($request->validated());
+        return redirect()->route('entidades.index');
     }
 
     /**
@@ -41,24 +48,39 @@ class EntidadesController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+        $entidad = Entidad::findOrFail($id);
+
+        // Devolver la vista de edición
+        return Inertia::render('Entidades/Edit', [
+            'entidad' => $entidad,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(EntidadRequest $request, $id)
     {
-        //
+        $entidad = Entidad::findOrFail($id);
+
+        $entidad->update($request->validated());
+
+        return redirect()->route('entidades.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        try {
+            $entidad = Entidad::findorfail($id);
+            $entidad->delete();
+            return redirect()->route('entidades.index')->with('success', 'Entidad eliminada con éxito.');
+        } catch (\Exception $e) {
+            return redirect()->route('entidades.index')->with('error', 'Error al eliminar la Entidad: ' . $e->getMessage());
+        }
     }
 }
