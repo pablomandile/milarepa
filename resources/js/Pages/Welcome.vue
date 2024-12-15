@@ -19,7 +19,7 @@ defineProps({
         <!-- Sección de texto -->
         <div class="mb-2">
             <h1 class="text-white text-center text-[60px] font-extrabold">Sistema de inscripciones</h1>
-            <h1 class="text-white text-center text-[60px] font-extrabold">Milarepa 1.0</h1>
+            <h1 class="text-white text-center text-[60px] font-extrabold">Milarepa</h1>
 
         </div>
         

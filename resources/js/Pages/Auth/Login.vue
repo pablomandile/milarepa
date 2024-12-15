@@ -7,6 +7,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import LogoMilarepa from '/resources/images/lotus-art-logo.png';
 
 defineProps({
     canResetPassword: Boolean,
@@ -34,7 +35,7 @@ const submit = () => {
 
     <AuthenticationCard>
         <template #logo>
-            <AuthenticationCardLogo />
+            <img :src="LogoMilarepa" alt="Logo Milarepa" class="h-20 w-auto mx-auto" />
         </template>
 
         <div v-if="status" class="mb-4 font-medium text-sm text-green-600">

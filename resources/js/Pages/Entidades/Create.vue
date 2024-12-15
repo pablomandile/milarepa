@@ -9,6 +9,7 @@
     import AppLayout from '@/Layouts/AppLayout.vue'
     import EntidadForm from '@/Components/Formularios/EntidadForm.vue'
     import { Link } from '@inertiajs/vue3';
+    import ScrollTop from 'primevue/scrolltop';
 
     const form = useForm({
         nombre: '',
@@ -19,11 +20,12 @@
         web_uri: '',
         instagram_uri: '',
         facebook_uri: '',
+        twitter_uri: '',
         youtube_uri: '',
         logo_uri: '',
         email1: '',
         email2: '',
-        entidad_principal: ''
+        entidad_principal: false
     })
 </script>
 
@@ -53,5 +55,16 @@
                 </div>
             </div>
         </div>
+        <ScrollTop
+            :threshold="100"
+            icon="pi pi-angle-up"
+            :pt="{
+                root: 'w-2rem h-2rem border-round-sm',
+                icon: {
+                    class: 'text-indigo-400'
+                }
+            }"
+        />         
     </AppLayout>
+
 </template>

@@ -9,8 +9,11 @@ import PrimeVue from 'primevue/config';
 import 'primevue/resources/primevue.min.css'; // Estilos base de PrimeVue
 import 'primevue/resources/themes/lara-light-blue/theme.css'; // O el tema que prefieras
 import 'primeicons/primeicons.css'; // Iconos
+import Tooltip from 'primevue/tooltip';
+
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
 
 createInertiaApp({
     title: (title) => `${appName}`,
@@ -20,7 +23,9 @@ createInertiaApp({
             .use(plugin)
             .use(ZiggyVue)
             .use(PrimeVue)
+            .directive('tooltip', Tooltip)
             .mount(el);
+            
     },
     progress: {
         color: '#4B5563',

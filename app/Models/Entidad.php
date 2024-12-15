@@ -20,9 +20,10 @@ class Entidad extends Model
         'web_uri',
         'instagram_uri',
         'facebook_uri',
+        'twitter_uri',
         'youtube_uri',
         'logo_uri',
-        'email',
+        'email1',
         'email2',
         'entidad_principal'
     ];

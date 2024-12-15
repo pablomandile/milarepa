@@ -56,14 +56,18 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="entidades.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
-                            <Column field="nombre" header="Nombre"></Column>
-                            <Column field="descripcion" header="Descripción"></Column>
-                            <Column field="direccion" header="Dirección"></Column>
-                            <Column field="telefono" header="Teléfono"></Column>
-                            <Column field="whatsapp" header="WhatsApp"></Column>
-                            <Column field="web_uri" header="Web"></Column>
-                            <Column field="email1" header="Correo electrónico"></Column>
+                        <DataTable :value="entidades.data" stripedRows removableSort paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                            <Column field="nombre" header="Nombre" sortable></Column>
+                            <Column header="Descripción">
+                                <template #body="slotProps">
+                                    <span v-tooltip="{ content: slotProps.data.descripcion }">
+                                        {{ slotProps.data.descripcion.substring(0, 10) }}...
+                                    </span>
+                                </template>
+                            </Column>
+                            <Column field="direccion" header="Dirección" sortable></Column>
+                            <Column field="telefono" header="Teléfono" sortable></Column>
+                            <Column field="email1" header="Correo electrónico" sortable></Column>
                             <Column header="Acciones">
                                 <template #body="slotProps">
                                     <div class="flex justify-center space-x-2">
@@ -81,6 +85,7 @@
                                 </template>
                             </Column>
                         </DataTable>
+                        
                     </div>
                 </div>
             </div>

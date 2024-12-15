@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('web_uri', 255)->nullable();
             $table->string('instagram_uri', 255)->nullable();
             $table->string('facebook_uri', 255)->nullable();
+            $table->string('twitter_uri', 255)->nullable();
             $table->string('youtube_uri', 255)->nullable();
             $table->string('logo_uri', 255)->nullable();
             $table->string('email1',50)->nullable();

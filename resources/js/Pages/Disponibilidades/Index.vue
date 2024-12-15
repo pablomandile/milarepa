@@ -59,13 +59,13 @@ const deleteDisponibilidad = (id) => {
                                             :href="route('disponibilidades.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update disponibilidades')"
                                             class="text-indigo-500">
-                                            <i class="pi pi-pencil text-indigo-500 mr-2"></i>Editar
+                                            <i class="pi pi-pencil text-indigo-500 mr-2"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteDisponibilidad(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete disponibilidades')"
                                             class="text-red-500 cursor-pointer">
-                                            <i class="pi pi-trash text-red-500"></i> Eliminar
+                                            <i class="pi pi-trash text-red-500"></i>
                                         </a>
                                     </div>
                                 </template>

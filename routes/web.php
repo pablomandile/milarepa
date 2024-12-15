@@ -22,7 +22,9 @@ Route::get('/', [DashboardController::class, 'index']);
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
-    Route::resource('/entidades', EntidadesController::class);
+    Route::resource('entidades', EntidadesController::class, [
+        'parameters' => ['entidades' => 'entidad'], // Renombrar el parámetro a 'entidad'
+    ]);
     Route::resource('/tipo-actividad', TipoActividadController::class);
     Route::resource('/disponibilidades', DisponibilidadesController::class);
     Route::resource('/maestros', MaestrosController::class);
@@ -42,7 +44,4 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/transportes', RolesController::class);
     Route::resource('/inscripciones', RolesController::class);
     Route::resource('/estado-inscripciones', RolesController::class);
-
-
-
 });

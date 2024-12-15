@@ -45,11 +45,10 @@ class EntidadesController extends Controller
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+   // Controlador con Route Model Binding
     public function edit($id)
     {
+        // Obtener el dispo a editar
         $entidad = Entidad::findOrFail($id);
 
         // Devolver la vista de edición
@@ -58,9 +57,6 @@ class EntidadesController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(EntidadRequest $request, $id)
     {
         $entidad = Entidad::findOrFail($id);
@@ -69,6 +65,7 @@ class EntidadesController extends Controller
 
         return redirect()->route('entidades.index');
     }
+
 
     /**
      * Remove the specified resource from storage.

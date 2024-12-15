@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
+use App\Models\Entidad;
 
 
 class DashboardController extends Controller
@@ -20,6 +21,10 @@ class DashboardController extends Controller
     }
 
     public function dashboard(){
-        return Inertia::render('Dashboard');
+
+        $entidadPrincipal = Entidad::where('entidad_principal', true)->first();
+        return Inertia::render('Dashboard', [
+            'entidad_principal' => $entidadPrincipal ? $entidadPrincipal->nombre : 'Sin entidad principal configurada',
+        ]);
     }
 }
