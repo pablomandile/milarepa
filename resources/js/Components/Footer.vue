@@ -56,7 +56,7 @@
           </ul>
         </div>
       </div>
-      <hr class="my-5 sm:my-5 border-slate-400" />
+      <hr class="my-5 sm:my-5 border-white" />
       <div
         class="flex flex-wrap items-center lg:gap-6 lg:justify-between lg:flex-nowrap">
         <div class="grow">
@@ -70,7 +70,7 @@
               Sistema de inscripciones
             </p>
             <p class="font-thin text-slate-200 lg:text-end">
-              {{'entidad_principal'}}
+              {{entidad_principal}}
             </p>
           </div>
           <div class="lg:px-4">
@@ -92,7 +92,7 @@
           </div>
         </div>
       </div>
-      <hr class="my-5 sm:my-5 border-slate-400" />
+      <hr class="my-5 sm:my-5 border-white" />
       <div class="flex flex-col gap-4">
         <div class="flex justify-center items-center">
             <p class="text-white">
@@ -111,16 +111,13 @@ import Wpp from "./Icons/Wpp.vue";
 import Twitter from "./Icons/Twitter.vue";
 import Youtube from "./Icons/Youtube.vue";
 import Instagram from "./Icons/Instagram.vue";
-</script>
-<script>
-export default {
-    data() {
-        return {
-            currentYear: null,
-        };
+
+defineProps({
+    entidad_principal: {
+        type: String,
+        default: "Sin entidad principal configurada",
     },
-    mounted() {
-        this.currentYear = new Date().getFullYear();
-    },
-};
+});
+
+const currentYear = new Date().getFullYear();
 </script>

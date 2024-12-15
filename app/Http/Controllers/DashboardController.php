@@ -21,7 +21,6 @@ class DashboardController extends Controller
     }
 
     public function dashboard(){
-
         $entidadPrincipal = Entidad::where('entidad_principal', true)->first();
         return Inertia::render('Dashboard', [
             'entidad_principal' => $entidadPrincipal ? $entidadPrincipal->nombre : 'Sin entidad principal configurada',

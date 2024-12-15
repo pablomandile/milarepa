@@ -12,6 +12,10 @@ import Footer from '@/Components/Footer.vue';
 
 defineProps({
     title: String,
+    entidad_principal: {
+        type: String,
+        default: 'Sin entidad principal configurada',
+    },
 });
 
 const showingNavigationDropdown = ref(false);
@@ -437,8 +441,8 @@ const logout = () => {
             <main>
                 <slot />
             </main>
-            <Footer />
-
+            <Footer :entidad_principal="entidad_principal"/>
+            
         </div>
     </div>
 </template>
