@@ -74,12 +74,12 @@
                                         <Link
                                             :href="route('entidades.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update entidades')">
-                                            <i class="pi pi-pencil text-indigo-500 mr-2"></i>
+                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteEntidad(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete entidades')">
-                                            <i class="pi pi-trash cursor-pointer text-red-500"></i>
+                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
                                         </a>
                                     </div>
                                 </template>

@@ -66,12 +66,12 @@
                                         <Link
                                             :href="route('coordinadores.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update coordinadores')">
-                                            <i class="pi pi-pencil text-indigo-500 mr-2"></i>
+                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteCoordinador(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete coordinadores')">
-                                            <i class="pi pi-trash text-red-500"></i>
+                                            <i class="pi pi-trash text-red-300"></i>
                                         </a>
                                     </div>
                                 </template>

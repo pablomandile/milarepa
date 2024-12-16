@@ -69,7 +69,7 @@
               class="font-semibold text-white lg:text-end whitespace-nowrap">
               Sistema de inscripciones
             </p>
-            <p class="font-thin text-slate-200 lg:text-end">
+            <p class="font-thin text-slate-500 lg:text-end">
               {{entidad_principal}}
             </p>
           </div>
@@ -78,7 +78,7 @@
                 Nueva Tradición Kadampa - <br />
                 Unión Internacional de Budismo Kadampa
             </p>
-            <p class="font-thin text-slate-200 lg:text-end">
+            <p class="font-thin text-slate-500 lg:text-end">
                 Budismo Kadampa Moderno
             </p>
           </div>
@@ -86,7 +86,7 @@
             <p class="font-semibold text-white lg:text-end">
                 "Llegará el día en que harás mi trabajo".
             </p>
-            <p class="font-thin text-slate-200 lg:text-end">
+            <p class="font-thin text-slate-500 lg:text-end">
                 Venerable Gueshe Kelsang Gyatso Rimpoché
             </p>
           </div>

@@ -56,12 +56,13 @@
             </div>
         </div>
         <ScrollTop
+            class="bg-slate-300	"
             :threshold="100"
             icon="pi pi-angle-up"
             :pt="{
                 root: 'w-2rem h-2rem border-round-sm',
                 icon: {
-                    class: 'text-indigo-400'
+                    class: 'text-indigo-500'
                 }
             }"
         />         

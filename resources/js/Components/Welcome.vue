@@ -33,7 +33,9 @@ import('../../images/lotus-art-logo.svg').then((module) => {
       <div class="flex justify-center mb-20">
           <img :src="logo" alt="Logo" class="block h-80 w-auto" />
       </div>
-
+      <div class="flex justify-center mt-4 mb-4">
+        <h1>¡Todos son Bienvenidos!</h1>
+      </div>
       <!-- {{ $page.props }} -->
       
       

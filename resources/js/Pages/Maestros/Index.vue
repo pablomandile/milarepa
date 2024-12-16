@@ -66,12 +66,12 @@
                                         <Link
                                             :href="route('maestros.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update maestros')">
-                                            <i class="pi pi-pencil text-indigo-500 mr-2"></i>
+                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteMaestro(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete maestros')">
-                                            <i class="pi pi-trash cursor-pointer text-red-500"></i>
+                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
                                         </a>
                                     </div>
                                 </template>
