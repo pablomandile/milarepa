@@ -15,8 +15,8 @@ class MonedaSeeder extends Seeder
     {
         // Datos a poblar
         $monedas = [
-            ['nombre' => 'pesos', 'simbolo' => '$'],
-            ['nombre' => 'dolares', 'simbolo' => 'USD'],
+            ['nombre' => 'Pesos', 'simbolo' => '$'],
+            ['nombre' => 'Dolares', 'simbolo' => 'USD'],
         ];
 
         // Iterar sobre los datos y crear registros en la tabla

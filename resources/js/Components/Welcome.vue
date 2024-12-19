@@ -24,7 +24,9 @@ import('../../images/lotus-art-logo.svg').then((module) => {
       </div>
       <div class="flex justify-center mt-4 mb-4">
           <h1 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ entidad_principal }}
+            <!-- {{ entidad_principal }} -->
+            {{ $page.props.entidad_principal.nombre }}
+
           </h1>
       </div>
       <div class="flex justify-center mt-4 mb-4">
@@ -37,7 +39,5 @@ import('../../images/lotus-art-logo.svg').then((module) => {
         <h1>¡Todos son Bienvenidos!</h1>
       </div>
       <!-- {{ $page.props }} -->
-      
-      
     </div>
 </template>

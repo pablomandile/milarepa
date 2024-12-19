@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('metodos_pago', function (Blueprint $table) {
             $table->id();
-            $table->string('metodo', 30);
+            $table->string('nombre', 30);
             $table->string('descripcion', 100);
             $table->timestamps();
             $table->softDeletes();

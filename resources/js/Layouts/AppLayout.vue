@@ -441,7 +441,9 @@ const logout = () => {
             <main>
                 <slot />
             </main>
-            <Footer :entidad_principal="entidad_principal"/>
+            <!-- <Footer :entidad_principal="entidad_principal"/> -->
+            <Footer :entidad_principal="$page.props.entidad_principal.nombre"/>
+
             
         </div>
     </div>

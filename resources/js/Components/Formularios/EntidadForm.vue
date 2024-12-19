@@ -11,21 +11,21 @@ import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
 import InputSwitch from 'primevue/inputswitch';
+import InputMask from 'primevue/inputmask';
 
+defineProps({
+    form: {
+    type: Object,
+    required: true
+},
+    updating: {
+    type: Boolean,
+    required: true,
+    default: false
+}
+})
 
-    defineProps({
-        form: {
-        type: Object,
-        required: true
-    },
-        updating: {
-        type: Boolean,
-        required: true,
-        default: false
-    }
-    })
-
-    defineEmits(['submit'])
+defineEmits(['submit'])
 
 </script>
 
@@ -49,6 +49,11 @@ import InputSwitch from 'primevue/inputswitch';
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6">
+                    <InputLabel for="abreviacion" class="text-indigo-400" value="Abreviación" :required="true"/>
+                    <TextInput id="abreviacion" v-model="form.abreviacion" type="text" autocomplete="abreviacion" class="mt-1 block w-full" />
+                <InputError :message="$page.props.errors.abreviacion" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6">
                     <InputLabel for="direccion" class="text-indigo-400" value="Dirección" :required="true"/>
                     <TextInput id="direccion" v-model="form.direccion" type="text" autocomplete="direccion" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.direccion" class="mt-2" />
@@ -60,7 +65,11 @@ import InputSwitch from 'primevue/inputswitch';
             </div>
             <div class="col-span-6 sm:col-span-6">
                     <InputLabel for="whatsapp" class="text-indigo-400" value="WhatsApp" :required="false"/>
-                    <TextInput id="whatsapp" v-model="form.whatsapp" type="text" autocomplete="whatsapp" class="mt-1 block w-full" />
+                    <!-- <TextInput id="whatsapp" v-model="form.whatsapp" type="text" autocomplete="whatsapp" class="mt-1 block w-full" /> -->
+                    <InputMask id="whatsapp" v-model="form.whatsapp" mask="+999 99 9999 9999" 
+                    placeholder="+549 11 1234 5678" slotChar="_" :unmask="true"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
+
                 <InputError :message="$page.props.errors.whatsapp" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6">

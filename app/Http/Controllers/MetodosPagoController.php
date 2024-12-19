@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\MetodoPago;
 
 class MetodosPagoController extends Controller
 {
@@ -11,7 +12,8 @@ class MetodosPagoController extends Controller
      */
     public function index()
     {
-        //
+        $metodosPago = MetodoPago::paginate(15);
+        return inertia('MetodosPago/Index', ['metodosPago' => $metodosPago]);
     }
 
     /**

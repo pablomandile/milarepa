@@ -2,19 +2,15 @@
 <footer class="bg-[#bfc1f1] text-black mt-20 " style="border-top: 6px #64748b solid">
     <div class="p-4 max-w-7xl mx-auto">
       <div
-        class="flex flex-col gap-4 sm:items-center sm:justify-between sm:flex-row">
-        <div>
-            <h4 class="text-lg font-bold text-white m-0">
-                Nuestras redes
-            </h4>
-        </div>
+        class="flex flex-col gap-4 sm:items-center sm:justify-center sm:flex-row">
         <div>
           <ul
             class="flex flex-col justify-end gap-4 sm:flex-row p-0">
             <li class="flex items-center gap-3">
               <a
                 class="flex items-center gap-2"
-                href="https://www.facebook.com/EducacionBA">
+                :href="$page.props.entidad_principal.facebook_uri"
+                target="_blank">
                   <Facebook class="w-[32px] md:w-[40px] h-auto"/>
                 <span class="font-bold text-white sm:hidden">Facebook</span>
               </a>
@@ -22,15 +18,17 @@
             <li class="flex items-center gap-3">
               <a
                 class="flex items-center gap-2"
-                href="https://twitter.com/EducacionBA">
-                <Twitter class="w-[32px] md:w-[40px] h-auto"/>
+                :href="$page.props.entidad_principal.twitter_uri"
+                target="_blank">
+                <i class="pi pi-twitter text-white text-2xl"></i>
                 <span class="font-bold text-white sm:hidden">Twitter</span>
               </a>
             </li>
             <li class="flex items-center gap-3">
               <a
                 class="flex items-center gap-2"
-                href="https://www.instagram.com/educacionbA/">
+                :href="$page.props.entidad_principal.instagram_uri"
+                target="_blank">
                 <Instagram class="w-[32px] md:w-[40px] h-auto"/>
                 <span class="font-bold text-white sm:hidden"
                   >Instagram</span
@@ -40,7 +38,8 @@
             <li class="flex items-center gap-3">
               <a
                 class="flex items-center gap-2"
-                href="https://www.youtube.com/@educacionBA/">
+                :href="$page.props.entidad_principal.youtube_uri"
+                target="_blank">
                 <Youtube class="w-[32px] md:w-[40px] h-auto"/>
                 <span class="font-bold text-white sm:hidden">Youtube</span>
               </a>
@@ -48,9 +47,17 @@
             <li class="flex items-center gap-3">
               <a
                 class="flex items-center gap-2"
-                href="https://api.whatsapp.com/send/?phone=5491150500147&amp;text=Hola+%EF%BF%BD&amp;app_absent=0">
+                href="https://api.whatsapp.com/send/?phone=1150500147&amp;text=Hola+%EF%BF%BD&amp;app_absent=0">
                 <Wpp class="w-[32px] md:w-[40px] h-auto"/>
                 <span class="font-bold text-white sm:hidden">WhatsApp</span>
+              </a>
+            </li>
+            <li class="flex items-center gap-3">
+              <a
+                class="flex items-center gap-2"
+                :href="$page.props.entidad_principal.youtube_uri">
+                <Spotify class="w-[32px] md:w-[30px] h-auto"/>
+                <span class="font-bold text-white sm:hidden">Spotify</span>
               </a>
             </li>
           </ul>
@@ -70,7 +77,8 @@
               Sistema de inscripciones
             </p>
             <p class="font-thin text-slate-500 lg:text-end">
-              {{entidad_principal}}
+              <!-- {{entidad_principal}} -->
+              {{ $page.props.entidad_principal.nombre }}
             </p>
           </div>
           <div class="lg:px-4">
@@ -108,9 +116,11 @@
 import LogoMilarepa from "./Icons/LogoMilarepa.vue";
 import Facebook from "./Icons/Facebook.vue";
 import Wpp from "./Icons/Wpp.vue";
-import Twitter from "./Icons/Twitter.vue";
 import Youtube from "./Icons/Youtube.vue";
 import Instagram from "./Icons/Instagram.vue";
+import Spotify from "./Icons/Spotify.vue";
+import 'primeicons/primeicons.css';
+
 
 defineProps({
     entidad_principal: {

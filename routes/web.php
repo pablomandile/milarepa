@@ -23,14 +23,17 @@ Route::get('/', [DashboardController::class, 'index']);
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
     Route::resource('entidades', EntidadesController::class, [
-        'parameters' => ['entidades' => 'entidad'], // Renombrar el parámetro a 'entidad'
+        'parameters' => ['entidades' => 'entidad'], // Renombrar el parámetro a 'entidad' por singular español
     ]);
     Route::resource('/tipo-actividad', TipoActividadController::class);
-    Route::resource('/disponibilidades', DisponibilidadesController::class);
+    Route::resource('/disponibilidades', DisponibilidadesController::class, [
+        'parameters' => ['disponibilidades' => 'disponibilidad'],]);
     Route::resource('/maestros', MaestrosController::class);
-    Route::resource('/coordinadores', CoordinadoresController::class);
+    Route::resource('/coordinadores', CoordinadoresController::class , [
+        'parameters' => ['coordinadores' => 'coordinador'],]);
     Route::resource('/monedas', MonedasController::class);
-    Route::resource('/metodos-pago', MetodosPagoController::class);
+    Route::resource('/metodos-pago', MetodosPagoController::class, [
+        'parameters' => ['metodos-pago' => 'metodo-pago'],]);
     Route::resource('/esquema-precios', EsquemasPrecioController::class);
     Route::resource('/aplica-descuento-lugares', AplicaDescuentoLugaresController::class);
     Route::resource('/esquema-descuentos', EsquemaDescuentosController::class);
