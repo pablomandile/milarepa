@@ -41,7 +41,7 @@
 <template>
     <AppLayout title="Editar Método de pago">
         <template #header>
-            <h1 class="font-semibold text-lx text-gray-800 leading-tight" >Editar Método de pago</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Editar Método de pago</h1>
         </template>
 
         <div class="py-12">

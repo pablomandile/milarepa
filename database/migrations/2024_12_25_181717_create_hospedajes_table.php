@@ -16,6 +16,12 @@ return new class extends Migration
             $table->string('nombre', 100);
             $table->string('descripcion', 255)->nullable();
             $table->float('precio');
+            $table->unsignedBigInteger('lugar_hospedaje_id')->nullable();
+            // Define la clave foránea
+            $table->foreign('lugar_hospedaje_id')
+            ->references('id')
+            ->on('lugares_hospedaje')
+            ->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
         });

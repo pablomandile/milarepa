@@ -1,6 +1,6 @@
 <script>
     export default {
-        name: 'HospedajesForm'
+        name: 'LugaresHospedajeForm'
     }
 </script>
 
@@ -10,8 +10,6 @@ import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
-import Dropdown from 'primevue/dropdown';
-
 
     defineProps({
         form: {
@@ -22,12 +20,7 @@ import Dropdown from 'primevue/dropdown';
         type: Boolean,
         required: true,
         default: false
-    },
-    lugaresHospedaje: {
-        type: Array,
-        default: () => []
     }
-
     })
 
     defineEmits(['submit'])
@@ -37,10 +30,10 @@ import Dropdown from 'primevue/dropdown';
 <template>
     <FormSection @submitted="$emit('submit')">
         <template #title>
-            {{ updating ? 'Actualizar Hospedaje' : 'Nuevo Hospedaje' }}
+            {{ updating ? 'Actualizar Lugar de Hospedaje' : 'Nuevo Lugar de Hospedaje' }}
         </template>
         <template #description>
-            {{ updating ? 'Actualizando el Hospedaje seleccionada' : 'Agregando un nuevo Hospedaje.' }}
+            {{ updating ? 'Actualizando el Lugar de Hospedaje seleccionado' : 'Agregando un nuevo Lugar de Hospedaje.' }}
         </template>
         <template #form>
             <div class="col-span-6 sm:col-span-6">
@@ -54,23 +47,24 @@ import Dropdown from 'primevue/dropdown';
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6">
-                <InputLabel for="precio" value="Precio" :required="true"/>
-                <TextInput id="precio" v-model="form.precio" type="number"  step="1" min="0" autocomplete="precio" class="mt-1 block w-full" />
-                <InputError :message="$page.props.errors.precio" class="mt-2" />
+                <InputLabel for="direccion" value="Dirección" :required="true"/>
+                <TextInput id="direccion" v-model="form.direccion" type="text" autocomplete="direccion" class="mt-1 block w-full" />
+                <InputError :message="$page.props.errors.direccion" class="mt-2" />
             </div>
-            <!-- Lugar de Hospedaje (Dropdown) -->
             <div class="col-span-6 sm:col-span-6">
-                <InputLabel for="lugar_hospedaje_id" value="Lugar de Hospedaje" :required="true"/>
-                <Dropdown
-                    id="lugar_hospedaje_id"
-                    v-model="form.lugar_hospedaje_id"
-                    :options="lugaresHospedaje"
-                    optionLabel="nombre"
-                    optionValue="id"
-                    placeholder="Seleccione un lugar"
-                    class="w-full mt-1 md:w-14rem border border-gray-300"
-                />
-                <InputError :message="$page.props.errors.lugar_hospedaje_id" class="mt-2" />
+                <InputLabel for="telefono" value="Teléfono" :required="false"/>
+                <TextInput id="telefono" v-model="form.telefono" type="text" autocomplete="telefono" class="mt-1 block w-full" />
+                <InputError :message="$page.props.errors.telefono" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6">
+                <InputLabel for="email" value="Correo electrónico" :required="false"/>
+                <TextInput id="email" v-model="form.email" type="text" autocomplete="email" class="mt-1 block w-full" />
+                <InputError :message="$page.props.errors.email" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6">
+                <InputLabel for="web" value="Sitio Web" :required="false"/>
+                <TextInput id="web" v-model="form.web" type="text" autocomplete="web" class="mt-1 block w-full" />
+                <InputError :message="$page.props.errors.web" class="mt-2" />
             </div>
         </template>
         <template #actions>

@@ -42,7 +42,7 @@
 <template>
     <AppLayout title="Editar Maestro">
         <template #header>
-            <h1 class="font-semibold text-lx text-gray-800 leading-tight" >Editar maestro</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Editar maestro</h1>
         </template>
 
         <div class="py-12">

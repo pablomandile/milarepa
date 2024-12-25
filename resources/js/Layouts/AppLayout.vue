@@ -88,8 +88,11 @@ const logout = () => {
                                     <DropdownLink :href="route('comidas.index')" :active="route().current('comidas.*')">
                                         Comidas
                                     </DropdownLink>
+                                    <DropdownLink :href="route('lugareshospedaje.index')" :active="route().current('lugareshospedaje.*')">
+                                        Lugares de Hospedaje
+                                    </DropdownLink>
                                     <DropdownLink :href="route('hospedajes.index')" :active="route().current('hospedajes.*')">
-                                        Hospedajes
+                                        Acomodación
                                     </DropdownLink>
                                     <DropdownLink :href="route('transportes.index')" :active="route().current('transportes.*')">
                                         Transportes

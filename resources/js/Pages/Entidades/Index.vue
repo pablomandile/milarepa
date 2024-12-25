@@ -54,9 +54,6 @@
             }
         });
     };
-
-
-    
 </script>
 
 <template>
@@ -118,7 +115,8 @@
     v-model:visible="visible" 
     maximizable 
     modal 
-    header="Detalles de la Entidad" 
+    :header="entidadSeleccionada ? `Detalles de ${entidadSeleccionada.nombre}` : 'Detalles...'"
+
     :style="{ width: '50rem' }" 
     :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
 >
@@ -129,10 +127,6 @@
             
         </div>
         
-        <!-- Las demás líneas se muestran sólo si los campos no están vacíos -->
-        <p v-if="entidadSeleccionada.nombre && entidadSeleccionada.nombre.trim() !== ''">
-            <strong>Nombre:</strong> {{ entidadSeleccionada.nombre }}
-        </p>
         <p v-if="entidadSeleccionada.descripcion && entidadSeleccionada.descripcion.trim() !== ''">
             <strong>Descripción:</strong> {{ entidadSeleccionada.descripcion }}
         </p>
@@ -183,9 +177,7 @@
         <p class="mt-3 text-center text-indigo-500" v-if="entidadSeleccionada.entidad_principal === 1">
             {{ entidadSeleccionada.nombre }}<strong> es la entidad principal.</strong>
         </p>
-    </template>
-    <p v-else>Cargando datos...</p>
-</Dialog>
-
-
+        </template>
+        <p v-else>Cargando datos...</p>
+    </Dialog>
 </template>

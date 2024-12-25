@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class HospedajeRequest extends FormRequest
+class LugarHospedajeRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,15 +25,17 @@ class HospedajeRequest extends FormRequest
         return [
             'nombre' => ['required', 'string', 'max:100'],
             'descripcion' => ['nullable','string', 'max:255'],
-            'precio' => ['required', 'numeric', 'min:0'],
-            'lugar_hospedaje_id' => ['required', 'exists:lugares_hospedaje,id'], 
+            'direccion' => ['required','string', 'max:255'],
+            'telefono' => ['nullable','string', 'max:50'],
+            'email' => ['nullable','string', 'max:50'],
+            'web' => ['nullable','string', 'max:255'],
         ];
     }
 
     public function messages():array {
         return [
             'nombre.required' => __('El nombre no puede quedar vacío'),
-            'precio.required' => __('El precio no puede quedar vacío')
+            'direccion.required' => __('La dirección no puede quedar vacía')
         ];
     }
 }

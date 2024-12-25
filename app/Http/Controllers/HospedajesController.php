@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Hospedaje;
+use App\Models\LugarHospedaje;
 use App\Http\Requests\HospedajeRequest;
 use Inertia\Inertia;
 
@@ -14,7 +15,7 @@ class HospedajesController extends Controller
      */
     public function index()
     {
-        $hospedajes = Hospedaje::paginate(15);
+        $hospedajes = Hospedaje::with('lugarHospedaje')->paginate(10);
         return inertia('Hospedajes/Index', ['hospedajes'=>$hospedajes]);
     }
 
@@ -23,7 +24,11 @@ class HospedajesController extends Controller
      */
     public function create()
     {
-        return inertia('Hospedajes/Create');
+        $lugaresHospedaje = LugarHospedaje::select('id','nombre')->get();
+
+        return inertia('Hospedajes/Create', [
+            'lugaresHospedaje' => $lugaresHospedaje
+        ]);
     }
 
     /**
@@ -48,7 +53,9 @@ class HospedajesController extends Controller
      */
     public function edit(Hospedaje $hospedaje)
     {
-        return inertia::render('Hospedajes/Edit', ['hospedaje'=>$hospedaje]);
+        $lugaresHospedaje = LugarHospedaje::select('id','nombre')->get();
+
+        return inertia::render('Hospedajes/Edit', ['hospedaje'=>$hospedaje, 'lugaresHospedaje' => $lugaresHospedaje]);
     }
 
     /**

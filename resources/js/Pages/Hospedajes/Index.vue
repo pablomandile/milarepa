@@ -45,14 +45,14 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Hospedajes (Habitaciones)</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Acomodación</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-4xl mx-auto">
+                <div class="p-6 bg-white border-b border-gray-200 max-w-6xl mx-auto">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create hospedajes')">
                         <Link :href="route('hospedajes.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
-                            NUEVO HOSPEDAJE
+                            NUEVA ACOMODACIÓN
                         </Link>
                     </div>
                     <div class="mt-4">
@@ -62,6 +62,11 @@
                             <Column field="precio" header="Precio">
                                 <template #body="slotProps">
                                     $ {{ parseFloat(slotProps.data.precio).toLocaleString('es-AR', { minimumFractionDigits: 0 }) }}
+                                </template>
+                            </Column>
+                            <Column field="lugar_hospedaje" header="Lugar">
+                                <template #body="slotProps">
+                                    {{ slotProps.data.lugar_hospedaje ? slotProps.data.lugar_hospedaje.nombre : '—' }}
                                 </template>
                             </Column>
                             <Column header="Acciones">

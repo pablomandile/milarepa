@@ -14,6 +14,12 @@ class Hospedaje extends Model
     protected $fillable = [
         'nombre', 
         'descripcion',
-        'precio'
+        'precio',
+        'lugar_hospedaje_id'
     ];
+
+    public function lugarHospedaje()
+    {
+        return $this->belongsTo(LugarHospedaje::class, 'lugar_hospedaje_id');
+    }
 }

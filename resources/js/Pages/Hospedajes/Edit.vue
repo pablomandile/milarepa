@@ -14,8 +14,14 @@
         hospedaje:{
             type: Object,
             required: true
+        },
+
+        lugaresHospedaje: {
+        type: Array,
+        default: () => []
         }
     });
+
     // console.log(props.hospedaje);
     if (!props.hospedaje) {
         console.error('El hospedaje no está definido');
@@ -24,7 +30,8 @@
     const form = useForm({
         nombre: props.hospedaje.nombre,
         descripcion: props.hospedaje.descripcion,
-        precio: props.hospedaje.precio
+        precio: props.hospedaje.precio,
+        lugar_hospedaje_id: props.hospedaje.lugar_hospedaje_id
     });
 
     const handleSubmit = () => {
@@ -40,9 +47,9 @@
 </script>
 
 <template>
-    <AppLayout title="Editar Hospedaje">
+    <AppLayout title="Editar Acomodación">
         <template #header>
-            <h1 class="font-semibold text-lx text-gray-800 leading-tight" >Editar Hospedaje</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Editar Acomodación</h1>
         </template>
 
         <div class="py-12">
@@ -61,6 +68,7 @@
                             <HospedajeForm 
                             :updating="true" 
                             :form="form" 
+                            :lugaresHospedaje="lugaresHospedaje"
                             @submit="handleSubmit"/>
                         </div>
                     </div>

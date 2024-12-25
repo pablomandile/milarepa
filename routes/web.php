@@ -19,6 +19,8 @@ use App\Http\Controllers\RolesController;
 use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\ComidasController;
 use App\Http\Controllers\HospedajesController;
+use App\Http\Controllers\LugaresHospedajeController;
+
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -50,4 +52,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/transportes', RolesController::class);
     Route::resource('/inscripciones', RolesController::class);
     Route::resource('/estado-inscripciones', RolesController::class);
+    Route::resource('/lugareshospedaje', LugaresHospedajeController::class, [
+        'parameters' => ['lugareshospedaje' => 'lugarhospedaje'],]);
 });

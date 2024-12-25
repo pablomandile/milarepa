@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('actividades', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tipo_actividad_id')->constrained('tipo_actividades');
+            $table->foreignId('tipo_actividad_id')->constrained('tipos_actividad');
             $table->string('nombre', 30);
             $table->string('descripcion', 50);
             $table->string('imageUri', 255);
             $table->date('fechaInicio');
             $table->date('fechaFin');
             $table->time('horaInicio');
-            $table->foreignId('lugar_id')->constrained('lugares');
+            $table->foreignId('entidad_id')->constrained('entidades');
             $table->foreignId('disponibilidad_id')->constrained('disponibilidades');
             $table->foreignId('maestro_id')->constrained('maestros');
             $table->foreignId('coordinador_id')->constrained('coordinadores');
@@ -36,7 +36,7 @@ return new class extends Migration
             $table->text('infoExtra');
             $table->boolean('online');
             $table->foreignId('metodosPago_id')->constrained('metodos_pago');
-            $table->foreignId('comidas_id')->constrained('comidas');
+            $table->foreignId('comida_id')->constrained('comidas');
             $table->foreignId('hospedaje_id')->constrained('hospedajes');
             $table->foreignId('transporte_id')->constrained('transportes');
             $table->timestamps();

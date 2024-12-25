@@ -1,35 +1,30 @@
 <script>
     export default {
-        name: 'HospedajesCreate'
+        name: 'LugaresHospedajeCreate'
     }
 </script>
 
 <script setup>
     import { useForm } from '@inertiajs/vue3';
     import AppLayout from '@/Layouts/AppLayout.vue';
-    import HospedajeForm from '@/Components/Formularios/HospedajeForm.vue';
+    import LugarHospedajeForm from '@/Components/Formularios/LugarHospedajeForm.vue';
     import { Link } from '@inertiajs/vue3';
 
-    const props = defineProps({
-        lugaresHospedaje: {
-        type: Array,
-        default: () => []
-        }
-    });
 
     const form = useForm({
         nombre: '',
         descripcion: '',
-        precio: '',
-        lugar_hospedaje_id: ''
-    });
-
+        direccion: '',
+        telefono: '',        
+        email: '',        
+        web: '',
+    })
 </script>
 
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Agregar Nueva Comida</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Agregar Nuevo Lugar de Hospedaje</h1>
         </template>
         <div class="py-12">
             <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
@@ -37,17 +32,16 @@
                     <!-- Botón de Volver -->
                     <div class="flex justify-end mr-5 mb-6 mt-3">
                         <Link 
-                            :href="route('hospedajes.index')" 
+                            :href="route('lugareshospedaje.index')" 
                             class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
                             Volver
                         </Link>
                     </div>
                     <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white border-b border-gray-200">
-                            <HospedajeForm 
+                            <LugarHospedajeForm 
                             :updating="false"
-                            :lugaresHospedaje="lugaresHospedaje"
-                            :form="form" @submit="form.post(route('hospedajes.store'))"/>
+                            :form="form" @submit="form.post(route('lugareshospedaje.store'))"/>
                         </div>
                     </div>
                 </div>
