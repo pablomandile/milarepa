@@ -35,6 +35,7 @@ class EntidadRequest extends FormRequest
             'facebook_uri' => ['nullable','string', 'max:255'],
             'twitter_uri' => ['nullable','string', 'max:255'],
             'youtube_uri' => ['nullable','string', 'max:255'],
+            'spotify_uri' => ['nullable','string', 'max:255'],
             'logo_uri' => ['nullable','string', 'max:255'],
             'email1' => ['nullable','string', 'max:50'],
             'email2' => ['nullable','string', 'max:50'],

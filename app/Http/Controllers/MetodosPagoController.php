@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\MetodoPago;
+use App\Http\Requests\MetodoPagoRequest;
+use Inertia\Inertia;
+
+
 
 class MetodosPagoController extends Controller
 {
@@ -21,15 +25,17 @@ class MetodosPagoController extends Controller
      */
     public function create()
     {
-        //
+        return inertia('MetodosPago/Create');
+
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(MetodoPagoRequest $request)
     {
-        //
+        MetodoPago::create($request->validated());
+        return redirect()->route('metodospago.index');
     }
 
     /**
@@ -43,24 +49,32 @@ class MetodosPagoController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(MetodoPago $metodopago)
     {
-        //
+        return Inertia::render('MetodosPago/Edit', [
+            'metodoPago' => $metodopago,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(MetodoPagoRequest $request, MetodoPago $metodopago)
     {
-        //
+        $metodopago->update($request->validated());
+        return redirect()->route('metodospago.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(MetodoPago $metodopago)
     {
-        //
+        try {
+            $metodopago->delete();
+            return redirect()->route('metodospago.index')->with('success', 'Método de pago eliminado con éxito.');
+        } catch (\Exception $e) {
+            return redirect()->route('metodospago.index')->with('error', 'Error al eliminar el Método de pago: ' . $e->getMessage());
+        }
     }
 }

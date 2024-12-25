@@ -62,10 +62,10 @@ class RoleSeeder extends Seeder
         $permission_create_membresias = Permission::create(['name' => 'read membresias']);
         $permission_create_membresias = Permission::create(['name' => 'delete membresias']);
 
-        $permission_create_tipo_actividades = Permission::create(['name' => 'create tipo_actividades']);
-        $permission_create_tipo_actividades = Permission::create(['name' => 'update tipo_actividades']);
-        $permission_create_tipo_actividades = Permission::create(['name' => 'read tipo_actividades']);
-        $permission_create_tipo_actividades = Permission::create(['name' => 'delete tipo_actividades']);
+        $permission_create_tipos_actividad = Permission::create(['name' => 'create tipos_actividad']);
+        $permission_create_tipos_actividad = Permission::create(['name' => 'update tipos_actividad']);
+        $permission_create_tipos_actividad = Permission::create(['name' => 'read tipos_actividad']);
+        $permission_create_tipos_actividad = Permission::create(['name' => 'delete tipos_actividad']);
 
         $permission_create_esquema_descuentos = Permission::create(['name' => 'create esquema_descuentos']);
         $permission_create_esquema_descuentos = Permission::create(['name' => 'update esquema_descuentos']);
@@ -81,6 +81,16 @@ class RoleSeeder extends Seeder
         $permission_create_actividades = Permission::create(['name' => 'update actividades']);
         $permission_create_actividades = Permission::create(['name' => 'read actividades']);
         $permission_create_actividades = Permission::create(['name' => 'delete actividades']);
+
+        $permission_create_comidas = Permission::create(['name' => 'create comidas']);
+        $permission_create_comidas = Permission::create(['name' => 'update comidas']);
+        $permission_create_comidas = Permission::create(['name' => 'read comidas']);
+        $permission_create_comidas = Permission::create(['name' => 'delete comidas']);
+        
+        $permission_create_hospedajes = Permission::create(['name' => 'create hospedajes']);
+        $permission_create_hospedajes = Permission::create(['name' => 'update hospedajes']);
+        $permission_create_hospedajes = Permission::create(['name' => 'read hospedajes']);
+        $permission_create_hospedajes = Permission::create(['name' => 'delete hospedajes']);
 
         $permissions_admin = [
             'create roles',
@@ -135,6 +145,14 @@ class RoleSeeder extends Seeder
             'update actividades',
             'read actividades',
             'delete actividades',
+            'create comidas',
+            'update comidas',
+            'read comidas',
+            'delete comidas',
+            'create hospedajes',
+            'update hospedajes',
+            'read hospedajes',
+            'delete hospedajes',
         ];
         
         $permissions_editor = [
@@ -186,6 +204,14 @@ class RoleSeeder extends Seeder
             'update actividades',
             'read actividades',
             'delete actividades',
+            'create comidas',
+            'update comidas',
+            'read comidas',
+            'delete comidas',
+            'create hospedajes',
+            'update hospedajes',
+            'read hospedajes',
+            'delete hospedajes',
         ];
 
         $permissions_data_entry = [

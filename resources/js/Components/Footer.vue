@@ -1,5 +1,5 @@
 <template>
-<footer class="bg-[#bfc1f1] text-black mt-20 " style="border-top: 6px #64748b solid">
+<footer class="bg-[#bfc1f1] text-black" style="border-top: 6px #64748b solid">
     <div class="p-4 max-w-7xl mx-auto">
       <div
         class="flex flex-col gap-4 sm:items-center sm:justify-center sm:flex-row">
@@ -47,15 +47,16 @@
             <li class="flex items-center gap-3">
               <a
                 class="flex items-center gap-2"
-                href="https://api.whatsapp.com/send/?phone=1150500147&amp;text=Hola+%EF%BF%BD&amp;app_absent=0">
-                <Wpp class="w-[32px] md:w-[40px] h-auto"/>
+                :href="`https://api.whatsapp.com/send/?phone=${$page.props.entidad_principal.whatsapp}&text=Hola&app_absent=0`" target="_blank">
+                <Wpp class="w-[32px] md:w-[40px] h-auto"/> 
                 <span class="font-bold text-white sm:hidden">WhatsApp</span>
               </a>
             </li>
             <li class="flex items-center gap-3">
               <a
                 class="flex items-center gap-2"
-                :href="$page.props.entidad_principal.youtube_uri">
+                :href="$page.props.entidad_principal.spotify_uri"
+                target="_blank">
                 <Spotify class="w-[32px] md:w-[30px] h-auto"/>
                 <span class="font-bold text-white sm:hidden">Spotify</span>
               </a>
@@ -78,13 +79,14 @@
             </p>
             <p class="font-thin text-slate-500 lg:text-end">
               <!-- {{entidad_principal}} -->
-              {{ $page.props.entidad_principal.nombre }}
+              {{ $page.props.entidad_principal?.nombre || entidad_principal }}
             </p>
           </div>
           <div class="lg:px-4">
             <p class="font-semibold text-white lg:text-end">
+              <a href="https://kadampa.org/" target="_blank" rel="noopener noreferrer">
                 Nueva Tradición Kadampa - <br />
-                Unión Internacional de Budismo Kadampa
+                Unión Internacional de Budismo Kadampa </a>
             </p>
             <p class="font-thin text-slate-500 lg:text-end">
                 Budismo Kadampa Moderno
@@ -97,6 +99,9 @@
             <p class="font-thin text-slate-500 lg:text-end">
                 Venerable Gueshe Kelsang Gyatso Rimpoché
             </p>
+            <div class="flex justify-center">
+              <img :src="Ornament" alt="Ornament" width="120" class="mt-2"/>
+            </div>
           </div>
         </div>
       </div>
@@ -119,6 +124,7 @@ import Wpp from "./Icons/Wpp.vue";
 import Youtube from "./Icons/Youtube.vue";
 import Instagram from "./Icons/Instagram.vue";
 import Spotify from "./Icons/Spotify.vue";
+import Ornament from "../../images/ornament.svg";
 import 'primeicons/primeicons.css';
 
 

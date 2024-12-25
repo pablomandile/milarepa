@@ -71,7 +71,6 @@ const deleteDisponibilidad = (id) => {
                                 </template>
                             </Column>
                         </DataTable>
-
                     </div>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 <script>
     export default {
-        name: 'MetodosPagoIndex'
+        name: 'HospedajesIndex'
     }
 </script>
 
@@ -12,13 +12,13 @@
     import Column from 'primevue/column';
     
     defineProps({
-        metodosPago: {
+        hospedajes: {
             type: Object,
             required: true
         }
     })
 
-    const deleteMetodoPago = (id) => {
+    const deleteHospedaje = (id) => {
     Swal.fire({
         title: "¿Estás seguro?",
         text: "Esta acción no se puede deshacer.",
@@ -28,12 +28,12 @@
         cancelButtonText: "Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
-        router.delete(route('metodospago.destroy', id), {
+        router.delete(route('hospedajes.destroy', id), {
                 onSuccess: () => {
-                Swal.fire("¡Eliminado!", "La Membresía ha sido eliminado.", "success");
+                Swal.fire("¡Eliminado!", "El Hospedaje ha sido eliminada.", "success");
                 },
                 onError: () => {
-                Swal.fire("Error", "Hubo un problema al eliminar la Membresía.", "error");
+                Swal.fire("Error", "Hubo un problema al eliminar el Hospedaje.", "error");
                 },
             });
             }
@@ -45,32 +45,37 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Metodos de Pago</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Hospedajes (Habitaciones)</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="p-6 bg-white border-b border-gray-200 max-w-4xl mx-auto">
-                    <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create metodos_pago')">
-                        <Link :href="route('metodospago.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
-                            NUEVO METODO DE PAGO
+                    <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create hospedajes')">
+                        <Link :href="route('hospedajes.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
+                            NUEVO HOSPEDAJE
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="metodosPago.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                        <DataTable :value="hospedajes.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre"></Column>
                             <Column field="descripcion" header="Descripción"></Column>
+                            <Column field="precio" header="Precio">
+                                <template #body="slotProps">
+                                    $ {{ parseFloat(slotProps.data.precio).toLocaleString('es-AR', { minimumFractionDigits: 0 }) }}
+                                </template>
+                            </Column>
                             <Column header="Acciones">
                                 <template #body="slotProps">
                                     <div class="flex space-x-2">
                                         <Link
-                                            :href="route('metodospago.edit', parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('update metodos_pago')">
+                                            :href="route('hospedajes.edit', parseInt(slotProps.data.id))"
+                                            v-if="$page.props.user.permissions.includes('update hospedajes')">
                                             <i class="pi pi-pencil text-indigo-400 mr-2"></i>
                                         </Link>
                                         <a
-                                            @click.prevent="deleteMetodoPago(parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('delete metodos_pago')">
-                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
+                                            @click.prevent="deleteHospedaje(parseInt(slotProps.data.id))"
+                                            v-if="$page.props.user.permissions.includes('delete hospedajes')">
+                                            <i class="pi pi-trash text-red-300"></i>
                                         </a>
                                     </div>
                                 </template>

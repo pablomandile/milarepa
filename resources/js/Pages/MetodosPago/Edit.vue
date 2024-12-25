@@ -1,35 +1,35 @@
 <script>
     export default {
-        name: 'MonedasEdit'
+        name: 'MetodosPagoEdit'
     }
 </script>
 
 <script setup>
     import { useForm } from '@inertiajs/vue3';
     import AppLayout from '@/Layouts/AppLayout.vue';
-    import MonedaForm from '@/Components/Formularios/MonedaForm.vue';
+    import MetodoPagoForm from '@/Components/Formularios/MetodoPagoForm.vue';
     import { Link } from '@inertiajs/vue3';
 
     const props = defineProps({
-        moneda:{
+        metodoPago:{
             type: Object,
             required: true
         }
     });
-    // console.log(props.moneda);
-    if (!props.moneda) {
-        console.error('La moneda no está definida');
+    // console.log(props.metodoPago);
+    if (!props.metodoPago) {
+        console.error('La Método de pago no está definida');
     }
-
+    console.log(props.metodoPago.nombre);
     const form = useForm({
-        nombre: props.moneda.nombre,
-        simbolo: props.moneda.simbolo
+        nombre: props.metodoPago.nombre,
+        descripcion: props.metodoPago.descripcion
     });
 
     const handleSubmit = () => {
-        form.put(route('monedas.update', props.moneda.id), {
+        form.put(route('metodospago.update', props.metodoPago.id), {
             onSuccess: () => {
-                console.log('Moneda actualizada exitosamente');
+                console.log('Método de pago actualizado exitosamente');
             },
             onError: errors => {
                 console.log('Errores al actualizar:', errors);
@@ -39,9 +39,9 @@
 </script>
 
 <template>
-    <AppLayout title="Editar Moneda">
+    <AppLayout title="Editar Método de pago">
         <template #header>
-            <h1 class="font-semibold text-lx text-gray-800 leading-tight" >Editar moneda</h1>
+            <h1 class="font-semibold text-lx text-gray-800 leading-tight" >Editar Método de pago</h1>
         </template>
 
         <div class="py-12">
@@ -50,14 +50,14 @@
                     <!-- Botón de Volver -->
                     <div class="flex justify-end mr-5 mb-6 mt-3">
                         <Link 
-                            :href="route('monedas.index')" 
+                            :href="route('metodospago.index')" 
                             class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
                             Volver
                         </Link>
                     </div>
                     <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white border-b border-gray-200">
-                            <MonedaForm 
+                            <MetodoPagoForm 
                             :updating="true" 
                             :form="form" 
                             @submit="handleSubmit"/>

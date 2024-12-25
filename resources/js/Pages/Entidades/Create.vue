@@ -23,6 +23,7 @@
         facebook_uri: '',
         twitter_uri: '',
         youtube_uri: '',
+        spotify_uri: '',
         logo_uri: '',
         email1: '',
         email2: '',

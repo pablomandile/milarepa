@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tipo_actividades', function (Blueprint $table) {
+        Schema::create('comidas', function (Blueprint $table) {
             $table->id();
-            $table->string('tipo', 20);
+            $table->string('nombre', 100);
+            $table->string('descripcion', 255);
+            $table->float('precio');
+            $table->boolean('vegano');
+            $table->boolean('celiaco');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -24,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tipo_actividades');
+        Schema::dropIfExists('comidas');
     }
 };
