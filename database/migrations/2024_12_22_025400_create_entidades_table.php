@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('entidades', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 80);
-            $table->text('descripcion')->max(600);
-            $table->string('direccion', 255.);
-            $table->string('telefono', 50);
-            $table->string('telefono2', 50);
+            $table->text('descripcion')->max(600)->nullable();
+            $table->string('abreviacion',10)->nullable();
+            $table->string('direccion', 255.)->nullable();
+            $table->string('telefono', 50)->nullable();
+            $table->string('telefono2', 50)->nullable();
             $table->string('whatsapp', 30)->nullable();
             $table->string('web_uri', 255)->nullable();
             $table->string('instagram_uri', 255)->nullable();

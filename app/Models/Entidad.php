@@ -29,4 +29,9 @@ class Entidad extends Model
         'email2',
         'entidad_principal'
     ];
+
+    public function membresias()
+    {
+        return $this->hasMany(Membresia::class, 'entidad_id');
+    }
 }

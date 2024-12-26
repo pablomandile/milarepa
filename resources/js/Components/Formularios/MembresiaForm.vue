@@ -10,6 +10,7 @@ import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
+import Dropdown from 'primevue/dropdown';
 
     defineProps({
         form: {
@@ -20,6 +21,10 @@ import TextInput from '../TextInput.vue';
         type: Boolean,
         required: true,
         default: false
+    },
+        entidades: {
+        type: Array,
+        default: () => []
     }
     })
 
@@ -47,11 +52,18 @@ import TextInput from '../TextInput.vue';
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6">
-                <InputLabel for="entidad_id" value="A dónde pertenece" :required="true"/>
-                <TextInput id="entidad_id" v-model="form.entidad_id" type="text" autocomplete="entidad" class="mt-1 block w-full" />
-                <InputError :message="$page.props.errors.entidad_id" class="mt-2" />
+                <InputLabel for="entidad_id" value="Entidad" :required="true"/>
+                <Dropdown
+                    id="entidad_id"
+                    v-model="form.entidad_id"
+                    :options="entidades"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccione un lugar"
+                    class="w-full mt-1 md:w-14rem border border-gray-300"
+                />
+                <InputError :message="$page.props.errors.lugar_hospedaje_id" class="mt-2" />
             </div>
-
         </template>
         <template #actions>
             <PrimaryButton>

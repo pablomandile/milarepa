@@ -85,6 +85,9 @@ const logout = () => {
                                     <DropdownLink :href="route('disponibilidades.index')" :active="route().current('disponibilidades.*')">
                                         Disponibilidades
                                     </DropdownLink>
+                                    <DropdownLink :href="route('modalidades.index')" :active="route().current('modalidades.*')">
+                                        Modalidades
+                                    </DropdownLink>
                                     <DropdownLink :href="route('comidas.index')" :active="route().current('comidas.*')">
                                         Comidas
                                     </DropdownLink>
@@ -150,9 +153,6 @@ const logout = () => {
                                     </DropdownLink>
                                     <DropdownLink :href="route('esquema-descuentos.index')" :active="route().current('esquema-descuentos.*')">
                                         Esquema de Descuentos
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('aplica-descuento-lugares.index')" :active="route().current('aplica-descuento-lugares.*')">
-                                        Lugares donde se Aplica Descuento
                                     </DropdownLink>
                                 </template>
                             </Dropdown>

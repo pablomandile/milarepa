@@ -97,6 +97,11 @@ class RoleSeeder extends Seeder
         $permission_create_lugares_hospedaje = Permission::create(['name' => 'read lugares_hospedaje']);
         $permission_create_lugares_hospedaje = Permission::create(['name' => 'delete lugares_hospedaje']);
 
+        $permission_create_modalidades = Permission::create(['name' => 'create modalidades']);
+        $permission_create_modalidades = Permission::create(['name' => 'update modalidades']);
+        $permission_create_modalidades = Permission::create(['name' => 'read modalidades']);
+        $permission_create_modalidades = Permission::create(['name' => 'delete modalidades']);
+
         $permissions_admin = [
             'create roles',
             'read roles',
@@ -162,6 +167,10 @@ class RoleSeeder extends Seeder
             'update lugares_hospedaje',
             'read lugares_hospedaje',
             'delete lugares_hospedaje',
+            'create modalidades',
+            'update modalidades',
+            'read modalidades',
+            'delete modalidades',
         ];
         
         $permissions_editor = [
@@ -225,6 +234,10 @@ class RoleSeeder extends Seeder
             'update lugares_hospedaje',
             'read lugares_hospedaje',
             'delete lugares_hospedaje',
+            'create modalidades',
+            'update modalidades',
+            'read modalidades',
+            'delete modalidades',
         ];
 
         $permissions_data_entry = [

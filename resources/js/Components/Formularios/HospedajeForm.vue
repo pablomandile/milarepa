@@ -12,7 +12,6 @@ import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
 import Dropdown from 'primevue/dropdown';
 
-
     defineProps({
         form: {
         type: Object,
@@ -27,7 +26,6 @@ import Dropdown from 'primevue/dropdown';
         type: Array,
         default: () => []
     }
-
     })
 
     defineEmits(['submit'])

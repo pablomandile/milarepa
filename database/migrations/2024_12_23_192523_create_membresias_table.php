@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('aplica_descuento_lugares', function (Blueprint $table) {
+        Schema::create('membresias', function (Blueprint $table) {
             $table->id();
-            $table->string('lugares_desc');
+            $table->string('nombre', 20);
+            $table->string('descripcion', 50)->nullable();
+            $table->unsignedBigInteger('entidad_id')->nullable();
+            $table->foreign('entidad_id')->references('id')->on('entidades')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('aplica_descuento_lugares');
+        Schema::dropIfExists('membresias');
     }
 };

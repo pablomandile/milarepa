@@ -20,7 +20,9 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\ComidasController;
 use App\Http\Controllers\HospedajesController;
 use App\Http\Controllers\LugaresHospedajeController;
-
+use App\Http\Controllers\ModalidadesController;
+use App\Http\Controllers\InscripcionesController;
+use App\Http\Controllers\EstadoInscripcionesController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -39,10 +41,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/monedas', MonedasController::class);
     Route::resource('/metodospago', MetodosPagoController::class, [
         'parameters' => ['metodospago' => 'metodopago'],]);
-    Route::resource('/esquema-precios', EsquemasPrecioController::class);
-    Route::resource('/aplica-descuento-lugares', AplicaDescuentoLugaresController::class);
-    Route::resource('/esquema-descuentos', EsquemaDescuentosController::class);
-    Route::resource('/actividades', EsquemaDescuentosController::class);
+    Route::resource('/esquemaprecios', EsquemasPrecioController::class);
+    Route::resource('/esquemadescuentos', EsquemaDescuentosController::class);
+    Route::resource('/actividades', EsquemaDescuentosController::class, [
+        'parameters' => ['actividades' => 'actividad'],]);
     Route::resource('/usuarios', UsuariosController::class);
     Route::resource('/perfiles', PerfilesController::class);
     Route::resource('/roles', RolesController::class);
@@ -50,8 +52,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/comidas', ComidasController::class);
     Route::resource('/hospedajes', HospedajesController::class);
     Route::resource('/transportes', RolesController::class);
-    Route::resource('/inscripciones', RolesController::class);
-    Route::resource('/estado-inscripciones', RolesController::class);
+    Route::resource('/inscripciones', InscripcionesController::class, [
+        'parameters' => ['inscripciones' => 'inscripcion'],]);
+    Route::resource('/estadoinscripciones', EstadoInscripcionesController::class, [
+        'parameters' => ['estadoinscripciones' => 'estadoinscripcion'],]);
     Route::resource('/lugareshospedaje', LugaresHospedajeController::class, [
         'parameters' => ['lugareshospedaje' => 'lugarhospedaje'],]);
+    Route::resource('/modalidades', ModalidadesController::class, [
+        'parameters' => ['modalidades' => 'modalidad'],]);
 });

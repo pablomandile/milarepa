@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class MembresiaRequest extends FormRequest
+class ModalidadRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,16 +23,14 @@ class MembresiaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => ['required', 'string', 'max:20'],
-            'descripcion' => ['nullable', 'string', 'max:50'],
-            'entidad_id' => ['required', 'exists:entidades,id'],
+            'nombre' => ['required', 'string', 'max:50', Rule::unique(table: 'modalidades', column: 'nombre')->ignore(id: request('modalidad'), idColumn: 'id')]
         ];
     }
 
     public function messages():array {
         return [
-            'nombre.required' => __('El nombre no puede quedar vacío'),
-
+            'nombre.required' => __('El Nombre ya existe'),
+            'nombre.unique' => __('La Modalidad ya existe')
         ];
     }
 }

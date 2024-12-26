@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Membresia;
 use App\Http\Requests\MembresiaRequest;
 use Inertia\Inertia;
+use App\Models\Entidad;
 
 
 class MembresiasController extends Controller
@@ -15,7 +16,8 @@ class MembresiasController extends Controller
      */
     public function index()
     {
-        $membresias = Membresia::paginate(15);
+        $membresias = Membresia::with('entidad')->paginate(10);
+
         return inertia('Membresias/Index', ['membresias' => $membresias]);
     }
 
@@ -24,7 +26,11 @@ class MembresiasController extends Controller
      */
     public function create()
     {
-        return inertia('Membresias/Create');
+        $entidades = Entidad::select('id','nombre')->get();
+
+        return inertia('Membresias/Create', [
+            'entidades' => $entidades
+        ]);
     }
 
        /**
@@ -49,14 +55,12 @@ class MembresiasController extends Controller
      /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit(Membresia $membresia)
     {
-        $membresia = Membresia::findOrFail($id);
+        $entidades = Entidad::select('id','nombre')->get();
 
         // Devolver la vista de edición
-        return Inertia::render('Membresias/Edit', [
-            'membresia' => $membresia,
-        ]);
+        return Inertia::render('Membresias/Edit', ['membresia' => $membresia, 'entidades' => $entidades]);
     }
 
     /**

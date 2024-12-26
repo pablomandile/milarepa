@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('esquema_precios', function (Blueprint $table) {
             $table->id();
-            $table->string('esquema', 30);
-            $table->float('precio', 100);
-            $table->unsignedInteger('moneda_id');
+            $table->string('nombre', 30);
+            $table->unsignedBigInteger('membresia_id')->nullable();
+            $table->foreign('membresia_id')->references('id')->on('membresias')->onDelete('cascade');
+            $table->float('precio');
+            $table->unsignedBigInteger('moneda_id')->nullable();
+            $table->foreign('moneda_id')->references('id')->on('monedas')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
         });

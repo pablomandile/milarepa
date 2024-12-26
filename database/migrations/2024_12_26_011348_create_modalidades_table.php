@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('esquema_descuentos_membresia', function (Blueprint $table) {
-            $table->unsignedInteger('esquemaDescuentos_id');
-            $table->unsignedInteger('membresia_id');
+        Schema::create('modalidades', function (Blueprint $table) {
+            $table->id();
+            $table->string('nombre', 50);
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -22,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('esquema_descuentos_membresia');
+        Schema::dropIfExists('modalidades');
     }
 };

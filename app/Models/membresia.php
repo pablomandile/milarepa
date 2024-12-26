@@ -14,4 +14,9 @@ class Membresia extends Model
         'descripcion',
         'entidad_id'
     ];
+
+    public function entidad()
+    {
+        return $this->belongsTo(Entidad::class, 'entidad_id');
+    }
 }
