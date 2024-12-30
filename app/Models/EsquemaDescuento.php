@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EsquemaDescuentos extends Model
+class EsquemaDescuento extends Model
 {
     use HasFactory;
     
-    protected $table = 'esquemaDescuentos';
+    protected $table = 'esquema_descuentos';
 
 }

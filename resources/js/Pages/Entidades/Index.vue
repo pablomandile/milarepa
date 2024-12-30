@@ -72,13 +72,6 @@
                     <div class="mt-4">
                         <DataTable :value="entidades.data" stripedRows removableSort paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre" sortable></Column>
-                            <Column header="Descripción">
-                                <template #body="slotProps">
-                                    <span v-tooltip="{ content: slotProps.data.descripcion }">
-                                        {{ slotProps.data.descripcion.substring(0, 10) }}...
-                                    </span>
-                                </template>
-                            </Column>
                             <Column field="direccion" header="Dirección" sortable></Column>
                             <Column field="telefono" header="Teléfono" sortable></Column>
                             <Column field="email1" header="Correo electrónico" sortable></Column>
@@ -127,50 +120,50 @@
             
         </div>
         
-        <p v-if="entidadSeleccionada.descripcion && entidadSeleccionada.descripcion.trim() !== ''">
-            <strong>Descripción:</strong> {{ entidadSeleccionada.descripcion }}
+        <p class="mb-3" v-if="entidadSeleccionada.descripcion && entidadSeleccionada.descripcion.trim() !== ''">
+            {{ entidadSeleccionada.descripcion }}
         </p>
         <p v-if="entidadSeleccionada.abreviacion && entidadSeleccionada.abreviacion.trim() !== ''">
-            <strong>Abreviación:</strong> {{ entidadSeleccionada.abreviacion }}
+            <i class="pi pi-arrow-down-left-and-arrow-up-right-to-center mr-1"></i> {{ entidadSeleccionada.abreviacion }}
         </p>
         <p v-if="entidadSeleccionada.direccion && entidadSeleccionada.direccion.trim() !== ''">
-            <strong>Dirección:</strong> {{ entidadSeleccionada.direccion }}
+            <i class="pi pi-map-marker mr-1"></i> {{ entidadSeleccionada.direccion }}
         </p>
         <p v-if="entidadSeleccionada.telefono && entidadSeleccionada.telefono.trim() !== ''">
-            <strong>Teléfono:</strong> {{ entidadSeleccionada.telefono }}
+            <i class="pi pi-phone mr-1"></i> {{ entidadSeleccionada.telefono }}
         </p>
         <p v-if="entidadSeleccionada.whatsapp && entidadSeleccionada.whatsapp.trim() !== ''">
-            <strong>Whatsapp:</strong> {{ entidadSeleccionada.whatsapp }}
+            <i class="pi pi-whatsapp mr-1"></i> {{ entidadSeleccionada.whatsapp }}
         </p>
         <p v-if="entidadSeleccionada.web_uri && entidadSeleccionada.web_uri.trim() !== ''">
-            <strong>Web:</strong> <a :href="entidadSeleccionada.web_uri" target="_blank" rel="noopener noreferrer">
+            <i class="pi pi-link mr-1"></i> <a :href="entidadSeleccionada.web_uri" target="_blank" rel="noopener noreferrer">
                 {{ entidadSeleccionada.web_uri }} </a>
         </p>
         <p v-if="entidadSeleccionada.instagram_uri && entidadSeleccionada.instagram_uri.trim() !== ''">
-            <strong>Instagram:</strong> <a :href="entidadSeleccionada.instagram_uri" target="_blank" rel="noopener noreferrer">
+            <i class="pi pi-instagram mr-1"></i> <a :href="entidadSeleccionada.instagram_uri" target="_blank" rel="noopener noreferrer">
                 {{ entidadSeleccionada.instagram_uri }} </a>
         </p>
         <p v-if="entidadSeleccionada.facebook_uri && entidadSeleccionada.facebook_uri.trim() !== ''">
-            <strong>Facebook:</strong> <a :href="entidadSeleccionada.facebook_uri" target="_blank" rel="noopener noreferrer">
+            <i class="pi pi-facebook mr-1"></i> <a :href="entidadSeleccionada.facebook_uri" target="_blank" rel="noopener noreferrer">
                 {{ entidadSeleccionada.facebook_uri }} </a>
         </p>
         <p v-if="entidadSeleccionada.twitter_uri && entidadSeleccionada.twitter_uri.trim() !== ''">
-            <strong>Twitter:</strong> <a :href="entidadSeleccionada.twitter_uri" target="_blank" rel="noopener noreferrer">
+            <i class="pi pi-twitter mr-1"></i> <a :href="entidadSeleccionada.twitter_uri" target="_blank" rel="noopener noreferrer">
                 {{ entidadSeleccionada.twitter_uri }} </a>
         </p>
         <p v-if="entidadSeleccionada.youtube_uri && entidadSeleccionada.youtube_uri.trim() !== ''">
-            <strong>Youtube:</strong> <a :href="entidadSeleccionada.youtube_uri" target="_blank" rel="noopener noreferrer">
+            <i class="pi pi-youtube mr-1"></i> <a :href="entidadSeleccionada.youtube_uri" target="_blank" rel="noopener noreferrer">
             {{ entidadSeleccionada.youtube_uri }} </a>
         </p>
         <p v-if="entidadSeleccionada.spotify_uri && entidadSeleccionada.spotify_uri.trim() !== ''">
-            <strong>Spotify:</strong> <a :href="entidadSeleccionada.spotify_uri" target="_blank" rel="noopener noreferrer">
+            <i class="pi pi-headphones mr-1"></i> <a :href="entidadSeleccionada.spotify_uri" target="_blank" rel="noopener noreferrer">
                 {{ entidadSeleccionada.spotify_uri }} </a>
         </p>
         <p v-if="entidadSeleccionada.email1 && entidadSeleccionada.email1.trim() !== ''">
-            <strong>Email:</strong> {{ entidadSeleccionada.email1 }}
+            <i class="pi pi-envelope mr-1"></i> {{ entidadSeleccionada.email1 }}
         </p>
         <p v-if="entidadSeleccionada.email2 && entidadSeleccionada.email2.trim() !== ''">
-            <strong>Email Secundario:</strong> {{ entidadSeleccionada.email2 }}
+            <i class="pi pi-envelope mr-1"></i> {{ entidadSeleccionada.email2 }}
         </p>
 
         <!-- Mostrar solo si entidad_principal es true -->

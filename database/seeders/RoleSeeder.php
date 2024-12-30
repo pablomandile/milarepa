@@ -14,8 +14,10 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $role_admin = Role::create (['name' => 'admin']);
-        $role_editor = Role::create ([ 'name' => 'editor']);
+        $role_admin = Role::create ([ 'name' => 'admin' ]);
+        $role_editor = Role::create ([ 'name' => 'editor' ]);
+        $role_asistant = Role::create ([ 'name' => 'asistant' ]);
+
 
         $permission_create_role = Permission::create(['name' => 'create roles']);
         $permission_create_role = Permission::create(['name' => 'read roles']);
@@ -102,6 +104,12 @@ class RoleSeeder extends Seeder
         $permission_create_modalidades = Permission::create(['name' => 'read modalidades']);
         $permission_create_modalidades = Permission::create(['name' => 'delete modalidades']);
 
+        $permission_create_tickets = Permission::create(['name' => 'create tickets']);
+        $permission_create_tickets = Permission::create(['name' => 'update tickets']);
+        $permission_create_tickets = Permission::create(['name' => 'read tickets']);
+        $permission_create_tickets = Permission::create(['name' => 'delete tickets']);
+
+
         $permissions_admin = [
             'create roles',
             'read roles',
@@ -171,6 +179,10 @@ class RoleSeeder extends Seeder
             'update modalidades',
             'read modalidades',
             'delete modalidades',
+            'create tickets',
+            'update tickets',
+            'read tickets',
+            'delete tickets',
         ];
         
         $permissions_editor = [
@@ -238,25 +250,24 @@ class RoleSeeder extends Seeder
             'update modalidades',
             'read modalidades',
             'delete modalidades',
+            'create tickets',
+            'update tickets',
+            'read tickets',
+            'delete tickets',
+
         ];
 
-        $permissions_data_entry = [
-            'create entidades',
-            'update entidades',
-            'read entidades',
-            'delete entidades',
-            'create coordinadores',
-            'update coordinadores',
-            'read coordinadores',
-            'delete coordinadores',
-            'create actividades',
-            'update actividades',
+        $permissions_asistant = [
             'read actividades',
-            'delete actividades',
+            'create tickets',
+            'update tickets',
+            'read tickets',
+            'delete tickets',
         ];
 
         $role_admin->syncPermissions($permissions_admin);
         $role_editor->syncPermissions($permissions_editor);
-        
+        $role_asistant->syncPermissions($permissions_asistant);
+
     }
 }

@@ -11,6 +11,14 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * Class User
+ *
+ * @method bool hasRole(string|int|\Spatie\Permission\Contracts\Role $role, string|null $guardName = null)
+ * @method bool hasAnyRole(...$roles)
+ * @method bool hasAllRoles(...$roles)
+ */
+
 class User extends Authenticatable
 {
     use HasApiTokens;

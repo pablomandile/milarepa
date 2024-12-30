@@ -16,7 +16,8 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             MembresiaSeeder::class,
-            MonedaSeeder::class
+            MonedaSeeder::class,
+            EstadoticketSeeder::class
         ]);
     }
 }

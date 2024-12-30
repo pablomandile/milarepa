@@ -80,7 +80,7 @@
                                         <a
                                             @click.prevent="deleteHospedaje(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete hospedajes')">
-                                            <i class="pi pi-trash text-red-300"></i>
+                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
                                         </a>
                                     </div>
                                 </template>

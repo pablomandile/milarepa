@@ -95,7 +95,7 @@ const logout = () => {
                                         Lugares de Hospedaje
                                     </DropdownLink>
                                     <DropdownLink :href="route('hospedajes.index')" :active="route().current('hospedajes.*')">
-                                        Acomodación
+                                        Acomodaciones
                                     </DropdownLink>
                                     <DropdownLink :href="route('transportes.index')" :active="route().current('transportes.*')">
                                         Transportes
@@ -124,7 +124,7 @@ const logout = () => {
                                     <DropdownLink :href="route('inscripciones.index')" :active="route().current('inscripciones.*')">
                                         Inscripciones
                                     </DropdownLink>
-                                    <DropdownLink :href="route('estado-inscripciones.index')" :active="route().current('estado-inscripciones.*')">
+                                    <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
                                         Estado de Inscripciones
                                     </DropdownLink>
                                 </template>
@@ -148,10 +148,10 @@ const logout = () => {
                                     <DropdownLink :href="route('metodospago.index')" :active="route().current('metodos-pago.*')">
                                         Métodos de Pago
                                     </DropdownLink>
-                                    <DropdownLink :href="route('esquema-precios.index')" :active="route().current('esquema-precios.*')">
+                                    <DropdownLink :href="route('esquemaprecios.index')" :active="route().current('esquema-precios.*')">
                                         Esquema de Precios
                                     </DropdownLink>
-                                    <DropdownLink :href="route('esquema-descuentos.index')" :active="route().current('esquema-descuentos.*')">
+                                    <DropdownLink :href="route('esquemadescuentos.index')" :active="route().current('esquema-descuentos.*')">
                                         Esquema de Descuentos
                                     </DropdownLink>
                                 </template>
@@ -193,16 +193,16 @@ const logout = () => {
                                     </template>
 
                                 <template #content>
-                                    <DropdownLink :href="route('usuarios.index')" :active="route().current('usuarios.*')">
+                                    <DropdownLink :href="route('centroayuda.index')" :active="route().current('centroayuda.*')">
                                         Centro de ayuda
                                     </DropdownLink>
-                                    <DropdownLink :href="route('roles.index')" :active="route().current('roles.*')">
+                                    <DropdownLink :href="route('novedades.index')" :active="route().current('novedades.*')">
                                         Novedades
                                     </DropdownLink>
-                                    <DropdownLink :href="route('roles.index')" :active="route().current('roles.*')">
+                                    <DropdownLink :href="route('reporteerror.index')" :active="route().current('reporteerror.*')">
                                         Reportar un error
                                     </DropdownLink>
-                                    <DropdownLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
+                                    <DropdownLink :href="route('acercade.index')" :active="route().current('acercade.*')">
                                         Acerca de
                                     </DropdownLink>
                                 </template>

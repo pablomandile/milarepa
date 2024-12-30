@@ -15,4 +15,5 @@ class Moneda extends Model
         'nombre',
         'simbolo',
     ];
+
 }

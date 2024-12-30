@@ -52,9 +52,9 @@ const deleteModalidad = (id) => {
                         <DataTable :value="modalidades.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre"></Column>
 
-                            <Column header="" headerClass="text-right" >
+                            <Column header="Acciones" class="flex justify-center space-x-2">
                                 <template #body="slotProps">
-                                    <div class="flex justify-end space-x-2">
+                                    <div class="flex justify-center space-x-2">
                                         <Link
                                             :href="route('modalidades.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update modalidades')"

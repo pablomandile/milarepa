@@ -12,8 +12,7 @@ use App\Http\Controllers\CoordinadoresController;
 use App\Http\Controllers\MonedasController;
 use App\Http\Controllers\MetodosPagoController;
 use App\Http\Controllers\EsquemaDescuentosController;
-use App\Http\Controllers\EsquemasPrecioController;
-use App\Http\Controllers\AplicaDescuentoLugaresController;
+use App\Http\Controllers\EsquemaPreciosController;
 use App\Http\Controllers\PerfilesController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\UsuariosController;
@@ -23,6 +22,10 @@ use App\Http\Controllers\LugaresHospedajeController;
 use App\Http\Controllers\ModalidadesController;
 use App\Http\Controllers\InscripcionesController;
 use App\Http\Controllers\EstadoInscripcionesController;
+use App\Http\Controllers\CentroAyudaController;
+use App\Http\Controllers\NovedadesController;
+use App\Http\Controllers\ReporteErrorController;
+use App\Http\Controllers\AcercaDeController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -41,7 +44,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/monedas', MonedasController::class);
     Route::resource('/metodospago', MetodosPagoController::class, [
         'parameters' => ['metodospago' => 'metodopago'],]);
-    Route::resource('/esquemaprecios', EsquemasPrecioController::class);
+    Route::resource('/esquemaprecios', EsquemaPreciosController::class);
     Route::resource('/esquemadescuentos', EsquemaDescuentosController::class);
     Route::resource('/actividades', EsquemaDescuentosController::class, [
         'parameters' => ['actividades' => 'actividad'],]);
@@ -60,4 +63,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         'parameters' => ['lugareshospedaje' => 'lugarhospedaje'],]);
     Route::resource('/modalidades', ModalidadesController::class, [
         'parameters' => ['modalidades' => 'modalidad'],]);
+    Route::resource('/centroayuda', CentroAyudaController::class);
+    Route::resource('/novedades', NovedadesController::class);
+    Route::resource('/reporteerror', ReporteErrorController::class);
+    Route::resource('/acercade', AcercaDeController::class);
+    
+    
 });

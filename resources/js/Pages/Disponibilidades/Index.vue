@@ -52,9 +52,9 @@ const deleteDisponibilidad = (id) => {
                         <DataTable :value="disponibilidades.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="descripcion" header="Descripción"></Column>
 
-                            <Column header="" headerClass="text-right" >
+                            <Column header="Acciones" class="flex justify-center space-x-2">
                                 <template #body="slotProps">
-                                    <div class="flex justify-end space-x-2">
+                                    <div class="flex justify-center space-x-2">
                                         <Link
                                             :href="route('disponibilidades.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update disponibilidades')"
@@ -64,7 +64,7 @@ const deleteDisponibilidad = (id) => {
                                         <a
                                             @click.prevent="deleteDisponibilidad(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete disponibilidades')"
-                                            class="text-red-500 cursor-pointer">
+                                            class="text-red-300 cursor-pointer">
                                             <i class="pi pi-trash text-red-300"></i>
                                         </a>
                                     </div>
