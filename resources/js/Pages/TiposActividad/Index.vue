@@ -64,13 +64,15 @@
                                         <Link
                                             :href="route('tiposactividad.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update tipos_actividad')"
-                                            class="text-indigo-500">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            class="text-indigo-500"
+                                            v-tooltip="'Editar tipo'">
+                                            <i class="pi pi-pencil text-indigo-400 mr-6"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteTipoActividad(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete tipos_actividad')"
-                                            class="text-red-500 cursor-pointer">
+                                            class="text-red-500 cursor-pointer"
+                                            v-tooltip="'Borrar tipo'">
                                             <i class="pi pi-trash text-red-300"></i>
                                         </a>
                                     </div>

@@ -64,12 +64,14 @@
                                     <div class="flex space-x-2">
                                         <Link
                                             :href="route('monedas.edit', parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('update monedas')">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            v-if="$page.props.user.permissions.includes('update monedas')"
+                                            v-tooltip="'Editar moneda'">
+                                            <i class="pi pi-pencil text-indigo-400 mr-4"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteMoneda(parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('delete monedas')">
+                                            v-if="$page.props.user.permissions.includes('delete monedas')"
+                                            v-tooltip="'Borrar moneda'">
                                             <i class="pi pi-trash cursor-pointer text-red-300"></i>
                                         </a>
                                     </div>

@@ -58,13 +58,15 @@ const deleteModalidad = (id) => {
                                         <Link
                                             :href="route('modalidades.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update modalidades')"
-                                            class="text-indigo-500">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            class="text-indigo-500"
+                                            v-tooltip="'Editar modalidad'">
+                                            <i class="pi pi-pencil text-indigo-400 mr-6"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteModalidad(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete modalidades')"
-                                            class="text-red-500 cursor-pointer">
+                                            class="text-red-500 cursor-pointer"
+                                            v-tooltip="'Borrar modalidad'">
                                             <i class="pi pi-trash text-red-300"></i>
                                         </a>
                                     </div>

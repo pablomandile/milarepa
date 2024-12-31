@@ -65,12 +65,14 @@
                                     <div class="flex space-x-2">
                                         <Link
                                             :href="route('maestros.edit', parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('update maestros')">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            v-if="$page.props.user.permissions.includes('update maestros')"
+                                            v-tooltip="'Editar maestro'">
+                                            <i class="pi pi-pencil text-indigo-400 mr-6"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteMaestro(parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('delete maestros')">
+                                            v-if="$page.props.user.permissions.includes('delete maestros')"
+                                            v-tooltip="'Borrar maestro'">
                                             <i class="pi pi-trash cursor-pointer text-red-300"></i>
                                         </a>
                                     </div>

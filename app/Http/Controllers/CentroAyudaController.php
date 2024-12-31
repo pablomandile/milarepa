@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Ticket;
 use App\Http\Requests\TicketRequest;
+use App\Models\EstadoTicket;
 use App\Models\User;
 
 
@@ -67,17 +68,35 @@ class CentroAyudaController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+        $ticket = Ticket::with(['estadoTicket','user','responsable'])->findOrFail($id);
+        $usuariosResponsables = User::role(['admin','editor'])->get();
+        $estados = EstadoTicket::select('id','estado')->get();
+
+        // Insertamos la opción "Sin responsable"
+        $usuariosResponsables->prepend([
+            'id' => null,
+            'name' => 'Sin responsable',
+        ]);
+
+        return inertia::render('CentroAyuda/Edit', 
+        ['ticket'=>$ticket, 
+        'usuariosResponsables' => $usuariosResponsables,
+        'estados' => $estados
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(TicketRequest $request, $id)
     {
-        //
+        $ticket = Ticket::findOrFail($id);
+
+        $ticket->update($request->validated());
+
+        return redirect()->route('centroayuda.index');
     }
 
     /**
@@ -85,7 +104,13 @@ class CentroAyudaController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $ticket = Ticket::findorfail($id);
+            $ticket->delete();
+            return redirect()->route('centroayuda.index')->with('success', 'Ticket eliminado con éxito.');
+        } catch (\Exception $e) {
+            return redirect()->route('centroayuda.index')->with('error', 'Error al eliminar el Ticket: ' . $e->getMessage());
+        }
     }
 
 }

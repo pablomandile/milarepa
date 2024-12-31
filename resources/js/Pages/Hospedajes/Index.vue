@@ -74,12 +74,14 @@
                                     <div class="flex space-x-2">
                                         <Link
                                             :href="route('hospedajes.edit', parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('update hospedajes')">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            v-if="$page.props.user.permissions.includes('update hospedajes')"
+                                            v-tooltip="'Editar acomodación'">
+                                            <i class="pi pi-pencil text-indigo-400 mr-6"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteHospedaje(parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('delete hospedajes')">
+                                            v-if="$page.props.user.permissions.includes('delete hospedajes')"
+                                            v-tooltip="'Borrar acomodación'">
                                             <i class="pi pi-trash cursor-pointer text-red-300"></i>
                                         </a>
                                     </div>

@@ -80,13 +80,15 @@
                                     <div class="flex justify-center space-x-2">
                                         <Link
                                             :href="route('esquemaprecios.edit', parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('update esquema_precios')">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            v-if="$page.props.user.permissions.includes('update esquema_precios')"
+                                            v-tooltip="'Editar esquema'">
+                                            <i class="pi pi-pencil text-indigo-400 mr-4"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteEsquemaPrecio(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete esquema_precios')"
-                                            class="text-red-500 cursor-pointer">
+                                            class="text-red-500 cursor-pointer"
+                                            v-tooltip="'Borrar esquema'">
                                             <i class="pi pi-trash text-red-300"></i>
                                         </a>
                                     </div>

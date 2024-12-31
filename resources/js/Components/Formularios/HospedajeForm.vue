@@ -14,21 +14,24 @@ import Dropdown from 'primevue/dropdown';
 
     defineProps({
         form: {
-        type: Object,
-        required: true
-    },
-        updating: {
-        type: Boolean,
-        required: true,
-        default: false
-    },
-    lugaresHospedaje: {
-        type: Array,
-        default: () => []
-    }
-    })
+            type: Object,
+            required: true
+        },
 
-    defineEmits(['submit'])
+        updating: {
+            type: Boolean,
+            required: true,
+            default: false
+        },
+
+        lugaresHospedaje: {
+            type: Array,
+            default: () => []
+        }
+
+    });
+
+    defineEmits(['submit']);
 
 </script>
 

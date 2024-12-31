@@ -187,15 +187,16 @@
                                             v-if="
                                                 $page.props.user.permissions.includes('asign tickets') && 
                                                 slotProps.data.estado_ticket &&
-                                                slotProps.data.estado_ticket.id !== 3
-                                            "
+                                                slotProps.data.estado_ticket.id !== 3"
                                             v-tooltip="'Asignar ticket'"
                                             >
                                             <i class="pi pi-user-plus cursor-pointer text-indigo-400 mr-1"></i>
                                         </a>
                                         <Link
                                             :href="route('centroayuda.edit', parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('update tickets')"
+                                            v-if="$page.props.user.permissions.includes('update tickets') &&
+                                            slotProps.data.estado_ticket &&
+                                                slotProps.data.estado_ticket.id !== 3"
                                             v-tooltip="'Editar ticket'">
                                             <i class="pi pi-pencil text-indigo-400 mr-1"></i>
                                         </Link>

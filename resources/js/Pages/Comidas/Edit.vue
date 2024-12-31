@@ -18,7 +18,7 @@
     });
     // console.log(props.comida);
     if (!props.comida) {
-        console.error('El comida no está definido');
+        console.error('La comida no está definida');
     }
 
     const form = useForm({

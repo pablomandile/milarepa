@@ -30,7 +30,7 @@
         if (result.isConfirmed) {
         router.delete(route('membresias.destroy', id), {
                 onSuccess: () => {
-                Swal.fire("¡Eliminado!", "La Membresía ha sido eliminado.", "success");
+                Swal.fire("¡Eliminado!", "La Membresía ha sido eliminada.", "success");
                 },
                 onError: () => {
                 Swal.fire("Error", "Hubo un problema al eliminar la Membresía.", "error");
@@ -69,12 +69,14 @@
                                     <div class="flex space-x-2">
                                         <Link
                                             :href="route('membresias.edit', parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('update membresias')">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            v-if="$page.props.user.permissions.includes('update membresias')"
+                                            v-tooltip="'Editar membresía'">
+                                            <i class="pi pi-pencil text-indigo-400 mr-6"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteMembresia(parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('delete membresias')">
+                                            v-if="$page.props.user.permissions.includes('delete membresias')"
+                                            v-tooltip="'Borrar membresía'">
                                             <i class="pi pi-trash cursor-pointer text-red-300"></i>
                                         </a>
                                     </div>

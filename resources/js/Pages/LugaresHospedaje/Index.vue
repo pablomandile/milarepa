@@ -80,17 +80,20 @@
                                     <div class="flex justify-center space-x-2">
                                         <a
                                             @click.prevent="verLugarHospedaje(parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('read entidades')">
+                                            v-if="$page.props.user.permissions.includes('read entidades')"
+                                            v-tooltip="'Ver lugar'">
                                             <i class="pi pi-eye cursor-pointer text-indigo-400 mr-2"></i>
                                         </a>
                                         <Link
                                             :href="route('lugareshospedaje.edit', parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('update lugares_hospedaje')">
+                                            v-if="$page.props.user.permissions.includes('update lugares_hospedaje')"
+                                            v-tooltip="'Editar lugar'">
                                             <i class="pi pi-pencil text-indigo-400 mr-2"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteLugarHospedaje(parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('delete lugares_hospedaje')">
+                                            v-if="$page.props.user.permissions.includes('delete lugares_hospedaje')"
+                                            v-tooltip="'Borrar lugar'">
                                             <i class="pi pi-trash cursor-pointer text-red-300"></i>
                                         </a>
                                     </div>

@@ -7,6 +7,16 @@ use Illuminate\Validation\Rule;
 
 class TicketRequest extends FormRequest
 {
+    public function prepareForValidation()
+    {
+        // Si no viene estadoticket_id en el request, o viene nulo, forzamos un valor
+        if (!$this->has('estadoticket_id') || is_null($this->input('estadoticket_id'))) {
+            $this->merge([
+                'estadoticket_id' => 1, // ID del estado que quieras por defecto (Pendiente, por ejemplo)
+            ]);
+        }
+    }
+    
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -28,7 +38,7 @@ class TicketRequest extends FormRequest
             'fecha_apertura' => ['required','date'],
             'user_id' => ['required', 'exists:users,id'],
             'responsable_id' => ['nullable'],
-            'estadoticket_id' => ['required', 'exists:estados_ticket,id'],
+            'estadoticket_id' => ['nullable', 'exists:estados_ticket,id'],
         ];
     }
 
