@@ -108,6 +108,7 @@ class RoleSeeder extends Seeder
         $permission_create_tickets = Permission::create(['name' => 'update tickets']);
         $permission_create_tickets = Permission::create(['name' => 'read tickets']);
         $permission_create_tickets = Permission::create(['name' => 'delete tickets']);
+        $permission_create_tickets = Permission::create(['name' => 'asign tickets']);
 
 
         $permissions_admin = [
@@ -183,6 +184,7 @@ class RoleSeeder extends Seeder
             'update tickets',
             'read tickets',
             'delete tickets',
+            'asign tickets',
         ];
         
         $permissions_editor = [
@@ -254,7 +256,7 @@ class RoleSeeder extends Seeder
             'update tickets',
             'read tickets',
             'delete tickets',
-
+            'asign tickets',
         ];
 
         $permissions_asistant = [

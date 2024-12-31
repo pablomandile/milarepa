@@ -6,36 +6,17 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Ticket;
 use App\Http\Requests\TicketRequest;
-use App\Models\User;
 
 
 
-class CentroAyudaController extends Controller
+class TicketsController extends Controller
 {
       /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // Usuarios que pueden ser responsables (admin o editor)
-        // Usando Spatie: hasAnyRole(['admin','editor'])
-        $usuariosResponsables = User::role(['admin','editor'])->get();
-
-        if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('editor')) {
-            $tickets = Ticket::with('estadoTicket', 'user', 'responsable')
-                ->get()
-                ->sortBy(fn($ticket) => $ticket->estadoTicket->estado);
-        } else {
-            $tickets = Ticket::with('estadoTicket', 'user', 'responsable')
-                ->where('user_id', auth()->id())
-                ->get()
-                ->sortBy(fn($ticket) => $ticket->estadoTicket->estado);
-        }
-    // dd($tickets);
-        return inertia('CentroAyuda/Index', [
-            'tickets' => $tickets->values()->all(), // para reenviar como array ordenado
-            'usuariosResponsables' => $usuariosResponsables,
-        ]);
+       
 
     }
 
@@ -88,4 +69,16 @@ class CentroAyudaController extends Controller
         //
     }
 
+    public function asignar(Request $request, Ticket $ticket)
+    {
+        $request->validate([
+            'responsable_id' => 'required|exists:users,id',
+        ]);
+        $ticket->estadoticket_id = 2;
+        $ticket->responsable_id = $request->responsable_id;
+        $ticket->save();
+
+        // Podrías redireccionar, o retornar Inertia
+        return back(); // O lo que necesites
+    }
 }

@@ -26,6 +26,7 @@ use App\Http\Controllers\CentroAyudaController;
 use App\Http\Controllers\NovedadesController;
 use App\Http\Controllers\ReporteErrorController;
 use App\Http\Controllers\AcercaDeController;
+use App\Http\Controllers\TicketsController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -67,6 +68,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/novedades', NovedadesController::class);
     Route::resource('/reporteerror', ReporteErrorController::class);
     Route::resource('/acercade', AcercaDeController::class);
-    
+    Route::put('/tickets/asignar/{ticket}', [TicketsController::class, 'asignar'])->name('tickets.asignar');
+
     
 });
