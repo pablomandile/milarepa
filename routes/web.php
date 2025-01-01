@@ -27,6 +27,10 @@ use App\Http\Controllers\NovedadesController;
 use App\Http\Controllers\ReporteErrorController;
 use App\Http\Controllers\AcercaDeController;
 use App\Http\Controllers\TicketsController;
+use App\Http\Controllers\TransportesController;
+use App\Http\Controllers\DescripcionesController;
+use App\Http\Controllers\ProgramasController;
+
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -55,7 +59,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/membresias', MembresiasController::class);
     Route::resource('/comidas', ComidasController::class);
     Route::resource('/hospedajes', HospedajesController::class);
-    Route::resource('/transportes', RolesController::class);
+    Route::resource('/transportes', TransportesController::class);
     Route::resource('/inscripciones', InscripcionesController::class, [
         'parameters' => ['inscripciones' => 'inscripcion'],]);
     Route::resource('/estadoinscripciones', EstadoInscripcionesController::class, [
@@ -69,6 +73,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/reporteerror', ReporteErrorController::class);
     Route::resource('/acercade', AcercaDeController::class);
     Route::put('/tickets/asignar/{ticket}', [TicketsController::class, 'asignar'])->name('tickets.asignar');
+    Route::resource('/descripciones', DescripcionesController::class, [
+        'parameters' => ['descripciones' => 'descripcion'],]);
+    Route::resource('/programas', ProgramasController::class);
+
 
     
 });

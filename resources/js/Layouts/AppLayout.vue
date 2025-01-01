@@ -115,10 +115,10 @@ const logout = () => {
                                     <DropdownLink :href="route('tiposactividad.index')" :active="route().current('tipoactividad.*')">
                                         Tipos de Actividad
                                     </DropdownLink>
-                                    <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
+                                    <DropdownLink :href="route('descripciones.index')" :active="route().current('descripciones.*')">
                                         Descripciones
                                     </DropdownLink>
-                                    <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
+                                    <DropdownLink :href="route('programas.index')" :active="route().current('programas.*')">
                                         Programas
                                     </DropdownLink>
                                     <DropdownLink :href="route('disponibilidades.index')" :active="route().current('disponibilidades.*')">

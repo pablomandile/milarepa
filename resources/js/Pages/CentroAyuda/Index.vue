@@ -251,36 +251,36 @@
         <p v-else>Cargando datos...</p>
     </Dialog>
     <!-- Diálogo para asignar ticket a un responsable -->
-<Dialog
-  v-model:visible="visibleAssign"
-  header="Asignar Ticket"
-  :style="{ width: '30rem' }"
-  modal
->
-  <template v-if="ticketParaAsignar">
-    <p class="mb-4">
-      <strong>Ticket:</strong> {{ ticketParaAsignar.asunto }}
-    </p>
+    <Dialog
+    v-model:visible="visibleAssign"
+    header="Asignar Ticket"
+    :style="{ width: '30rem' }"
+    modal
+    >
+    <template v-if="ticketParaAsignar">
+        <p class="mb-4">
+        <strong>Ticket:</strong> {{ ticketParaAsignar.asunto }}
+        </p>
 
-    <!-- Dropdown de usuarios disponibles -->
-    <Dropdown
-      v-model="usuarioSeleccionado"
-      :options="usuariosResponsables"
-      optionLabel="name"
-      optionValue="id"
-      placeholder="Seleccione responsable"
-      class="w-full mb-10 border-solid border-2 border-gray-300 shadow-sm bg-gray-100"
-    />
+        <!-- Dropdown de usuarios disponibles -->
+        <Dropdown
+        v-model="usuarioSeleccionado"
+        :options="usuariosResponsables"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Seleccione responsable"
+        class="w-full mb-10 border-solid border-2 border-gray-300 shadow-sm bg-gray-100"
+        />
 
-    <div class="flex justify-end space-x-2">
-        <Button label="Cancelar" severity="secondary" raised 
-            class="px-2 py-2 bg-gray-400 text-white mr-3" 
-            @click="visibleAssign = false" />
-        <Button label="Asignar" severity="success" raised 
-            class="px-2 py-2 bg-green-800 text-white" 
-            @click="enviarAsignacion" />
-    </div>
-  </template>
-  <p v-else>Cargando...</p>
-</Dialog>
+        <div class="flex justify-end space-x-2">
+            <Button label="Cancelar" severity="secondary" raised 
+                class="px-2 py-2 bg-gray-400 text-white mr-3" 
+                @click="visibleAssign = false" />
+            <Button label="Asignar" severity="success" raised 
+                class="px-2 py-2 bg-green-800 text-white" 
+                @click="enviarAsignacion" />
+        </div>
+    </template>
+    <p v-else>Cargando...</p>
+    </Dialog>
 </template>

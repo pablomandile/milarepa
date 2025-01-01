@@ -110,6 +110,12 @@ class RoleSeeder extends Seeder
         $permission_create_tickets = Permission::create(['name' => 'delete tickets']);
         $permission_create_tickets = Permission::create(['name' => 'asign tickets']);
 
+        $permission_create_transportes = Permission::create(['name' => 'create transportes']);
+        $permission_create_transportes = Permission::create(['name' => 'update transportes']);
+        $permission_create_transportes = Permission::create(['name' => 'read transportes']);
+        $permission_create_transportes = Permission::create(['name' => 'delete transportes']);
+        $permission_create_transportes = Permission::create(['name' => 'asign transportes']);
+
 
         $permissions_admin = [
             'create roles',
@@ -185,6 +191,11 @@ class RoleSeeder extends Seeder
             'read tickets',
             'delete tickets',
             'asign tickets',
+            'create transportes',
+            'update transportes',
+            'read transportes',
+            'delete transportes',
+            
         ];
         
         $permissions_editor = [
@@ -257,6 +268,10 @@ class RoleSeeder extends Seeder
             'read tickets',
             'delete tickets',
             'asign tickets',
+            'create transportes',
+            'update transportes',
+            'read transportes',
+            'delete transportes',
         ];
 
         $permissions_asistant = [
