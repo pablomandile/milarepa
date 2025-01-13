@@ -1,7 +1,7 @@
 <script setup>
+
 import { useForm } from '@inertiajs/vue3';
 import EsquemaPrecioForm from '@/Components/Formularios/EsquemaPrecioForm.vue';
-import { ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 

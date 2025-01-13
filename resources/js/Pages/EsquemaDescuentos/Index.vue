@@ -1,6 +1,6 @@
 <script>
     export default {
-        name: 'EsquemaPreciosIndex'
+        name: 'EsquemaDescuentosIndex'
     }
 </script>
 
@@ -13,7 +13,7 @@
     import Column from 'primevue/column';
     
     defineProps({
-        esquemaprecios: {
+        esquemadescuentos: {
             type: Array,
             required: true
         }
@@ -32,12 +32,12 @@
         cancelButtonText: "Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
-        router.delete(route('esquemaprecios.destroy', id), {
+        router.delete(route('esquemadescuentos.destroy', id), {
                 onSuccess: () => {
-                Swal.fire("¡Eliminado!", "El EsquemaPrecio ha sido eliminada.", "success");
+                Swal.fire("¡Eliminado!", "El Esquema de Descuento ha sido eliminado.", "success");
                 },
                 onError: () => {
-                Swal.fire("Error", "Hubo un problema al eliminar el EsquemaPrecio.", "error");
+                Swal.fire("Error", "Hubo un problema al eliminar el Esquema de Descuento.", "error");
                 },
             });
             }
@@ -49,19 +49,19 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Esquemas de Precios</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Esquemas de Descuentos</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="p-6 bg-white border-b border-gray-200 max-w-6xl mx-auto">
-                    <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create esquema_precios')">
-                        <Link :href="route('esquemaprecios.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
-                            NUEVO ESQUEMA DE PRECIOS
+                    <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create esquema_descuentos')">
+                        <Link :href="route('esquemadescuentos.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
+                            NUEVO ESQUEMA DE DESCUENTOS
                         </Link>
                     </div>
                     <div class="mt-4">
                         <DataTable 
-                            :value="esquemaprecios" 
+                            :value="esquemadescuentos" 
                             stripedRows 
                             paginator 
                             :rows="10" 
@@ -76,14 +76,14 @@
                                 <template #body="slotProps">
                                     <div class="flex justify-center space-x-2">
                                         <Link
-                                            :href="route('esquemaprecios.edit', parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('update esquema_precios')"
+                                            :href="route('esquemadescuentos.edit', parseInt(slotProps.data.id))"
+                                            v-if="$page.props.user.permissions.includes('update esquema_descuentos')"
                                             v-tooltip="'Editar esquema'">
                                             <i class="pi pi-pencil text-indigo-400 mr-4"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteEsquemaPrecio(parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('delete esquema_precios')"
+                                            v-if="$page.props.user.permissions.includes('delete esquema_descuentos')"
                                             class="text-red-500 cursor-pointer"
                                             v-tooltip="'Borrar esquema'">
                                             <i class="pi pi-trash text-red-300"></i>

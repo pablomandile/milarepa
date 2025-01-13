@@ -11,4 +11,12 @@ class EsquemaDescuento extends Model
     
     protected $table = 'esquema_descuentos';
 
+    protected $fillable = ['nombre'];
+
+    public function membresias()
+    {
+
+        return $this->hasMany(EsquemaDescuentoMembresia::class, 'esquema_descuento_id');
+    }
+
 }

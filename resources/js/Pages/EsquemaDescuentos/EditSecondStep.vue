@@ -13,7 +13,7 @@ import { route } from 'ziggy-js';
 
 
 const props = defineProps({
-    esquemaPrecio: {
+    esquemaDescuento: {
         type: Object,
         required: true
     },
@@ -36,7 +36,7 @@ const formMembresia = useForm({
 
 // Al hacer submit en el formulario de membresía
 function handleAddMembresia() {
-  router.post(route('esquemaprecios.storeMembresia', props.esquemaPrecio.id), {
+  router.post(route('esquemadescuentos.storeMembresia', props.esquemaDescuento.id), {
     membresia_id: formMembresia.membresia_id,
     precio: formMembresia.precio,
     moneda_id: formMembresia.moneda_id,
@@ -54,7 +54,7 @@ const editingRows = ref([]);
 function onRowEditSave(event) {
   const membershipLine = event.newData ?? event.data;
   // membershipLine tendrá { id, membresia_id, precio, moneda_id, ... }
-  router.put(route('esquemaprecios.updateMembresia', membershipLine.id), membershipLine, {
+  router.put(route('esquemadescuentos.updateMembresia', membershipLine.id), membershipLine, {
     onSuccess: () => {
       // row editing final
     }
@@ -62,7 +62,7 @@ function onRowEditSave(event) {
 }
 
 function deleteLine(line) {
-  router.delete(route('esquemaprecios.destroyMembresia', line.id));
+  router.delete(route('esquemadescuentos.destroyMembresia', line.id));
 }
 
 // Mostrar el nombre de la membresía (fuera de edición)
@@ -93,7 +93,7 @@ function getMonedaLabel(monedaId) {
                 <!-- Botón de Volver -->
                 <div class="flex justify-end mr-5 mb-6 mt-3">
                     <Link 
-                        :href="route('esquemaprecios.index')" 
+                        :href="route('esquemadescuentos.index')" 
                         class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
                         Volver
                     </Link>
@@ -101,7 +101,7 @@ function getMonedaLabel(monedaId) {
 
                 <!-- Mostrar el nombre del esquema -->
                 <h2 class="text-2xl font-bold mb-4">
-                    {{ esquemaPrecio.nombre }}
+                    {{ esquemaDescuento.nombre }}
                 </h2>
 
                 <!-- Formulario para AGREGAR una nueva membresía -->
@@ -116,7 +116,7 @@ function getMonedaLabel(monedaId) {
                 <div class="card p-fluid">
                   <!-- DataTable con membresías ya existentes -->
                   <DataTable
-                      :value="esquemaPrecio.membresias"
+                      :value="esquemaDescuento.membresias"
                       editMode="row"
                       dataKey="id"
                       v-model:editingRows="editingRows"

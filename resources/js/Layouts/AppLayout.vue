@@ -178,7 +178,7 @@ const logout = () => {
                                         Pagar Membresía
                                     </DropdownLink>
                                     <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
-                                        Pagos de Membresías
+                                        Estado de Cuentas
                                     </DropdownLink>
                                     <DropdownLink :href="route('metodospago.index')" :active="route().current('metodos-pago.*')">
                                         Métodos de Pago
