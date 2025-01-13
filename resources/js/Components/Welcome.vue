@@ -43,6 +43,7 @@ onMounted(() => {
   // Iniciar el parpadeo
   doBlink();
 });
+
 </script>
 
 <style scoped>
@@ -142,8 +143,8 @@ onMounted(() => {
       </div>
 
       <div class="flex justify-center mt-4 mb-4">
-        <h1>¡Todos son Bienvenidos!</h1>
+        <h1 class="text-2xl" style="font-family: 'Parisienne', serif; font-weight: 400; font-style: normal;">¡Todos son Bienvenidos!</h1>
       </div>
-      <!-- {{ $page.props }} -->
+        <!-- {{ $page.props }} -->
     </div>
 </template>

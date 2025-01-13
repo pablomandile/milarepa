@@ -11,20 +11,11 @@ class EsquemaPrecio extends Model
     
     protected $table = 'esquema_precios';
 
-    protected $fillable = [
-        'nombre', 
-        'membresia_id',
-        'precio',
-        'moneda_id'
-    ];
-    
-    public function membresia()
-    {
-        return $this->belongsTo(Membresia::class, 'membresia_id');
-    }
+    protected $fillable = ['nombre'];
 
-    public function moneda()
+    public function membresias()
     {
-        return $this->belongsTo(Moneda::class, 'moneda_id');
+
+        return $this->hasMany(EsquemaPrecioMembresia::class, 'esquema_precio_id');
     }
 }

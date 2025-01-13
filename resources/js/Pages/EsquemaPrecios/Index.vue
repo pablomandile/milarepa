@@ -5,6 +5,8 @@
 </script>
 
 <script setup>
+    import { ref } from 'vue';
+    import { usePage } from '@inertiajs/vue3';
     import AppLayout from '@/Layouts/AppLayout.vue';
     import { Link, router } from '@inertiajs/vue3';
     import Swal from "sweetalert2";
@@ -13,10 +15,13 @@
     
     defineProps({
         esquemaprecios: {
-            type: Object,
+            type: Array,
             required: true
         }
     })
+
+    // Controla qué filas de la tabla principal están expandidas
+    const expandedRows = ref([]);
 
     const deleteEsquemaPrecio = (id) => {
     Swal.fire({
@@ -56,26 +61,19 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="esquemaprecios.data" stripedRows paginator :rows="10" 
-                        :rowsPerPageOptions="[5, 10, 20, 50]" rowGroupMode="rowspan" groupRowsBy="nombre" 
-                        sortMode="single" sortField="nombre" :sortOrder="1" tableStyle="min-width: 50rem">
+                        <DataTable 
+                            :value="esquemaprecios" 
+                            stripedRows 
+                            paginator 
+                            :rows="10" 
+                            v-model:expandedRows="expandedRows"
+                            dataKey="id"
+                            :rowsPerPageOptions="[5, 10, 20, 50]" 
+                            tableStyle="min-width: 50rem"
+                        >
+                            <Column expander style="width: 5rem" />
                             <Column field="nombre" header="Nombre"></Column>
-                            <Column field="membresia" header="Membresia / Entidad">
-                                <template #body="slotProps">
-                                    {{ slotProps.data.membresia ? slotProps.data.membresia.nombre + "-" + slotProps.data.membresia.entidad.abreviacion : '—' }}
-                                </template>
-                            </Column>
-                            <Column field="precio" header="Precio">
-                                <template #body="slotProps">
-                                    $ {{ parseFloat(slotProps.data.precio).toLocaleString('es-AR', { minimumFractionDigits: 0 }) }}
-                                </template>
-                            </Column>
-                            <Column field="moneda" header="Moneda">
-                                <template #body="slotProps">
-                                    {{ slotProps.data.moneda ? slotProps.data.moneda.nombre : '—' }}
-                                </template>
-                            </Column>
-                            <Column header="Acciones" class="flex justify-center space-x-2">>
+                            <Column header="Acciones" class="flex justify-center space-x-2">
                                 <template #body="slotProps">
                                     <div class="flex justify-center space-x-2">
                                         <Link
@@ -94,6 +92,43 @@
                                     </div>
                                 </template>
                             </Column>
+
+                            <template #expansion="{ data }">
+                                <!-- data = { id, nombre, membresias: [ { ...}, { ...} ], ... } -->
+                                <DataTable 
+                                    :value="data.membresias"
+                                    class="mt-3"
+                                    stripedRows
+                                    tableStyle="min-width: 50rem"
+                                >
+                                    <!-- Columna Membresía / Entidad -->
+                                    <Column header="Membresía / Entidad">
+                                        <template #body="{ data: mem }">
+                                            <!-- mem = { id, precio, membresia, moneda, ... } -->
+                                            {{ mem.membresia
+                                                ? mem.membresia.nombre + ' - ' + mem.membresia.entidad.abreviacion
+                                                : '—'
+                                            }}
+                                        </template>
+                                    </Column>
+
+                                    <!-- Columna Precio -->
+                                    <Column header="Precio">
+                                        <template #body="{ data: mem }">
+                                            $ {{ parseFloat(mem.precio).toLocaleString('es-AR', { minimumFractionDigits: 0 }) }}
+                                        </template>
+                                    </Column>
+
+                                    <!-- Columna Moneda -->
+                                    <Column header="Moneda">
+                                        <template #body="{ data: mem }">
+                                            {{ mem.moneda ? mem.moneda.nombre : '—' }}
+                                        </template>
+                                    </Column>
+                                    
+                                </DataTable>
+                            </template>
+                            <!-- Fin expandedRow -->
                         </DataTable>
                     </div>
                 </div>

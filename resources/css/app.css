@@ -5,3 +5,15 @@
 [x-cloak] {
     display: none;
 }
+
+* {
+    font-family: "Montserrat", serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+  }
+  
+.font-parisienne {
+    font-family: "Parisienne", serif;
+    font-weight: 400;
+    font-style: normal;
+}

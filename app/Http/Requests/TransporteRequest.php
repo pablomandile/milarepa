@@ -24,7 +24,7 @@ class TransporteRequest extends FormRequest
     {
         return [
             'descripcion' => ['required','string', 'max:255'],
-            'precio' => ['required'],
+            'precio' => ['required', 'numeric', 'min:0'],
         ];
     }
 

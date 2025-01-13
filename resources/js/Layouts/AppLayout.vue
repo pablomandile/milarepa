@@ -35,7 +35,12 @@ const logout = () => {
 
 <template>
     <div class="flex flex-col min-h-screen bg-gray-100">
-        <Head :title="title" />
+        <Head>
+            <title>{{ title }}</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+            <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Parisienne&display=swap" rel="stylesheet" />
+        </Head>
 
         <Banner />
 
@@ -161,7 +166,7 @@ const logout = () => {
                             <Dropdown>
                                 <template #trigger>
                                     <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
-                                        Valores
+                                        Pagos
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                         </svg>
@@ -170,7 +175,10 @@ const logout = () => {
 
                                 <template #content>
                                     <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
-                                        Monedas
+                                        Pagar Membresía
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
+                                        Pagos de Membresías
                                     </DropdownLink>
                                     <DropdownLink :href="route('metodospago.index')" :active="route().current('metodos-pago.*')">
                                         Métodos de Pago
@@ -183,6 +191,9 @@ const logout = () => {
                                     </DropdownLink>
                                     <DropdownLink :href="route('esquemadescuentos.index')" :active="route().current('esquema-descuentos.*')">
                                         Excepciones de pago
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
+                                        Monedas
                                     </DropdownLink>
                                 </template>
                             </Dropdown>
