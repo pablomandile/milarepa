@@ -30,6 +30,7 @@ use App\Http\Controllers\TicketsController;
 use App\Http\Controllers\TransportesController;
 use App\Http\Controllers\DescripcionesController;
 use App\Http\Controllers\ProgramasController;
+use App\Http\Controllers\ActividadesController;
 
 
 
@@ -51,7 +52,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         'parameters' => ['metodospago' => 'metodopago'],]);
     Route::resource('/esquemaprecios', EsquemaPreciosController::class);
     Route::resource('/esquemadescuentos', EsquemaDescuentosController::class);
-    Route::resource('/actividades', EsquemaDescuentosController::class, [
+    Route::resource('/actividades', ActividadesController::class, [
         'parameters' => ['actividades' => 'actividad'],]);
     Route::resource('/usuarios', UsuariosController::class);
     Route::resource('/perfiles', PerfilesController::class);

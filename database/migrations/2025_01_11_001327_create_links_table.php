@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('actividad_coordinador', function (Blueprint $table) {
-            $table->unsignedInteger('actividad_id');
-            $table->unsignedInteger('coordinador_id');
+        Schema::create('links', function (Blueprint $table) {
+            $table->id();
+            $table->string('link');
+            $table->foreignId('stream_id')->constrained()->onDelete('cascade');
+            $table->timestamps();
         });
     }
 
@@ -22,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('actividad_coordinador');
+        Schema::dropIfExists('links');
     }
 };

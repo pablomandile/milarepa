@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('actividad_moneda', function (Blueprint $table) {
+        Schema::create('actividad_transportes', function (Blueprint $table) {
+            $table->id();
             $table->unsignedInteger('actividad_id');
-            $table->unsignedInteger('moneda_id');
+            $table->unsignedInteger('transporte_id');
+            $table->timestamps();
         });
     }
 
@@ -22,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('actividad_moneda');
+        Schema::dropIfExists('actividad_transportes');
     }
 };

@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('actividad_maestro', function (Blueprint $table) {
-            $table->unsignedInteger('actividad_id');
-            $table->unsignedInteger('maestro_id');
+        Schema::create('streams', function (Blueprint $table) {
+            $table->id();
+            $table->string('nombre');
+            $table->timestamps();
         });
     }
 
@@ -22,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('actividad_maestro');
+        Schema::dropIfExists('streams');
     }
 };

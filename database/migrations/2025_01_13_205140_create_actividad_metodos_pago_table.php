@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('actividad_metodos_pago', function (Blueprint $table) {
             $table->unsignedInteger('actividad_id');
-            $table->unsignedInteger('metodosPago_id');
+            $table->unsignedInteger('metodo_pago_id');
         });
     }
 

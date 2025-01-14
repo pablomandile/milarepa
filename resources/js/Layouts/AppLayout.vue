@@ -133,7 +133,7 @@ const logout = () => {
                                         Modalidades
                                     </DropdownLink>
                                     <DropdownLink :href="route('inscripciones.index')" :active="route().current('inscripciones.*')">
-                                        Streamings
+                                        Streams
                                     </DropdownLink>
                                 </template>
                             </Dropdown>

@@ -77,6 +77,11 @@ function getMonedaLabel(monedaId) {
   return found ? found.nombre : '—';
 }
 
+function onRowEditCancel(event) {
+  // Opcional: revertir cambios, loguear, etc.
+  console.log('row-edit-cancel event:', event);
+}
+
 </script>
 
 
