@@ -107,13 +107,14 @@
     </AppLayout>
     <!-- Dialog para mostrar detalles -->
     <Dialog 
-    v-model:visible="visible" 
-    modal 
-    :header="lugarHospedajeSeleccionado ? `Detalles de ${lugarHospedajeSeleccionado.nombre}` : 'Detalles...'"
+        v-model:visible="visible" 
+        modal 
+        :header="lugarHospedajeSeleccionado ? `Detalles de ${lugarHospedajeSeleccionado.nombre}` : 'Detalles...'"
 
-    :style="{ width: '50rem' }" 
-    :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
->
+        :style="{ width: '50rem' }" 
+        :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+        dismissableMask
+    >
     <template v-if="lugarHospedajeSeleccionado">
         <p class="mb-3" v-if="lugarHospedajeSeleccionado.descripcion && lugarHospedajeSeleccionado.descripcion.trim() !== ''">
             <i class="pi pi-sparkles mr-1"></i> {{ lugarHospedajeSeleccionado.descripcion }}

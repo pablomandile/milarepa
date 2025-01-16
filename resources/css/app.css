@@ -17,3 +17,14 @@
     font-weight: 400;
     font-style: normal;
 }
+
+.my-dropdown {
+    width: 300px; /* Fija o máxima */
+  }
+
+.my-dropdown .p-dropdown-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

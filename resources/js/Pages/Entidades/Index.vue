@@ -108,14 +108,14 @@
     </AppLayout>
     <!-- Dialog para mostrar detalles -->
     <Dialog 
-    v-model:visible="visible" 
-    maximizable 
-    modal 
-    :header="entidadSeleccionada ? `Detalles de ${entidadSeleccionada.nombre}` : 'Detalles...'"
-
-    :style="{ width: '50rem' }" 
-    :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
->
+        v-model:visible="visible" 
+        maximizable 
+        modal 
+        :header="entidadSeleccionada ? `Detalles de ${entidadSeleccionada.nombre}` : 'Detalles...'"
+        :style="{ width: '50rem' }" 
+        :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+        dismissableMask
+    >
     <template v-if="entidadSeleccionada">
         <!-- Mostrar imagen solo si logo_url no está vacío -->
         <div class="mb-5" v-if="entidadSeleccionada.logo_uri">

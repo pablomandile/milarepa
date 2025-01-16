@@ -18,6 +18,7 @@ use App\Models\Stream;
 use App\Models\TipoActividad;
 use App\Models\Transporte;
 
+
 class ActividadesController extends Controller
 {
     /**
@@ -45,14 +46,22 @@ class ActividadesController extends Controller
      */
     public function create()
     {
+        $esquema_precios = EsquemaPrecio::with([
+            'membresias.moneda',
+            'membresias.membresia.entidad'  // <- Eager load de la Entidad
+        ])->get();
+        $esquema_descuentos = EsquemaDescuento::with([
+            'membresias.moneda',
+            'membresias.membresia.entidad'  // <- Eager load de la Entidad
+        ])->get();
         $tiposActividad = TipoActividad::all();
         $descripciones = Descripcion::all();
         $entidades = Entidad::all();
         $disponibilidades = Disponibilidad::all();
         $modalidades = Modalidad::all();
-        $esquema_precios = EsquemaPrecio::all();
-        $esquema_descuentos = EsquemaDescuento::all();
-        $streams = Stream::all();
+        $streams = Stream::with([
+            'links'
+        ])->get();
         $programas = Programa::all();
         $metodosPago = MetodoPago::all();
         $hospedajes = Hospedaje::all();
@@ -65,8 +74,8 @@ class ActividadesController extends Controller
             'entidades' => $entidades, 
             'disponibilidades' => $disponibilidades, 
             'modalidades' => $modalidades, 
-            'esquema_precios' => $esquema_precios, 
-            'esquema_descuentos' => $esquema_descuentos, 
+            'esquema_precios' => $esquema_precios->toArray(),
+            'esquema_descuentos' => $esquema_descuentos->toArray(), 
             'streams' => $streams, 
             'programas' => $programas,
             'metodosPago' => $metodosPago,

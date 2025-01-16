@@ -5,18 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Stream extends Model
+class AcercaDe extends Model
 {
     use HasFactory;
     
-    protected $table = 'streams';
+    protected $table = 'acerca_de';
 
     protected $fillable = [
-        'nombre'
+        'descripcion'
     ];
     
-    public function links()
-    {
-        return $this->hasMany(Link::class);
-    }
 }

@@ -10,13 +10,21 @@ import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
+import { Link } from '@inertiajs/vue3';
+import Dialog from 'primevue/dialog';
+import { ref } from 'vue';
+
 
 // PrimeVue
 import Calendar from 'primevue/calendar';
 import Dropdown from 'primevue/dropdown';
 import MultiSelect from 'primevue/multiselect';
+import Textarea from 'primevue/textarea';
+import FileUpload from 'primevue/fileupload';
+import { useToast } from 'primevue/usetoast';
 
-defineProps({
+
+const props = defineProps({
   // Objeto con los campos que se bindearán en v-model
   form: {
     type: Object,
@@ -85,9 +93,89 @@ defineProps({
 });
 
 defineEmits(['submit']);
+
+const imagePreview = ref(null);
+const toast = useToast();
+
+// Estado para ID's seleccionados (uno por dropdown)
+const selectedDescripcionId = ref(null);
+const selectedEntidadId = ref(null);
+const selectedEsquemaPrecioId = ref(null);
+const selectedEsquemaDescuentoId = ref(null);
+const selectedStreamId = ref(null);
+const selectedProgramaId = ref(null);
+
+
+// Manejo del dialog genérico
+const dialogVisible = ref(false);
+const dialogTitle = ref('');
+const detalleSeleccionado = ref(null);
+
+
+/**
+ * verDetalle(arrayName, id, title):
+ *  1) Toma el array (ej 'descripciones', 'entidades') 
+ *  2) Busca el objeto con ID 
+ *  3) Establece dialogTitle
+ *  4) Muestra el dialog
+ */
+ function verDetalle(arrayName, id, title) {
+  if (!id) return;
+  dialogTitle.value = title;
+
+  // Acceder al array por su nombre
+  const arrayData = props[arrayName];
+  if (!arrayData) return;
+
+  // Buscar el objeto con el ID
+  detalleSeleccionado.value = arrayData.find(item => item.id === id);
+
+  // Mostrar dialog
+  dialogVisible.value = true;
+  
+}
+
+// Función para previsualizar la imagen seleccionada
+const previewImage = (event) => {
+  const file = event.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    imagePreview.value = e.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+// Función para manejar el upload
+const onUpload = (event) => {
+  const response = event.xhr.response;
+  if (response) {
+    toast.add({
+      severity: 'success',
+      summary: 'Upload exitoso',
+      detail: 'La imagen se ha subido correctamente.',
+      life: 3000,
+    });
+    // Asigna la URL de la imagen subida al formulario
+    form.imagen = JSON.parse(response).filePath; // Asegúrate de que tu backend devuelva el `filePath`.
+  } else {
+    toast.add({
+      severity: 'error',
+      summary: 'Error al subir',
+      detail: 'No se pudo subir la imagen.',
+      life: 3000,
+    });
+  }
+};
+
+// const csrfHeaders = ref({
+//     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+// });
 </script>
 
 <template>
+  <Toast position="top-right" />
   <FormSection @submitted="$emit('submit')">
     <!-- Título del form -->
     <template #title>
@@ -148,16 +236,57 @@ defineEmits(['submit']);
           value="Descripción"
           :required="false"
         />
-        <Dropdown
-          id="descripcion_id"
-          v-model="form.descripcion_id"
-          :options="descripciones"
-          optionLabel="nombre"      
-          optionValue="id"
-          placeholder="Seleccione Descripción"
-          class="w-full mt-1 border border-gray-300"
-        />
+         <!-- Contenedor para el Dropdown y el Botón + -->
+        <div class="flex gap-2 items-center mt-1">
+          <!-- Dropdown -->
+          <Dropdown
+            id="descripcion_id"
+            v-model="selectedDescripcionId"
+            :options="descripciones"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Seleccione Descripción"
+            class="grow border border-gray-300 my-dropdown"
+          />
+
+          <!-- Botón ver -->
+          <button
+            @click="verDetalle('descripciones', selectedDescripcionId, 'Descripción')"
+            :disabled="!selectedDescripcionId"
+            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+            v-tooltip="'Ver la Descripción'"
+          >
+            <i class="pi pi-eye"></i>
+          </button>
+
+          <!-- Botón nuevo (Redirecciona al create de Descripciones) -->
+          <Link
+            :href="route('descripciones.create')"
+            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+            v-tooltip="'Crear nueva descripción'"
+          >
+            <i class="pi pi-file-plus"></i>
+          </Link>
+        </div>
         <InputError :message="$page.props.errors.descripcion_id" class="mt-2" />
+      </div>
+
+      <!-- Observaciones -->
+      <div class="col-span-6 sm:col-span-6">
+        <InputLabel
+          for="observaciones"
+          class="text-indigo-400"
+          value="Observaciones"
+          :required="true"
+        />
+        <Textarea
+          id="observaciones"
+          v-model="form.observaciones"
+          type="text"
+          autocomplete="off"
+          class="mt-1 block w-full border border-gray-300 rounded"
+        />
+        <InputError :message="$page.props.errors.observaciones" class="mt-2" />
       </div>
 
       <!-- Imagen (URL o File) -->
@@ -168,13 +297,28 @@ defineEmits(['submit']);
           value="Imagen"
           :required="false"
         />
-        <TextInput
-          id="imagen"
-          v-model="form.imagen"
-          type="text"
-          placeholder="URL o ruta de imagen"
-          class="mt-1 block w-full"
-        />
+
+        <div class="flex items-center gap-4">
+          <!-- FileUpload -->
+          <FileUpload
+            id="imagen"
+            mode="basic"
+            url="/api/upload"
+            v-model="form.imagen"
+            accept="image/*"
+            :headers="csrfHeaders"
+            :maxFileSize="1000000"
+            @select="previewImage"
+            @upload="onUpload"
+            placeholder="Seleccionar archivo"
+            class="block w-full bg-indigo-500 mt-2"
+          />
+
+          <!-- Vista previa de la imagen -->
+          <div v-if="imagePreview" class="w-16 h-16 overflow-hidden border rounded">
+            <img :src="imagePreview" alt="Vista previa" class="object-cover w-full h-full" />
+          </div>
+        </div>
         <!-- O un componente file upload. -->
         <InputError :message="$page.props.errors.imagen" class="mt-2" />
       </div>
@@ -192,7 +336,9 @@ defineEmits(['submit']);
           v-model="form.fecha_inicio"
           dateFormat="dd/mm/yy"
           :showIcon="true"
-          class="w-full mt-1 border border-gray-300"
+          showTime 
+          hourFormat="24"
+          class="w-full mt-1"
         />
         <InputError :message="$page.props.errors.fecha_inicio" class="mt-2" />
       </div>
@@ -208,10 +354,31 @@ defineEmits(['submit']);
           id="fecha_fin"
           v-model="form.fecha_fin"
           dateFormat="dd/mm/yy"
-          class="w-full mt-1 border border-gray-300"
+          showTime  
+          hourFormat="24"
+          class="w-full mt-1"
           :showIcon="true"
         />
         <InputError :message="$page.props.errors.fecha_fin" class="mt-2" />
+      </div>
+
+      <!-- Fecha para descuentos -->
+      <div class="col-span-6 sm:col-span-3">
+        <InputLabel
+          for="pagoAmticipado"
+          class="text-indigo-400"
+          value="Fecha pago anticipado"
+        />
+        <Calendar
+          id="pagoAmticipado"
+          v-model="form.pagoAmticipado"
+          dateFormat="dd/mm/yy"
+          showTime  
+          hourFormat="24"
+          class="w-full mt-1"
+          :showIcon="true"
+        />
+        <InputError :message="$page.props.errors.pagoAmticipado" class="mt-2" />
       </div>
 
       <!-- Entidad (Dropdown) -->
@@ -221,15 +388,35 @@ defineEmits(['submit']);
           class="text-indigo-400"
           value="Entidad"
         />
-        <Dropdown
-          id="entidad_id"
-          v-model="form.entidad_id"
-          :options="entidades"
-          optionLabel="nombre"
-          optionValue="id"
-          placeholder="Seleccione Entidad"
-          class="w-full mt-1 border border-gray-300"
-        />
+        <div class="flex gap-2 items-center mt-1">
+          <Dropdown
+            id="entidad_id"
+            v-model="selectedEntidadId"
+            :options="entidades"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Seleccione Entidad"
+            class="w-full mt-1 border border-gray-300"
+          />
+          <!-- Botón ver -->
+          <button
+            @click="verDetalle('entidades', selectedEntidadId, 'Entidad')"
+            :disabled="!selectedEntidadId"
+            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+            v-tooltip="'Ver la Entidad'"
+          >
+            <i class="pi pi-eye"></i>
+          </button>
+
+          <!-- Botón nuevo (Redirecciona al create) -->
+          <Link
+            :href="route('entidades.create')"
+            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+            v-tooltip="'Crear nueva Entidad'"
+          >
+            <i class="pi pi-file-plus"></i>
+          </Link>
+        </div>
         <InputError :message="$page.props.errors.entidad_id" class="mt-2" />
       </div>
 
@@ -278,15 +465,35 @@ defineEmits(['submit']);
           class="text-indigo-400"
           value="Esquema Precios"
         />
-        <Dropdown
-          id="esquema_precio_id"
-          v-model="form.esquema_precio_id"
-          :options="esquema_precios"
-          optionLabel="nombre"
-          optionValue="id"
-          placeholder="Seleccione un esquema"
-          class="w-full mt-1 border border-gray-300"
-        />
+        <div class="flex gap-2 items-center mt-1">
+          <Dropdown
+            id="esquema_precio_id"
+            v-model="selectedEsquemaPrecioId"
+            :options="esquema_precios"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Seleccione un esquema"
+            class="w-full mt-1 border border-gray-300"
+          />
+          <!-- Botón ver -->
+          <button
+            @click="verDetalle('esquema_precios', selectedEsquemaPrecioId, 'Esquema de Precios')"
+            :disabled="!selectedEsquemaPrecioId"
+            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+            v-tooltip="'Ver el Esquema'"
+          >
+            <i class="pi pi-eye"></i>
+          </button>
+
+          <!-- Botón nuevo (Redirecciona al create) -->
+          <Link
+            :href="route('esquemaprecios.create')"
+            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+            v-tooltip="'Crear nuevo Esquema'"
+          >
+            <i class="pi pi-file-plus"></i>
+          </Link>
+        </div>
         <InputError :message="$page.props.errors.esquema_precio_id" class="mt-2" />
       </div>
 
@@ -297,16 +504,34 @@ defineEmits(['submit']);
           class="text-indigo-400"
           value="Esquema Descuentos"
         />
-        <Dropdown
-          id="esquema_descuento_id"
-          v-model="form.esquema_descuento_id"
-          :options="esquema_descuentos"
-          optionLabel="nombre"
-          optionValue="id"
-          placeholder="Seleccione el esquema de desc."
-          class="w-full mt-1 border border-gray-300"
-        />
-        <InputError :message="$page.props.errors.esquema_descuento_id" class="mt-2" />
+        <div class="flex gap-2 items-center mt-1">
+          <Dropdown
+            id="esquema_descuento_id"
+            v-model="selectedEsquemaDescuentoId"
+            :options="esquema_descuentos"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Seleccione el esquema de desc."
+            class="w-full mt-1 border border-gray-300"
+          />
+          <!-- Botón ver -->
+          <button
+            @click="verDetalle('esquema_descuentos', selectedEsquemaDescuentoId, 'Esquema de Descuentos')"
+            :disabled="!selectedEsquemaDescuentoId"
+            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+            v-tooltip="'Ver el Esquema'"
+          >
+            <i class="pi pi-eye"></i>
+          </button>
+          <!-- Botón nuevo (Redirecciona al create) -->
+          <Link
+            :href="route('esquemadescuentos.create')"
+            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+            v-tooltip="'Crear nuevo Esquema'"
+          >
+          <i class="pi pi-file-plus"></i>
+          </Link>
+        </div>
       </div>
 
       <!-- Link de grabación -->
@@ -348,15 +573,35 @@ defineEmits(['submit']);
           class="text-indigo-400"
           value="Stream"
         />
-        <Dropdown
-          id="stream_id"
-          v-model="form.stream_id"
-          :options="streams"
-          optionLabel="nombre"
-          optionValue="id"
-          placeholder="Seleccione Stream"
-          class="w-full mt-1 border border-gray-300"
-        />
+        <div class="flex gap-2 items-center mt-1">
+          <Dropdown
+            id="stream_id"
+            v-model="selectedStreamId"
+            :options="streams"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Seleccione Stream"
+            class="w-full mt-1 border border-gray-300"
+          />
+          <!-- Botón ver -->
+          <button
+            @click="verDetalle('streams', selectedStreamId, 'Stream')"
+            :disabled="!selectedStreamId"
+            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+            v-tooltip="'Ver el Stream'"
+          >
+            <i class="pi pi-eye"></i>
+          </button>
+
+          <!-- Botón nuevo (Redirecciona al create) -->
+          <Link
+            :href="route('streams.create')"
+            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+            v-tooltip="'Crear nuevo Stream'"
+          >
+            <i class="pi pi-file-plus"></i>
+          </Link>
+        </div>
         <InputError :message="$page.props.errors.stream_id" class="mt-2" />
       </div>
 
@@ -367,15 +612,35 @@ defineEmits(['submit']);
           class="text-indigo-400"
           value="Programa"
         />
-        <Dropdown
-          id="programa_id"
-          v-model="form.programa_id"
-          :options="programas"
-          optionLabel="nombre"
-          optionValue="id"
-          placeholder="Seleccione un programa"
-          class="w-full mt-1 border border-gray-300"
-        />
+        <div class="flex gap-2 items-center mt-1">
+          <Dropdown
+            id="programa_id"
+            v-model="selectedProgramaId"
+            :options="programas"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Seleccione un programa"
+            class="w-full mt-1 border border-gray-300"
+          />
+          <!-- Botón ver -->
+          <button
+            @click="verDetalle('programas', selectedProgramaId, 'Programa')"
+            :disabled="!selectedProgramaId"
+            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+            v-tooltip="'Ver el Programa'"
+          >
+            <i class="pi pi-eye"></i>
+          </button>
+
+          <!-- Botón nuevo (Redirecciona al create) -->
+          <Link
+            :href="route('programas.create')"
+            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+            v-tooltip="'Crear nuevo Programa'"
+          >
+            <i class="pi pi-file-plus"></i>
+          </Link>
+        </div>
         <InputError :message="$page.props.errors.programa_id" class="mt-2" />
       </div>
 
@@ -461,4 +726,84 @@ defineEmits(['submit']);
       </PrimaryButton>
     </template>
   </FormSection>
+   <!-- Dialog Genérico -->
+   <Dialog
+      v-model:visible="dialogVisible"
+      :header="dialogTitle"
+      :style="{ width: '50vw' }"
+      dismissableMask
+      modal
+    >
+    <template v-if="detalleSeleccionado">
+      <!-- Aquí muestras la info según sea la data. Por ejemplo: -->
+      <h3 class="text-xl font-bold mb-2">{{ detalleSeleccionado.nombre }}</h3>
+      <p class="text-sm text-gray-600 whitespace-pre-wrap">
+        <!-- Muestra 'contenido' o 'descripcion' o 'info', depende de tu objeto -->
+        {{ detalleSeleccionado.contenido || detalleSeleccionado.descripcion }}
+      </p>
+      <p v-if="detalleSeleccionado.direccion">
+        <strong>Dirección:</strong> {{ detalleSeleccionado.direccion }}
+      </p>
+      <p v-if="detalleSeleccionado.programa">
+        <strong>Programa:</strong> {{ detalleSeleccionado.programa }}
+      </p>
+    </template>
+    <template v-else>
+      <p>No se encontró la información solicitada.</p>
+    </template>
+
+    <!-- Comprobamos si hay 'membresias' -->
+    <div v-if="detalleSeleccionado.membresias && detalleSeleccionado.membresias.length > 0">
+      <h4 class="font-semibold mt-4 mb-2">Membresías</h4>
+
+      <ul class="space-y-2">
+        <li
+          v-for="(line, idx) in detalleSeleccionado.membresias"
+          :key="line.id"
+          class="border p-2 rounded"
+        >
+          <!-- Ejemplo de campos:
+               line.precio, line.moneda.simbolo, line.membresia.nombre, line.membresia.entidad.abreviacion -->
+          <strong class="block">
+            <!-- Nombre de la Membresía -->
+            {{ line.membresia ? line.membresia.nombre : '—' }}
+          </strong>
+
+          <!-- Precio + Moneda -->
+          <span v-if="line.moneda">
+            {{ line.moneda.simbolo }} {{ line.precio }}
+          </span>
+          <span v-else>
+            ${{ line.precio }}
+          </span>
+
+          <!-- Entidad abreviación, si aplica -->
+          <span v-if="line.membresia && line.membresia.entidad">
+            ({{ line.membresia.entidad.abreviacion }})
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <div v-if="detalleSeleccionado.links && detalleSeleccionado.links.length > 0">
+      <h4 class="font-semibold mt-4 mb-2">Links</h4>
+
+      <ul class="space-y-2">
+        <li
+          v-for="(line, idx) in detalleSeleccionado.links"
+          :key="line.id"
+          class="border p-2 rounded"
+        >
+          <strong class="block">
+            {{ line.nombre }}
+          </strong>
+
+          <span v-if="line.link">
+            {{ line.link }}
+          </span>
+        </li>
+      </ul>
+    </div>
+
+  </Dialog>
 </template>

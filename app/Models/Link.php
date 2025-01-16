@@ -12,7 +12,13 @@ class Link extends Model
     protected $table = 'links';
 
     protected $fillable = [
-        'link'
+        'nombre',
+        'link',
+        'stream_id'
     ];
     
+    public function stream()
+    {
+        return $this->belongsTo(Stream::class);
+    }
 }

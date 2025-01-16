@@ -140,6 +140,7 @@
         :header="descripcionSeleccionada ? `${descripcionSeleccionada.nombre}` : 'Detalles...'" 
         :style="{ width: '60rem', minHeight: '50rem' }" 
         :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+        dismissableMask
     >
         <template v-if="descripcionSeleccionada">
             <div class="flex items-center justify-center max-w-7xl mx-auto sm:px-6 lg:px-8">

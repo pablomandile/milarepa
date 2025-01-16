@@ -114,7 +114,11 @@ class RoleSeeder extends Seeder
         $permission_create_transportes = Permission::create(['name' => 'update transportes']);
         $permission_create_transportes = Permission::create(['name' => 'read transportes']);
         $permission_create_transportes = Permission::create(['name' => 'delete transportes']);
-        $permission_create_transportes = Permission::create(['name' => 'asign transportes']);
+
+        $permission_create_streams = Permission::create(['name' => 'create streams']);
+        $permission_create_streams = Permission::create(['name' => 'update streams']);
+        $permission_create_streams = Permission::create(['name' => 'read streams']);
+        $permission_create_streams = Permission::create(['name' => 'delete streams']);
 
 
         $permissions_admin = [
@@ -195,6 +199,10 @@ class RoleSeeder extends Seeder
             'update transportes',
             'read transportes',
             'delete transportes',
+            'create streams',
+            'update streams',
+            'read streams',
+            'delete streams',
             
         ];
         
@@ -272,6 +280,10 @@ class RoleSeeder extends Seeder
             'update transportes',
             'read transportes',
             'delete transportes',
+            'create streams',
+            'update streams',
+            'read streams',
+            'delete streams',
         ];
 
         $permissions_asistant = [
@@ -280,6 +292,7 @@ class RoleSeeder extends Seeder
             'update tickets',
             'read tickets',
             'delete tickets',
+            
         ];
 
         $role_admin->syncPermissions($permissions_admin);

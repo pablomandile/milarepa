@@ -31,8 +31,8 @@ use App\Http\Controllers\TransportesController;
 use App\Http\Controllers\DescripcionesController;
 use App\Http\Controllers\ProgramasController;
 use App\Http\Controllers\ActividadesController;
-
-
+use App\Http\Controllers\UploadController;
+use App\Http\Controllers\StreamsController;
 
 Route::get('/', [DashboardController::class, 'index']);
 
@@ -50,8 +50,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/monedas', MonedasController::class);
     Route::resource('/metodospago', MetodosPagoController::class, [
         'parameters' => ['metodospago' => 'metodopago'],]);
-    Route::resource('/esquemaprecios', EsquemaPreciosController::class);
-    Route::resource('/esquemadescuentos', EsquemaDescuentosController::class);
     Route::resource('/actividades', ActividadesController::class, [
         'parameters' => ['actividades' => 'actividad'],]);
     Route::resource('/usuarios', UsuariosController::class);
@@ -77,6 +75,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/descripciones', DescripcionesController::class, [
         'parameters' => ['descripciones' => 'descripcion'],]);
     Route::resource('/programas', ProgramasController::class);
+    Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');
+
+    Route::resource('/esquemaprecios', EsquemaPreciosController::class);
+    Route::resource('/esquemadescuentos', EsquemaDescuentosController::class);
 
     Route::post('/esquema-precios/{id}/membresias', [EsquemaPreciosController::class, 'storeMembresia'])
     ->name('esquemaprecios.storeMembresia');
@@ -85,14 +87,21 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     // Editar y eliminar membershipLine
     Route::put('/esquema-precios/membresias/{membershipLineId}', [EsquemaPreciosController::class, 'updateMembresia'])
-        ->name('esquemaprecios.updateMembresia');
+    ->name('esquemaprecios.updateMembresia');
     Route::delete('/esquema-precios/membresias/{membershipLineId}', [EsquemaPreciosController::class, 'destroyMembresia'])
-        ->name('esquemaprecios.destroyMembresia');
+    ->name('esquemaprecios.destroyMembresia');
 
     Route::put('/esquema-descuentos/membresias/{membershipLineId}', [EsquemaDescuentosController::class, 'updateMembresia'])
-        ->name('esquemadescuentos.updateMembresia');
+    ->name('esquemadescuentos.updateMembresia');
     Route::delete('/esquema-descuentos/membresias/{membershipLineId}', [EsquemaDescuentosController::class, 'destroyMembresia'])
-        ->name('esquemadescuentos.destroyMembresia');
+    ->name('esquemadescuentos.destroyMembresia');
 
-    
+    Route::resource('/streams', StreamsController::class);
+    Route::post('/streams/{id}/links', [StreamsController::class, 'storeLink'])
+    ->name('streams.storeLink');
+    Route::put('/streams/links/{linkLineId}', [StreamsController::class, 'updateLink'])
+    ->name('streams.updateLink');
+    Route::delete('/streams/links/{linkLineId}', [StreamsController::class, 'destroyLink'])
+    ->name('streams.destroyLink');
+
 });

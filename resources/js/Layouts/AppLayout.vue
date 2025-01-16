@@ -132,7 +132,7 @@ const logout = () => {
                                     <DropdownLink :href="route('modalidades.index')" :active="route().current('modalidades.*')">
                                         Modalidades
                                     </DropdownLink>
-                                    <DropdownLink :href="route('inscripciones.index')" :active="route().current('inscripciones.*')">
+                                    <DropdownLink :href="route('streams.index')" :active="route().current('streams.*')">
                                         Streams
                                     </DropdownLink>
                                 </template>
@@ -154,7 +154,7 @@ const logout = () => {
                                         Inscripciones
                                     </DropdownLink>
                                     <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
-                                        Estado
+                                        Estado de inscripciones
                                     </DropdownLink>
                                     <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
                                         Histórico
@@ -178,7 +178,7 @@ const logout = () => {
                                         Pagar Membresía
                                     </DropdownLink>
                                     <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
-                                        Estado de Cuentas
+                                        Estado de Membresías
                                     </DropdownLink>
                                     <DropdownLink :href="route('metodospago.index')" :active="route().current('metodos-pago.*')">
                                         Métodos de Pago

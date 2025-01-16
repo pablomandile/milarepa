@@ -10,6 +10,8 @@ import 'primevue/resources/primevue.min.css'; // Estilos base de PrimeVue
 import 'primevue/resources/themes/lara-light-blue/theme.css'; // O el tema que prefieras
 import 'primeicons/primeicons.css'; // Iconos
 import Tooltip from 'primevue/tooltip';
+import ToastService from 'primevue/toastservice';
+import Toast from 'primevue/toast'
 
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -23,7 +25,9 @@ createInertiaApp({
             .use(plugin)
             .use(ZiggyVue)
             .use(PrimeVue)
+            .use(ToastService)
             .directive('tooltip', Tooltip)
+            .component('Toast', Toast)
             .mount(el);
             
     },
