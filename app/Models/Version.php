@@ -5,16 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Novedad extends Model
+class Version extends Model
 {
     use HasFactory;
     
-    protected $table = 'novedades';
+    protected $table = 'versiones';
 
     protected $fillable = [
-        'nombre',
-        'descripcion',
-        'fecha'
+        'version'
     ];
     
 }

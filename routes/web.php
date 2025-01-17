@@ -68,7 +68,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/modalidades', ModalidadesController::class, [
         'parameters' => ['modalidades' => 'modalidad'],]);
     Route::resource('/centroayuda', CentroAyudaController::class);
-    Route::resource('/novedades', NovedadesController::class);
+    Route::get('/novedades/gestion', [NovedadesController::class, 'gestion'])->name('novedades.gestion');
+    Route::resource('/novedades', NovedadesController::class, [
+        'parameters' => ['novedades' => 'novedad'],]);
     Route::resource('/reporteerror', ReporteErrorController::class);
     Route::resource('/acercade', AcercaDeController::class);
     Route::put('/tickets/asignar/{ticket}', [TicketsController::class, 'asignar'])->name('tickets.asignar');

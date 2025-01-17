@@ -120,6 +120,16 @@ class RoleSeeder extends Seeder
         $permission_create_streams = Permission::create(['name' => 'read streams']);
         $permission_create_streams = Permission::create(['name' => 'delete streams']);
 
+        $permission_create_novedades = Permission::create(['name' => 'create novedades']);
+        $permission_create_novedades = Permission::create(['name' => 'update novedades']);
+        $permission_create_novedades = Permission::create(['name' => 'read novedades']);
+        $permission_create_novedades = Permission::create(['name' => 'delete novedades']);
+
+        $permission_create_usuarios = Permission::create(['name' => 'create usuarios']);
+        $permission_create_usuarios = Permission::create(['name' => 'update usuarios']);
+        $permission_create_usuarios = Permission::create(['name' => 'read usuarios']);
+        $permission_create_usuarios = Permission::create(['name' => 'delete usuarios']);
+
 
         $permissions_admin = [
             'create roles',
@@ -203,7 +213,15 @@ class RoleSeeder extends Seeder
             'update streams',
             'read streams',
             'delete streams',
-            
+            'create novedades',
+            'update novedades',
+            'read novedades',
+            'delete novedades',
+            'create usuarios',
+            'update usuarios',
+            'read usuarios',
+            'delete usuarios',
+                        
         ];
         
         $permissions_editor = [
@@ -284,6 +302,14 @@ class RoleSeeder extends Seeder
             'update streams',
             'read streams',
             'delete streams',
+            'create novedades',
+            'update novedades',
+            'read novedades',
+            'delete novedades',
+            'create usuarios',
+            'update usuarios',
+            'read usuarios',
+            'delete usuarios',
         ];
 
         $permissions_asistant = [
@@ -292,6 +318,7 @@ class RoleSeeder extends Seeder
             'update tickets',
             'read tickets',
             'delete tickets',
+            'read novedades',
             
         ];
 

@@ -13,8 +13,17 @@ class NovedadesController extends Controller
      */
     public function index()
     {
-        $novedades = Novedad::paginate(15);
+        $novedades = Novedad::all();
         return inertia('Novedades/Index', ['novedades' => $novedades]);
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function gestion()
+    {
+        $novedades = Novedad::all();
+        return inertia('Novedades/Gestion', ['novedades' => $novedades]);
     }
 
     /**
@@ -31,7 +40,7 @@ class NovedadesController extends Controller
     public function store(NovedadRequest $request)
     {
         Novedad::create($request->validated());
-        return redirect()->route('novedades.index');
+        return redirect()->route('novedades.gestion');
     }
 
     /**
@@ -61,7 +70,7 @@ class NovedadesController extends Controller
 
         $novedad->update($request->validated());
 
-        return redirect()->route('novedades.index');
+        return redirect()->route('novedades.gestion');
     }
 
     /**
@@ -72,9 +81,9 @@ class NovedadesController extends Controller
         try {
             $novedad = Novedad::findorfail($id);
             $novedad->delete();
-            return redirect()->route('novedades.index')->with('success', 'Novedad eliminada con éxito.');
+            return redirect()->route('novedades.gestion')->with('success', 'Novedad eliminada con éxito.');
         } catch (\Exception $e) {
-            return redirect()->route('novedades.index')->with('error', 'Error al eliminar la Novedad: ' . $e->getMessage());
+            return redirect()->route('novedades.gestion')->with('error', 'Error al eliminar la Novedad: ' . $e->getMessage());
         }
     }
 }

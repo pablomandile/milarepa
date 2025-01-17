@@ -8,15 +8,45 @@ import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import Footer from '@/Components/Footer.vue';
+import Dialog from 'primevue/dialog';
 
 
-defineProps({
+const props = defineProps({
     title: String,
     entidad_principal: {
         type: String,
         default: 'Sin entidad principal configurada',
     },
+    version: {
+        type: Object,
+        required: true,
+        default: () => ({}),
+    },
 });
+
+const dialogVisible = ref(false);
+const dialogTitle = ref('Acerca de');
+const dialogContent = ref('');
+
+const mostrarAcercade = () => {
+    dialogContent.value = `
+        <div class="bg-white shadow-md rounded-lg p-6 max-w-md mx-auto border border-gray-200">
+            <p class="m-0">
+                <strong>Versión:</strong> ${props.version.version || 'Sin versión disponible'}<br>
+                <strong>Fecha:</strong> ${props.version.created_at || 'Fecha no especificada'}
+            </p>
+            <p class="mt-4 mb-4">
+                <strong>Desarrollado por:</strong> Pablo Mandile
+                <span class="text-indigo-400">
+                    <a href="mailto:pablo.mandile@gmail.com" target="_blank" class="underline hover:text-indigo-600">
+                        pablo.mandile@gmail.com
+                    </a>
+                </span>
+            </p>
+        </div>
+    `;
+    dialogVisible.value = true;
+};
 
 const showingNavigationDropdown = ref(false);
 
@@ -243,11 +273,28 @@ const logout = () => {
                                     <DropdownLink :href="route('reporteerror.index')" :active="route().current('reporteerror.*')">
                                         Reportar un error
                                     </DropdownLink>
-                                    <DropdownLink :href="route('acercade.index')" :active="route().current('acercade.*')">
-                                        Acerca de
-                                    </DropdownLink>
+                                        <div class="text-gray-500 ml-4">
+                                            <button 
+                                                @click="mostrarAcercade" 
+                                                class="text-left w-full hover:bg-gray-100">
+                                                <i class="pi pi-info-circle mr-1" style="color: slateblue"></i>
+                                                Acerca de
+                                            </button>
+                                        </div>
+                                    
                                 </template>
                             </Dropdown>
+                            <Dialog 
+                                v-model:visible="dialogVisible" 
+                                :header="dialogTitle" 
+                                :style="{ width: '50vw' }" 
+                                dismissableMask
+                                modal>
+                                <template #default>
+                                    <div v-html="dialogContent"></div>
+                                </template>
+                            </Dialog>
+
                         </div>
                     </div>
 

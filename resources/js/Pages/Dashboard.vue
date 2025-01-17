@@ -6,11 +6,16 @@ defineProps({
         type: String,
         default: 'Sin entidad principal configurada',
     },
+    version: {
+        type: Object,
+        required: true,
+        default: () => ({}),
+    },
 });
 </script>
 
 <template>
-    <AppLayout title="Dashboard" :entidad_principal="entidad_principal">
+    <AppLayout title="Dashboard" :entidad_principal="entidad_principal" :version="version">
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 Inicio

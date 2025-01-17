@@ -14,6 +14,7 @@ class NovedadRequest extends FormRequest
     {
         return true;
     }
+    
 
     /**
      * Get the validation rules that apply to the request.
@@ -24,14 +25,24 @@ class NovedadRequest extends FormRequest
     {
         return [
             'nombre' => ['required', 'string', 'max:100'],
-            'descripcion' => ['required','string', 'max:255']      
+            'descripcion' => ['string', 'max:255'],
+            'fecha' => ['required', 'date']      
         ];
     }
 
     public function messages():array {
         return [
             'nombre.required' => __('El nombre no puede quedar vacío'),
-            'descripcion.required' => __('La descripción no puede quedar vacía')
+            'fecha.required' => __('La fecha no puede quedar vacía')
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        if ($this->has('fecha')) {
+            $this->merge([
+                'fecha' => \Carbon\Carbon::parse($this->fecha)->format('Y-m-d'),
+            ]);
+        }
     }
 }

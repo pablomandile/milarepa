@@ -220,14 +220,15 @@
     v-model:visible="visible" 
     maximizable 
     modal 
-    :header="ticketSeleccionado ? `${ticketSeleccionado.asunto}` : 'Detalles...'" 
+    :header="'Detalle del ticket'" 
     :style="{ width: '50rem' }" 
     :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
 >
     <template v-if="ticketSeleccionado">
         <div class="flex flex-col items-center justify-center w-2/3 mx-auto bg-indigo-100 text-black border rounded-md mb-4 h-52">
             <hr class="w-full border-gray-300 mb-2" />
-            <strong class="mb-1">Detalle</strong>
+            <i class="pi pi-exclamation-triangle" style="font-size: 2.5rem"></i>
+            <strong class="mb-1">{{ ticketSeleccionado.asunto }}</strong>
             <hr class="w-full border-gray-300 mb-2" />
             <p 
                 class="text-center mt-3"

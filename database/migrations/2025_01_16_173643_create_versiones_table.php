@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('novedades', function (Blueprint $table) {
+        Schema::create('versiones', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre', 100);
-            $table->string('descripcion', 255)->nullable();
-            $table->date('fecha');
+            $table->string('version', 50);
             $table->timestamps();
         });
     }
@@ -25,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('novedades');
+        Schema::dropIfExists('versiones');
     }
 };

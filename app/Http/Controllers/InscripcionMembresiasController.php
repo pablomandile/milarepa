@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Comida;
 use App\Http\Requests\ComidaRequest;
+use App\Models\Membresia;
 use Inertia\Inertia;
+
 
 class ComidasController extends Controller
 {
@@ -14,8 +16,8 @@ class ComidasController extends Controller
      */
     public function index()
     {
-        $comidas = Comida::paginate(15);
-        return inertia('Comidas/Index', ['comidas' => $comidas]);
+        $membresias = Membresia::all();
+        return inertia('InscripcionMembresia/Index', ['membresias' => $membresias]);
     }
 
     /**
@@ -23,7 +25,7 @@ class ComidasController extends Controller
      */
     public function create()
     {
-        return inertia('Comidas/Create');
+       
     }
 
     /**
