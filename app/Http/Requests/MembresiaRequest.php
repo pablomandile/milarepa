@@ -24,7 +24,7 @@ class MembresiaRequest extends FormRequest
     {
         return [
             'nombre' => ['required', 'string', 'max:20'],
-            'descripcion' => ['nullable', 'string', 'max:50'],
+            'descripcion' => ['nullable', 'string', 'max:150'],
             'entidad_id' => ['required', 'exists:entidades,id'],
         ];
     }

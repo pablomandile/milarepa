@@ -12,7 +12,7 @@ class EsquemaDescuentoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => ['required', 'string', 'max:30'],
+            'nombre' => ['required', 'string', 'max:50'],
         ];
     }
 

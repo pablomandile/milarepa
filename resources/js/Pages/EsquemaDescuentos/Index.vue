@@ -22,7 +22,7 @@
     // Controla qué filas de la tabla principal están expandidas
     const expandedRows = ref([]);
 
-    const deleteEsquemaPrecio = (id) => {
+    const deleteEsquemaDescuento = (id) => {
     Swal.fire({
         title: "¿Estás seguro?",
         text: "Esta acción no se puede deshacer.",
@@ -82,7 +82,7 @@
                                             <i class="pi pi-pencil text-indigo-400 mr-4"></i>
                                         </Link>
                                         <a
-                                            @click.prevent="deleteEsquemaPrecio(parseInt(slotProps.data.id))"
+                                            @click.prevent="deleteEsquemaDescuento(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete esquema_descuentos')"
                                             class="text-red-500 cursor-pointer"
                                             v-tooltip="'Borrar esquema'">

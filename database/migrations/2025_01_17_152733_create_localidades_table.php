@@ -11,14 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('membresias', function (Blueprint $table) {
+        Schema::create('localidades', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre', 20);
-            $table->string('descripcion', 150)->nullable();
-            $table->unsignedBigInteger('entidad_id')->nullable();
-            $table->foreign('entidad_id')->references('id')->on('entidades')->onDelete('cascade');
+            $table->string('nombre');
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
@@ -27,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('membresias');
+        Schema::dropIfExists('localidades');
     }
 };

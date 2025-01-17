@@ -121,10 +121,10 @@ class EsquemaDescuentosController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EsquemaDescuento $esquemaprecio)
+    public function destroy(EsquemaDescuento $esquemadescuento)
     {
         try {
-            $esquemaprecio->delete();
+            $esquemadescuento->delete();
             return redirect()->route('esquemadescuentos.index')->with('sucsess', 'El esquema de descuentos se ha eliminado con éxito.');
         } catch (\Exception $e) {
             return redirect()->route('esquemadescuentos.index')->with('error', 'Error al eliminar el esquema de descuentos: '. $e->getMessage());

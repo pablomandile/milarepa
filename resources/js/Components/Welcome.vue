@@ -50,7 +50,6 @@ onMounted(() => {
 /* Contenedor que alberga las ondas */
 .wave-container {
   position: absolute;
-  top: 0;
   left: 0;
   /* para ocupar todo el contenedor padre */
   width: 100%;
@@ -58,6 +57,9 @@ onMounted(() => {
   pointer-events: none; /* para que no interfiera con clicks */
   overflow: hidden;     /* por si las ondas se salen un poco */
   z-index: 0;          /* debajo del logo */
+  top: 15%;
+  transform: translateY(-15%); /* Movimiento más preciso */
+
 }
 
 /* Cada .wave es un círculo que se expande y desvanece */
@@ -119,32 +121,28 @@ onMounted(() => {
         <h1>Powered by MILAREPA</h1>
       </div>
 
+        <!-- Contenedor del logo y las ondas -->
+        <div class="relative flex justify-center items-center mb-20 h-80 w-auto">
+            <!-- Logo parpadeante -->
+            <img
+                v-if="logo"
+                :src="logo"
+                alt="Logo"
+                class="block h-80 w-auto transition-opacity duration-200"
+                :style="{ opacity: logoOpacity }"
+            />
 
-
-      <!-- Logo parpadeante -->
-      <div class="flex justify-center mb-20">
-        <!-- Ajustamos un estilo inline con la opacidad bind-eada -->
-        <img
-          v-if="logo"
-          :src="logo"
-          alt="Logo"
-          class="block h-80 w-auto transition-opacity duration-200"
-          :style="{ opacity: logoOpacity }"
-        />
-      </div>
-
-      <!-- Capa de las ondas -->
-      <div class="flex items-center justify-center ">
-        <div class="wave-container mt-10">
-          <div class="wave wave1"></div>
-          <div class="wave wave2"></div>
-          <div class="wave wave3"></div>
+            <!-- Ondas animadas -->
+            <div class="absolute top-11 left-0 h-3/6 w-full flex items-center justify-center pointer-events-none">
+                <div class="wave wave1"></div>
+                <div class="wave wave2"></div>
+                <div class="wave wave3"></div>
+            </div>
         </div>
-      </div>
 
       <div class="flex justify-center mt-4 mb-4">
         <h1 class="text-2xl" style="font-family: 'Parisienne', serif; font-weight: 400; font-style: normal;">¡Todos son Bienvenidos!</h1>
       </div>
         <!-- {{ $page.props }} -->
-    </div>
+    </div>  
 </template>
