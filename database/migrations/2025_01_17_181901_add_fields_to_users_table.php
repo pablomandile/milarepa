@@ -38,6 +38,10 @@ return new class extends Migration
 
             $table->boolean('es_maestro')->default(false);
             $table->boolean('es_coordinador')->default(false);
+            $table->boolean('perfil_completo')->default(false);
+            $table->boolean('msgxmail')->default(false);
+            $table->boolean('msgxwapp')->default(false);
+
 
         });
     }

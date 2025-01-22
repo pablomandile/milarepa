@@ -52,8 +52,8 @@ class EntidadRequest extends FormRequest
     public function messages():array {
         return [
             'nombre.required' => __('El nombre no puede quedar vacío'),
-            'descripcion.required' => __('La descripción no puede quedar vacío'),
-            'direccion.required' => __('La dirección no puede quedar vacío'),
+            'descripcion.required' => __('La descripción no puede quedar vacía'),
+            'direccion.required' => __('La dirección no puede quedar vacía'),
             'telefono.required' => __('El telefono no puede quedar vacío'),
             'entidad_principal.unique' => __('Ya existe una entidad asignada como principal'),
             'nombre.unique' => __('Ya existe una entidad con ese nombre')

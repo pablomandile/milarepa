@@ -37,6 +37,21 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'accesibilidad',
+        'accesibilidad_desc',
+        'direccion',
+        'pais_id',
+        'localidad_id',
+        'telefono',
+        'whatsapp',
+        'edad',
+        'sexo_id',
+        'membresia_id',
+        'es_maestro',
+        'es_coordinador',
+        'perfil_completo',
+        'msgxmail',
+        'msgxwapp'
     ];
 
     /**

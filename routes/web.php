@@ -31,13 +31,31 @@ use App\Http\Controllers\TransportesController;
 use App\Http\Controllers\DescripcionesController;
 use App\Http\Controllers\ProgramasController;
 use App\Http\Controllers\ActividadesController;
+use App\Http\Controllers\RegistroMembresiasController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\StreamsController;
+use App\Http\Controllers\ProfileCompletionController;
+
 
 Route::get('/', [DashboardController::class, 'index']);
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/complete-profile', [ProfileCompletionController::class, 'create'])
+        ->name('profile.complete');
+    Route::post('/complete-profile', [ProfileCompletionController::class, 'store'])
+        ->name('profile.complete.store');
+    // Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard', function () {
+        $user = auth()->user();
+        // dd($user->toArray());
+        // Chequeas si el perfil está incompleto
+        if (is_null($user->telefono)) {
+            return redirect()->route('profile.complete');
+        }
+    
+        // Si está completo, o no quieres forzarlo más
+        return inertia('Dashboard');
+    })->middleware(['auth', 'verified'])->name('dashboard');
     Route::resource('entidades', EntidadesController::class, [
         'parameters' => ['entidades' => 'entidad'], ]); // Renombrar el parámetro a 'entidad' por singular español
     Route::resource('/tiposactividad', TiposActividadController::class, [
@@ -105,5 +123,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     ->name('streams.updateLink');
     Route::delete('/streams/links/{linkLineId}', [StreamsController::class, 'destroyLink'])
     ->name('streams.destroyLink');
-
+    
+    Route::resource('/registromembresias', RegistroMembresiasController::class);
 });
