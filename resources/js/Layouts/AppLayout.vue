@@ -205,6 +205,9 @@ const logout = () => {
 
                                 <template #content>
                                     <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
+                                        Pagar Membresía
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
                                         Estado de Membresías
                                     </DropdownLink>
                                     <DropdownLink :href="route('metodospago.index')" :active="route().current('metodos-pago.*')">
@@ -245,15 +248,6 @@ const logout = () => {
                                     </DropdownLink>
                                     <DropdownLink :href="route('roles.index')" :active="route().current('roles.*')">
                                         Roles
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('registromembresias.create')" :active="route().current('monedas.*')">
-                                        Inscripción en Membresía
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
-                                        Pagar Membresía
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
-                                        Mi camino Budista
                                     </DropdownLink>
                                 </template>
                             </Dropdown>
@@ -392,7 +386,13 @@ const logout = () => {
                                     </div>
                                     <div class="mb-4 border-t border-gray-200" />
                                     <DropdownLink :href="route('profile.show')">
-                                        Profile
+                                        Perfil de Usuario
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('registromembresias.create')" :active="route().current('monedas.*')">
+                                        Mi Membresía
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
+                                        Mi camino Budista
                                     </DropdownLink>
 
                                     <DropdownLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')">

@@ -6,18 +6,23 @@ import SectionBorder from '@/Components/SectionBorder.vue';
 import TwoFactorAuthenticationForm from '@/Pages/Profile/Partials/TwoFactorAuthenticationForm.vue';
 import UpdatePasswordForm from '@/Pages/Profile/Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import Card from 'primevue/card';
+import { Link } from '@inertiajs/vue3';
+
 
 defineProps({
     confirmsTwoFactorAuthentication: Boolean,
     sessions: Array,
 });
+
 </script>
 
 <template>
     <AppLayout title="Profile">
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Profile
+                Perfil de usuario
             </h2>
         </template>
 
@@ -27,6 +32,143 @@ defineProps({
                     <UpdateProfileInformationForm :user="$page.props.auth.user" />
 
                     <SectionBorder />
+
+                    <!-- Mostrar datos extras en una tarjeta PrimeVue -->
+                    <Card class="mb-6">
+                        <template #header>
+                            <h2 class="text-lg font-semibold ml-4 pt-4">Datos adicionales</h2>
+                        </template>
+
+                        <template #content>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 ml-20 mr-20">
+                                 <!-- Columna 1 -->
+                                    <div>
+                                        <div class="mb-2">
+                                            <strong>Necesidades especiales</strong>
+                                            <div v-if="$page.props.auth.user.accesibilidad"> 
+                                                <span class="text-indigo-600">
+                                                   <strong>Sí</strong>
+                                                </span>
+                                                <div class="mt-1">
+                                                    <strong>Detalle de necesidad</strong><br>
+                                                    <span class="text-indigo-600">
+                                                        {{ $page.props.auth.user.accesibilidad_desc ?? 'No especificado' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div v-else>
+                                                No
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-2">
+                                            <strong>Dirección</strong><br>
+                                            <span class="text-indigo-600">
+                                                <strong>
+                                                    {{ $page.props.auth.user.direccion ?? 'No especificado' }}
+                                                </strong>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Columna 2 -->
+                                    <div>
+                                        <div class="mb-2">
+                                            <strong>País</strong><br>
+                                            <span class="text-indigo-600">
+                                                <strong>
+                                                    {{ $page.props.auth.user.pais_id ?? 'No especificado' }}
+                                                </strong>
+                                                
+                                            </span>
+                                            
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Localidad</strong><br>
+                                            <span class="text-indigo-600">
+                                                <strong>
+                                                    {{ $page.props.auth.user.localidad_id ?? 'No especificado' }}
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Teléfono</strong><br>
+                                            <span class="text-indigo-600">
+                                                <strong>
+                                                    {{ $page.props.auth.user.telefono ?? 'No especificado' }}
+                                                </strong>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Columna 3 -->
+                                    <div>
+                                        <div class="mb-2">
+                                            <strong>WhatsApp</strong><br>
+                                            <span class="text-indigo-600">
+                                                <strong>
+                                                    {{ $page.props.auth.user.whatsapp ?? 'No especificado' }}
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Edad</strong><br>
+                                            <span class="text-indigo-600">
+                                                <strong>
+                                                    {{ $page.props.auth.user.edad ?? 'No especificado' }}
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Sexo</strong><br>
+                                            <span class="text-indigo-600">
+                                                <strong>
+                                                    {{ $page.props.auth.user.sexo_id ?? 'No especificado' }}
+                                                </strong>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Columna 4 -->
+                                    <div>
+                                        <div class="mb-2">
+                                            <strong>Membresía</strong><br>
+                                            <span class="text-indigo-500">
+                                                <strong>
+                                                    {{ $page.props.auth.user.membresia_id ?? 'No especificado' }}
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>¿Recibe info por correo electrónico?</strong><br>
+                                            <strong class="text-indigo-600">
+                                                <div v-if="$page.props.auth.user.msgxmail">Sí</div>
+                                                <div v-else>No</div>
+                                            </strong>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>¿Recibe info por Whatsapp?</strong><br>
+                                            <strong class="text-indigo-600">
+                                                <div v-if="$page.props.auth.user.msgxwapp">Sí</div>
+                                                <div v-else>No</div>
+                                            </strong>
+                                        </div>
+                                    </div>
+                            </div>
+                        </template>
+
+                        <template #footer>
+                            <!-- Botón que lleva a la página separada -->
+                            <Link :href="route('profile.complete')">
+                                <PrimaryButton class="mt-4">
+                                    Completar / Editar Datos Adicionales
+                                </PrimaryButton>
+                            </Link>
+                        </template>
+                    </Card>
+
+                    <SectionBorder />
+
                 </div>
 
                 <div v-if="$page.props.jetstream.canUpdatePassword">

@@ -100,7 +100,6 @@
                                 </template>
                             </Column>
                         </DataTable>
-                        
                     </div>
                 </div>
             </div>
