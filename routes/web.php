@@ -31,6 +31,7 @@ use App\Http\Controllers\TransportesController;
 use App\Http\Controllers\DescripcionesController;
 use App\Http\Controllers\ProgramasController;
 use App\Http\Controllers\ActividadesController;
+use App\Http\Controllers\ImagenesController;
 use App\Http\Controllers\RegistroMembresiasController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\StreamsController;
@@ -44,18 +45,20 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         ->name('profile.complete');
     Route::post('/complete-profile', [ProfileCompletionController::class, 'store'])
         ->name('profile.complete.store');
-    // Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/complete-profile/edit', [ProfileCompletionController::class, 'edit'])
+        ->name('profile.complete.edit'); // Modo "editar" (updating=true)
+    Route::put('/complete-profile', [ProfileCompletionController::class, 'update'])
+        ->name('profile.complete.update');
+
     Route::get('/dashboard', function () {
         $user = auth()->user();
-        // dd($user->toArray());
         // Chequeas si el perfil está incompleto
         if (is_null($user->telefono)) {
             return redirect()->route('profile.complete');
         }
-    
-        // Si está completo, o no quieres forzarlo más
         return inertia('Dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
+
     Route::resource('entidades', EntidadesController::class, [
         'parameters' => ['entidades' => 'entidad'], ]); // Renombrar el parámetro a 'entidad' por singular español
     Route::resource('/tiposactividad', TiposActividadController::class, [
@@ -125,4 +128,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     ->name('streams.destroyLink');
     
     Route::resource('/registromembresias', RegistroMembresiasController::class);
+
+    Route::resource('/imagenes', ImagenesController::class, [
+        'parameters' => ['imagenes' => 'imagen'],]);
 });

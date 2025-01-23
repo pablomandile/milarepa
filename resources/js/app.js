@@ -12,6 +12,9 @@ import 'primeicons/primeicons.css'; // Iconos
 import Tooltip from 'primevue/tooltip';
 import ToastService from 'primevue/toastservice';
 import Toast from 'primevue/toast'
+import FileUpload from 'primevue/fileupload';
+import 'primeflex/primeflex.css';
+
 
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -28,6 +31,7 @@ createInertiaApp({
             .use(ToastService)
             .directive('tooltip', Tooltip)
             .component('Toast', Toast)
+            .component('FileUpload', FileUpload)
             .mount(el);
             
     },

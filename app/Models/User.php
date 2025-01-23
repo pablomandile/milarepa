@@ -83,4 +83,24 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+
+    public function pais()
+    {
+        return $this->belongsTo(Pais::class, 'pais_id');
+    }
+
+    public function membresia()
+    {
+        return $this->belongsTo(Membresia::class, 'membresia_id');
+    }
+
+    public function localidad()
+    {
+        return $this->belongsTo(Localidad::class, 'localidad_id');
+    }
+
+    public function sexo()
+    {
+        return $this->belongsTo(Sexo::class, 'sexo_id');
+    }
 }

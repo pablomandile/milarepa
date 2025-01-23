@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileRequest;
 use App\Models\Localidad;
-use Illuminate\Http\Request;
 use App\Models\Membresia;
 use App\Models\Pais;
 use App\Models\Sexo;
+use Inertia\Inertia;
 
 class ProfileCompletionController extends Controller
 {
@@ -39,4 +39,31 @@ class ProfileCompletionController extends Controller
         return redirect()->route('dashboard')
             ->with('success', '¡Perfil completado con éxito!');
     }
+
+    public function edit()
+    {
+        return Inertia::render('Profile/CompleteProfile', [
+            'user' => auth()->user(),
+            'membresias' => Membresia::with('entidad')->get()
+            ->map(function($m){
+                $m->label = $m->nombre . ' - ' . ($m->entidad->abreviacion ?? '');
+                return $m;
+            }),
+            'paises' => Pais::all(),
+            'localidades' => Localidad::all(),
+            'sexos' => Sexo::all(),
+            'updating' => true, 
+        ]);
+    }
+
+    public function update(ProfileRequest $request)
+    {
+
+        $user = $request->user();
+        $user->update($request->validated());
+
+        return redirect()->route('profile.show')
+            ->with('success', 'Datos adicionales actualizados.');
+    }
+
 }

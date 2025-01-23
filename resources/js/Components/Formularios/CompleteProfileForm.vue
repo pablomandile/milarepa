@@ -22,7 +22,8 @@ defineProps({
     updating: {
         type: Boolean,
         required: true,
-        default: false
+        
+        ult: false
     },
     membresias: {
         type: Array,
@@ -48,7 +49,7 @@ defineEmits(['submit'])
 </script>
 
 <template>
-    <FormSection @submitted="$emit('submit')">
+    <FormSection @submitted="() => $emit('submit')">
         <template #title>
             {{ updating ? 'Actualizar Perfil' : 'Completar Perfil' }}
         </template>
@@ -61,11 +62,12 @@ defineEmits(['submit'])
                     v-model="form.msgxmail" 
                     class="mr-3"
                     />
-                <label for="msgxmail" class="block text-sm text-indigo-400" :required="false">
+                <label for="msgxmail" class="block text-sm text-indigo-400">
                     ¿Desea recibir información por correo electrónico?
                 </label>
                 <InputError :message="$page.props.errors.msgxmail" class="ml-2" />
             </div>
+
             <div class="mt-4 flex items-center col-span-6">
                 <InputSwitch
                     v-model="form.accesibilidad" 

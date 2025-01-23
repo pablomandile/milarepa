@@ -9,31 +9,26 @@ import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import Footer from '@/Components/Footer.vue';
 import Dialog from 'primevue/dialog';
+import { usePage } from '@inertiajs/vue3';
 
-
-const props = defineProps({
-    title: String,
-    entidad_principal: {
-        type: String,
-        default: 'Sin entidad principal configurada',
-    },
-    version: {
-        type: Object,
-        required: true,
-        default: () => ({}),
-    },
-});
-
+const page = usePage();
 const dialogVisible = ref(false);
 const dialogTitle = ref('Acerca de');
 const dialogContent = ref('');
+
+const props = defineProps({
+  title: {
+    type: String,
+    default: 'Default Title'
+  },
+});
 
 const mostrarAcercade = () => {
     dialogContent.value = `
         <div class="bg-white shadow-md rounded-lg p-6 max-w-md mx-auto border border-gray-200">
             <p class="m-0">
-                <strong>Versión:</strong> ${props.version.version || 'Sin versión disponible'}<br>
-                <strong>Fecha:</strong> ${props.version.created_at || 'Fecha no especificada'}
+                <strong>Versión:</strong> ${page.props.version.version || 'Sin versión disponible'}<br>
+                <strong>Fecha:</strong> ${page.props.version.created_at || 'Fecha no especificada'}
             </p>
             <p class="mt-4 mb-4">
                 <strong>Desarrollado por:</strong> Pablo Mandile
@@ -128,6 +123,9 @@ const logout = () => {
                                     </DropdownLink>
                                     <DropdownLink :href="route('transportes.index')" :active="route().current('transportes.*')">
                                         Transportes
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('imagenes.index')" :active="route().current('imagenes.*')">
+                                        Imagenes
                                     </DropdownLink>
                                 </template>
                             </Dropdown>
@@ -273,21 +271,22 @@ const logout = () => {
                                     <DropdownLink :href="route('reporteerror.index')" :active="route().current('reporteerror.*')">
                                         Reportar un error
                                     </DropdownLink>
-                                        <div class="text-gray-500 ml-4">
-                                            <button 
-                                                @click="mostrarAcercade" 
-                                                class="text-left w-full hover:bg-gray-100">
-                                                <i class="pi pi-info-circle mr-1" style="color: slateblue"></i>
-                                                Acerca de
-                                            </button>
-                                        </div>
+                                    <div class="border-t border-gray-200" />
+                                    <div class="text-gray-500 ml-4">
+                                        <button 
+                                            @click="mostrarAcercade" 
+                                            class=" mt-2 text-left w-full hover:bg-gray-100">
+                                            <i class="pi pi-info-circle mr-1" style="color: slateblue"></i>
+                                            Acerca de
+                                        </button>
+                                    </div>
                                     
                                 </template>
                             </Dropdown>
                             <Dialog 
                                 v-model:visible="dialogVisible" 
                                 :header="dialogTitle" 
-                                :style="{ width: '50vw' }" 
+                                :style="{ width: '30vw' }" 
                                 dismissableMask
                                 modal>
                                 <template #default>
@@ -386,7 +385,7 @@ const logout = () => {
                                     </div>
                                     <div class="mb-4 border-t border-gray-200" />
                                     <DropdownLink :href="route('profile.show')">
-                                        Perfil de Usuario
+                                        Mi Perfil
                                     </DropdownLink>
                                     <DropdownLink :href="route('registromembresias.create')" :active="route().current('monedas.*')">
                                         Mi Membresía
@@ -399,12 +398,12 @@ const logout = () => {
                                         API Tokens
                                     </DropdownLink>
 
-                                    <div class="border-t border-gray-200" />
+                                    <div class="mt-2 border-t border-gray-200" />
 
                                     <!-- Authentication -->
                                     <form @submit.prevent="logout">
                                         <DropdownLink as="button">
-                                            Log Out
+                                            Salir
                                         </DropdownLink>
                                     </form>
                                 </template>
@@ -537,6 +536,6 @@ const logout = () => {
         <main class="flex-grow">
             <slot />
         </main>
-        <Footer :entidad_principal="entidad_principal"/>
+        <Footer/>
     </div>
 </template>

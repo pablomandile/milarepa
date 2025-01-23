@@ -1,10 +1,4 @@
 <script setup>
-defineProps({
-    entidad_principal: {
-        type: String,
-        default: 'Sin entidad principal configurada',
-    },
-});
 
 import { ref, onMounted } from 'vue';
 
@@ -113,7 +107,7 @@ onMounted(() => {
       </div>
       <div class="flex justify-center mt-4 mb-4">
           <h1 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ $page.props.entidad_principal?.nombre || entidad_principal }}
+            {{ $page.props.entidad_principal?.nombre }}
 
           </h1>
       </div>
