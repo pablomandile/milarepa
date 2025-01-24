@@ -15,7 +15,7 @@ class ImagenesController extends Controller
      */
     public function index()
     {
-        $imagenes = Imagen::paginate(15);
+        $imagenes = Imagen::paginate(16);
         return inertia('Imagenes/Index', [
             'imagenes' => $imagenes->items(),
             // si quieres paginación, puedes también mandar enlaces, etc.
@@ -30,7 +30,7 @@ class ImagenesController extends Controller
     public function store(Request $request)
     {
         // Validar el archivo (puede ser required|image|mimes:jpeg,png ...)
-        $data = $request->validate([
+        $request->validate([
             'imagen' => 'required|image|max:2048'
         ]);
 

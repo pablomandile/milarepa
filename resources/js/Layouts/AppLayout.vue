@@ -383,7 +383,7 @@ const logout = () => {
                                     <div class="block px-4 py-2 text-xs text-gray-600">
                                         {{ $page.props.auth.user.email }}
                                     </div>
-                                    <div class="mb-4 border-t border-gray-200" />
+                                    <div class="mb-2 border-t border-gray-200" />
                                     <DropdownLink :href="route('profile.show')">
                                         Mi Perfil
                                     </DropdownLink>

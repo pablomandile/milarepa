@@ -50,16 +50,23 @@
         });
     };
 
-    function submitUpload() {
-        form.post(route('imagenes.store'), {
+    function handleUpload(event) {
+        // event.files es un array de archivos seleccionados
+        if (event.files && event.files.length > 0) {
+            // Tomamos el primer archivo (o todos, si quieres múltiples)
+            form.imagen = event.files[0];
+
+            // Enviamos la petición con Inertia
+            form.post(route('imagenes.store'), {
             onSuccess: () => {
-                Swal.fire("¡Subida!", "La Imagen se ha subido con éxito.", "success");
+                // Opcional: limpieza, mensaje, etc.
                 form.reset('imagen');
             },
-            onError: () => {
-                Swal.fire("Error", "Hubo un problema al subir la Imagen.", "error");
-            },
-        });
+            onError: (errors) => {
+                // Manejo de errores
+            }
+            });
+        }
     }
 
 </script>
@@ -74,14 +81,13 @@
                 <div class="p-6 bg-white border-b border-gray-200 max-w-7xl mx-auto">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
                         <FileUpload 
-                            
-         
                             :auto="false"
+                            :customUpload="true"
                             accept="image/*" 
                             chooseLabel="Elegir imagen"
                             cancelLabel="Cancelar"
                             uploadLabel="Subir"
-                            @select="(e) => form.imagen = e.files[0]"
+                            @upload="handleUpload"
                          />
                          <div v-if="form.errors.imagen" class="text-red-500 text-sm mt-1">
                             {{ form.errors.imagen }}
@@ -97,7 +103,7 @@
 
                     </div>
                     <div class="mt-4">
-                        <DataView :value="imagenes" :layout="layout">
+                        <DataView :value="imagenes" :layout="layout" paginator :rows="16" :rowsPerPageOptions="[5, 10, 20, 50]">
                             <template #header>
                                 <div class="flex justify-content-end">
                                     <DataViewLayoutOptions v-model="layout" />
@@ -131,7 +137,7 @@
                                                 <div class="relative mx-auto">
                                                     <img
                                                         class="border-round w-full"
-                                                        :src="`/storage/img/actividades/${item.nombre}`"
+                                                        :src="`${item.ruta}`"
                                                         :alt="item.nombre"
                                                         style="max-width: 90px"
                                                     />
