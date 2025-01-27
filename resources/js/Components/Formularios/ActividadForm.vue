@@ -191,7 +191,7 @@ const onUpload = (event) => {
     <!-- Formulario principal -->
     <template #form>
       <!-- Tipo de Actividad (Dropdown) -->
-      <div class="col-span-6 sm:col-span-6">
+      <div class="w-1/2 col-span-6 sm:col-span-6">
         <InputLabel
           for="tipo_actividad_id"
           :required="true"
@@ -211,7 +211,7 @@ const onUpload = (event) => {
       </div>
 
       <!-- Nombre -->
-      <div class="col-span-6 sm:col-span-6">
+      <div class="w-full col-span-6 sm:col-span-6">
         <InputLabel
           for="nombre"
           class="text-indigo-400"
@@ -272,7 +272,7 @@ const onUpload = (event) => {
       </div>
 
       <!-- Observaciones -->
-      <div class="col-span-6 sm:col-span-6">
+      <div class="w-full col-span-6 sm:col-span-6">
         <InputLabel
           for="observaciones"
           class="text-indigo-400"
@@ -324,7 +324,7 @@ const onUpload = (event) => {
       </div>
 
       <!-- Fecha Inicio -->
-      <div class="col-span-6 sm:col-span-3">
+      <div class="col-span-6 sm:col-span-3 w-8">
         <InputLabel
           for="fecha_inicio"
           class="text-indigo-400"
@@ -339,12 +339,14 @@ const onUpload = (event) => {
           showTime 
           hourFormat="24"
           class="w-full mt-1"
+          icon="pi pi-calendar text-indigo-500 text-xl"
+          inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300" 
         />
         <InputError :message="$page.props.errors.fecha_inicio" class="mt-2" />
       </div>
 
       <!-- Fecha Fin -->
-      <div class="col-span-6 sm:col-span-3">
+      <div class="col-span-6 sm:col-span-3 w-8">
         <InputLabel
           for="fecha_fin"
           class="text-indigo-400"
@@ -355,19 +357,22 @@ const onUpload = (event) => {
           v-model="form.fecha_fin"
           dateFormat="dd/mm/yy"
           showTime  
+          :showIcon="true"
           hourFormat="24"
           class="w-full mt-1"
-          :showIcon="true"
+          icon="pi pi-calendar text-indigo-500 text-xl"
+          inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
         />
         <InputError :message="$page.props.errors.fecha_fin" class="mt-2" />
       </div>
 
       <!-- Fecha para descuentos -->
-      <div class="col-span-6 sm:col-span-3">
+      <div class="col-span-6 sm:col-span-3 w-8">
         <InputLabel
           for="pagoAmticipado"
           class="text-indigo-400"
           value="Fecha pago anticipado"
+          inputClass="text-indigo-500"
         />
         <Calendar
           id="pagoAmticipado"
@@ -377,6 +382,8 @@ const onUpload = (event) => {
           hourFormat="24"
           class="w-full mt-1"
           :showIcon="true"
+          icon="pi pi-calendar text-indigo-500 text-xl"
+          inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
         />
         <InputError :message="$page.props.errors.pagoAmticipado" class="mt-2" />
       </div>

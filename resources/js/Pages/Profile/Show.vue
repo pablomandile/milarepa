@@ -36,15 +36,15 @@ defineProps({
                     <!-- Mostrar datos extras en una tarjeta PrimeVue -->
                     <Card class="mb-6">
                         <template #header>
-                            <h2 class="text-lg font-semibold ml-8 pt-4">Datos adicionales</h2>
+                            <h2 class="text-lg font-semibold ml-6 pt-4">Datos adicionales</h2>
                         </template>
 
                         <template #content>
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 ml-10 mr-10">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 ml-6 mr-10">
                                  <!-- Columna 1 -->
                                     <div>
                                         <div class="mb-2">
-                                            <strong>País</strong><br>
+                                            País<br>
                                             <span class="text-indigo-600">
                                                 <strong>
                                                     <p>{{ $page.props.auth.user.pais.nombre }}</p>
@@ -52,7 +52,7 @@ defineProps({
                                             </span>
                                         </div>
                                         <div class="mb-2">
-                                            <strong>Localidad</strong><br>
+                                            Localidad<br>
                                             <span class="text-indigo-600">
                                                 <strong>
                                                     {{ $page.props.auth.user.localidad.nombre }}
@@ -60,7 +60,7 @@ defineProps({
                                             </span>
                                         </div>
                                         <div class="mb-2">
-                                            <strong>Dirección</strong><br>
+                                            Dirección<br>
                                             <span class="text-indigo-600">
                                                 <strong>
                                                     {{ $page.props.auth.user.direccion ?? 'No especificado' }}
@@ -72,7 +72,7 @@ defineProps({
                                     <!-- Columna 2 -->
                                     <div class="ml-8">
                                         <div class="mb-2">
-                                            <strong>Teléfono</strong><br>
+                                            Teléfono<br>
                                             <span class="text-indigo-600">
                                                 <strong>
                                                     {{ $page.props.auth.user.telefono ?? 'No especificado' }}
@@ -80,7 +80,7 @@ defineProps({
                                             </span>
                                         </div>
                                         <div class="mb-2">
-                                            <strong>WhatsApp</strong><br>
+                                            WhatsApp<br>
                                             <span class="text-indigo-600">
                                                 <strong>
                                                     {{ $page.props.auth.user.whatsapp ?? 'No especificado' }}
@@ -88,7 +88,7 @@ defineProps({
                                             </span>
                                         </div>
                                         <div class="mb-2">
-                                            <strong>¿Recibe info por Whatsapp?</strong><br>
+                                            ¿Recibe info por Whatsapp?<br>
                                             <strong class="text-indigo-600">
                                                 <div v-if="$page.props.auth.user.msgxwapp">Sí</div>
                                                 <div v-else>No</div>
@@ -100,7 +100,7 @@ defineProps({
                                     <div class="ml-8">
                                         
                                         <div class="mb-2">
-                                            <strong>Edad</strong><br>
+                                            Edad<br>
                                             <span class="text-indigo-600">
                                                 <strong>
                                                     {{ $page.props.auth.user.edad ?? 'No especificado' }}
@@ -108,7 +108,7 @@ defineProps({
                                             </span>
                                         </div>
                                         <div class="mb-2">
-                                            <strong>Sexo</strong><br>
+                                            Sexo<br>
                                             <span class="text-indigo-600">
                                                 <strong>
                                                     {{ $page.props.auth.user.sexo.sexo }}
@@ -120,7 +120,7 @@ defineProps({
                                     <!-- Columna 4 -->
                                     <div class="ml-4">
                                         <div class="mb-2">
-                                            <strong>Membresía</strong><br>
+                                            Membresía<br>
                                             <span class="text-indigo-500">
                                                 <strong>
                                                     {{ $page.props.auth.user.membresia.nombre }}
@@ -128,7 +128,7 @@ defineProps({
                                             </span>
                                         </div>
                                         <div class="mb-2">
-                                            <strong>Asiste a:</strong><br>
+                                            Asiste a:<br>
                                             <span class="text-indigo-500">
                                                 <strong>
                                                     {{ $page.props.auth.user.membresia.entidad.nombre }}
@@ -136,7 +136,7 @@ defineProps({
                                             </span>
                                         </div>
                                         <div class="mb-2">
-                                            <strong>¿Recibe info por correo electrónico?</strong><br>
+                                            ¿Recibe info por correo electrónico?<br>
                                             <strong class="text-indigo-600">
                                                 <div v-if="$page.props.auth.user.msgxmail">Sí</div>
                                                 <div v-else>No</div>
@@ -146,15 +146,15 @@ defineProps({
                                     </div>
                                     <div class="col-span-4">
                                         <div class="mb-2">
-                                            <strong>Necesidades especiales</strong>
+                                            Necesidades especiales
                                             <div v-if="$page.props.auth.user.accesibilidad"> 
                                                 <span class="text-indigo-600">
                                                    <strong>Sí</strong>
                                                 </span>
                                                 <div class="mt-1">
-                                                    <strong>Detalle de necesidad</strong><br>
-                                                    <span class="text-indigo-600">
-                                                        {{ $page.props.auth.user.accesibilidad_desc ?? 'No especificado' }}
+                                                    <p>Detalle de necesidad especial</p><br>
+                                                    <span class="text-white bg-indigo-500 p-3" >
+                                                        <strong>{{ $page.props.auth.user.accesibilidad_desc ?? 'No especificado' }} </strong>
                                                     </span>
                                                 </div>
                                             </div>

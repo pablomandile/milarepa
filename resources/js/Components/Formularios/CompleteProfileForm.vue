@@ -62,8 +62,8 @@ defineEmits(['submit'])
                     v-model="form.msgxmail" 
                     class="mr-3"
                     />
-                <label for="msgxmail" class="block text-sm text-indigo-400">
-                    ¿Desea recibir información por correo electrónico?
+                <label for="msgxmail" class="block text-sm text-indigo-400" :required="false" v-tooltip="'¿Desea recibir novedades de las nuevas actividades?'">
+                    ¿Recibir novedades por correo electrónico?
                 </label>
                 <InputError :message="$page.props.errors.msgxmail" class="ml-2" />
             </div>

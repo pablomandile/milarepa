@@ -57,11 +57,11 @@ class ImagenesController extends Controller
     public function destroy($id)
     {
         try {
-            $entidad = Entidad::findorfail($id);
-            $entidad->delete();
-            return redirect()->route('entidades.index')->with('success', 'Entidad eliminada con éxito.');
+            $imagen = Imagen::findorfail($id);
+            $imagen->delete();
+            return redirect()->route('imagenes.index')->with('success', 'Imagen eliminada con éxito.');
         } catch (\Exception $e) {
-            return redirect()->route('entidades.index')->with('error', 'Error al eliminar la Entidad: ' . $e->getMessage());
+            return redirect()->route('imagenes.index')->with('error', 'Error al eliminar la Imagen: ' . $e->getMessage());
         }
 
     }

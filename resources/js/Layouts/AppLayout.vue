@@ -179,6 +179,9 @@ const logout = () => {
 
                                 <template #content>
                                     <DropdownLink :href="route('inscripciones.index')" :active="route().current('inscripciones.*')">
+                                        Inscribirme a una membresia
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('inscripciones.index')" :active="route().current('inscripciones.*')">
                                         Inscripciones
                                     </DropdownLink>
                                     <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">

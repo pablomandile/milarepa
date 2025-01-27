@@ -6,7 +6,7 @@
 
 <script setup>
     import AppLayout from '@/Layouts/AppLayout.vue';
-    import { Link, router, useForm } from '@inertiajs/vue3';
+    import { router, useForm } from '@inertiajs/vue3';
     import Swal from "sweetalert2";
     import { ref } from 'vue';
     import DataView from 'primevue/dataview';
@@ -38,7 +38,7 @@
         cancelButtonText: "Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
-        router.delete(route('entidades.destroy', id), {
+        router.delete(route('imagenes.destroy', id), {
                 onSuccess: () => {
                 Swal.fire("¡Eliminado!", "La Imagen ha sido eliminada.", "success");
                 },
@@ -51,6 +51,8 @@
     };
 
     function handleUpload(event) {
+        console.log('handleUpload disparado con archivos:', event.files);
+
         // event.files es un array de archivos seleccionados
         if (event.files && event.files.length > 0) {
             // Tomamos el primer archivo (o todos, si quieres múltiples)
@@ -69,6 +71,7 @@
         }
     }
 
+    
 </script>
 
 <template>
@@ -82,24 +85,18 @@
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
                         <FileUpload 
                             :auto="false"
+                            name="demo[]"
                             :customUpload="true"
                             accept="image/*" 
                             chooseLabel="Elegir imagen"
                             cancelLabel="Cancelar"
                             uploadLabel="Subir"
-                            @upload="handleUpload"
+                            :uploadHandler="handleUpload"
+
                          />
                          <div v-if="form.errors.imagen" class="text-red-500 text-sm mt-1">
                             {{ form.errors.imagen }}
                         </div>
-
-                        <button
-                            class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded h-12"
-                            @click.prevent="submitUpload"
-                            :disabled="form.processing"
-                        >
-                            Subir
-                        </button>
 
                     </div>
                     <div class="mt-4">
@@ -125,6 +122,17 @@
                                                 </div>
                                                 <div>{{ item.nombre }}</div>
                                             </div>
+                                            <!-- Botón para eliminar debajo de la imagen -->
+                                            <div class="mt-2 flex justify-content-start">
+                                                <!-- Ejemplo usando un simple botón con Tailwind -->
+                                                <button
+                                                    class="bg-red-400 hover:bg-red-700 text-white py-1 px-2 rounded flex items-center gap-1"
+                                                    @click="deleteImagen(item.id)"
+                                                >
+                                                    <i class="pi pi-trash"></i>
+                                                    Eliminar
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -142,6 +150,16 @@
                                                         style="max-width: 90px"
                                                     />
                                                 </div>
+                                            </div>
+                                            <!-- Botón para eliminar debajo de la imagen -->
+                                            <div class="mt-2 flex justify-content-center">
+                                                <button
+                                                    class="bg-red-400 hover:bg-red-700 text-white py-1 px-2 rounded flex items-center gap-1"
+                                                    @click="deleteImagen(item.id)"
+                                                >
+                                                    <i class="pi pi-trash"></i>
+                                                    Eliminar
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
