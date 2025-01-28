@@ -72,7 +72,7 @@
         </div>
         <div
           class="flex flex-col justify-between w-full lg:w-auto lg:justify-start lg:flex-row lg:divide-x lg:gap-0">
-          <div class="lg:pr-4">
+          <div class="lg:pr-6 ">
             <p
               class="font-semibold text-white lg:text-end whitespace-nowrap">
               Sistema de inscripciones
@@ -82,7 +82,7 @@
               {{ $page.props.entidad_principal?.nombre || entidad_principal }}
             </p>
           </div>
-          <div class="lg:px-4">
+          <div class="lg:px-6">
             <p class="font-semibold text-white lg:text-end">
               <a href="https://kadampa.org/" target="_blank" rel="noopener noreferrer">
                 Nueva Tradición Kadampa - <br />
@@ -93,11 +93,11 @@
             </p>
           </div>
           <div class="lg:ps-4">
-            <p class="font-parisienne text-2xl text-white lg:text-end">
+            <p class="font-parisienne text-2xl text-white lg:text-center">
                 "Llegará el día en que harás mi trabajo".
             </p>
             <p class="text-slate-500 lg:text-end">
-                Venerable Gueshe Kelsang Gyatso Rimpoché
+                Venerable Gueshe Kelsang Gyatso 
             </p>
             <div class="flex justify-center">
               <img :src="Ornament" alt="Ornament" width="120" class="mt-2"/>

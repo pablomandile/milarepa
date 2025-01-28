@@ -11,15 +11,11 @@
     import { ref } from 'vue';
     import DataView from 'primevue/dataview';
     import DataViewLayoutOptions from 'primevue/dataviewlayoutoptions';
-    import FileUpload from 'primevue/fileupload';
+    import ImageUploader from '@/Components/ImageUploader.vue';
 
 
     const layout = ref('grid');
-
-    const form = useForm({
-        imagen: null,
-    });
-    
+  
     defineProps({
         imagenes: {
             type: Array,
@@ -29,48 +25,26 @@
     });
 
     const deleteImagen = (id) => {
-    Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Esta acción no se puede deshacer.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Sí, eliminar",
-        cancelButtonText: "Cancelar",
-    }).then((result) => {
-        if (result.isConfirmed) {
-        router.delete(route('imagenes.destroy', id), {
-                onSuccess: () => {
-                Swal.fire("¡Eliminado!", "La Imagen ha sido eliminada.", "success");
-                },
-                onError: () => {
-                Swal.fire("Error", "Hubo un problema al eliminar la Imagen.", "error");
-                },
-            });
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: "Esta acción no se puede deshacer.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.delete(route('imagenes.destroy', id), {
+                        onSuccess: () => {
+                        Swal.fire("¡Eliminado!", "La Imagen ha sido eliminada.", "success");
+                        },
+                        onError: () => {
+                        Swal.fire("Error", "Hubo un problema al eliminar la Imagen.", "error");
+                        },
+                });
             }
         });
     };
-
-    function handleUpload(event) {
-        console.log('handleUpload disparado con archivos:', event.files);
-
-        // event.files es un array de archivos seleccionados
-        if (event.files && event.files.length > 0) {
-            // Tomamos el primer archivo (o todos, si quieres múltiples)
-            form.imagen = event.files[0];
-
-            // Enviamos la petición con Inertia
-            form.post(route('imagenes.store'), {
-            onSuccess: () => {
-                // Opcional: limpieza, mensaje, etc.
-                form.reset('imagen');
-            },
-            onError: (errors) => {
-                // Manejo de errores
-            }
-            });
-        }
-    }
-
     
 </script>
 
@@ -82,23 +56,11 @@
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="p-6 bg-white border-b border-gray-200 max-w-7xl mx-auto">
-                    <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
-                        <FileUpload 
-                            :auto="false"
-                            name="demo[]"
-                            :customUpload="true"
-                            accept="image/*" 
-                            chooseLabel="Elegir imagen"
-                            cancelLabel="Cancelar"
-                            uploadLabel="Subir"
-                            :uploadHandler="handleUpload"
-
-                         />
-                         <div v-if="form.errors.imagen" class="text-red-500 text-sm mt-1">
-                            {{ form.errors.imagen }}
-                        </div>
-
+                    <!-- Componente personalizado para subir imágenes -->
+                    <div class="flex justify-between mb-6" v-if="$page.props.user.permissions.includes('create entidades')">
+                        <ImageUploader />
                     </div>
+
                     <div class="mt-4">
                         <DataView :value="imagenes" :layout="layout" paginator :rows="16" :rowsPerPageOptions="[5, 10, 20, 50]">
                             <template #header>
@@ -115,7 +77,7 @@
                                                 <div class="relative mx-10">
                                                     <img
                                                         class="border-round w-full"
-                                                        :src="`/storage/img/actividades/${item.nombre}`"
+                                                        :src="`storage/${item.ruta}`"
                                                         :alt="item.nombre"
                                                         style="max-width: 50px"
                                                     />
@@ -145,7 +107,7 @@
                                                 <div class="relative mx-auto">
                                                     <img
                                                         class="border-round w-full"
-                                                        :src="`${item.ruta}`"
+                                                        :src="`storage/${item.ruta}`"
                                                         :alt="item.nombre"
                                                         style="max-width: 90px"
                                                     />

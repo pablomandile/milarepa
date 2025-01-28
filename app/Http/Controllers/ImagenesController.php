@@ -7,6 +7,8 @@ use Inertia\Inertia;
 use App\Http\Requests\EntidadRequest;
 use App\Models\Imagen;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
 
 class ImagenesController extends Controller
 {
@@ -38,12 +40,11 @@ class ImagenesController extends Controller
         // Retorna la ruta del archivo (por ejemplo "img/actividades/xyz.jpg")
         $path = $request->file('imagen')->store('img/actividades', 'public');
 
-        // Guardar en la BD
-        // Ejemplo: "nombre" = nombre real, "ruta" = "/storage/img/actividades/xyz.jpg"
-        $imagen = new Imagen();
-        $imagen->nombre = $request->file('imagen')->getClientOriginalName();
-        $imagen->ruta   = '/storage/' . $path; 
-        $imagen->save();
+        // Guardar en la base de datos
+        $imagen = Imagen::create([
+            'nombre' => $request->file('imagen')->getClientOriginalName(),
+            'ruta'   => $path, // Guarda la ruta relativa
+        ]);
 
         // Retornar a la lista de imágenes
         return redirect()->route('imagenes.index')
@@ -59,6 +60,7 @@ class ImagenesController extends Controller
         try {
             $imagen = Imagen::findorfail($id);
             $imagen->delete();
+            Storage::disk('public')->delete($imagen->ruta);
             return redirect()->route('imagenes.index')->with('success', 'Imagen eliminada con éxito.');
         } catch (\Exception $e) {
             return redirect()->route('imagenes.index')->with('error', 'Error al eliminar la Imagen: ' . $e->getMessage());

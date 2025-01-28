@@ -118,7 +118,7 @@ defineProps({
                                     </div>
 
                                     <!-- Columna 4 -->
-                                    <div class="ml-4">
+                                    <div>
                                         <div class="mb-2">
                                             Membresía<br>
                                             <span class="text-indigo-500">
@@ -146,6 +146,7 @@ defineProps({
                                     </div>
                                     <div class="col-span-4">
                                         <div class="mb-2">
+                                            
                                             Necesidades especiales
                                             <div v-if="$page.props.auth.user.accesibilidad"> 
                                                 <span class="text-indigo-600">
@@ -153,8 +154,8 @@ defineProps({
                                                 </span>
                                                 <div class="mt-1">
                                                     <p>Detalle de necesidad especial</p><br>
-                                                    <span class="text-white bg-indigo-500 p-3" >
-                                                        <strong>{{ $page.props.auth.user.accesibilidad_desc ?? 'No especificado' }} </strong>
+                                                    <span style="font-size: 1.5rem" class="pi pi-exclamation-triangle text-white bg-yellow-300 p-3" >
+                                                        <strong style="font-size: 1rem" class="ml-2">{{ $page.props.auth.user.accesibilidad_desc ?? 'No especificado' }} </strong>
                                                     </span>
                                                 </div>
                                             </div>
