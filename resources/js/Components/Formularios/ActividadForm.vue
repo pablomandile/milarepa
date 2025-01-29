@@ -20,7 +20,7 @@ import Calendar from 'primevue/calendar';
 import Dropdown from 'primevue/dropdown';
 import MultiSelect from 'primevue/multiselect';
 import Textarea from 'primevue/textarea';
-import FileUpload from 'primevue/fileupload';
+import SingleImageUploader from '@/Components/SingleImageUploader.vue';
 import { useToast } from 'primevue/usetoast';
 
 
@@ -135,43 +135,7 @@ const detalleSeleccionado = ref(null);
   
 }
 
-// Función para previsualizar la imagen seleccionada
-const previewImage = (event) => {
-  const file = event.files[0];
-  if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    imagePreview.value = e.target.result;
-  };
-  reader.readAsDataURL(file);
-};
-
-// Función para manejar el upload
-const onUpload = (event) => {
-  const response = event.xhr.response;
-  if (response) {
-    toast.add({
-      severity: 'success',
-      summary: 'Upload exitoso',
-      detail: 'La imagen se ha subido correctamente.',
-      life: 3000,
-    });
-    // Asigna la URL de la imagen subida al formulario
-    form.imagen = JSON.parse(response).filePath; // Asegúrate de que tu backend devuelva el `filePath`.
-  } else {
-    toast.add({
-      severity: 'error',
-      summary: 'Error al subir',
-      detail: 'No se pudo subir la imagen.',
-      life: 3000,
-    });
-  }
-};
-
-// const csrfHeaders = ref({
-//     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-// });
 </script>
 
 <template>
@@ -277,7 +241,7 @@ const onUpload = (event) => {
           for="observaciones"
           class="text-indigo-400"
           value="Observaciones"
-          :required="true"
+          :required="false"
         />
         <Textarea
           id="observaciones"
@@ -293,34 +257,20 @@ const onUpload = (event) => {
       <div class="col-span-6 sm:col-span-6">
         <InputLabel
           for="imagen"
-          class="text-indigo-400"
+          class="text-indigo-400 mb-2"
           value="Imagen"
           :required="false"
         />
 
         <div class="flex items-center gap-4">
-          <!-- FileUpload -->
-          <FileUpload
-            id="imagen"
-            mode="basic"
-            url="/api/upload"
-            v-model="form.imagen"
-            accept="image/*"
-            :headers="csrfHeaders"
-            :maxFileSize="1000000"
-            @select="previewImage"
-            @upload="onUpload"
-            placeholder="Seleccionar archivo"
-            class="block w-full bg-indigo-500 mt-2"
-          />
-
-          <!-- Vista previa de la imagen -->
-          <div v-if="imagePreview" class="w-16 h-16 overflow-hidden border rounded">
-            <img :src="imagePreview" alt="Vista previa" class="object-cover w-full h-full" />
+          <!-- Componente personalizado para subir imágen -->
+          <div class="flex justify-between mb-6" v-if="$page.props.user.permissions.includes('create entidades')">
+            <SingleImageUploader 
+              v-model:imagenId="form.imagen_id"
+            />
           </div>
-        </div>
-        <!-- O un componente file upload. -->
         <InputError :message="$page.props.errors.imagen" class="mt-2" />
+        </div>
       </div>
 
       <!-- Fecha Inicio -->
@@ -351,6 +301,7 @@ const onUpload = (event) => {
           for="fecha_fin"
           class="text-indigo-400"
           value="Fecha Fin"
+          :required="true"
         />
         <Calendar
           id="fecha_fin"

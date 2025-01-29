@@ -8,7 +8,7 @@
           for="file-input"
           class="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
-          Elegir Imagen
+        <i class="pi pi-upload mr-2"></i>Elegir Imagen
         </label>
         <input
           id="file-input"

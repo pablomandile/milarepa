@@ -72,7 +72,7 @@
         nombre: '',
         descripcion_id: '',
         observaciones: '',
-        imagen: '',
+        imagen_id: null,
         fecha_inicio: null,
         fecha_fin: null,
         pagoAmticipado: null,

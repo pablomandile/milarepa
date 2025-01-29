@@ -21,14 +21,16 @@ return new class extends Migration
             $table->foreign('descripcion_id')->references('id')->on('descripciones')
             ->onDelete('cascade');
             $table->text('observaciones')->nullable();
-            $table->string('imagen')->nullable();
+            $table->unsignedBigInteger('imagen_id')->nullable();
+            $table->foreign('imagen_id')->references('id')->on('imagenes')
+            ->onDelete('cascade');
             $table->dateTime('fecha_inicio');
-            $table->dateTime('fecha_fin')->nullable();
+            $table->dateTime('fecha_fin');
             $table->dateTime('pagoAmticipado')->nullable();
             $table->unsignedBigInteger('entidad_id');
             $table->foreign('entidad_id')->references('id')->on('entidades')
             ->onDelete('cascade');
-            $table->unsignedBigInteger('disponibilidad_id');
+            $table->unsignedBigInteger('disponibilidad_id')->nullable();
             $table->foreign('disponibilidad_id')->references('id')->on('disponibilidades')
             ->onDelete('cascade');
             $table->unsignedBigInteger('modalidad_id');
@@ -37,15 +39,15 @@ return new class extends Migration
             $table->unsignedBigInteger('esquema_precio_id');
             $table->foreign('esquema_precio_id')->references('id')->on('esquema_precios')
             ->onDelete('cascade');
-            $table->unsignedBigInteger('esquema_descuento_id');
+            $table->unsignedBigInteger('esquema_descuento_id')->nullable();
             $table->foreign('esquema_descuento_id')->references('id')->on('esquema_descuentos')
             ->onDelete('cascade');
             $table->string('link_grabacion')->nullable();
             $table->string('link_web')->nullable();
-            $table->unsignedBigInteger('stream_id');
+            $table->unsignedBigInteger('stream_id')->nullable();
             $table->foreign('stream_id')->references('id')->on('streams')
             ->onDelete('cascade');
-            $table->unsignedBigInteger('programa_id');
+            $table->unsignedBigInteger('programa_id')->nullable();
             $table->foreign('programa_id')->references('id')->on('programas')
             ->onDelete('cascade');
             $table->timestamps();

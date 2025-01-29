@@ -16,7 +16,7 @@ class Actividad extends Model
         'nombre',
         'descripcion_id',
         'observaciones',
-        'imagen', 
+        'imagen_id', 
         'fecha_inicio', 
         'fecha_fin', 
         'pagoAmticipado', 
@@ -30,6 +30,12 @@ class Actividad extends Model
         'stream_id', 
         'programa_id'
     ];
+
+    public function imagen()
+    {
+        return $this->belongsTo(Imagen::class, 'imagen_id');
+    }
+
     public function tipoActividad()
     {
         return $this->belongsTo(TipoActividad::class, 'tipo_actividad_id');

@@ -51,6 +51,27 @@ class ImagenesController extends Controller
             ->with('success', 'Imagen subida correctamente');
     }
 
+    public function storeJson(Request $request)
+    {
+        $request->validate([
+            'imagen' => 'required|image|max:2048'
+        ]);
+
+        $path = $request->file('imagen')->store('img/actividades', 'public');
+
+        // Crea el registro en BD
+        $img = Imagen::create([
+            'nombre' => $request->file('imagen')->getClientOriginalName(),
+            'ruta'   => $path
+        ]);
+
+        // Devolver JSON con { id, path, ... }
+        return response()->json([
+            'id' => $img->id,
+            'path' => '/storage/' . $path,   // o $img->ruta si prefieres
+        ]);
+    }
+
 
     /**
      * Remove the specified resource from storage.

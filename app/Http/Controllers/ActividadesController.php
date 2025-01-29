@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ActividadRequest;
 use Illuminate\Http\Request;
 use App\Models\Actividad;
 use App\Models\Comida;
@@ -88,9 +89,26 @@ class ActividadesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ActividadRequest $request)
     {
-        //
+        $validated = $request->validated();
+
+        // Extraer arrays de ids (si tienes campos muchos-a-muchos) para luego sincronizar
+        //    Nota: Tus rules no incluyen metodos_pago_ids, etc. 
+        //    Por lo tanto, podrías manejarlo manualmente.
+        $metodosPagoIds = $request->input('metodos_pago_ids', []);
+        $hospedajesIds  = $request->input('hospedajes_ids', []);
+        $comidasIds     = $request->input('comidas_ids', []);
+        $transportesIds = $request->input('transportes_ids', []);
+
+        // Quitar del array $validated los que no estén en la BD si no vas a guardarlos como columna
+        //    (o si no definiste esas columnas en $fillable)
+        unset($validated['metodos_pago_ids'], $validated['hospedajes_ids'],
+              $validated['comidas_ids'], $validated['transportes_ids']);
+
+        Actividad::create($request->validated());
+        
+        return redirect()->route('actividades.index');
     }
 
     /**

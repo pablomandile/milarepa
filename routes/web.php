@@ -131,4 +131,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::resource('/imagenes', ImagenesController::class, [
         'parameters' => ['imagenes' => 'imagen'],]);
+
+    Route::post('/imagenes-json', [ImagenesController::class, 'storeJson'])->name('imagenes.json');
+
 });
