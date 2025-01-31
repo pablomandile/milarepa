@@ -31,6 +31,36 @@ class Actividad extends Model
         'programa_id'
     ];
 
+    public function metodosPago() 
+    { 
+        return $this->belongsToMany(MetodoPago::class); 
+    }
+
+    public function hospedajes() 
+    { 
+        return $this->belongsToMany(Hospedaje::class); 
+    }
+
+    public function comidas() 
+    { 
+        return $this->belongsToMany(Comida::class); 
+    }
+
+    public function transportes() 
+    { 
+        return $this->belongsToMany(Transporte::class); 
+    }
+
+    public function coordinadores() 
+    { 
+        return $this->belongsToMany(Coordinador::class); 
+    }
+
+    public function maestros() 
+    { 
+        return $this->belongsToMany(Maestro::class); 
+    }
+
     public function imagen()
     {
         return $this->belongsTo(Imagen::class, 'imagen_id');
@@ -41,7 +71,7 @@ class Actividad extends Model
         return $this->belongsTo(TipoActividad::class, 'tipo_actividad_id');
     }
 
-    public function descriopcion()
+    public function descripcion()
     {
         return $this->belongsTo(Descripcion::class, 'descripcion_id');
     }

@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
+
 
 class ActividadRequest extends FormRequest
 {
@@ -23,23 +25,23 @@ class ActividadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tipo_actividad_id' => ['required', 'exists:tipos_actividad, id'],
+            'tipo_actividad_id' => ['required', 'exists:tipos_actividad,id'],
             'nombre' => ['required', 'string', 'max:80'],
-            'descripcion_id' => ['required', 'exists:descripciones, id'],
-            'observaciones' => ['string', 'max:255'],
-            'imagen_id' => ['required', 'exists:imagenes, id'],
+            'descripcion_id' => ['nullable', 'exists:descripciones,id'],
+            'observaciones' => ['nullable','string', 'max:255'],
+            'imagen_id' => ['nullable', 'exists:imagenes,id'],
             'fecha_inicio' => ['required','date'],
             'fecha_fin' => ['required','date'],
-            'pagoAmticipado' => ['date'],
-            'entidad_id' => ['required', 'exists:entidades, id'],
-            'disponibilidad_id' => ['exists:disponibilidades, id'],
-            'modalidad_id' => ['required', 'exists:modalidades, id'],
-            'esquema_precio_id' => ['required', 'exists:esquema_precios, id'],
-            'esquema_descuento_id' => ['exists:esquema_descuentos, id'],
-            'link_grabacion' => ['string'],
-            'link_web' => ['string'],
-            'stream_id' => ['exists:streams, id'],
-            'programa_id' => ['exists:programas, id'],
+            'pagoAmticipado' => ['nullable','date'],
+            'entidad_id' => ['required', 'exists:entidades,id'],
+            'disponibilidad_id' => ['nullable','exists:disponibilidades,id'],
+            'modalidad_id' => ['required', 'exists:modalidades,id'],
+            'esquema_precio_id' => ['required', 'exists:esquema_precios,id'],
+            'esquema_descuento_id' => ['nullable','exists:esquema_descuentos,id'],
+            'link_grabacion' => ['nullable','string'],
+            'link_web' => ['nullable','string'],
+            'stream_id' => ['nullable','exists:streams,id'],
+            'programa_id' => ['nullable','exists:programas,id'],
         ];
     }
 
@@ -54,5 +56,27 @@ class ActividadRequest extends FormRequest
             'modalidad_id.required' => __('La modalidad de inicio no puede quedar vacía'),
             'esquema_precio_id.required' => __('El esquema de precio no puede quedar vacío'),
         ];
+    }
+
+    public function prepareForValidation()
+    {
+        if ($this->has('fecha_inicio')) {
+            $this->merge([
+                'fecha_inicio' => \Carbon\Carbon::parse($this->fecha)->format('Y-m-d'),
+            ]);
+        }
+        if ($this->has('fecha_fin')) {
+            $this->merge([
+                'fecha_fin' => \Carbon\Carbon::parse($this->fecha)->format('Y-m-d'),
+            ]);
+        }
+        if ($this->has('pagoAmticipado')) {
+            $this->merge([
+                'pagoAmticipado' => \Carbon\Carbon::parse($this->fecha)->format('Y-m-d'),
+            ]);
+        }
+        // Ejemplo de imprimir un log con todo el request:
+        Log::info('Datos originales del request:', $this->all());
+
     }
 }

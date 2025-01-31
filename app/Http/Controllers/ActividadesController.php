@@ -6,12 +6,14 @@ use App\Http\Requests\ActividadRequest;
 use Illuminate\Http\Request;
 use App\Models\Actividad;
 use App\Models\Comida;
+use App\Models\Coordinador;
 use App\Models\Descripcion;
 use App\Models\Disponibilidad;
 use App\Models\Entidad;
 use App\Models\EsquemaDescuento;
 use App\Models\EsquemaPrecio;
 use App\Models\Hospedaje;
+use App\Models\Maestro;
 use App\Models\MetodoPago;
 use App\Models\Modalidad;
 use App\Models\Programa;
@@ -29,7 +31,8 @@ class ActividadesController extends Controller
     {
         $actividades = Actividad::with([
             'tipoActividad',
-            'descripcion_id',
+            'descripcion',
+            'imagen',
             'entidad',
             'disponibilidad',
             'modalidad',
@@ -37,9 +40,16 @@ class ActividadesController extends Controller
             'esquemaDescuento',
             'stream',
             'programa',
-        ]);
+            'metodosPago', 
+            'hospedajes', 
+            'comidas', 
+            'transportes',
+            'maestros',
+            'coordinadores'
+        ])->get();
 
-        return inertia('Actividades/Index', ['actividades' => $actividades]);
+        // dd($actividades);
+        return inertia('Actividades/Index', ['actividades' => $actividades->toArray()]);
     }
 
     /**
@@ -56,6 +66,8 @@ class ActividadesController extends Controller
             'membresias.membresia.entidad'  // <- Eager load de la Entidad
         ])->get();
         $tiposActividad = TipoActividad::all();
+        $maestros = Maestro::all();
+        $coordinadores = Coordinador::all();
         $descripciones = Descripcion::all();
         $entidades = Entidad::all();
         $disponibilidades = Disponibilidad::all();
@@ -73,6 +85,8 @@ class ActividadesController extends Controller
             'tiposActividad' => $tiposActividad, 
             'descripciones' => $descripciones, 
             'entidades' => $entidades, 
+            'maestros' => $maestros, 
+            'coordinadores' => $coordinadores, 
             'disponibilidades' => $disponibilidades, 
             'modalidades' => $modalidades, 
             'esquema_precios' => $esquema_precios->toArray(),
@@ -100,15 +114,38 @@ class ActividadesController extends Controller
         $hospedajesIds  = $request->input('hospedajes_ids', []);
         $comidasIds     = $request->input('comidas_ids', []);
         $transportesIds = $request->input('transportes_ids', []);
+        $maestrosIds = $request->input('maestros_ids', []);
+        $coordinadoresIds = $request->input('coordinadores_ids', []);
+
+        // Si metodos_pago_ids viene vacío (por ejemplo null o un array vacío), 
+        // lo forzamos a [1] como valor por defecto: Efectivo
+        if (empty($metodosPagoIds)) {
+            $metodosPagoIds = [1];
+        }
+ 
 
         // Quitar del array $validated los que no estén en la BD si no vas a guardarlos como columna
         //    (o si no definiste esas columnas en $fillable)
         unset($validated['metodos_pago_ids'], $validated['hospedajes_ids'],
-              $validated['comidas_ids'], $validated['transportes_ids']);
+              $validated['comidas_ids'], $validated['transportes_ids'],
+              $validated['maestros_ids'], $validated['coordinadores_ids']);
 
-        Actividad::create($request->validated());
-        
-        return redirect()->route('actividades.index');
+        $actividad = Actividad::create($validated);
+
+        // 5) Manejar la parte de "muchos a muchos" si es que tus modelos y pivots existen
+        //    Suponiendo que en tu modelo Actividad tienes:
+        //    public function metodosPago() { return $this->belongsToMany(MetodoPago::class); }
+        //    y lo mismo para hospedajes, comidas, transportes, etc.
+           $actividad->metodosPago()->sync($metodosPagoIds);
+           $actividad->hospedajes()->sync($hospedajesIds);
+           $actividad->comidas()->sync($comidasIds);
+           $actividad->transportes()->sync($transportesIds);
+           $actividad->maestros()->sync($maestrosIds);
+           $actividad->coordinadores()->sync($coordinadoresIds);
+
+
+           return redirect()->route('actividades.index')
+           ->with('success', 'Actividad creada correctamente.');
     }
 
     /**

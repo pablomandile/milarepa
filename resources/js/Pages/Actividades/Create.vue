@@ -10,6 +10,17 @@
     import ActividadForm from '@/Components/Formularios/ActividadForm.vue'
     import { Link } from '@inertiajs/vue3';
     import ScrollTop from 'primevue/scrolltop';
+    import { Inertia } from '@inertiajs/inertia';
+
+
+    function reloadDescripciones() {
+    // Llama a Inertia.reload pidiendo solo la prop `descripciones` y preservando el resto
+        Inertia.reload({
+            only: ['descripciones'],
+            preserveState: true,
+            preserveScroll: true,
+        });
+    } 
 
     const props = defineProps({
         tiposActividad: {
@@ -64,13 +75,21 @@
             type: Array,
             default: () => [],
         },
+        maestros: {
+            type: Array,
+            default: () => [],
+        },
+        coordinadores: {
+            type: Array,
+            default: () => [],
+        }
     });
 
 
     const form = useForm({
         tipo_actividad_id: null,
         nombre: '',
-        descripcion_id: '',
+        descripcion_id: null,
         observaciones: '',
         imagen_id: null,
         fecha_inicio: null,
@@ -85,12 +104,14 @@
         esquema_descuento_id: null,
         link_grabacion: '',
         link_web: '',
-        stream_id: false,
+        stream_id: null,
         programa_id: null,
         metodos_pago_ids: [],
         hospedajes_ids: [],
         comidas_ids: [],
         transportes_ids: [],
+        maestros_ids: [],
+        coordinadores_ids: []
     });
 
 </script>
@@ -128,7 +149,11 @@
                             :hospedajes="hospedajes"
                             :comidas="comidas"
                             :transportes="transportes"
-                            :form="form" @submit="form.post(route('actividades.store'))"/>
+                            :coordinadores="coordinadores"
+                            :maestros="maestros"
+                            :form="form" @submit="form.post(route('actividades.store'))"
+                            @refresh-descripciones="reloadDescripciones"
+                            />
                         </div>
                     </div>
                 </div>

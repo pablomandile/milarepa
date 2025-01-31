@@ -61,14 +61,14 @@
                     </div>
                     <div class="mt-4">
                         <DataTable 
-                            :value="esquemaprecios" 
-                            stripedRows 
-                            paginator 
-                            :rows="10" 
-                            v-model:expandedRows="expandedRows"
-                            dataKey="id"
-                            :rowsPerPageOptions="[5, 10, 20, 50]" 
-                            tableStyle="min-width: 50rem"
+                        :value="esquemaprecios" 
+                        stripedRows 
+                        paginator 
+                        :rows="10" 
+                        v-model:expandedRows="expandedRows"
+                        dataKey="id"
+                        :rowsPerPageOptions="[5, 10, 20, 50]" 
+                        tableStyle="min-width: 50rem"
                         >
                             <Column expander style="width: 5rem" />
                             <Column field="nombre" header="Nombre"></Column>

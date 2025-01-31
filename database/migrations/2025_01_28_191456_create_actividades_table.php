@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('tipo_actividad_id')->references('id')->on('tipos_actividad')
             ->onDelete('cascade');
             $table->string('nombre', 80);
-            $table->unsignedBigInteger('descripcion_id');
+            $table->unsignedBigInteger('descripcion_id')->nullable();
             $table->foreign('descripcion_id')->references('id')->on('descripciones')
             ->onDelete('cascade');
             $table->text('observaciones')->nullable();

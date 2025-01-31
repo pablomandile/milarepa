@@ -71,13 +71,13 @@
                                         <Link
                                             :href="route('novedades.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update novedades')"
-                                            v-tooltip="'Editar comida'">
+                                            v-tooltip="'Editar novedad'">
                                             <i class="pi pi-pencil text-indigo-400 mr-4"></i>
                                         </Link>
                                         <a
                                             @click.prevent="deleteNovedad(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete novedades')"
-                                            v-tooltip="'Borrar comida'">
+                                            v-tooltip="'Borrar novedad'">
                                             <i class="pi pi-trash cursor-pointer text-red-300"></i>
                                         </a>
                                     </div>

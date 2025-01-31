@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('actividad_maestros', function (Blueprint $table) {
+        Schema::create('actividad_metodo_pago', function (Blueprint $table) {
             $table->unsignedInteger('actividad_id');
-            $table->unsignedInteger('maestro_id');
+            $table->unsignedInteger('metodo_pago_id');
         });
     }
 
@@ -22,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('actividad_maestro');
+        Schema::dropIfExists('actividad_metodo_pago');
     }
 };

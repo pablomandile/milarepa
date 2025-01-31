@@ -12,9 +12,13 @@
     import DataView from 'primevue/dataview';
     import DataViewLayoutOptions from 'primevue/dataviewlayoutoptions';
     import ImageUploader from '@/Components/ImageUploader.vue';
+    import Dialog from 'primevue/dialog';
+
 
 
     const layout = ref('grid');
+    const showDialog = ref(false);
+    const selectedImage = ref(null);
   
     defineProps({
         imagenes: {
@@ -45,6 +49,12 @@
             }
         });
     };
+
+    // Función para abrir el diálogo con la imagen seleccionada
+    function onClickImage(item) {
+        selectedImage.value = item;
+        showDialog.value = true;
+    }
     
 </script>
 
@@ -62,7 +72,7 @@
                     </div>
 
                     <div class="mt-4">
-                        <DataView :value="imagenes" :layout="layout" paginator :rows="16" :rowsPerPageOptions="[5, 10, 20, 50]">
+                        <DataView :value="imagenes" :layout="layout" paginator :rows="30" :rowsPerPageOptions="[5, 10, 20, 50]">
                             <template #header>
                                 <div class="flex justify-content-end">
                                     <DataViewLayoutOptions v-model="layout" />
@@ -106,10 +116,11 @@
                                             <div class="surface-50 flex justify-content-center border-round p-3">
                                                 <div class="relative mx-auto">
                                                     <img
-                                                        class="border-round w-full"
+                                                        class="border-round w-full cursor-pointer"
                                                         :src="`storage/${item.ruta}`"
                                                         :alt="item.nombre"
-                                                        style="max-width: 90px"
+                                                        style="max-width: 140px"
+                                                        @click="onClickImage(item)"
                                                     />
                                                 </div>
                                             </div>
@@ -132,5 +143,24 @@
                 </div>
             </div>
         </div>
+        <Dialog
+        v-model:visible="showDialog"
+        modal
+        :style="{ width: '600px' }"
+        dismissableMask
+        >
+            <template v-if="selectedImage">
+                <div class="text-center">
+                <img
+                    :src="`storage/${selectedImage.ruta}`"
+                    :alt="selectedImage.nombre"
+                    style="max-width: 100%; height: auto;"
+                />
+                <p class="mt-2 font-semibold text-gray-700">
+                    {{ selectedImage.nombre }}
+                </p>
+                </div>
+            </template>
+        </Dialog>
     </AppLayout>
 </template>

@@ -21,8 +21,13 @@ import Dropdown from 'primevue/dropdown';
 import MultiSelect from 'primevue/multiselect';
 import Textarea from 'primevue/textarea';
 import SingleImageUploader from '@/Components/SingleImageUploader.vue';
-import { useToast } from 'primevue/usetoast';
 
+const emit = defineEmits(['submit','refresh-descripciones']);
+
+function onClickRefresh() {
+  // En lugar de Inertia.reload aquí, emitimos al padre
+  emit('refresh-descripciones');
+}
 
 const props = defineProps({
   // Objeto con los campos que se bindearán en v-model
@@ -90,27 +95,21 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  maestros: {
+    type: Array,
+    default: () => [],
+  },
+  coordinadores: {
+    type: Array,
+    default: () => [],
+  }
 });
-
-defineEmits(['submit']);
-
-const imagePreview = ref(null);
-const toast = useToast();
-
-// Estado para ID's seleccionados (uno por dropdown)
-const selectedDescripcionId = ref(null);
-const selectedEntidadId = ref(null);
-const selectedEsquemaPrecioId = ref(null);
-const selectedEsquemaDescuentoId = ref(null);
-const selectedStreamId = ref(null);
-const selectedProgramaId = ref(null);
 
 
 // Manejo del dialog genérico
 const dialogVisible = ref(false);
 const dialogTitle = ref('');
 const detalleSeleccionado = ref(null);
-
 
 /**
  * verDetalle(arrayName, id, title):
@@ -135,12 +134,11 @@ const detalleSeleccionado = ref(null);
   
 }
 
-
 </script>
 
 <template>
   <Toast position="top-right" />
-  <FormSection @submitted="$emit('submit')">
+  <FormSection @submitted="() => emit('submit')">
     <!-- Título del form -->
     <template #title>
       {{ updating ? 'Actualizar Actividad' : 'Nueva Actividad' }}
@@ -205,7 +203,7 @@ const detalleSeleccionado = ref(null);
           <!-- Dropdown -->
           <Dropdown
             id="descripcion_id"
-            v-model="selectedDescripcionId"
+            v-model="form.descripcion_id"
             :options="descripciones"
             optionLabel="nombre"
             optionValue="id"
@@ -215,8 +213,9 @@ const detalleSeleccionado = ref(null);
 
           <!-- Botón ver -->
           <button
-            @click="verDetalle('descripciones', selectedDescripcionId, 'Descripción')"
-            :disabled="!selectedDescripcionId"
+            type="button"
+            @click="verDetalle('descripciones', form.descripcion_id, 'Descripción')"
+            :disabled="!form.descripcion_id"
             class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
             v-tooltip="'Ver la Descripción'"
           >
@@ -226,11 +225,15 @@ const detalleSeleccionado = ref(null);
           <!-- Botón nuevo (Redirecciona al create de Descripciones) -->
           <Link
             :href="route('descripciones.create')"
-            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
             v-tooltip="'Crear nueva descripción'"
           >
             <i class="pi pi-file-plus"></i>
           </Link>
+
+          <button type="button" class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white" @click="onClickRefresh" v-tooltip="'Refrescar'">
+            <i class="pi pi-refresh "></i>
+          </button>
         </div>
         <InputError :message="$page.props.errors.descripcion_id" class="mt-2" />
       </div>
@@ -271,6 +274,44 @@ const detalleSeleccionado = ref(null);
           </div>
         <InputError :message="$page.props.errors.imagen" class="mt-2" />
         </div>
+      </div>
+
+     <!-- Maestros (MultiSelect) -->
+     <div class="col-span-6 sm:col-span-6">
+        <InputLabel
+          for="maestros"
+          class="text-indigo-400"
+          value="Maestro/s"
+        />
+        <MultiSelect
+          id="maestros"
+          v-model="form.maestros_ids"
+          :options="maestros"
+          optionLabel="nombre"
+          optionValue="id"
+          class="w-full mt-1 border border-gray-300"
+          placeholder="Seleccione maestro/s"
+        />
+        <InputError :message="$page.props.errors.maestros_ids" class="mt-2" />
+      </div>
+
+      <!-- Coordinadores (MultiSelect) -->
+      <div class="col-span-6 sm:col-span-6">
+        <InputLabel
+          for="coordinadores"
+          class="text-indigo-400"
+          value="Coordinador/es"
+        />
+        <MultiSelect
+          id="coordinadores"
+          v-model="form.coordinadores_ids"
+          :options="coordinadores"
+          optionLabel="nombre"
+          optionValue="id"
+          class="w-full mt-1 border border-gray-300"
+          placeholder="Seleccione coordinador/es"
+        />
+        <InputError :message="$page.props.errors.coordinadores_ids" class="mt-2" />
       </div>
 
       <!-- Fecha Inicio -->
@@ -345,11 +386,12 @@ const detalleSeleccionado = ref(null);
           for="entidad_id"
           class="text-indigo-400"
           value="Entidad"
+          :required="true"
         />
         <div class="flex gap-2 items-center mt-1">
           <Dropdown
             id="entidad_id"
-            v-model="selectedEntidadId"
+            v-model="form.entidad_id"
             :options="entidades"
             optionLabel="nombre"
             optionValue="id"
@@ -358,8 +400,9 @@ const detalleSeleccionado = ref(null);
           />
           <!-- Botón ver -->
           <button
-            @click="verDetalle('entidades', selectedEntidadId, 'Entidad')"
-            :disabled="!selectedEntidadId"
+            type="button"
+            @click="verDetalle('entidades', form.entidad_id, 'Entidad')"
+            :disabled="!form.entidad_id"
             class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
             v-tooltip="'Ver la Entidad'"
           >
@@ -376,25 +419,6 @@ const detalleSeleccionado = ref(null);
           </Link>
         </div>
         <InputError :message="$page.props.errors.entidad_id" class="mt-2" />
-      </div>
-
-      <!-- Disponibilidad (MultiSelect o Dropdown) -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="disponibilidad_id"
-          class="text-indigo-400"
-          value="Disponibilidad"
-        />
-        <Dropdown
-          id="disponibilidad_id"
-          v-model="form.disponibilidad_id"
-          :options="disponibilidades"
-          optionLabel="descripcion"
-          optionValue="id"
-          placeholder="Seleccione la Disponibilidad"
-          class="w-full mt-1 border border-gray-300"
-        />
-        <InputError :message="$page.props.errors.disponibilidad_id" class="mt-2" />
       </div>
 
       <!-- Modalidad (Dropdown) -->
@@ -416,6 +440,25 @@ const detalleSeleccionado = ref(null);
         <InputError :message="$page.props.errors.modalidad_id" class="mt-2" />
       </div>
 
+      <!-- Disponibilidad (MultiSelect o Dropdown) -->
+      <div v-if="form.modalidad_id !== 1" class="col-span-6 sm:col-span-6">
+        <InputLabel
+          for="disponibilidad_id"
+          class="text-indigo-400"
+          value="Disponibilidad"
+        />
+        <Dropdown
+          id="disponibilidad_id"
+          v-model="form.disponibilidad_id"
+          :options="disponibilidades"
+          optionLabel="descripcion"
+          optionValue="id"
+          placeholder="Seleccione la Disponibilidad"
+          class="w-full mt-1 border border-gray-300"
+        />
+        <InputError :message="$page.props.errors.disponibilidad_id" class="mt-2" />
+      </div>
+
       <!-- Esquema de Precios (Dropdown) -->
       <div class="col-span-6 sm:col-span-6">
         <InputLabel
@@ -426,7 +469,7 @@ const detalleSeleccionado = ref(null);
         <div class="flex gap-2 items-center mt-1">
           <Dropdown
             id="esquema_precio_id"
-            v-model="selectedEsquemaPrecioId"
+            v-model="form.esquema_precio_id"
             :options="esquema_precios"
             optionLabel="nombre"
             optionValue="id"
@@ -435,8 +478,9 @@ const detalleSeleccionado = ref(null);
           />
           <!-- Botón ver -->
           <button
-            @click="verDetalle('esquema_precios', selectedEsquemaPrecioId, 'Esquema de Precios')"
-            :disabled="!selectedEsquemaPrecioId"
+            type="button"
+            @click="verDetalle('esquema_precios', form.esquema_precio_id, 'Esquema de Precios')"
+            :disabled="!form.esquema_precio_id"
             class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
             v-tooltip="'Ver el Esquema'"
           >
@@ -465,7 +509,7 @@ const detalleSeleccionado = ref(null);
         <div class="flex gap-2 items-center mt-1">
           <Dropdown
             id="esquema_descuento_id"
-            v-model="selectedEsquemaDescuentoId"
+            v-model="form.esquema_descuento_id"
             :options="esquema_descuentos"
             optionLabel="nombre"
             optionValue="id"
@@ -474,8 +518,9 @@ const detalleSeleccionado = ref(null);
           />
           <!-- Botón ver -->
           <button
-            @click="verDetalle('esquema_descuentos', selectedEsquemaDescuentoId, 'Esquema de Descuentos')"
-            :disabled="!selectedEsquemaDescuentoId"
+            type="button"
+            @click="verDetalle('esquema_descuentos', form.esquema_descuento_id, 'Esquema de Descuentos')"
+            :disabled="!form.esquema_descuento_id"
             class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
             v-tooltip="'Ver el Esquema'"
           >
@@ -525,7 +570,7 @@ const detalleSeleccionado = ref(null);
       </div>
 
       <!-- Stream (Dropdown) -->
-      <div class="col-span-6 sm:col-span-6 mt-4">
+      <div v-if="form.modalidad_id !== 1" class="col-span-6 sm:col-span-6 mt-4">
         <InputLabel
           for="stream_id"
           class="text-indigo-400"
@@ -534,7 +579,7 @@ const detalleSeleccionado = ref(null);
         <div class="flex gap-2 items-center mt-1">
           <Dropdown
             id="stream_id"
-            v-model="selectedStreamId"
+            v-model="form.stream_id"
             :options="streams"
             optionLabel="nombre"
             optionValue="id"
@@ -543,8 +588,9 @@ const detalleSeleccionado = ref(null);
           />
           <!-- Botón ver -->
           <button
-            @click="verDetalle('streams', selectedStreamId, 'Stream')"
-            :disabled="!selectedStreamId"
+            type="button"
+            @click="verDetalle('streams', form.stream_id, 'Stream')"
+            :disabled="!form.stream_id"
             class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
             v-tooltip="'Ver el Stream'"
           >
@@ -573,7 +619,7 @@ const detalleSeleccionado = ref(null);
         <div class="flex gap-2 items-center mt-1">
           <Dropdown
             id="programa_id"
-            v-model="selectedProgramaId"
+            v-model="form.programa_id"
             :options="programas"
             optionLabel="nombre"
             optionValue="id"
@@ -582,8 +628,9 @@ const detalleSeleccionado = ref(null);
           />
           <!-- Botón ver -->
           <button
-            @click="verDetalle('programas', selectedProgramaId, 'Programa')"
-            :disabled="!selectedProgramaId"
+            type="button"
+            @click="verDetalle('programas', form.programa_id, 'Programa')"
+            :disabled="!form.programa_id"
             class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
             v-tooltip="'Ver el Programa'"
           >
