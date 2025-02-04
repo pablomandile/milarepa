@@ -163,6 +163,9 @@ const logout = () => {
                                     <DropdownLink :href="route('streams.index')" :active="route().current('streams.*')">
                                         Streams
                                     </DropdownLink>
+                                    <DropdownLink :href="route('grabaciones.index')" :active="route().current('grabaciones.*')">
+                                        Grabaciones
+                                    </DropdownLink>
                                 </template>
                             </Dropdown>
                         </div>

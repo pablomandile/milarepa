@@ -38,9 +38,9 @@ class ActividadRequest extends FormRequest
             'modalidad_id' => ['required', 'exists:modalidades,id'],
             'esquema_precio_id' => ['required', 'exists:esquema_precios,id'],
             'esquema_descuento_id' => ['nullable','exists:esquema_descuentos,id'],
-            'link_grabacion' => ['nullable','string'],
             'link_web' => ['nullable','string'],
             'stream_id' => ['nullable','exists:streams,id'],
+            'grabacion_id' => ['nullable','exists:grabaciones,id'],
             'programa_id' => ['nullable','exists:programas,id'],
         ];
     }

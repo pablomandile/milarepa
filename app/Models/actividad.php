@@ -25,8 +25,8 @@ class Actividad extends Model
         'modalidad_id', 
         'esquema_precio_id', 
         'esquema_descuento_id', 
-        'link_grabacion', 
         'link_web', 
+        'grabacion_id',
         'stream_id', 
         'programa_id'
     ];
@@ -104,6 +104,11 @@ class Actividad extends Model
     public function stream()
     {
         return $this->belongsTo(Stream::class, 'stream_id');
+    }
+
+    public function grabacion()
+    {
+        return $this->belongsTo(Grabacion::class, 'grabacion_id');
     }
     
     public function programa()

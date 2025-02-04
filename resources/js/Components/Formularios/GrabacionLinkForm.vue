@@ -25,13 +25,13 @@ function handleSubmit() {
   <FormSection @submitted="handleSubmit">
     <template #title>
         <div class="max-w-sm">
-            Añadir Link al Stream
+            Añadir Link a la Grabación
       </div>
     </template>
 
     <template #description>
         <div class="max-w-sm">
-            Agrega un nuevo link de streaming
+            Agrega un nuevo Link a un audio para la Grabación.
       </div>
     </template>
 

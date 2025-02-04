@@ -55,6 +55,10 @@
             type: Array,
             default: () => [],
         },
+        grabaciones: {
+            type: Array,
+            default: () => [],
+        },
         programas: {
             type: Array,
             default: () => [],
@@ -102,9 +106,9 @@
         modalidad_id: null,
         esquema_precio_id: null,
         esquema_descuento_id: null,
-        link_grabacion: '',
         link_web: '',
         stream_id: null,
+        grabación_id: null,
         programa_id: null,
         metodos_pago_ids: [],
         hospedajes_ids: [],
@@ -144,6 +148,7 @@
                             :esquema_precios="esquema_precios"
                             :esquema_descuentos="esquema_descuentos"
                             :streams="streams"
+                            :grabaciones="grabaciones"
                             :programas="programas"
                             :metodosPago="metodosPago"
                             :hospedajes="hospedajes"

@@ -12,6 +12,7 @@ use App\Models\Disponibilidad;
 use App\Models\Entidad;
 use App\Models\EsquemaDescuento;
 use App\Models\EsquemaPrecio;
+use App\Models\Grabacion;
 use App\Models\Hospedaje;
 use App\Models\Maestro;
 use App\Models\MetodoPago;
@@ -39,6 +40,7 @@ class ActividadesController extends Controller
             'esquemaPrecio',
             'esquemaDescuento',
             'stream',
+            'grabacion',
             'programa',
             'metodosPago', 
             'hospedajes', 
@@ -75,6 +77,9 @@ class ActividadesController extends Controller
         $streams = Stream::with([
             'links'
         ])->get();
+        $grabaciones = Grabacion::with([
+            'linksgrabacion'
+        ])->get();
         $programas = Programa::all();
         $metodosPago = MetodoPago::all();
         $hospedajes = Hospedaje::all();
@@ -92,6 +97,7 @@ class ActividadesController extends Controller
             'esquema_precios' => $esquema_precios->toArray(),
             'esquema_descuentos' => $esquema_descuentos->toArray(), 
             'streams' => $streams, 
+            'grabaciones' => $grabaciones, 
             'programas' => $programas,
             'metodosPago' => $metodosPago,
             'hospedajes' => $hospedajes,

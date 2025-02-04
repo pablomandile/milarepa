@@ -75,6 +75,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  grabaciones: {
+    type: Array,
+    default: () => [],
+  },
   programas: {
     type: Array,
     default: () => [],
@@ -537,22 +541,6 @@ const detalleSeleccionado = ref(null);
         </div>
       </div>
 
-      <!-- Link de grabación -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="link_grabacion"
-          class="text-indigo-400"
-          value="Link grabación"
-        />
-        <TextInput
-          id="link_grabacion"
-          v-model="form.link_grabacion"
-          type="text"
-          class="mt-1 block w-full"
-        />
-        <InputError :message="$page.props.errors.link_grabacion" class="mt-2" />
-      </div>
-
       <!-- Web actividad -->
       <div class="col-span-6 sm:col-span-6">
         <InputLabel
@@ -567,6 +555,46 @@ const detalleSeleccionado = ref(null);
           class="mt-1 block w-full"
         />
         <InputError :message="$page.props.errors.web_actividad" class="mt-2" />
+      </div>
+
+       <!-- Grabación (Dropdown) -->
+       <div class="col-span-6 sm:col-span-6 mt-4">
+        <InputLabel
+          for="grabacion_id"
+          class="text-indigo-400"
+          value="Grabaciones"
+        />
+        <div class="flex gap-2 items-center mt-1">
+          <Dropdown
+            id="grabacion_id"
+            v-model="form.grabacion_id"
+            :options="grabaciones"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Seleccione Geabación"
+            class="w-full mt-1 border border-gray-300"
+          />
+          <!-- Botón ver -->
+          <button
+            type="button"
+            @click="verDetalle('grabaciones', form.grabacion_id, 'Grabación')"
+            :disabled="!form.grabacion_id"
+            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+            v-tooltip="'Ver la Grabación'"
+          >
+            <i class="pi pi-eye"></i>
+          </button>
+
+          <!-- Botón nuevo (Redirecciona al create) -->
+          <Link
+            :href="route('grabaciones.create')"
+            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+            v-tooltip="'Crear nueva Grabación'"
+          >
+            <i class="pi pi-file-plus"></i>
+          </Link>
+        </div>
+        <InputError :message="$page.props.errors.grabacion_id" class="mt-2" />
       </div>
 
       <!-- Stream (Dropdown) -->
@@ -810,5 +838,24 @@ const detalleSeleccionado = ref(null);
       </ul>
     </div>
 
+    <div v-if="detalleSeleccionado.linksgrabacion && detalleSeleccionado.linksgrabacion.length > 0">
+      <h4 class="font-semibold mt-4 mb-2">Links</h4>
+
+      <ul class="space-y-2">
+        <li
+          v-for="(line, idx) in detalleSeleccionado.linksgrabacion"
+          :key="line.id"
+          class="border p-2 rounded"
+        >
+          <strong class="block">
+            {{ line.nombre }}
+          </strong>
+
+          <span v-if="line.link">
+            {{ line.link }}
+          </span>
+        </li>
+      </ul>
+    </div>
   </Dialog>
 </template>

@@ -31,6 +31,7 @@ use App\Http\Controllers\TransportesController;
 use App\Http\Controllers\DescripcionesController;
 use App\Http\Controllers\ProgramasController;
 use App\Http\Controllers\ActividadesController;
+use App\Http\Controllers\GrabacionesController;
 use App\Http\Controllers\ImagenesController;
 use App\Http\Controllers\RegistroMembresiasController;
 use App\Http\Controllers\UploadController;
@@ -126,6 +127,15 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     ->name('streams.updateLink');
     Route::delete('/streams/links/{linkLineId}', [StreamsController::class, 'destroyLink'])
     ->name('streams.destroyLink');
+
+    Route::resource('/grabaciones', GrabacionesController::class, [
+        'parameters' => ['grabaciones' => 'grabacion'],]);
+    Route::post('/grabaciones/{id}/links', [GrabacionesController::class, 'storeLink'])
+    ->name('grabaciones.storeLink');
+    Route::put('/grabaciones/links/{linkLineId}', [GrabacionesController::class, 'updateLink'])
+    ->name('grabaciones.updateLink');
+    Route::delete('/grabaciones/links/{linkLineId}', [GrabacionesController::class, 'destroyLink'])
+    ->name('grabaciones.destroyLink');
     
     Route::resource('/registromembresias', RegistroMembresiasController::class);
 

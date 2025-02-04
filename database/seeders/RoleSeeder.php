@@ -130,6 +130,11 @@ class RoleSeeder extends Seeder
         $permission_create_usuarios = Permission::create(['name' => 'read usuarios']);
         $permission_create_usuarios = Permission::create(['name' => 'delete usuarios']);
 
+        $permission_create_grabaciones = Permission::create(['name' => 'create grabaciones']);
+        $permission_create_grabaciones = Permission::create(['name' => 'update grabaciones']);
+        $permission_create_grabaciones = Permission::create(['name' => 'read grabaciones']);
+        $permission_create_grabaciones = Permission::create(['name' => 'delete grabaciones']);
+
 
         $permissions_admin = [
             'create roles',
@@ -221,7 +226,11 @@ class RoleSeeder extends Seeder
             'update usuarios',
             'read usuarios',
             'delete usuarios',
-                        
+            'create grabaciones',
+            'update grabaciones',
+            'read grabaciones',
+            'delete grabaciones',
+                                    
         ];
         
         $permissions_editor = [
@@ -310,6 +319,10 @@ class RoleSeeder extends Seeder
             'update usuarios',
             'read usuarios',
             'delete usuarios',
+            'create grabaciones',
+            'update grabaciones',
+            'read grabaciones',
+            'delete grabaciones',
         ];
 
         $permissions_asistant = [

@@ -42,7 +42,8 @@ return new class extends Migration
             $table->unsignedBigInteger('esquema_descuento_id')->nullable();
             $table->foreign('esquema_descuento_id')->references('id')->on('esquema_descuentos')
             ->onDelete('cascade');
-            $table->string('link_grabacion')->nullable();
+            $table->foreign('grabacion_id')->references('id')->on('grabaciones')
+            ->onDelete('cascade');
             $table->string('link_web')->nullable();
             $table->unsignedBigInteger('stream_id')->nullable();
             $table->foreign('stream_id')->references('id')->on('streams')
