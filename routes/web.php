@@ -32,6 +32,7 @@ use App\Http\Controllers\DescripcionesController;
 use App\Http\Controllers\ProgramasController;
 use App\Http\Controllers\ActividadesController;
 use App\Http\Controllers\GrabacionesController;
+use App\Http\Controllers\GridActividadesController;
 use App\Http\Controllers\ImagenesController;
 use App\Http\Controllers\RegistroMembresiasController;
 use App\Http\Controllers\UploadController;
@@ -74,6 +75,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         'parameters' => ['metodospago' => 'metodopago'],]);
     Route::resource('/actividades', ActividadesController::class, [
         'parameters' => ['actividades' => 'actividad'],]);
+    Route::resource('/grid-actividades', GridActividadesController::class, [
+        'parameters' => ['grid-actividades' => 'grid-actividad'],]);
     Route::resource('/usuarios', UsuariosController::class);
     Route::resource('/perfiles', PerfilesController::class);
     Route::resource('/roles', RolesController::class);

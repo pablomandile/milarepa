@@ -145,6 +145,9 @@ const logout = () => {
                                     <DropdownLink :href="route('actividades.index')" :active="route().current('actividades.*')">
                                         Actividades
                                     </DropdownLink>
+                                    <DropdownLink :href="route('grid-actividades.index')" :active="route().current('gridactividades.*')">
+                                        Actividades
+                                    </DropdownLink>
                                     <DropdownLink :href="route('tiposactividad.index')" :active="route().current('tipoactividad.*')">
                                         Tipos de Actividad
                                     </DropdownLink>
