@@ -33,7 +33,7 @@ class GridActividadesController extends Controller
             'coordinadores'
         ])->get();
 
-        // dd($actividades);
+        // dd($actividades->toArray());
         return inertia('GridActividades/Index', ['actividades' => $actividades->toArray()]);
     }
 

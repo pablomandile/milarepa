@@ -91,17 +91,12 @@ function inscribir(actividad) {
                                     </p>
                                     <p class="text-sm text-gray-600 mt-2">
                                         <strong>Valor:</strong> ${{
-                                            actividad.esquemaPrecio?.membresias
-                                            ?.find(epm => epm.membresia?.nombre === 'Sin membresía')
+                                            actividad.esquema_precio?.membresias
+                                            ?.find(epm => epm.membresia?.nombre === 'Sin')
                                             ?.precio
                                             || 'Precio no definido'
                                         }}
-                                        <!-- {{
-                                            actividad.esquemaPrecio?.membresias
-                                            ?.find(epm => epm.membresia?.nombre === 'Sin membresía')
-                                            ?.precio
-                                            || 'Precio no definido'
-                                        }} -->
+
                                         <!-- {{ actividad.valorGeneral }} -->
                                         <br/>
                                         <strong>Con Membresía:</strong> ${{ actividad.valorMembresia }}

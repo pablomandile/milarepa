@@ -32,7 +32,6 @@ class CentroAyudaController extends Controller
                 ->get()
                 ->sortBy(fn($ticket) => $ticket->estadoTicket->estado);
         }
-    // dd($tickets);
         return inertia('CentroAyuda/Index', [
             'tickets' => $tickets->values()->all(), // para reenviar como array ordenado
             'usuariosResponsables' => $usuariosResponsables,

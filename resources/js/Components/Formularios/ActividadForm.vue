@@ -26,7 +26,7 @@ const emit = defineEmits(['submit','refresh-descripciones']);
 
 function onClickRefresh() {
   // En lugar de Inertia.reload aquí, emitimos al padre
-  emit('refresh-descripciones');
+    emit('refresh-descripciones');
 }
 
 const props = defineProps({
