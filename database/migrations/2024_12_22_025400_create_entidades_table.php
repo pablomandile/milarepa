@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nombre', 80);
             $table->text('descripcion')->max(600)->nullable();
-            $table->string('abreviacion',10)->nullable();
+            $table->string('abreviacion',15)->nullable();
             $table->string('direccion', 255.)->nullable();
             $table->string('telefono', 50)->nullable();
             $table->string('telefono2', 50)->nullable();

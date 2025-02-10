@@ -161,9 +161,9 @@
         maximizable 
         modal 
         :header="actividadSeleccionada ? `Detalles de ${actividadSeleccionada.nombre}` : 'Detalles...'"
-
         :style="{ width: '50rem' }" 
         :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+        dismissableMask
 >
     <template v-if="actividadSeleccionada">
         <!-- Mostrar imagen solo si logo_url no está vacío -->

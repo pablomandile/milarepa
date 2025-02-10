@@ -1,5 +1,5 @@
 <template>
-<footer class="bg-[#bfc1f1] text-black" style="border-top: 6px #64748b solid">
+<footer class="footer-bg text-black" style="border-top: 6px #64748b solid">
     <div class="p-4 max-w-7xl mx-auto">
       <div
         class="flex flex-col gap-4 sm:items-center sm:justify-center sm:flex-row">
@@ -25,7 +25,7 @@
               </a>
             </li>
             <li class="flex items-center gap-3">
-              <a
+              <a  
                 class="flex items-center gap-2"
                 :href="$page.props.entidad_principal.instagram_uri"
                 target="_blank">

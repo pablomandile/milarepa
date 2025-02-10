@@ -28,3 +28,19 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.footer-bg {
+  /* Ajusta la ruta del SVG */
+  background-image: url('/resources/images/layered-waves.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.about-bg {
+  /* Ajusta la ruta del SVG */
+  background-image: url('/resources/images/bgabout.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}

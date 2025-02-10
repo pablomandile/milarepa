@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Actividad;
+use Carbon\Carbon;
 
 
 class GridActividadesController extends Controller
@@ -32,6 +33,18 @@ class GridActividadesController extends Controller
             'maestros',
             'coordinadores'
         ])->get();
+
+        // Convertir cada fecha con Carbon a un string amigable:
+        $actividades->transform(function ($actividad) {
+        // Si la columna es “fecha_inicio”, haz:
+        $date = Carbon::parse($actividad->fecha_inicio);
+
+        // Formato “30 de Enero 00:00 hs.”
+        // “j” = día sin cero, “F” = Mes completo, “H:i” = 24h:mins
+        $actividad->fecha_inicio_formateada = $date->translatedFormat('j \d\e F H:i') . ' hs.';
+
+        return $actividad;
+    });
 
         // dd($actividades->toArray());
         return inertia('GridActividades/Index', ['actividades' => $actividades->toArray()]);

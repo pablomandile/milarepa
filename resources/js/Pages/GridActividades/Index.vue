@@ -2,7 +2,9 @@
 import { ref } from 'vue';
 import DataView from 'primevue/dataview';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { usePage } from '@inertiajs/vue3';
 
+const $page = usePage();
 
 const props = defineProps({
   actividades: {
@@ -32,12 +34,28 @@ function inscribir(actividad) {
   // o abrir un formulario. Ejemplo:
   console.log('Inscribiendo en', actividad.nombre);
 }
+
+const user = $page.props.auth.user;
+
+function precioMembresiaUsuario(actividad) {
+  if (!actividad.esquema_precio?.membresias) return 0;
+
+  const userMemId = user.membresia?.id; 
+  // O user.membresia_id si guardas IDs directos en user.
+
+  // Buscar en 'membresias' la pivot con 'membresia_id' = userMemId
+  const pivot = actividad.esquema_precio.membresias.find(epm => epm.membresia_id === userMemId);
+
+  // Si lo halla, retorna pivot.precio, sino 0 o "N/D"
+  return pivot ? pivot.precio : 0;
+}
+
 </script>
 
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Descripciones</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Actividades Activas</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -70,45 +88,57 @@ function inscribir(actividad) {
                                 <div class="flip-card-inner">
 
                                     <!-- FRONT: imagen e info breve -->
-                                    <div class="flip-card-front p-3">
-                                    <img
-                                        class="w-full border-round cursor-pointer"
-                                        :src="actividad.imagen?.ruta 
-                                            ? `/storage/${actividad.imagen.ruta}` 
-                                            : '/storage/img/actividades/imagen-no-disponible.jpg'"
-                                        :alt="actividad.nombre"
-                                        style="max-height: 230px; object-fit: contain;"
-                                        @click="toggleFlip(actividad.id)"
-                                    />
-                                    <h3 class="text-md font-semibold mt-2">
-                                        {{ actividad.nombre }}
-                                    </h3>
-                                    <p class="text-sm text-gray-600">
-                                        <strong>Fecha y hora:</strong> {{ actividad.fecha_inicio }}
-                                    </p>
-                                    <p class="text-sm text-gray-600">
-                                        <strong>Lugar:</strong> {{ actividad.entidad?.direccion }}
-                                    </p>
-                                    <p class="text-sm text-gray-600 mt-2">
-                                        <strong>Valor:</strong> ${{
-                                            actividad.esquema_precio?.membresias
-                                            ?.find(epm => epm.membresia?.nombre === 'Sin')
-                                            ?.precio
-                                            || 'Precio no definido'
-                                        }}
+                                    <div class="flip-card-front p-3 flex flex-col h-full">
+                                        <div class="grow">
+                                            <img
+                                                class="w-full border-round cursor-pointer"
+                                                :src="actividad.imagen?.ruta 
+                                                    ? `/storage/${actividad.imagen.ruta}` 
+                                                    : '/storage/img/actividades/imagen-no-disponible.jpg'"
+                                                :alt="actividad.nombre"
+                                                style="max-height: 230px; object-fit: contain;"
+                                                @click="toggleFlip(actividad.id)"
+                                            />
+                                            <h3 class="text-md font-semibold mt-2">
+                                                {{ actividad.nombre }}
+                                            </h3>
+                                            <p class="text-sm text-gray-600">
+                                                <strong>Fecha y hora:</strong> {{ actividad.fecha_inicio_formateada  }}
+                                            </p>
+                                            <p class="text-sm text-gray-600">
+                                                <strong>Lugar:</strong> {{ actividad.entidad?.direccion }}
+                                            </p>
+                                            <!-- {{ actividad.valorGeneral }} -->
+                                            <p
+                                            class="text-sm mt-2"
+                                            :class="{
+                                                'text-gray-600': user.membresia?.nombre === 'Sin membresía',
+                                                'text-red-300 line-through': user.membresia?.nombre !== 'Sin membresía'
+                                            }"
+                                            >
+                                                <strong>Valor:</strong> ${{
+                                                    actividad.esquema_precio?.membresias
+                                                    ?.find(epm => epm.membresia?.nombre === 'Sin membresía')
+                                                    ?.precio
+                                                    || 'Precio no definido'
+                                                }}
+                                            <!-- {{ actividad.Valor TK si tiene }} -->
+                                            </p>
+                                            <p v-if="user.membresia?.nombre !== 'Sin membresía'" class="text-sm text-gray-600 mt-2">
+                                                <strong>Con {{ user.membresia?.nombre }} :</strong>
+                                                ${{ precioMembresiaUsuario(actividad) }}
+                                            </p>
+                                        </div>
 
-                                        <!-- {{ actividad.valorGeneral }} -->
-                                        <br/>
-                                        <strong>Con Membresía:</strong> ${{ actividad.valorMembresia }}
-                                    </p>
-
-                                    <!-- Botón inscribirme -->
-                                    <button
-                                        class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded mt-4"
-                                        @click="inscribir(actividad)"
-                                    >
-                                        Inscribirme
-                                    </button>
+                                        <!-- Footer (botón) -->
+                                        <div class="mt-4">
+                                            <button
+                                            class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded w-full"
+                                            @click="inscribir(actividad)"
+                                            >
+                                            Inscribirme
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <!-- BACK: texto descripción -->
@@ -152,6 +182,13 @@ function inscribir(actividad) {
 
 .flip-card-container.flipped .flip-card-inner {
   transform: rotateY(180deg);
+}
+
+.flip-card-front {
+  display: flex;
+  flex-direction: column; 
+  justify-content: space-between; /* Espacio entre la parte superior y el botón */
+  height: 100%;
 }
 
 /* front y back se apilan, uno rota 0°, el otro 180° */

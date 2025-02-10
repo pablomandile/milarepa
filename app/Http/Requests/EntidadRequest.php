@@ -26,7 +26,7 @@ class EntidadRequest extends FormRequest
             'nombre' => ['required', 'string', 'max:80', 
             Rule::unique('entidades', 'nombre')->ignore($this->route('entidad')),],
             'descripcion' => ['required','string'],
-            'abreviacion' => ['nullable','string'],
+            'abreviacion' => ['nullable','string', 'max:15'],
             'direccion' => ['required','string', 'max:255'],
             'telefono' => ['required','string', 'max:50'],
             'whatsapp' => ['nullable','string', 'max:30'],

@@ -25,19 +25,22 @@ const props = defineProps({
 
 const mostrarAcercade = () => {
     dialogContent.value = `
-        <div class="bg-white shadow-md rounded-lg p-6 max-w-md mx-auto border border-gray-200">
-            <p class="m-0">
-                <strong>Versión:</strong> ${page.props.version.version || 'Sin versión disponible'}<br>
-                <strong>Fecha:</strong> ${page.props.version.created_at || 'Fecha no especificada'}
-            </p>
-            <p class="mt-4 mb-4">
-                <strong>Desarrollado por:</strong> Pablo Mandile
-                <span class="text-indigo-400">
-                    <a href="mailto:pablo.mandile@gmail.com" target="_blank" class="underline hover:text-indigo-600">
-                        pablo.mandile@gmail.com
-                    </a>
-                </span>
-            </p>
+        <div class="about-bg shadow-md rounded-lg p-6 max-w-md mx-auto border border-gray-200">
+            <div class="ml-6">
+                <p class="m-0">
+                    <strong> <span class="text-white"> ${page.props.version.version || 'Sin versión disponible'} </span>  </strong><br>
+                    <strong>Fecha de última actualización, <span class="text-white"> ${page.props.version.created_at || 'Fecha no especificada'} </span> </strong>
+                </p>
+                <p class="mt-4 mb-4">
+                    <strong>Desarrollado por  <br>
+                    <span class="text-white"> Pablo Mandile </span></strong>
+                    <span class="text-gray-500">
+                        <a href="mailto:pablo.mandile@gmail.com" target="_blank" class="underline hover:text-indigo-600">
+                            pablo.mandile@gmail.com
+                        </a>
+                    </span> 
+                </p>
+            </div>
         </div>
     `;
     dialogVisible.value = true;
