@@ -1,6 +1,8 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import DataView from 'primevue/dataview';
+import Dialog from 'primevue/dialog';
+import { useToast } from 'primevue/usetoast';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { usePage } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
@@ -18,6 +20,29 @@ const props = defineProps({
 const layout = ref('grid');
 // Para controlar cuáles actividades están "giradas"
 const flippedCards = ref({}); 
+// Modal de confirmación de inscripción
+const confirmModalVisible = ref(false);
+const actividadAInscribir = ref(null);
+const toast = useToast();
+
+// Mostrar toast cuando cambian los mensajes flash (éxito / error)
+watch(() => $page.props.flash, (flash) => {
+    if (flash?.error) {
+        toast.add({
+            severity: 'warn',
+            summary: 'Aviso',
+            detail: flash.error || 'Ya está inscripto a esa actividad!',
+            life: 10000,
+        });
+    } else if (flash?.success) {
+        toast.add({
+            severity: 'success',
+            summary: 'Inscripción',
+            detail: flash.success,
+            life: 5000,
+        });
+    }
+}, { immediate: true });
 
 // Función que alterna el estado flipped
 function toggleFlip(id) {
@@ -25,6 +50,13 @@ function toggleFlip(id) {
 }
 // Acción al pulsar “Inscribirme”
 function inscribir(actividad) {
+  actividadAInscribir.value = actividad;
+  confirmModalVisible.value = true;
+}
+// Función para confirmar la inscripción después del modal
+function confirmarInscripcion() {
+  const actividad = actividadAInscribir.value;
+  
   // Calcular precios
   const precioGeneral = actividad.esquema_precio?.membresias
     ?.find(epm => epm.membresia?.nombre === 'Sin membresía')
@@ -51,10 +83,23 @@ function inscribir(actividad) {
     transporte_id: null,
   };
 
-  // Enviar POST a la ruta de inscripciones
-  router.post('/inscripciones', data);
-}
+  // Cerrar modal
+  confirmModalVisible.value = false;
+  actividadAInscribir.value = null;
 
+    // Enviar POST a la ruta de inscripciones
+    // Nota: dejamos que el watcher de $page.props.flash dispare el toast.
+    router.post('/inscripciones', data, {
+        onError: () => {
+            toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'No se pudo procesar la inscripción.',
+                life: 5000,
+            });
+        },
+    });
+}
 const user = $page.props.auth.user;
 
 function precioMembresiaUsuario(actividad) {
@@ -77,6 +122,7 @@ function precioMembresiaUsuario(actividad) {
         <template #header>
             <h1 class="font-semibold text-xl text-gray-800 leading-tight">Actividades del mes</h1>
         </template>
+        <Toast position="top-right" />
         <div class="py-12">
             <div class="px-4 sm:px-6 lg:px-8">
                 <div class="p-6 bg-white border-b border-gray-200">
@@ -191,6 +237,44 @@ function precioMembresiaUsuario(actividad) {
                 </div>
             </div>
         </div>
+
+        <!-- Modal de confirmación de inscripción -->
+        <Dialog
+            v-model:visible="confirmModalVisible"
+            modal
+            header="Confirmar Inscripción"
+            :style="{ width: '450px' }"
+            :closable="false"
+        >
+            <div class="flex items-center">
+                <i class="pi pi-exclamation-triangle text-yellow-500 text-3xl mr-3"></i>
+                <div>
+                    <p class="mb-2">¿Estás seguro de que deseas inscribirte en esta actividad?</p>
+                    <p class="text-sm text-gray-600" v-if="actividadAInscribir">
+                        <strong>{{ actividadAInscribir.nombre }}</strong><br>
+                        <span v-if="actividadAInscribir.modalidad">Modalidad: {{ actividadAInscribir.modalidad.nombre }}</span>
+                    </p>
+                </div>
+            </div>
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <button 
+                        @click="confirmModalVisible = false; actividadAInscribir = null"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors flex items-center gap-2"
+                    >
+                        <i class="pi pi-times"></i>
+                        Cancelar
+                    </button>
+                    <button 
+                        @click="confirmarInscripcion"
+                        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700 transition-colors flex items-center gap-2"
+                    >
+                        <i class="pi pi-check"></i>
+                        Confirmar Inscripción
+                    </button>
+                </div>
+            </template>
+        </Dialog>
     </AppLayout>
 </template>
 

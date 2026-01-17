@@ -1,8 +1,12 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { usePage } from '@inertiajs/vue3';
+import Toast from 'primevue/toast';
+import { useToast } from 'primevue/usetoast';
+import { watch } from 'vue';
 
 const $page = usePage();
+const toast = useToast();
 
 const props = defineProps({
   inscripcion: {
@@ -10,6 +14,25 @@ const props = defineProps({
     required: true,
   }
 });
+
+watch(() => $page.props.flash, (flash) => {
+  if (flash?.success) {
+    toast.add({
+      severity: 'success',
+      summary: 'Inscripción',
+      detail: flash.success,
+      life: 5000,
+    });
+  }
+  if (flash?.error) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Aviso',
+      detail: flash.error,
+      life: 10000,
+    });
+  }
+}, { immediate: true });
 </script>
 
 <template>
@@ -17,6 +40,7 @@ const props = defineProps({
     <template #header>
       <h1 class="font-semibold text-xl text-gray-800 leading-tight">Confirmación de Inscripción</h1>
     </template>
+    <Toast position="top-right" />
 
     <div class="py-12">
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

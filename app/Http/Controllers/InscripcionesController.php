@@ -15,7 +15,15 @@ class InscripcionesController extends Controller
      */
     public function index()
     {
-        $inscripciones = Inscripcion::with(['actividad', 'estado', 'hospedaje', 'comida', 'transporte'])
+        $inscripciones = Inscripcion::with([
+                'actividad',
+                'actividad.imagen',
+                'actividad.entidad',
+                'estado',
+                'hospedaje',
+                'comida',
+                'transporte'
+            ])
             ->where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->get();
@@ -47,7 +55,7 @@ class InscripcionesController extends Controller
     {
         $request->validate([
             'actividad_id' => 'required|exists:actividades,id',
-            'user_id' => 'required|exists:users,id',
+            // user_id lo tomamos del usuario autenticado para mayor seguridad
             'membresia' => 'required|string',
             'precioGeneral' => 'required|numeric',
             'montoapagar' => 'required|numeric',
@@ -62,12 +70,30 @@ class InscripcionesController extends Controller
             'comida_id' => 'nullable|exists:comidas,id',
             'transporte_id' => 'nullable|exists:transportes,id',
         ]);
+        $userId = auth()->id();
+        if (!$userId) {
+            return back()->with('error', 'Debe iniciar sesión para inscribirse.');
+        }
 
-        $inscripcion = Inscripcion::create($request->all());
+        // Evitar inscripciones duplicadas del mismo usuario a la misma actividad
+        $actividadId = $request->input('actividad_id');
+        $yaInscripto = Inscripcion::where('user_id', $userId)
+            ->where('actividad_id', $actividadId)
+            ->exists();
 
-        return Inertia::render('Inscripcion/Show', [
-            'inscripcion' => $inscripcion->load(['actividad', 'user', 'estado', 'hospedaje', 'comida', 'transporte']),
-        ]);
+        if ($yaInscripto) {
+            return back()->with('error', 'Ya está inscripto a esa actividad!');
+        }
+
+        // Crear inscripción usando el usuario autenticado
+        $data = $request->all();
+        $data['user_id'] = $userId;
+
+        $inscripcion = Inscripcion::create($data);
+
+        // Redirigir a la vista de detalle (show) de la Inscripción
+        return redirect()->route('inscripciones.show', ['inscripcion' => $inscripcion->id])
+            ->with('success', 'Inscripción creada correctamente.');
     }
 
     /**
@@ -75,7 +101,37 @@ class InscripcionesController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $inscripcion = Inscripcion::with([
+            'actividad.entidad',
+            'actividad.descripcion',
+            'actividad.imagen',
+            'actividad.modalidad',
+            'actividad.tipoActividad',
+            'user',
+            'estado',
+            'hospedaje',
+            'comida',
+            'transporte',
+        ])->findOrFail($id);
+
+        // Verificar que la inscripción pertenece al usuario autenticado
+        if ($inscripcion->user_id !== auth()->id()) {
+            return back()->with('error', 'No autorizado a ver esta inscripción.');
+        }
+
+        // Formatear fecha de la actividad
+        if (!empty($inscripcion->actividad) && !empty($inscripcion->actividad->fecha_inicio)) {
+            try {
+                $date = \Carbon\Carbon::parse($inscripcion->actividad->fecha_inicio);
+                $inscripcion->actividad->fecha_inicio_formateada = $date->translatedFormat('j \d\e F H:i') . ' hs.';
+            } catch (\Exception $e) {
+                $inscripcion->actividad->fecha_inicio_formateada = $inscripcion->actividad->fecha_inicio;
+            }
+        }
+
+        return Inertia::render('Inscripcion/Show', [
+            'inscripcion' => $inscripcion,
+        ]);
     }
 
     /**
@@ -99,6 +155,15 @@ class InscripcionesController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $inscripcion = Inscripcion::findOrFail($id);
+        
+        // Verificar que la inscripción pertenece al usuario autenticado
+        if ($inscripcion->user_id !== auth()->id()) {
+            return back()->withErrors(['message' => 'No autorizado']);
+        }
+        
+        $inscripcion->delete();
+        
+        return back()->with('success', 'Inscripción eliminada correctamente');
     }
 }

@@ -74,7 +74,7 @@ const logout = () => {
 
         <nav class="bg-white border-b border-gray-100">
             <!-- Primary Navigation Menu -->
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex">
                         <!-- Logo -->
@@ -188,7 +188,7 @@ const logout = () => {
 
                                 <template #content>
                                     <DropdownLink :href="route('inscripciones.index')" :active="route().current('inscripciones.*')">
-                                        Inscripciones
+                                        Mis Inscripciones
                                     </DropdownLink>
                                     <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
                                         Estado de inscripciones

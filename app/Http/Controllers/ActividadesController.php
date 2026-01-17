@@ -159,7 +159,39 @@ class ActividadesController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $actividad = Actividad::with([
+            'tipoActividad',
+            'descripcion',
+            'imagen',
+            'entidad',
+            'disponibilidad',
+            'modalidad',
+            'esquemaPrecio',
+            'esquemaDescuento',
+            'stream',
+            'grabacion',
+            'programa',
+            'metodosPago',
+            'hospedajes',
+            'comidas',
+            'transportes',
+            'maestros',
+            'coordinadores'
+        ])->findOrFail($id);
+
+        // Fecha formateada de inicio si existe
+        if (!empty($actividad->fecha_inicio)) {
+            try {
+                $date = \Carbon\Carbon::parse($actividad->fecha_inicio);
+                $actividad->fecha_inicio_formateada = $date->translatedFormat('j \d\e F H:i') . ' hs.';
+            } catch (\Exception $e) {
+                $actividad->fecha_inicio_formateada = $actividad->fecha_inicio;
+            }
+        }
+
+        return inertia('Actividades/Show', [
+            'actividad' => $actividad->toArray(),
+        ]);
     }
 
     /**
