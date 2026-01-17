@@ -136,28 +136,43 @@
                             Volver
                         </Link>
                     </div>
+
                     <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white border-b border-gray-200">
+
+                            <!-- TITULO/ DESCRIPCION full-width encima del form -->
+                            <div class="mb-6">
+                              <h2 class="text-2xl font-semibold text-indigo-600">
+                                Nueva Actividad
+                              </h2>
+                              <p class="text-sm text-gray-600 mt-1">
+                                Completa los datos para registrar una nueva actividad.
+                              </p>
+                            </div>
+
+                            <!-- Formulario: indicamos que oculte su header interno -->
                             <ActividadForm 
-                            :updating="false"
-                            :tiposActividad="tiposActividad"
-                            :descripciones="descripciones"
-                            :entidades="entidades"
-                            :disponibilidades="disponibilidades"
-                            :modalidades="modalidades"
-                            :esquema_precios="esquema_precios"
-                            :esquema_descuentos="esquema_descuentos"
-                            :streams="streams"
-                            :grabaciones="grabaciones"
-                            :programas="programas"
-                            :metodosPago="metodosPago"
-                            :hospedajes="hospedajes"
-                            :comidas="comidas"
-                            :transportes="transportes"
-                            :coordinadores="coordinadores"
-                            :maestros="maestros"
-                            :form="form" @submit="form.post(route('actividades.store'))"
-                            @refresh-descripciones="reloadDescripciones"
+                              :updating="false"
+                              :tiposActividad="tiposActividad"
+                              :descripciones="descripciones"
+                              :entidades="entidades"
+                              :disponibilidades="disponibilidades"
+                              :modalidades="modalidades"
+                              :esquema_precios="esquema_precios"
+                              :esquema_descuentos="esquema_descuentos"
+                              :streams="streams"
+                              :grabaciones="grabaciones"
+                              :programas="programas"
+                              :metodosPago="metodosPago"
+                              :hospedajes="hospedajes"
+                              :comidas="comidas"
+                              :transportes="transportes"
+                              :coordinadores="coordinadores"
+                              :maestros="maestros"
+                              :form="form"
+                              :hide-header="true"
+                              @submit="form.post(route('actividades.store'))"
+                              @refresh-descripciones="reloadDescripciones"
                             />
                         </div>
                     </div>
@@ -176,5 +191,4 @@
             }"
         />         
     </AppLayout>
-
 </template>

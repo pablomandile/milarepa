@@ -31,10 +31,8 @@
 
 .footer-bg {
   /* Ajusta la ruta del SVG */
-  background-image: url('/resources/images/layered-waves.svg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
+background: #090979;
+background: linear-gradient(90deg, rgba(9, 9, 121, 1) 0%, rgba(145, 123, 219, 1) 35%, rgba(85, 138, 237, 1) 100%);
 }
 
 .about-bg {

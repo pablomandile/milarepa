@@ -81,6 +81,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/perfiles', PerfilesController::class);
     Route::resource('/roles', RolesController::class);
     Route::resource('/membresias', MembresiasController::class);
+    Route::get('/membresias-gestion', [MembresiasController::class, 'gestion'])->name('membresias.gestion');
     Route::resource('/comidas', ComidasController::class);
     Route::resource('/hospedajes', HospedajesController::class);
     Route::resource('/transportes', TransportesController::class);

@@ -99,21 +99,19 @@ onMounted(() => {
 </style>
 
 <template>
-    <div>
-      <div class="flex justify-center mt-20 mb-4">
+    <div class="flex-grow flex flex-col justify-between min-h-[calc(100vh-4rem)]">
+      <div class="flex flex-col items-center mt-10">
           <h1 class="font-semibold text-xl text-gray-800 leading-tight">
             SISTEMA DE INSCRIPCIONES
           </h1>
-      </div>
-      <div class="flex justify-center mt-4 mb-4">
+   
+      
           <h1 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ $page.props.entidad_principal?.nombre }}
 
           </h1>
       </div>
-      <div class="flex justify-center mt-4 mb-4">
-        <h1>Powered by MILAREPA</h1>
-      </div>
+
 
         <!-- Contenedor del logo y las ondas -->
         <div class="relative flex justify-center items-center mb-20 h-80 w-auto">

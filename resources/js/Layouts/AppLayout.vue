@@ -112,7 +112,7 @@ const logout = () => {
                                     <DropdownLink :href="route('entidades.index')" :active="route().current('entidades.*')">
                                         Entidades
                                     </DropdownLink>
-                                    <DropdownLink :href="route('membresias.index')" :active="route().current('membresias.*')">
+                                    <DropdownLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
                                         Membresías
                                     </DropdownLink>
                                     <DropdownLink :href="route('comidas.index')" :active="route().current('comidas.*')">
@@ -146,10 +146,10 @@ const logout = () => {
 
                                 <template #content>
                                     <DropdownLink :href="route('actividades.index')" :active="route().current('actividades.*')">
-                                        Actividades
+                                        Todas las Actividades 
                                     </DropdownLink>
                                     <DropdownLink :href="route('grid-actividades.index')" :active="route().current('gridactividades.*')">
-                                        Actividades
+                                        Actividades del mes
                                     </DropdownLink>
                                     <DropdownLink :href="route('tiposactividad.index')" :active="route().current('tipoactividad.*')">
                                         Tipos de Actividad
@@ -188,9 +188,6 @@ const logout = () => {
 
                                 <template #content>
                                     <DropdownLink :href="route('inscripciones.index')" :active="route().current('inscripciones.*')">
-                                        Inscribirme a una membresia
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('inscripciones.index')" :active="route().current('inscripciones.*')">
                                         Inscripciones
                                     </DropdownLink>
                                     <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
@@ -199,6 +196,30 @@ const logout = () => {
                                     <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
                                         Histórico
                                     </DropdownLink>
+                                </template>
+                            </Dropdown>
+                        </div>
+                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                            <Dropdown>
+                                <template #trigger>
+                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                        Membresías
+                                        <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                    </template>
+
+                                <template #content>
+                                    <DropdownLink :href="route('membresias.index')" :active="route().current('membresias.*')">
+                                        Membresías Disponibles
+                                    </DropdownLink>
+                                    <!-- <DropdownLink :href="route('registromembresias.index')" :active="route().current('registromembresias.*')">
+                                        Mi Membresía
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('estado-cuenta-membresias.index')" :active="route().current('estado-cuenta-membresias.*')">
+                                        Estado de Cuenta
+                                    </DropdownLink> -->
                                 </template>
                             </Dropdown>
                         </div>
@@ -539,7 +560,7 @@ const logout = () => {
 
         <!-- Page Heading -->
         <header v-if="$slots.header" class="bg-white shadow">
-            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="w-full py-4 px-4 sm:px-6 lg:px-8">
                 <slot name="header" />
             </div>
         </header>

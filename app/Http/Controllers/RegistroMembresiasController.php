@@ -23,9 +23,16 @@ class RegistroMembresiasController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        return inertia('RegistroMembresias/Create');
+        $membresia = null;
+        if ($request->has('membresia_id')) {
+            $membresia = Membresia::find($request->membresia_id);
+        }
+
+        return inertia('RegistroMembresias/Create', [
+            'membresiaSeleccionada' => $membresia
+        ]);
     }
 
     /**

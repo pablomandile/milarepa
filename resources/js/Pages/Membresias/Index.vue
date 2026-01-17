@@ -1,91 +1,192 @@
-<script>
-    export default {
-        name: 'MembresiasIndex'
-    }
-</script>
-
 <script setup>
-    import AppLayout from '@/Layouts/AppLayout.vue';
-    import { Link, router } from '@inertiajs/vue3';
-    import Swal from "sweetalert2";
-    import DataTable from 'primevue/datatable';
-    import Column from 'primevue/column';
-    
-    defineProps({
-        membresias: {
-            type: Object,
-            required: true
-        }
-    });
+import AppLayout from '@/Layouts/AppLayout.vue';
+import { Link } from '@inertiajs/vue3';
+import DataView from 'primevue/dataview';
+import { ref } from 'vue';
 
-    const deleteMembresia = (id) => {
-    Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Esta acción no se puede deshacer.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Sí, eliminar",
-        cancelButtonText: "Cancelar",
-    }).then((result) => {
-        if (result.isConfirmed) {
-        router.delete(route('membresias.destroy', id), {
-                onSuccess: () => {
-                Swal.fire("¡Eliminado!", "La Membresía ha sido eliminada.", "success");
-                },
-                onError: () => {
-                Swal.fire("Error", "Hubo un problema al eliminar la Membresía.", "error");
-                },
-            });
-            }
-        });
-    };
-    
+const props = defineProps({
+    membresias: {
+        type: Object,
+        required: true
+    }
+});
+
+const layout = ref('grid');
 </script>
 
 <template>
     <AppLayout>
-        <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Membresias</h1>
-        </template>
         <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-5xl mx-auto">
-                    <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create membresias')">
-                        <Link :href="route('membresias.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
-                            NUEVA MEMBRESÍA
-                        </Link>
-                    </div>
-                    <div class="mt-4">
-                        <DataTable :value="membresias.data" stripedRows paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
-                            <Column field="nombre" header="Nombre"></Column>
-                            <Column field="descripcion" header="Descripción"></Column>
-                            <Column field="entidad" header="Entidad">
-                                <template #body="slotProps">
-                                    {{ slotProps.data.entidad ? slotProps.data.entidad.nombre : '—' }}
-                                </template>
-                            </Column>
-                            <Column header="Acciones">
-                                <template #body="slotProps">
-                                    <div class="flex space-x-2">
-                                        <Link
-                                            :href="route('membresias.edit', parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('update membresias')"
-                                            v-tooltip="'Editar membresía'">
-                                            <i class="pi pi-pencil text-indigo-400 mr-6"></i>
-                                        </Link>
-                                        <a
-                                            @click.prevent="deleteMembresia(parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('delete membresias')"
-                                            v-tooltip="'Borrar membresía'">
-                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
-                                        </a>
+            <div class="px-4 sm:px-6 lg:px-8">
+                <div class="bg-white border-round shadow-1">
+                    <div class="p-6 border-bottom-1 border-200">
+                        <div class="flex justify-content-between align-items-center mb-4">
+                            <h2 class="text-2xl font-bold text-900 m-0">Membresías Disponibles</h2>
+                            <div class="flex gap-2">
+                                <button
+                                    @click="layout = 'grid'"
+                                    :class="['p-button p-button-text p-button-rounded', layout === 'grid' ? 'p-button-primary' : 'p-button-secondary']"
+                                >
+                                    <i class="pi pi-th-large"></i>
+                                </button>
+                                <button
+                                    @click="layout = 'list'"
+                                    :class="['p-button p-button-text p-button-rounded', layout === 'list' ? 'p-button-primary' : 'p-button-secondary']"
+                                >
+                                    <i class="pi pi-list"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <DataView
+                                :value="membresias.data"
+                                :layout="layout"
+                                paginator
+                                :rows="9"
+                                :rowsPerPageOptions="[3, 6, 9]"
+                                class="mb-6"
+                            >
+                                <template #grid="slotProps">
+                                    <div class="grid grid-nogutter">
+                                        <div
+                                            v-for="(membresia, index) in slotProps.items"
+                                            :key="membresia.id"
+                                            class="col-12 md:col-6 xl:col-4 p-2"
+                                        >
+                                            <div class="p-card bg-white border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300">
+                                                <div class="p-card-body p-4">
+                                                    <div class="flex flex-col h-full">
+                                                        <div class="flex align-items-center mb-3">
+                                                            <div class="bg-primary-100 border-circle w-3rem h-3rem flex align-items-center justify-content-center mr-3">
+                                                                <i class="pi pi-heart text-primary text-xl"></i>
+                                                            </div>
+                                                            <div class="flex-1">
+                                                                <h3 class="p-card-title text-lg font-bold text-900 m-0">
+                                                                    {{ membresia.nombre }}
+                                                                </h3>
+                                                            </div>
+                                                        </div>
+                                                        <p class="p-card-subtitle text-sm text-600 mb-3 flex-1">
+                                                            {{ membresia.descripcion || 'Sin descripción disponible' }}
+                                                        </p>
+                                                        <div class="flex align-items-center mb-4">
+                                                            <i class="pi pi-building text-400 mr-2"></i>
+                                                            <span class="text-sm text-500">
+                                                                <strong>{{ membresia.entidad?.nombre || 'No especificada' }}</strong>
+                                                            </span>
+                                                        </div>
+                                                        <div class="mt-auto">
+                                                            <Link
+                                                                :href="route('registromembresias.create', { membresia_id: membresia.id })"
+                                                                class="p-button p-button-primary p-button-rounded w-full text-center no-underline text-white"
+                                                            >
+                                                                <i class="pi pi-plus-circle mr-2"></i>
+                                                                Inscribirme
+                                                            </Link>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </template>
-                            </Column>
-                        </DataTable>
+
+                                <template #list="slotProps">
+                                    <div class="grid grid-cols-1 gap-4">
+                                        <div
+                                            v-for="(membresia, index) in slotProps.items"
+                                            :key="membresia.id"
+                                            class="col-12 p-card bg-white border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300"
+                                        >
+                                            <div class="p-card-body p-4">
+                                                <div class="flex flex-col md:flex-row md:align-items-center md:justify-between">
+                                                    <div class="flex-1">
+                                                        <div class="flex align-items-center mb-3">
+                                                            <div class="bg-primary-100 border-circle w-3rem h-3rem flex align-items-center justify-content-center mr-3">
+                                                                <i class="pi pi-heart text-primary text-xl"></i>
+                                                            </div>
+                                                            <div>
+                                                                <h3 class="p-card-title text-lg font-bold text-900 m-0">
+                                                                    {{ membresia.nombre }}
+                                                                </h3>
+                                                                <div class="flex align-items-center mt-1">
+                                                                    <i class="pi pi-building text-400 mr-2"></i>
+                                                                    <span class="text-sm text-500">
+                                                                        {{ membresia.entidad?.nombre || 'No especificada' }}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <p class="p-card-subtitle text-sm text-600">
+                                                            {{ membresia.descripcion || 'Sin descripción disponible' }}
+                                                        </p>
+                                                    </div>
+                                                    <div class="mt-4 md:mt-0 md:ml-4">
+                                                        <Link
+                                                            :href="route('registromembresias.create', { membresia_id: membresia.id })"
+                                                            class="p-button p-button-primary p-button-rounded no-underline text-white"
+                                                        >
+                                                            <i class="pi pi-plus-circle mr-2"></i>
+                                                            Inscribirme
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template #empty>
+                                    <div class="text-center py-8 px-4">
+                                        <div class="bg-gray-50 border-round p-6 border-1 border-dashed border-300">
+                                            <i class="pi pi-info-circle text-4xl text-400 mb-4 block"></i>
+                                            <h3 class="text-xl font-medium text-700 mb-2">No hay membresías disponibles</h3>
+                                            <p class="text-600 m-0">En este momento no tenemos membresías activas.</p>
+                                        </div>
+                                    </div>
+                                </template>
+                            </DataView>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+.p-card {
+    transition: all 0.3s ease;
+}
+
+.p-card:hover {
+    transform: translateY(-2px);
+}
+
+.p-card-body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.p-card-title {
+    color: #374151;
+    font-weight: 700;
+}
+
+.p-card-subtitle {
+    color: #6b7280;
+    margin-bottom: 1rem;
+}
+
+.p-button {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.p-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+</style>

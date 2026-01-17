@@ -16,7 +16,20 @@ class MembresiasController extends Controller
      */
     public function index()
     {
-        $membresias = Membresia::with('entidad')->paginate(10);
+        // Obtener la entidad principal
+        $entidadPrincipal = Entidad::where('entidad_principal', true)->first();
+
+        if ($entidadPrincipal) {
+            $membresias = Membresia::with('entidad')
+                ->where('entidad_id', $entidadPrincipal->id)
+                ->where('nombre', '!=', 'Sin membresía')
+                ->paginate(10);
+        } else {
+            // Si no hay entidad principal, mostrar todas las membresías excepto "Sin membresía"
+            $membresias = Membresia::with('entidad')
+                ->where('nombre', '!=', 'Sin membresía')
+                ->paginate(10);
+        }
 
         return inertia('Membresias/Index', ['membresias' => $membresias]);
     }
@@ -87,5 +100,15 @@ class MembresiasController extends Controller
         } catch (\Exception $e) {
             return redirect()->route('membresias.index')->with('error', 'Error al eliminar la Membresía: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Display a listing of the resource for admin management.
+     */
+    public function gestion()
+    {
+        $membresias = Membresia::with('entidad')->paginate(10);
+
+        return inertia('Membresias/Gestion', ['membresias' => $membresias]);
     }
 }

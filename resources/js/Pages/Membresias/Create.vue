@@ -35,7 +35,7 @@
                     <!-- Botón de Volver -->
                     <div class="flex justify-end mr-5 mb-6 mt-3">
                         <Link 
-                            :href="route('membresias.index')" 
+                            :href="route('membresias.gestion')" 
                             class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
                             Volver
                         </Link>

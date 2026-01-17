@@ -106,7 +106,12 @@ const props = defineProps({
   coordinadores: {
     type: Array,
     default: () => [],
-  }
+  },
+  // Nuevo prop para ocultar el header interno cuando se renderiza desde una vista que ya muestra el título
+  hideHeader: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 
@@ -142,613 +147,620 @@ const detalleSeleccionado = ref(null);
 
 <template>
   <Toast position="top-right" />
-  <FormSection @submitted="() => emit('submit')">
-    <!-- Título del form -->
-    <template #title>
-      {{ updating ? 'Actualizar Actividad' : 'Nueva Actividad' }}
-    </template>
-
-    <template #description>
-      {{ updating
-         ? 'Edita la información de la actividad seleccionada.'
-         : 'Completa los datos para registrar una nueva actividad.' }}
-    </template>
+  <!-- pasar no-aside basado en hideHeader -->
+  <FormSection :no-aside="hideHeader" @submitted="() => emit('submit')">
+    <template #title></template>
+    <template #description></template>
 
     <!-- Formulario principal -->
     <template #form>
-      <!-- Tipo de Actividad (Dropdown) -->
-      <div class="w-1/2 col-span-6 sm:col-span-6">
-        <InputLabel
-          for="tipo_actividad_id"
-          :required="true"
-          class="text-indigo-400"
-          value="Tipo de actividad"
-        />
-        <Dropdown
-          id="tipo_actividad_id"
-          v-model="form.tipo_actividad_id"
-          :options="tiposActividad"
-          optionLabel="nombre"      
-          optionValue="id"
-          placeholder="Seleccione tipo"
-          class="w-full mt-1 border border-gray-300"
-        />
-        <InputError :message="$page.props.errors.tipo_actividad_id" class="mt-2" />
-      </div>
-
-      <!-- Nombre -->
-      <div class="w-full col-span-6 sm:col-span-6">
-        <InputLabel
-          for="nombre"
-          class="text-indigo-400"
-          value="Nombre"
-          :required="true"
-        />
-        <TextInput
-          id="nombre"
-          v-model="form.nombre"
-          type="text"
-          autocomplete="off"
-          class="mt-1 block w-full"
-        />
-        <InputError :message="$page.props.errors.nombre" class="mt-2" />
-      </div>
-
-      <!-- Descripción -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="descripcion_id"
-          class="text-indigo-400"
-          value="Descripción"
-          :required="false"
-        />
-         <!-- Contenedor para el Dropdown y el Botón + -->
-        <div class="flex gap-2 items-center mt-1">
-          <!-- Dropdown -->
-          <Dropdown
-            id="descripcion_id"
-            v-model="form.descripcion_id"
-            :options="descripciones"
-            optionLabel="nombre"
-            optionValue="id"
-            placeholder="Seleccione Descripción"
-            class="grow border border-gray-300 my-dropdown"
-          />
-
-          <!-- Botón ver -->
-          <button
-            type="button"
-            @click="verDetalle('descripciones', form.descripcion_id, 'Descripción')"
-            :disabled="!form.descripcion_id"
-            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
-            v-tooltip="'Ver la Descripción'"
-          >
-            <i class="pi pi-eye"></i>
-          </button>
-
-          <!-- Botón nuevo (Redirecciona al create de Descripciones) -->
-          <Link
-            :href="route('descripciones.create')"
-            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
-            v-tooltip="'Crear nueva descripción'"
-          >
-            <i class="pi pi-file-plus"></i>
-          </Link>
-
-          <button type="button" class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white" @click="onClickRefresh" v-tooltip="'Refrescar'">
-            <i class="pi pi-refresh "></i>
-          </button>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Header que ocupa las 3 columnas (se muestra solo si hideHeader === false) -->
+        <div v-if="!hideHeader" class="md:col-span-3">
+          <h2 class="text-2xl font-semibold text-indigo-600">
+            {{ updating ? 'Actualizar Actividad' : 'Nueva Actividad' }}
+          </h2>
+          <p class="text-sm text-gray-600 mt-1">
+            {{ updating
+               ? 'Edita la información de la actividad seleccionada.'
+               : 'Completa los datos para registrar una nueva actividad.' }}
+          </p>
         </div>
-        <InputError :message="$page.props.errors.descripcion_id" class="mt-2" />
-      </div>
 
-      <!-- Observaciones -->
-      <div class="w-full col-span-6 sm:col-span-6">
-        <InputLabel
-          for="observaciones"
-          class="text-indigo-400"
-          value="Observaciones"
-          :required="false"
-        />
-        <Textarea
-          id="observaciones"
-          v-model="form.observaciones"
-          type="text"
-          autocomplete="off"
-          class="mt-1 block w-full border border-gray-300 rounded"
-        />
-        <InputError :message="$page.props.errors.observaciones" class="mt-2" />
-      </div>
+        <!-- Tipo de Actividad (Dropdown) -->
+        <div class="w-1/2 col-span-6 sm:col-span-6">
+          <InputLabel
+            for="tipo_actividad_id"
+            :required="true"
+            class="text-indigo-400"
+            value="Tipo de actividad"
+          />
+          <Dropdown
+            id="tipo_actividad_id"
+            v-model="form.tipo_actividad_id"
+            :options="tiposActividad"
+            optionLabel="nombre"      
+            optionValue="id"
+            placeholder="Seleccione tipo"
+            class="w-full mt-1 border border-gray-300"
+          />
+          <InputError :message="$page.props.errors.tipo_actividad_id" class="mt-2" />
+        </div>
 
-      <!-- Imagen (URL o File) -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="imagen"
-          class="text-indigo-400 mb-2"
-          value="Imagen"
-          :required="false"
-        />
+        <!-- Nombre -->
+        <div class="w-full col-span-6 sm:col-span-6">
+          <InputLabel
+            for="nombre"
+            class="text-indigo-400"
+            value="Nombre"
+            :required="true"
+          />
+          <TextInput
+            id="nombre"
+            v-model="form.nombre"
+            type="text"
+            autocomplete="off"
+            class="mt-1 block w-full"
+          />
+          <InputError :message="$page.props.errors.nombre" class="mt-2" />
+        </div>
 
-        <div class="flex items-center gap-4">
-          <!-- Componente personalizado para subir imágen -->
-          <div class="flex justify-between mb-6" v-if="$page.props.user.permissions.includes('create entidades')">
-            <SingleImageUploader 
-              v-model:imagenId="form.imagen_id"
+        <!-- Descripción -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="descripcion_id"
+            class="text-indigo-400"
+            value="Descripción"
+            :required="false"
+          />
+           <!-- Contenedor para el Dropdown y el Botón + -->
+          <div class="flex gap-2 items-center mt-1">
+            <!-- Dropdown -->
+            <Dropdown
+              id="descripcion_id"
+              v-model="form.descripcion_id"
+              :options="descripciones"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Seleccione Descripción"
+              class="grow border border-gray-300 my-dropdown"
             />
+
+            <!-- Botón ver -->
+            <button
+              type="button"
+              @click="verDetalle('descripciones', form.descripcion_id, 'Descripción')"
+              :disabled="!form.descripcion_id"
+              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+              v-tooltip="'Ver la Descripción'"
+            >
+              <i class="pi pi-eye"></i>
+            </button>
+
+            <!-- Botón nuevo (Redirecciona al create de Descripciones) -->
+            <Link
+              :href="route('descripciones.create')"
+              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+              v-tooltip="'Crear nueva descripción'"
+            >
+              <i class="pi pi-file-plus"></i>
+            </Link>
+
+            <button type="button" class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white" @click="onClickRefresh" v-tooltip="'Refrescar'">
+              <i class="pi pi-refresh "></i>
+            </button>
           </div>
-        <InputError :message="$page.props.errors.imagen" class="mt-2" />
+          <InputError :message="$page.props.errors.descripcion_id" class="mt-2" />
         </div>
-      </div>
 
-     <!-- Maestros (MultiSelect) -->
-     <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="maestros"
-          class="text-indigo-400"
-          value="Maestro/s"
-        />
-        <MultiSelect
-          id="maestros"
-          v-model="form.maestros_ids"
-          :options="maestros"
-          optionLabel="nombre"
-          optionValue="id"
-          class="w-full mt-1 border border-gray-300"
-          placeholder="Seleccione maestro/s"
-        />
-        <InputError :message="$page.props.errors.maestros_ids" class="mt-2" />
-      </div>
+        <!-- Observaciones -->
+        <div class="w-full col-span-6 sm:col-span-6">
+          <InputLabel
+            for="observaciones"
+            class="text-indigo-400"
+            value="Observaciones"
+            :required="false"
+          />
+          <Textarea
+            id="observaciones"
+            v-model="form.observaciones"
+            type="text"
+            autocomplete="off"
+            class="mt-1 block w-full border border-gray-300 rounded"
+          />
+          <InputError :message="$page.props.errors.observaciones" class="mt-2" />
+        </div>
 
-      <!-- Coordinadores (MultiSelect) -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="coordinadores"
-          class="text-indigo-400"
-          value="Coordinador/es"
-        />
-        <MultiSelect
-          id="coordinadores"
-          v-model="form.coordinadores_ids"
-          :options="coordinadores"
-          optionLabel="nombre"
-          optionValue="id"
-          class="w-full mt-1 border border-gray-300"
-          placeholder="Seleccione coordinador/es"
-        />
-        <InputError :message="$page.props.errors.coordinadores_ids" class="mt-2" />
-      </div>
+        <!-- Imagen (URL o File) -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="imagen"
+            class="text-indigo-400 mb-2"
+            value="Imagen"
+            :required="false"
+          />
 
-      <!-- Fecha Inicio -->
-      <div class="col-span-6 sm:col-span-3 w-8">
-        <InputLabel
-          for="fecha_inicio"
-          class="text-indigo-400"
-          value="Fecha Inicio"
-          :required="true"
-        />
-        <Calendar
-          id="fecha_inicio"
-          v-model="form.fecha_inicio"
-          dateFormat="dd/mm/yy"
-          :showIcon="true"
-          showTime 
-          hourFormat="24"
-          class="w-full mt-1"
-          icon="pi pi-calendar text-indigo-500 text-xl"
-          inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300" 
-        />
-        <InputError :message="$page.props.errors.fecha_inicio" class="mt-2" />
-      </div>
+          <div class="flex items-center gap-4">
+            <!-- Componente personalizado para subir imágen -->
+            <div class="flex justify-between mb-6" v-if="$page.props.user.permissions.includes('create entidades')">
+              <SingleImageUploader 
+                v-model:imagenId="form.imagen_id"
+              />
+            </div>
+          <InputError :message="$page.props.errors.imagen" class="mt-2" />
+          </div>
+        </div>
 
-      <!-- Fecha Fin -->
-      <div class="col-span-6 sm:col-span-3 w-8">
-        <InputLabel
-          for="fecha_fin"
-          class="text-indigo-400"
-          value="Fecha Fin"
-          :required="true"
-        />
-        <Calendar
-          id="fecha_fin"
-          v-model="form.fecha_fin"
-          dateFormat="dd/mm/yy"
-          showTime  
-          :showIcon="true"
-          hourFormat="24"
-          class="w-full mt-1"
-          icon="pi pi-calendar text-indigo-500 text-xl"
-          inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
-        />
-        <InputError :message="$page.props.errors.fecha_fin" class="mt-2" />
-      </div>
-
-      <!-- Fecha para descuentos -->
-      <div class="col-span-6 sm:col-span-3 w-8">
-        <InputLabel
-          for="pagoAmticipado"
-          class="text-indigo-400"
-          value="Fecha pago anticipado"
-          inputClass="text-indigo-500"
-        />
-        <Calendar
-          id="pagoAmticipado"
-          v-model="form.pagoAmticipado"
-          dateFormat="dd/mm/yy"
-          showTime  
-          hourFormat="24"
-          class="w-full mt-1"
-          :showIcon="true"
-          icon="pi pi-calendar text-indigo-500 text-xl"
-          inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
-        />
-        <InputError :message="$page.props.errors.pagoAmticipado" class="mt-2" />
-      </div>
-
-      <!-- Entidad (Dropdown) -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="entidad_id"
-          class="text-indigo-400"
-          value="Entidad"
-          :required="true"
-        />
-        <div class="flex gap-2 items-center mt-1">
-          <Dropdown
-            id="entidad_id"
-            v-model="form.entidad_id"
-            :options="entidades"
+       <!-- Maestros (MultiSelect) -->
+       <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="maestros"
+            class="text-indigo-400"
+            value="Maestro/s"
+          />
+          <MultiSelect
+            id="maestros"
+            v-model="form.maestros_ids"
+            :options="maestros"
             optionLabel="nombre"
             optionValue="id"
-            placeholder="Seleccione Entidad"
+            class="w-full mt-1 border border-gray-300"
+            placeholder="Seleccione maestro/s"
+          />
+          <InputError :message="$page.props.errors.maestros_ids" class="mt-2" />
+        </div>
+
+        <!-- Coordinadores (MultiSelect) -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="coordinadores"
+            class="text-indigo-400"
+            value="Coordinador/es"
+          />
+          <MultiSelect
+            id="coordinadores"
+            v-model="form.coordinadores_ids"
+            :options="coordinadores"
+            optionLabel="nombre"
+            optionValue="id"
+            class="w-full mt-1 border border-gray-300"
+            placeholder="Seleccione coordinador/es"
+          />
+          <InputError :message="$page.props.errors.coordinadores_ids" class="mt-2" />
+        </div>
+
+        <!-- Fecha Inicio -->
+        <div class="col-span-6 sm:col-span-3 w-8">
+          <InputLabel
+            for="fecha_inicio"
+            class="text-indigo-400"
+            value="Fecha Inicio"
+            :required="true"
+          />
+          <Calendar
+            id="fecha_inicio"
+            v-model="form.fecha_inicio"
+            dateFormat="dd/mm/yy"
+            :showIcon="true"
+            showTime 
+            hourFormat="24"
+            class="w-full mt-1"
+            icon="pi pi-calendar text-indigo-500 text-xl"
+            inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300" 
+          />
+          <InputError :message="$page.props.errors.fecha_inicio" class="mt-2" />
+        </div>
+
+        <!-- Fecha Fin -->
+        <div class="col-span-6 sm:col-span-3 w-8">
+          <InputLabel
+            for="fecha_fin"
+            class="text-indigo-400"
+            value="Fecha Fin"
+            :required="true"
+          />
+          <Calendar
+            id="fecha_fin"
+            v-model="form.fecha_fin"
+            dateFormat="dd/mm/yy"
+            showTime  
+            :showIcon="true"
+            hourFormat="24"
+            class="w-full mt-1"
+            icon="pi pi-calendar text-indigo-500 text-xl"
+            inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
+          />
+          <InputError :message="$page.props.errors.fecha_fin" class="mt-2" />
+        </div>
+
+        <!-- Fecha para descuentos -->
+        <div class="col-span-6 sm:col-span-3 w-8">
+          <InputLabel
+            for="pagoAmticipado"
+            class="text-indigo-400"
+            value="Fecha pago anticipado"
+            inputClass="text-indigo-500"
+          />
+          <Calendar
+            id="pagoAmticipado"
+            v-model="form.pagoAmticipado"
+            dateFormat="dd/mm/yy"
+            showTime  
+            hourFormat="24"
+            class="w-full mt-1"
+            :showIcon="true"
+            icon="pi pi-calendar text-indigo-500 text-xl"
+            inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
+          />
+          <InputError :message="$page.props.errors.pagoAmticipado" class="mt-2" />
+        </div>
+
+        <!-- Entidad (Dropdown) -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="entidad_id"
+            class="text-indigo-400"
+            value="Entidad"
+            :required="true"
+          />
+          <div class="flex gap-2 items-center mt-1">
+            <Dropdown
+              id="entidad_id"
+              v-model="form.entidad_id"
+              :options="entidades"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Seleccione Entidad"
+              class="w-full mt-1 border border-gray-300"
+            />
+            <!-- Botón ver -->
+            <button
+              type="button"
+              @click="verDetalle('entidades', form.entidad_id, 'Entidad')"
+              :disabled="!form.entidad_id"
+              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+              v-tooltip="'Ver la Entidad'"
+            >
+              <i class="pi pi-eye"></i>
+            </button>
+
+            <!-- Botón nuevo (Redirecciona al create) -->
+            <Link
+              :href="route('entidades.create')"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              v-tooltip="'Crear nueva Entidad'"
+            >
+              <i class="pi pi-file-plus"></i>
+            </Link>
+          </div>
+          <InputError :message="$page.props.errors.entidad_id" class="mt-2" />
+        </div>
+
+        <!-- Modalidad (Dropdown) -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="modalidad_id"
+            class="text-indigo-400"
+            value="Modalidad"
+          />
+          <Dropdown
+            id="modalidad_id"
+            v-model="form.modalidad_id"
+            :options="modalidades"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Seleccione la modalidad"
             class="w-full mt-1 border border-gray-300"
           />
-          <!-- Botón ver -->
-          <button
-            type="button"
-            @click="verDetalle('entidades', form.entidad_id, 'Entidad')"
-            :disabled="!form.entidad_id"
-            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
-            v-tooltip="'Ver la Entidad'"
-          >
-            <i class="pi pi-eye"></i>
-          </button>
+          <InputError :message="$page.props.errors.modalidad_id" class="mt-2" />
+        </div>
 
-          <!-- Botón nuevo (Redirecciona al create) -->
-          <Link
-            :href="route('entidades.create')"
-            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
-            v-tooltip="'Crear nueva Entidad'"
-          >
+        <!-- Disponibilidad (MultiSelect o Dropdown) -->
+        <div v-if="form.modalidad_id !== 1" class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="disponibilidad_id"
+            class="text-indigo-400"
+            value="Disponibilidad"
+          />
+          <Dropdown
+            id="disponibilidad_id"
+            v-model="form.disponibilidad_id"
+            :options="disponibilidades"
+            optionLabel="descripcion"
+            optionValue="id"
+            placeholder="Seleccione la Disponibilidad"
+            class="w-full mt-1 border border-gray-300"
+          />
+          <InputError :message="$page.props.errors.disponibilidad_id" class="mt-2" />
+        </div>
+
+        <!-- Esquema de Precios (Dropdown) -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="esquema_precio_id"
+            class="text-indigo-400"
+            value="Esquema Precios"
+          />
+          <div class="flex gap-2 items-center mt-1">
+            <Dropdown
+              id="esquema_precio_id"
+              v-model="form.esquema_precio_id"
+              :options="esquema_precios"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Seleccione un esquema"
+              class="w-full mt-1 border border-gray-300"
+            />
+            <!-- Botón ver -->
+            <button
+              type="button"
+              @click="verDetalle('esquema_precios', form.esquema_precio_id, 'Esquema de Precios')"
+              :disabled="!form.esquema_precio_id"
+              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+              v-tooltip="'Ver el Esquema'"
+            >
+              <i class="pi pi-eye"></i>
+            </button>
+
+            <!-- Botón nuevo (Redirecciona al create) -->
+            <Link
+              :href="route('esquemaprecios.create')"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              v-tooltip="'Crear nuevo Esquema'"
+            >
+              <i class="pi pi-file-plus"></i>
+            </Link>
+          </div>
+          <InputError :message="$page.props.errors.esquema_precio_id" class="mt-2" />
+        </div>
+
+        <!-- Esquema de Descuentos (Dropdown) -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="esquema_descuento_id"
+            class="text-indigo-400"
+            value="Esquema Descuentos"
+          />
+          <div class="flex gap-2 items-center mt-1">
+            <Dropdown
+              id="esquema_descuento_id"
+              v-model="form.esquema_descuento_id"
+              :options="esquema_descuentos"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Seleccione el esquema de desc."
+              class="w-full mt-1 border border-gray-300"
+            />
+            <!-- Botón ver -->
+            <button
+              type="button"
+              @click="verDetalle('esquema_descuentos', form.esquema_descuento_id, 'Esquema de Descuentos')"
+              :disabled="!form.esquema_descuento_id"
+              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+              v-tooltip="'Ver el Esquema'"
+            >
+              <i class="pi pi-eye"></i>
+            </button>
+            <!-- Botón nuevo (Redirecciona al create) -->
+            <Link
+              :href="route('esquemadescuentos.create')"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              v-tooltip="'Crear nuevo Esquema'"
+            >
             <i class="pi pi-file-plus"></i>
-          </Link>
+            </Link>
+          </div>
         </div>
-        <InputError :message="$page.props.errors.entidad_id" class="mt-2" />
-      </div>
 
-      <!-- Modalidad (Dropdown) -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="modalidad_id"
-          class="text-indigo-400"
-          value="Modalidad"
-        />
-        <Dropdown
-          id="modalidad_id"
-          v-model="form.modalidad_id"
-          :options="modalidades"
-          optionLabel="nombre"
-          optionValue="id"
-          placeholder="Seleccione la modalidad"
-          class="w-full mt-1 border border-gray-300"
-        />
-        <InputError :message="$page.props.errors.modalidad_id" class="mt-2" />
-      </div>
+        <!-- Web actividad -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="web_actividad"
+            class="text-indigo-400"
+            value="Web actividad"
+          />
+          <TextInput
+            id="web_actividad"
+            v-model="form.web_actividad"
+            type="text"
+            class="mt-1 block w-full"
+          />
+          <InputError :message="$page.props.errors.web_actividad" class="mt-2" />
+        </div>
 
-      <!-- Disponibilidad (MultiSelect o Dropdown) -->
-      <div v-if="form.modalidad_id !== 1" class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="disponibilidad_id"
-          class="text-indigo-400"
-          value="Disponibilidad"
-        />
-        <Dropdown
-          id="disponibilidad_id"
-          v-model="form.disponibilidad_id"
-          :options="disponibilidades"
-          optionLabel="descripcion"
-          optionValue="id"
-          placeholder="Seleccione la Disponibilidad"
-          class="w-full mt-1 border border-gray-300"
-        />
-        <InputError :message="$page.props.errors.disponibilidad_id" class="mt-2" />
-      </div>
+         <!-- Grabación (Dropdown) -->
+         <div class="col-span-6 sm:col-span-6 mt-4">
+          <InputLabel
+            for="grabacion_id"
+            class="text-indigo-400"
+            value="Grabaciones"
+          />
+          <div class="flex gap-2 items-center mt-1">
+            <Dropdown
+              id="grabacion_id"
+              v-model="form.grabacion_id"
+              :options="grabaciones"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Seleccione Geabación"
+              class="w-full mt-1 border border-gray-300"
+            />
+            <!-- Botón ver -->
+            <button
+              type="button"
+              @click="verDetalle('grabaciones', form.grabacion_id, 'Grabación')"
+              :disabled="!form.grabacion_id"
+              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+              v-tooltip="'Ver la Grabación'"
+            >
+              <i class="pi pi-eye"></i>
+            </button>
 
-      <!-- Esquema de Precios (Dropdown) -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="esquema_precio_id"
-          class="text-indigo-400"
-          value="Esquema Precios"
-        />
-        <div class="flex gap-2 items-center mt-1">
-          <Dropdown
-            id="esquema_precio_id"
-            v-model="form.esquema_precio_id"
-            :options="esquema_precios"
+            <!-- Botón nuevo (Redirecciona al create) -->
+            <Link
+              :href="route('grabaciones.create')"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              v-tooltip="'Crear nueva Grabación'"
+            >
+              <i class="pi pi-file-plus"></i>
+            </Link>
+          </div>
+          <InputError :message="$page.props.errors.grabacion_id" class="mt-2" />
+        </div>
+
+        <!-- Stream (Dropdown) -->
+        <div v-if="form.modalidad_id !== 1" class="col-span-6 sm:col-span-6 mt-4">
+          <InputLabel
+            for="stream_id"
+            class="text-indigo-400"
+            value="Stream"
+          />
+          <div class="flex gap-2 items-center mt-1">
+            <Dropdown
+              id="stream_id"
+              v-model="form.stream_id"
+              :options="streams"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Seleccione Stream"
+              class="w-full mt-1 border border-gray-300"
+            />
+            <!-- Botón ver -->
+            <button
+              type="button"
+              @click="verDetalle('streams', form.stream_id, 'Stream')"
+              :disabled="!form.stream_id"
+              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+              v-tooltip="'Ver el Stream'"
+            >
+              <i class="pi pi-eye"></i>
+            </button>
+
+            <!-- Botón nuevo (Redirecciona al create) -->
+            <Link
+              :href="route('streams.create')"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              v-tooltip="'Crear nuevo Stream'"
+            >
+              <i class="pi pi-file-plus"></i>
+            </Link>
+          </div>
+          <InputError :message="$page.props.errors.stream_id" class="mt-2" />
+        </div>
+
+        <!-- Programa (Dropdown) -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="programa_id"
+            class="text-indigo-400"
+            value="Programa"
+          />
+          <div class="flex gap-2 items-center mt-1">
+            <Dropdown
+              id="programa_id"
+              v-model="form.programa_id"
+              :options="programas"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Seleccione un programa"
+              class="w-full mt-1 border border-gray-300"
+            />
+            <!-- Botón ver -->
+            <button
+              type="button"
+              @click="verDetalle('programas', form.programa_id, 'Programa')"
+              :disabled="!form.programa_id"
+              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+              v-tooltip="'Ver el Programa'"
+            >
+              <i class="pi pi-eye"></i>
+            </button>
+
+            <!-- Botón nuevo (Redirecciona al create) -->
+            <Link
+              :href="route('programas.create')"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              v-tooltip="'Crear nuevo Programa'"
+            >
+              <i class="pi pi-file-plus"></i>
+            </Link>
+          </div>
+          <InputError :message="$page.props.errors.programa_id" class="mt-2" />
+        </div>
+
+        <!-- Métodos de pago (MultiSelect) -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="metodos_pago"
+            class="text-indigo-400"
+            value="Métodos de Pago"
+          />
+          <MultiSelect
+            id="metodos_pago"
+            v-model="form.metodos_pago_ids"
+            :options="metodosPago"
             optionLabel="nombre"
             optionValue="id"
-            placeholder="Seleccione un esquema"
             class="w-full mt-1 border border-gray-300"
+            placeholder="Seleccione métodos"
           />
-          <!-- Botón ver -->
-          <button
-            type="button"
-            @click="verDetalle('esquema_precios', form.esquema_precio_id, 'Esquema de Precios')"
-            :disabled="!form.esquema_precio_id"
-            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
-            v-tooltip="'Ver el Esquema'"
-          >
-            <i class="pi pi-eye"></i>
-          </button>
-
-          <!-- Botón nuevo (Redirecciona al create) -->
-          <Link
-            :href="route('esquemaprecios.create')"
-            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
-            v-tooltip="'Crear nuevo Esquema'"
-          >
-            <i class="pi pi-file-plus"></i>
-          </Link>
+          <InputError :message="$page.props.errors.metodos_pago_ids" class="mt-2" />
         </div>
-        <InputError :message="$page.props.errors.esquema_precio_id" class="mt-2" />
-      </div>
 
-      <!-- Esquema de Descuentos (Dropdown) -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="esquema_descuento_id"
-          class="text-indigo-400"
-          value="Esquema Descuentos"
-        />
-        <div class="flex gap-2 items-center mt-1">
-          <Dropdown
-            id="esquema_descuento_id"
-            v-model="form.esquema_descuento_id"
-            :options="esquema_descuentos"
+        <!-- Hospedaje, Comidas, Transportes (MultiSelect) -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="hospedajes"
+            class="text-indigo-400"
+            value="Hospedajes disponibles"
+          />
+          <MultiSelect
+            id="hospedajes"
+            v-model="form.hospedajes_ids"
+            :options="hospedajes"
             optionLabel="nombre"
             optionValue="id"
-            placeholder="Seleccione el esquema de desc."
             class="w-full mt-1 border border-gray-300"
+            placeholder="Seleccione hospedajes"
           />
-          <!-- Botón ver -->
-          <button
-            type="button"
-            @click="verDetalle('esquema_descuentos', form.esquema_descuento_id, 'Esquema de Descuentos')"
-            :disabled="!form.esquema_descuento_id"
-            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
-            v-tooltip="'Ver el Esquema'"
-          >
-            <i class="pi pi-eye"></i>
-          </button>
-          <!-- Botón nuevo (Redirecciona al create) -->
-          <Link
-            :href="route('esquemadescuentos.create')"
-            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
-            v-tooltip="'Crear nuevo Esquema'"
-          >
-          <i class="pi pi-file-plus"></i>
-          </Link>
+          <InputError :message="$page.props.errors.hospedajes_ids" class="mt-2" />
         </div>
-      </div>
 
-      <!-- Web actividad -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="web_actividad"
-          class="text-indigo-400"
-          value="Web actividad"
-        />
-        <TextInput
-          id="web_actividad"
-          v-model="form.web_actividad"
-          type="text"
-          class="mt-1 block w-full"
-        />
-        <InputError :message="$page.props.errors.web_actividad" class="mt-2" />
-      </div>
-
-       <!-- Grabación (Dropdown) -->
-       <div class="col-span-6 sm:col-span-6 mt-4">
-        <InputLabel
-          for="grabacion_id"
-          class="text-indigo-400"
-          value="Grabaciones"
-        />
-        <div class="flex gap-2 items-center mt-1">
-          <Dropdown
-            id="grabacion_id"
-            v-model="form.grabacion_id"
-            :options="grabaciones"
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="comidas"
+            class="text-indigo-400"
+            value="Comidas"
+          />
+          <MultiSelect
+            id="comidas"
+            v-model="form.comidas_ids"
+            :options="comidas"
             optionLabel="nombre"
             optionValue="id"
-            placeholder="Seleccione Geabación"
             class="w-full mt-1 border border-gray-300"
+            placeholder="Seleccione comidas"
           />
-          <!-- Botón ver -->
-          <button
-            type="button"
-            @click="verDetalle('grabaciones', form.grabacion_id, 'Grabación')"
-            :disabled="!form.grabacion_id"
-            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
-            v-tooltip="'Ver la Grabación'"
-          >
-            <i class="pi pi-eye"></i>
-          </button>
-
-          <!-- Botón nuevo (Redirecciona al create) -->
-          <Link
-            :href="route('grabaciones.create')"
-            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
-            v-tooltip="'Crear nueva Grabación'"
-          >
-            <i class="pi pi-file-plus"></i>
-          </Link>
+          <InputError :message="$page.props.errors.comidas_ids" class="mt-2" />
         </div>
-        <InputError :message="$page.props.errors.grabacion_id" class="mt-2" />
-      </div>
 
-      <!-- Stream (Dropdown) -->
-      <div v-if="form.modalidad_id !== 1" class="col-span-6 sm:col-span-6 mt-4">
-        <InputLabel
-          for="stream_id"
-          class="text-indigo-400"
-          value="Stream"
-        />
-        <div class="flex gap-2 items-center mt-1">
-          <Dropdown
-            id="stream_id"
-            v-model="form.stream_id"
-            :options="streams"
-            optionLabel="nombre"
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="transportes"
+            class="text-indigo-400"
+            value="Transportes"
+          />
+          <MultiSelect
+            id="transportes"
+            v-model="form.transportes_ids"
+            :options="transportes"
+            optionLabel="descripcion"
             optionValue="id"
-            placeholder="Seleccione Stream"
             class="w-full mt-1 border border-gray-300"
+            placeholder="Seleccione transportes"
           />
-          <!-- Botón ver -->
-          <button
-            type="button"
-            @click="verDetalle('streams', form.stream_id, 'Stream')"
-            :disabled="!form.stream_id"
-            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
-            v-tooltip="'Ver el Stream'"
-          >
-            <i class="pi pi-eye"></i>
-          </button>
-
-          <!-- Botón nuevo (Redirecciona al create) -->
-          <Link
-            :href="route('streams.create')"
-            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
-            v-tooltip="'Crear nuevo Stream'"
-          >
-            <i class="pi pi-file-plus"></i>
-          </Link>
+          <InputError :message="$page.props.errors.transportes_ids" class="mt-2" />
         </div>
-        <InputError :message="$page.props.errors.stream_id" class="mt-2" />
-      </div>
-
-      <!-- Programa (Dropdown) -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="programa_id"
-          class="text-indigo-400"
-          value="Programa"
-        />
-        <div class="flex gap-2 items-center mt-1">
-          <Dropdown
-            id="programa_id"
-            v-model="form.programa_id"
-            :options="programas"
-            optionLabel="nombre"
-            optionValue="id"
-            placeholder="Seleccione un programa"
-            class="w-full mt-1 border border-gray-300"
-          />
-          <!-- Botón ver -->
-          <button
-            type="button"
-            @click="verDetalle('programas', form.programa_id, 'Programa')"
-            :disabled="!form.programa_id"
-            class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
-            v-tooltip="'Ver el Programa'"
-          >
-            <i class="pi pi-eye"></i>
-          </button>
-
-          <!-- Botón nuevo (Redirecciona al create) -->
-          <Link
-            :href="route('programas.create')"
-            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
-            v-tooltip="'Crear nuevo Programa'"
-          >
-            <i class="pi pi-file-plus"></i>
-          </Link>
-        </div>
-        <InputError :message="$page.props.errors.programa_id" class="mt-2" />
-      </div>
-
-      <!-- Métodos de pago (MultiSelect) -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="metodos_pago"
-          class="text-indigo-400"
-          value="Métodos de Pago"
-        />
-        <MultiSelect
-          id="metodos_pago"
-          v-model="form.metodos_pago_ids"
-          :options="metodosPago"
-          optionLabel="nombre"
-          optionValue="id"
-          class="w-full mt-1 border border-gray-300"
-          placeholder="Seleccione métodos"
-        />
-        <InputError :message="$page.props.errors.metodos_pago_ids" class="mt-2" />
-      </div>
-
-      <!-- Hospedaje, Comidas, Transportes (MultiSelect) -->
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="hospedajes"
-          class="text-indigo-400"
-          value="Hospedajes disponibles"
-        />
-        <MultiSelect
-          id="hospedajes"
-          v-model="form.hospedajes_ids"
-          :options="hospedajes"
-          optionLabel="nombre"
-          optionValue="id"
-          class="w-full mt-1 border border-gray-300"
-          placeholder="Seleccione hospedajes"
-        />
-        <InputError :message="$page.props.errors.hospedajes_ids" class="mt-2" />
-      </div>
-
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="comidas"
-          class="text-indigo-400"
-          value="Comidas"
-        />
-        <MultiSelect
-          id="comidas"
-          v-model="form.comidas_ids"
-          :options="comidas"
-          optionLabel="nombre"
-          optionValue="id"
-          class="w-full mt-1 border border-gray-300"
-          placeholder="Seleccione comidas"
-        />
-        <InputError :message="$page.props.errors.comidas_ids" class="mt-2" />
-      </div>
-
-      <div class="col-span-6 sm:col-span-6">
-        <InputLabel
-          for="transportes"
-          class="text-indigo-400"
-          value="Transportes"
-        />
-        <MultiSelect
-          id="transportes"
-          v-model="form.transportes_ids"
-          :options="transportes"
-          optionLabel="descripcion"
-          optionValue="id"
-          class="w-full mt-1 border border-gray-300"
-          placeholder="Seleccione transportes"
-        />
-        <InputError :message="$page.props.errors.transportes_ids" class="mt-2" />
       </div>
     </template>
 
@@ -759,6 +771,7 @@ const detalleSeleccionado = ref(null);
       </PrimaryButton>
     </template>
   </FormSection>
+  <!-- ... -->
    <!-- Dialog Genérico -->
    <Dialog
       v-model:visible="dialogVisible"

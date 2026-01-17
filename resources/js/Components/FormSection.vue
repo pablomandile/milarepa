@@ -5,34 +5,41 @@ import SectionTitle from './SectionTitle.vue';
 defineEmits(['submitted']);
 
 const hasActions = computed(() => !! useSlots().actions);
+const props = defineProps({
+  noAside: {
+    type: Boolean,
+    default: false
+  }
+});
 </script>
 
 <template>
-    <div class="md:grid md:grid-cols-3 md:gap-6">
-        <SectionTitle>
-            <template #title>
-                <slot name="title" />
-            </template>
-            <template #description>
-                <slot name="description" />
-            </template>
-        </SectionTitle>
+  <div>
+    <!-- Si noAside=true renderizamos solo el form ocupando todo el ancho -->
+    <form @submit.prevent="$emit('submitted')" v-if="noAside" class="space-y-6">
+      <slot name="form" />
+      <div class="flex justify-end">
+        <slot name="actions" />
+      </div>
+    </form>
 
-        <div class="mt-5 md:mt-0 md:col-span-2">
-            <form @submit.prevent="$emit('submitted')">
-                <div
-                    class="px-4 py-5 bg-white sm:p-6 shadow"
-                    :class="hasActions ? 'sm:rounded-tl-md sm:rounded-tr-md' : 'sm:rounded-md'"
-                >
-                    <div class="grid grid-cols-6 gap-6">
-                        <slot name="form" />
-                    </div>
-                </div>
+    <!-- Comportamiento por defecto: layout con columna izquierda para title/description -->
+    <form @submit.prevent="$emit('submitted')" v-else class="md:grid md:grid-cols-3 md:gap-6">
+      <div class="md:col-span-1">
+        <slot name="title" />
+        <slot name="description" />
+      </div>
 
-                <div v-if="hasActions" class="flex items-center justify-end px-4 py-3 bg-indigo-50 text-end sm:px-6 shadow sm:rounded-bl-md sm:rounded-br-md">
-                    <slot name="actions" />
-                </div>
-            </form>
+      <div class="md:col-span-2">
+        <div class="bg-white p-4 shadow sm:rounded-lg">
+          <slot name="form" />
+          <div class="mt-6">
+            <slot name="actions" />
+          </div>
         </div>
-    </div>
+      </div>
+    </form>
+  </div>
 </template>
+
+
