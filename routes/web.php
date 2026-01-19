@@ -75,6 +75,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         'parameters' => ['metodospago' => 'metodopago'],]);
     Route::resource('/actividades', ActividadesController::class, [
         'parameters' => ['actividades' => 'actividad'],]);
+    Route::patch('/actividades/{actividad}/estado', [ActividadesController::class, 'updateEstado'])
+        ->name('actividades.updateEstado');
     Route::resource('/grid-actividades', GridActividadesController::class, [
         'parameters' => ['grid-actividades' => 'grid-actividad'],]);
     Route::resource('/usuarios', UsuariosController::class);
@@ -87,6 +89,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/transportes', TransportesController::class);
     Route::resource('/inscripciones', InscripcionesController::class, [
         'parameters' => ['inscripciones' => 'inscripcion'],]);
+    Route::get('/inscripciones/{inscripcion}/ticket', [InscripcionesController::class, 'ticket'])
+        ->name('inscripciones.ticket');
+    Route::get('/inscripciones/{inscripcion}/asistir', [InscripcionesController::class, 'asistir'])
+        ->name('inscripciones.asistir')->middleware('signed');
+    Route::get('/inscripciones/{inscripcion}/ticket-qr', [InscripcionesController::class, 'ticketQr'])
+        ->name('inscripciones.ticketQr');
     Route::resource('/estadoinscripciones', EstadoInscripcionesController::class, [
         'parameters' => ['estadoinscripciones' => 'estadoinscripcion'],]);
     Route::resource('/lugareshospedaje', LugaresHospedajeController::class, [

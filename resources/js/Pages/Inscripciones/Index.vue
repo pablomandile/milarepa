@@ -5,7 +5,7 @@ import DataView from 'primevue/dataview';
 import Dialog from 'primevue/dialog';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { usePage } from '@inertiajs/vue3';
-import { router } from '@inertiajs/vue3';
+import { router, Link } from '@inertiajs/vue3';
 
 const $page = usePage();
 
@@ -116,12 +116,12 @@ watch(() => $page.props.flash, (flash) => {
                                                 {{ inscripcion.actividad.nombre }}
                                             </h3>
                                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-gray-600">
-                                                <p><strong>Fecha:</strong> {{ inscripcion.actividad.fecha_inicio_formateada }}</p>
-                                                <p><strong>Lugar:</strong> {{ inscripcion.actividad.entidad?.direccion }}</p>
-                                                <p><strong>Membresía:</strong> {{ inscripcion.membresia }}</p>
-                                                <p><strong>Precio General:</strong> ${{ inscripcion.precioGeneral }}</p>
-                                                <p><strong>Monto a Pagar:</strong> ${{ inscripcion.montoapagar }}</p>
-                                                <p><strong>Estado de Pago:</strong>
+                                                <p><strong>Fecha: </strong> {{ inscripcion.actividad.fecha_inicio_formateada }}</p>
+                                                <p><strong>Lugar: </strong> {{ inscripcion.actividad.entidad?.direccion }}</p>
+                                                <p><strong>Membresía: </strong> {{ inscripcion.membresia }}</p>
+                                                <p><strong>Precio General: </strong> ${{ inscripcion.precioGeneral }}</p>
+                                                <p><strong>Monto a Pagar: </strong> ${{ inscripcion.montoapagar }}</p>
+                                                <p><strong>Estado de Pago: </strong>
                                                     <span :class="{
                                                         'text-green-600': inscripcion.pago === 'total',
                                                         'text-yellow-600': inscripcion.pago === 'parcial',
@@ -149,11 +149,19 @@ watch(() => $page.props.flash, (flash) => {
                                             </p>
                                         </div>
 
-                                        <!-- Fecha de inscripción -->
+                                        <!-- Fecha de inscripción y acciones -->
                                         <div class="md:ml-4 text-right flex flex-col items-end justify-between">
                                             <p class="text-sm text-gray-500">
                                                 Inscrito el: {{ new Date(inscripcion.created_at).toLocaleDateString() }}
                                             </p>
+                                            <!-- Botón Ver Ticket -->
+                                            <Link
+                                                :href="route('inscripciones.ticket', { inscripcion: inscripcion.id })"
+                                                class="mt-2 px-3 py-1 bg-indigo-500 text-white text-sm rounded hover:bg-indigo-700 transition-colors"
+                                                title="Ver Ticket"
+                                            >
+                                                <i class="pi pi-ticket"></i> Ver Ticket
+                                            </Link>
                                             <!-- Botón de eliminar -->
                                             <button 
                                                 @click="confirmDelete(inscripcion.id)"

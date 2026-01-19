@@ -115,6 +115,12 @@ function precioMembresiaUsuario(actividad) {
   return pivot ? pivot.precio : 0;
 }
 
+const actividadesActivas = ref([]);
+
+watch(() => props.actividades, (newActividades) => {
+  actividadesActivas.value = newActividades.filter(a => a.estado === true || a.estado === 1);
+}, { immediate: true });
+
 </script>
 
 <template>
@@ -128,7 +134,7 @@ function precioMembresiaUsuario(actividad) {
                 <div class="p-6 bg-white border-b border-gray-200">
                     <div class="mt-4">
                         <DataView
-                        :value="actividades"
+                        :value="actividadesActivas"
                         :layout="layout"
                         paginator
                         :rows="16"

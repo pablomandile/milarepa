@@ -135,6 +135,89 @@ class InscripcionesController extends Controller
     }
 
     /**
+     * Display a mobile ticket view for the given inscripción.
+     */
+    public function ticket(string $id)
+    {
+        $inscripcion = Inscripcion::with([
+            'actividad.imagen',
+            'actividad.entidad',
+            'actividad.programa',
+        ])->findOrFail($id);
+
+        // Authorize ownership
+        if ($inscripcion->user_id !== auth()->id()) {
+            return back()->with('error', 'No autorizado a ver esta inscripción.');
+        }
+
+        // Format activity start date
+        if (!empty($inscripcion->actividad) && !empty($inscripcion->actividad->fecha_inicio)) {
+            try {
+                $date = \Carbon\Carbon::parse($inscripcion->actividad->fecha_inicio);
+                $inscripcion->actividad->fecha_inicio_formateada = $date->translatedFormat('j \\d\\e F H:i') . ' hs.';
+            } catch (\Exception $e) {
+                $inscripcion->actividad->fecha_inicio_formateada = $inscripcion->actividad->fecha_inicio;
+            }
+        }
+
+        return Inertia::render('Inscripciones/Ticket', [
+            'inscripcion' => $inscripcion,
+            'actividad' => $inscripcion->actividad,
+        ]);
+    }
+
+    /**
+     * Mark attendance for the given inscripción via a signed URL.
+     */
+    public function asistir(string $id)
+    {
+        $inscripcion = Inscripcion::with(['actividad'])->findOrFail($id);
+
+        // Optionally: require auth of staff; here we rely on signed URL
+        // Update asistencia only if not already present
+        if ($inscripcion->asistencia !== 'presente') {
+            $inscripcion->asistencia = 'presente';
+            $inscripcion->save();
+        }
+
+        return Inertia::render('Inscripciones/ConfirmAsistencia', [
+            'inscripcion' => $inscripcion,
+            'actividad' => $inscripcion->actividad,
+            'status' => 'ok',
+        ]);
+    }
+
+    /**
+     * Serve a QR image (SVG) for the asistencia signed URL.
+     */
+    public function ticketQr(string $id)
+    {
+        $inscripcion = Inscripcion::findOrFail($id);
+
+        // Only allow generating QR for the owner; the ticket page uses this
+        if ($inscripcion->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Create a temporary signed URL for marking attendance
+        $url = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'inscripciones.asistir',
+            now()->addHours(12),
+            ['inscripcion' => $inscripcion->id]
+        );
+
+        // Generate SVG QR using BaconQrCode
+        $renderer = new \BaconQrCode\Renderer\ImageRenderer(
+            new \BaconQrCode\Renderer\RendererStyle\RendererStyle(256),
+            new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+        );
+        $writer = new \BaconQrCode\Writer($renderer);
+        $svg = $writer->writeString($url);
+
+        return response($svg, 200)->header('Content-Type', 'image/svg+xml');
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)

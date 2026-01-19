@@ -1,10 +1,10 @@
 <template>
-    <div class="max-w-sm p-4 bg-white border rounded shadow">
+    <div class="max-w-sm p-2 bg-white border rounded shadow">
   
       <!-- Botón Elegir Archivo -->
       <div>
         <label
-          class="cursor-pointer bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
+          class="cursor-pointer bg-blue-600 hover:bg-blue-800 text-white font-bold py-1 px-2 rounded text-sm"
         >
           Elegir Imagen
           <input

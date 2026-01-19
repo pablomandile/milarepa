@@ -28,9 +28,9 @@ defineProps({
             <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Dashboard</Link>
 
             <template v-else>
-                <Link :href="route('login')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">Log in</Link>
+                <Link :href="route('login')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">Iniciar Sesión</Link>
 
-                <Link v-if="canRegister" :href="route('register')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded ml-10">Register</Link>
+                <Link v-if="canRegister" :href="route('register')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded ml-10">Registrarse</Link>
             </template>
         </div>
     </div>

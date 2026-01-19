@@ -28,7 +28,12 @@ class Actividad extends Model
         'link_web', 
         'grabacion_id',
         'stream_id', 
-        'programa_id'
+        'programa_id',
+        'estado'
+    ];
+
+    protected $casts = [
+        'estado' => 'boolean',
     ];
 
     public function metodosPago() 

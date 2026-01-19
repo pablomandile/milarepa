@@ -42,6 +42,7 @@ class ActividadRequest extends FormRequest
             'stream_id' => ['nullable','exists:streams,id'],
             'grabacion_id' => ['nullable','exists:grabaciones,id'],
             'programa_id' => ['nullable','exists:programas,id'],
+            'estado' => ['required', 'boolean'],
         ];
     }
 

@@ -175,15 +175,26 @@ const detalleSeleccionado = ref(null);
             class="text-indigo-400"
             value="Tipo de actividad"
           />
-          <Dropdown
-            id="tipo_actividad_id"
-            v-model="form.tipo_actividad_id"
-            :options="tiposActividad"
-            optionLabel="nombre"      
-            optionValue="id"
-            placeholder="Seleccione tipo"
-            class="w-full mt-1 border border-gray-300"
-          />
+          <div class="flex gap-2 items-center mt-1">
+            <Dropdown
+              id="tipo_actividad_id"
+              v-model="form.tipo_actividad_id"
+              :options="tiposActividad"
+              optionLabel="nombre"      
+              optionValue="id"
+              placeholder="Seleccione tipo"
+              class="grow border border-gray-300"
+            />
+            
+            <!-- Botón nuevo (Redirecciona al create de Tipos de Actividad) -->
+            <Link
+              :href="route('tiposactividad.create')"
+              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+              v-tooltip="'Crear nuevo tipo de actividad'"
+            >
+              <i class="pi pi-file-plus"></i>
+            </Link>
+          </div>
           <InputError :message="$page.props.errors.tipo_actividad_id" class="mt-2" />
         </div>
 
@@ -330,7 +341,7 @@ const detalleSeleccionado = ref(null);
         </div>
 
         <!-- Fecha Inicio -->
-        <div class="col-span-6 sm:col-span-3 w-8">
+        <div class="col-span-6 sm:col-span-2">
           <InputLabel
             for="fecha_inicio"
             class="text-indigo-400"
@@ -352,7 +363,7 @@ const detalleSeleccionado = ref(null);
         </div>
 
         <!-- Fecha Fin -->
-        <div class="col-span-6 sm:col-span-3 w-8">
+        <div class="col-span-6 sm:col-span-2">
           <InputLabel
             for="fecha_fin"
             class="text-indigo-400"
@@ -374,7 +385,7 @@ const detalleSeleccionado = ref(null);
         </div>
 
         <!-- Fecha para descuentos -->
-        <div class="col-span-6 sm:col-span-3 w-8">
+        <div class="col-span-6 sm:col-span-2">
           <InputLabel
             for="pagoAmticipado"
             class="text-indigo-400"
@@ -760,6 +771,29 @@ const detalleSeleccionado = ref(null);
             placeholder="Seleccione transportes"
           />
           <InputError :message="$page.props.errors.transportes_ids" class="mt-2" />
+        </div>
+
+        <!-- Estado (Activa/Inactiva) -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="estado"
+            class="text-indigo-400"
+            value="Estado"
+            :required="true"
+          />
+          <Dropdown
+            id="estado"
+            v-model="form.estado"
+            :options="[
+              { label: 'Activa', value: true },
+              { label: 'Inactiva', value: false }
+            ]"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccione el estado"
+            class="w-full mt-1 border border-gray-300"
+          />
+          <InputError :message="$page.props.errors.estado" class="mt-2" />
         </div>
       </div>
     </template>

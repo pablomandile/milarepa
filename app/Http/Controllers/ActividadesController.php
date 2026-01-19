@@ -200,6 +200,103 @@ class ActividadesController extends Controller
     public function edit(string $id)
     {
         //
+            $actividad = Actividad::with([
+                'tipoActividad',
+                'descripcion',
+                'imagen',
+                'entidad',
+                'disponibilidad',
+                'modalidad',
+                'esquemaPrecio',
+                'esquemaDescuento',
+                'stream',
+                'grabacion',
+                'programa',
+                'metodosPago',
+                'hospedajes',
+                'comidas',
+                'transportes',
+                'maestros',
+                'coordinadores'
+            ])->findOrFail($id);
+
+            // Obtener todos los catálogos necesarios para el formulario
+            $esquema_precios = EsquemaPrecio::with([
+                'membresias.moneda',
+                'membresias.membresia.entidad'
+            ])->get();
+            $esquema_descuentos = EsquemaDescuento::with([
+                'membresias.moneda',
+                'membresias.membresia.entidad'
+            ])->get();
+            $tiposActividad = TipoActividad::all();
+            $maestros = Maestro::all();
+            $coordinadores = Coordinador::all();
+            $descripciones = Descripcion::all();
+            $entidades = Entidad::all();
+            $disponibilidades = Disponibilidad::all();
+            $modalidades = Modalidad::all();
+            $streams = Stream::with(['links'])->get();
+            $grabaciones = Grabacion::with(['linksgrabacion'])->get();
+            $programas = Programa::all();
+            $metodosPago = MetodoPago::all();
+            $hospedajes = Hospedaje::all();
+            $comidas = Comida::all();
+            $transportes = Transporte::all();
+
+            return inertia('Actividades/Edit', [
+                'actividad' => $actividad,
+                'tiposActividad' => $tiposActividad,
+                'descripciones' => $descripciones,
+                'entidades' => $entidades,
+                'disponibilidades' => $disponibilidades,
+                'modalidades' => $modalidades,
+                'esquema_precios' => $esquema_precios->toArray(),
+                'esquema_descuentos' => $esquema_descuentos->toArray(),
+                'streams' => $streams,
+                'grabaciones' => $grabaciones,
+                'programas' => $programas,
+                'metodosPago' => $metodosPago,
+                'hospedajes' => $hospedajes,
+                'comidas' => $comidas,
+                'transportes' => $transportes,
+                'maestros' => $maestros,
+                'coordinadores' => $coordinadores
+            ]);
+            $actividad = Actividad::findOrFail($id);
+        
+            $validated = $request->validated();
+
+            // Extraer arrays de ids para relaciones muchos-a-muchos
+            $metodosPagoIds = $request->input('metodos_pago_ids', []);
+            $hospedajesIds  = $request->input('hospedajes_ids', []);
+            $comidasIds     = $request->input('comidas_ids', []);
+            $transportesIds = $request->input('transportes_ids', []);
+            $maestrosIds = $request->input('maestros_ids', []);
+            $coordinadoresIds = $request->input('coordinadores_ids', []);
+
+            if (empty($metodosPagoIds)) {
+                $metodosPagoIds = [1];
+            }
+
+            // Quitar del array validated los que no están en fillable
+            unset($validated['metodos_pago_ids'], $validated['hospedajes_ids'],
+                  $validated['comidas_ids'], $validated['transportes_ids'],
+                  $validated['maestros_ids'], $validated['coordinadores_ids']);
+
+            // Actualizar la actividad
+            $actividad->update($validated);
+
+            // Sincronizar relaciones muchos-a-muchos
+            $actividad->metodosPago()->sync($metodosPagoIds);
+            $actividad->hospedajes()->sync($hospedajesIds);
+            $actividad->comidas()->sync($comidasIds);
+            $actividad->transportes()->sync($transportesIds);
+            $actividad->maestros()->sync($maestrosIds);
+            $actividad->coordinadores()->sync($coordinadoresIds);
+
+            return redirect()->route('actividades.index')
+                ->with('success', 'Actividad actualizada correctamente.');
     }
 
     /**
@@ -211,10 +308,31 @@ class ActividadesController extends Controller
     }
 
     /**
+     * Quick toggle for estado field only.
+     */
+    public function updateEstado(Request $request, Actividad $actividad)
+    {
+        $data = $request->validate([
+            'estado' => ['required', 'boolean'],
+        ]);
+
+        $actividad->estado = $data['estado'];
+        $actividad->save();
+
+        return redirect()->back()->with('success', 'Estado actualizado correctamente.');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        //
+        $actividad = Actividad::findOrFail($id);
+        
+        // Eliminar la actividad
+        $actividad->delete();
+        
+        return redirect()->route('actividades.index')
+            ->with('success', 'Actividad eliminada correctamente.');
     }
 }

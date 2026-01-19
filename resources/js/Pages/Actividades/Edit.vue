@@ -1,49 +1,130 @@
 <script>
     export default {
-        name: 'EntidadesEdit'
+        name: 'ActividadesEdit'
     }
 </script>
 
 <script setup>
     import { useForm } from '@inertiajs/vue3';
-    import AppLayout from '@/Layouts/AppLayout.vue';
-    import EntidadForm from '@/Components/Formularios/EntidadForm.vue';
+    import AppLayout from '@/Layouts/AppLayout.vue'
+    import ActividadForm from '@/Components/Formularios/ActividadForm.vue'
     import { Link } from '@inertiajs/vue3';
+    import ScrollTop from 'primevue/scrolltop';
+    import { Inertia } from '@inertiajs/inertia';
+
+    function reloadDescripciones() {
+        Inertia.reload({
+            only: ['descripciones'],
+            preserveState: true,
+            preserveScroll: true,
+        });
+    } 
 
     const props = defineProps({
-        entidad:{
+        actividad: {
             type: Object,
             required: true
+        },
+        tiposActividad: {
+            type: Array,
+            default: () => [],
+        },
+        entidades: {
+            type: Array,
+            default: () => [],
+        },
+        descripciones: {
+            type: Array,
+            default: () => [],
+        },
+        disponibilidades: {
+            type: Array,
+            default: () => [],
+        },
+        modalidades: {
+            type: Array,
+            default: () => [],
+        },
+        esquema_precios: {
+            type: Array,
+            default: () => [],
+        },
+        esquema_descuentos: {
+            type: Array,
+            default: () => [],
+        },
+        streams: {
+            type: Array,
+            default: () => [],
+        },
+        grabaciones: {
+            type: Array,
+            default: () => [],
+        },
+        programas: {
+            type: Array,
+            default: () => [],
+        },
+        metodosPago: {
+            type: Array,
+            default: () => [],
+        },
+        hospedajes: {
+            type: Array,
+            default: () => [],
+        },
+        comidas: {
+            type: Array,
+            default: () => [],
+        },
+        transportes: {
+            type: Array,
+            default: () => [],
+        },
+        maestros: {
+            type: Array,
+            default: () => [],
+        },
+        coordinadores: {
+            type: Array,
+            default: () => [],
         }
     });
-    // console.log(props.entidad);
-    if (!props.entidad) {
-        console.error('La Entidad no está definido');
+
+    if (!props.actividad) {
+        console.error('La actividad no está definida');
     }
 
     const form = useForm({
-        nombre: props.entidad.nombre,
-        descripcion: props.entidad.descripcion,
-        abreviacion:props.entidad.abreviacion,
-        direccion: props.entidad.direccion,
-        telefono: props.entidad.telefono,
-        whatsapp: props.entidad.whatsapp,
-        web_uri: props.entidad.web_uri,
-        instagram_uri: props.entidad.instagram_uri,
-        facebook_uri: props.entidad.facebook_uri,
-        twitter_uri: props.entidad.twitter_uri,
-        youtube_uri: props.entidad.youtube_uri,
-        spotify_uri: props.entidad.spotify_uri,
-        logo_uri: props.entidad.logo_uri,
-        email1: props.entidad.email1,
-        email2: props.entidad.email2,
-        entidad_principal: props.entidad.entidad_principal === 1,
+        tipo_actividad_id: props.actividad.tipo_actividad_id,
+        nombre: props.actividad.nombre,
+        descripcion_id: props.actividad.descripcion_id,
+        observaciones: props.actividad.observaciones,
+        imagen_id: props.actividad.imagen_id,
+        fecha_inicio: props.actividad.fecha_inicio ? new Date(props.actividad.fecha_inicio) : null,
+        fecha_fin: props.actividad.fecha_fin ? new Date(props.actividad.fecha_fin) : null,
+        pagoAmticipado: props.actividad.pagoAmticipado ? new Date(props.actividad.pagoAmticipado) : null,
+        entidad_id: props.actividad.entidad_id,
+        disponibilidad_id: props.actividad.disponibilidad_id,
+        modalidad_id: props.actividad.modalidad_id,
+        esquema_precio_id: props.actividad.esquema_precio_id,
+        esquema_descuento_id: props.actividad.esquema_descuento_id,
+        link_web: props.actividad.link_web,
+        stream_id: props.actividad.stream_id,
+        grabacion_id: props.actividad.grabacion_id,
+        programa_id: props.actividad.programa_id,
+        metodos_pago_ids: props.actividad.metodos_pago ? props.actividad.metodos_pago.map(m => m.id) : [],
+        hospedajes_ids: props.actividad.hospedajes ? props.actividad.hospedajes.map(h => h.id) : [],
+        comidas_ids: props.actividad.comidas ? props.actividad.comidas.map(c => c.id) : [],
+        transportes_ids: props.actividad.transportes ? props.actividad.transportes.map(t => t.id) : [],
+        maestros_ids: props.actividad.maestros ? props.actividad.maestros.map(m => m.id) : [],
+        coordinadores_ids: props.actividad.coordinadores ? props.actividad.coordinadores.map(c => c.id) : []
     });
 
     const handleSubmit = () => {
-        form.put(route('entidades.update', props.entidad.id), {
+        form.put(route('actividades.update', { actividad: props.actividad.id }), {
             onSuccess: () => {
-                console.log('Entidad actualizada exitosamente');
+                console.log('Actividad actualizada exitosamente');
             },
             onError: errors => {
                 console.log('Errores al actualizar:', errors);
@@ -53,33 +134,75 @@
 </script>
 
 <template>
-    <AppLayout title="Editar Entidad">
+    <AppLayout title="Editar Actividad">
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Editar entidad</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Editar Actividad</h1>
         </template>
 
         <div class="py-12">
-            <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
                     <!-- Botón de Volver -->
                     <div class="flex justify-end mr-5 mb-6 mt-3">
                         <Link 
-                            :href="route('entidades.index')" 
+                            :href="route('actividades.index')" 
                             class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
                             Volver
                         </Link>
                     </div>
+
                     <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white border-b border-gray-200">
-                            <EntidadForm 
-                            :updating="true" 
-                            :form="form" 
-                            @submit="handleSubmit"/>
+
+                            <!-- TITULO/ DESCRIPCION full-width encima del form -->
+                            <div class="mb-6">
+                              <h2 class="text-2xl font-semibold text-indigo-600">
+                                Actualizar Actividad
+                              </h2>
+                              <p class="text-sm text-gray-600 mt-1">
+                                Edita la información de la actividad seleccionada.
+                              </p>
+                            </div>
+
+                            <!-- Formulario: indicamos que oculte su header interno -->
+                            <ActividadForm 
+                              :updating="true"
+                              :tiposActividad="tiposActividad"
+                              :descripciones="descripciones"
+                              :entidades="entidades"
+                              :disponibilidades="disponibilidades"
+                              :modalidades="modalidades"
+                              :esquema_precios="esquema_precios"
+                              :esquema_descuentos="esquema_descuentos"
+                              :streams="streams"
+                              :grabaciones="grabaciones"
+                              :programas="programas"
+                              :metodosPago="metodosPago"
+                              :hospedajes="hospedajes"
+                              :comidas="comidas"
+                              :transportes="transportes"
+                              :coordinadores="coordinadores"
+                              :maestros="maestros"
+                              :form="form"
+                              :hide-header="true"
+                              @submit="handleSubmit"
+                              @refresh-descripciones="reloadDescripciones"
+                            />
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <ScrollTop
+            class="bg-slate-300"
+            :threshold="100"
+            icon="pi pi-angle-up"
+            :pt="{
+                root: 'w-2rem h-2rem border-round-sm',
+                icon: {
+                    class: 'text-indigo-500'
+                }
+            }"
+        />         
     </AppLayout>
-
 </template>

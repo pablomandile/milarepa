@@ -5,116 +5,67 @@ export default {
 </script>
 
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
-import { usePage } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
-import Toast from 'primevue/toast';
-import { useToast } from 'primevue/usetoast';
+import AppLayout from '@/Layouts/AppLayout.vue'
+import { Link } from '@inertiajs/vue3'
 
-const toast = useToast();
-const $page = usePage();
-
-const { actividad } = defineProps({
+const props = defineProps({
   actividad: {
     type: Object,
     required: true,
   },
-});
+})
 
-watch(() => $page.props.flash, (flash) => {
-  if (flash?.success) {
-    toast.add({
-      severity: 'success',
-      summary: 'Inscripción',
-      detail: flash.success,
-      life: 5000,
-    });
+const formatDateTime = (fecha, fallback) => {
+  if (props.actividad?.fecha_inicio_formateada) return props.actividad.fecha_inicio_formateada
+  try {
+    const d = new Date(fecha)
+    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+    return d.toLocaleString('es-AR', opts)
+  } catch (e) {
+    return fallback || fecha
   }
-  if (flash?.error) {
-    toast.add({
-      severity: 'warn',
-      summary: 'Aviso',
-      detail: flash.error,
-      life: 10000,
-    });
-  }
-}, { immediate: true });
+}
 </script>
 
 <template>
   <AppLayout>
     <template #header>
-      <h1 class="font-semibold text-xl text-gray-800 leading-tight">
-        {{ actividad.nombre }}
-      </h1>
+      <h1 class="font-semibold text-xl text-gray-800 leading-tight">Ticket</h1>
     </template>
 
-    <Toast position="top-right" />
+    <div class="min-h-screen bg-white">
+      <div class="max-w-md mx-auto px-4 py-6 sm:px-6">
+        <!-- Imagen principal -->
+        <div class="w-full aspect-[3/2] bg-gray-100 rounded-lg overflow-hidden mb-4">
+          <img
+            v-if="actividad?.imagen"
+            :src="'/storage/' + actividad.imagen.ruta"
+            :alt="'Imagen de ' + actividad.nombre"
+            class="w-full h-full object-cover"
+          />
+          <img
+            v-else
+            src="/storage/img/actividades/imagen-no-disponible.jpg"
+            alt="Sin imagen"
+            class="w-full h-full object-cover"
+          />
+        </div>
 
-    <div class="py-12">
-      <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="md:col-span-1">
-              <img
-                v-if="actividad.imagen"
-                :src="'/storage/' + actividad.imagen.ruta"
-                :alt="'Imagen de ' + actividad.nombre"
-                class="w-full h-auto rounded"
-              />
-              <img
-                v-else
-                src="/storage/img/actividades/imagen-no-disponible.jpg"
-                alt="Sin imagen"
-                class="w-full h-auto rounded"
-              />
-            </div>
+        <!-- Título -->
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 text-center">
+          {{ actividad.nombre }}
+        </h2>
+        
+        <!-- Fecha y hora -->
+        <p class="text-center text-indigo-600 font-medium mb-6">
+          {{ formatDateTime(actividad.fecha_inicio, actividad.fecha_inicio) }}
+        </p>
 
-            <div class="md:col-span-2 space-y-3">
-              <p class="text-gray-600" v-if="actividad.fecha_inicio_formateada">
-                <span class="font-medium">Fecha:</span>
-                {{ actividad.fecha_inicio_formateada }}
-              </p>
-
-              <p class="text-gray-600" v-if="actividad.tipo_actividad">
-                <span class="font-medium">Tipo:</span>
-                {{ actividad.tipo_actividad.nombre }}
-              </p>
-
-              <p class="text-gray-600" v-if="actividad.modalidad">
-                <span class="font-medium">Modalidad:</span>
-                {{ actividad.modalidad.nombre }}
-              </p>
-
-              <p class="text-gray-600" v-if="actividad.entidad">
-                <span class="font-medium">Lugar:</span>
-                {{ actividad.entidad.abreviacion }}
-                <span v-if="actividad.entidad.direccion && actividad.entidad.direccion.trim() !== ''">
-                  — {{ actividad.entidad.direccion }}
-                </span>
-              </p>
-
-              <div v-if="actividad.descripcion && actividad.descripcion.descripcion" class="prose max-w-none">
-                <h2 class="text-lg font-semibold">Descripción</h2>
-                <p class="mt-2 text-gray-700">{{ actividad.descripcion.descripcion }}</p>
-              </div>
-
-              <div v-if="actividad.programa" class="mt-4">
-                <h2 class="text-lg font-semibold">Programa</h2>
-                <p class="mt-2 text-gray-700">{{ actividad.programa.nombre }}</p>
-              </div>
-
-              <div v-if="actividad.stream" class="mt-4">
-                <h2 class="text-lg font-semibold">Stream</h2>
-                <p class="mt-2 text-gray-700">{{ actividad.stream.titulo || 'Disponible' }}</p>
-              </div>
-
-              <div v-if="actividad.grabacion" class="mt-4">
-                <h2 class="text-lg font-semibold">Grabación</h2>
-                <p class="mt-2 text-gray-700">{{ actividad.grabacion.titulo || 'Disponible' }}</p>
-              </div>
-            </div>
-          </div>
+        <!-- Acciones -->
+        <div class="flex justify-center gap-3">
+          <Link :href="route('inscripciones.index')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            Volver
+          </Link>
         </div>
       </div>
     </div>
