@@ -77,25 +77,28 @@
                             <Column field="email1" header="Correo electrónico" sortable></Column>
                             <Column header="Acciones">
                                 <template #body="slotProps">
-                                    <div class="flex justify-center space-x-2">
-                                        <a
-                                            @click.prevent="verEntidad(parseInt(slotProps.data.id))"
+                                    <div class="flex justify-center items-center space-x-4">
+                                        <button
+                                            @click="verEntidad(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('read entidades')"
-                                            v-tooltip="'Ver entidad'">
-                                            <i class="pi pi-eye cursor-pointer text-indigo-400 mr-2"></i>
-                                        </a>
+                                            v-tooltip="'Ver entidad'"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1; color: rgb(99, 102, 241);"></i>
+                                        </button>
                                         <Link
                                             :href="route('entidades.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update entidades')"
-                                            v-tooltip="'Editar entidad'">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            v-tooltip="'Editar entidad'"
+                                            style="display: flex; align-items: center;">
+                                            <i class="fas fa-pen-to-square" style="font-size: 18px !important; line-height: 1; color: rgb(99, 102, 241);"></i>
                                         </Link>
-                                        <a
-                                            @click.prevent="deleteEntidad(parseInt(slotProps.data.id))"
+                                        <button
+                                            @click="deleteEntidad(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete entidades')"
-                                            v-tooltip="'Borrar entidad'">
-                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
-                                        </a>
+                                            v-tooltip="'Borrar entidad'"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-trash" style="font-size: 18px !important; line-height: 1; color: rgb(239, 68, 68);"></i>
+                                        </button>
                                     </div>
                                 </template>
                             </Column>

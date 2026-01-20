@@ -103,27 +103,33 @@
                                     {{ slotProps.data.programa.substring(0, 200) }} ...
                                 </template>
                             </Column>
-                            <Column header="Acciones" class="flex justify-center space-x-2">
+                            <Column header="Acciones">
                                 <template #body="slotProps">
-                                    <div class="flex justify-center space-x-2">
-                                        <a
-                                            @click.prevent="verPrograma(parseInt(slotProps.data.id))"
+                                    <div class="flex justify-center items-center space-x-4">
+                                        <button
+                                            @click="verPrograma(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('read programas')"
-                                            v-tooltip="'Ver programa'">
-                                            <i class="pi pi-eye cursor-pointer text-indigo-400 mr-2"></i>
-                                        </a>
+                                            v-tooltip="'Ver programa'"
+                                            class="text-indigo-600 hover:text-indigo-800"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </button>
                                         <Link
                                             :href="route('programas.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update programas')"
-                                            v-tooltip="'Editar programa'">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            v-tooltip="'Editar programa'"
+                                            class="text-indigo-600 hover:text-indigo-800"
+                                            style="display: flex; align-items: center;">
+                                            <i class="fas fa-pen-to-square" style="font-size: 18px !important; line-height: 1;"></i>
                                         </Link>
-                                        <a
-                                            @click.prevent="deletePrograma(parseInt(slotProps.data.id))"
+                                        <button
+                                            @click="deletePrograma(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete programas')"
-                                            v-tooltip="'Borrar programa'">
-                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
-                                        </a>
+                                            v-tooltip="'Borrar programa'"
+                                            class="text-red-600 hover:text-red-800"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-trash" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </button>
                                     </div>
                                 </template>
                             </Column>

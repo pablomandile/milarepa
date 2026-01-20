@@ -11,6 +11,7 @@
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
     import InputSwitch from 'primevue/inputswitch';
+    import Tag from 'primevue/tag';
     import { ref } from 'vue';
     import Dialog from 'primevue/dialog';
     import { usePage } from '@inertiajs/vue3';
@@ -18,6 +19,10 @@
     const page = usePage();
     const visible = ref(false);
     const actividadSeleccionada = ref(null);
+    const programaVisible = ref(false);
+    const programaSeleccionado = ref(null);
+    const esquemaPrecioVisible = ref(false);
+    const esquemaPrecioSeleccionado = ref(null);
     
     const { actividades } = defineProps({
         actividades: {
@@ -35,6 +40,16 @@
             actividadSeleccionada.value = actividad;
             visible.value = true;
         }
+    };
+
+    const verPrograma = (programa) => {
+        programaSeleccionado.value = programa;
+        programaVisible.value = true;
+    };
+
+    const verEsquemaPrecio = (esquema) => {
+        esquemaPrecioSeleccionado.value = esquema;
+        esquemaPrecioVisible.value = true;
     };
 
     const updateEstado = (row, nuevoEstado) => {
@@ -123,7 +138,16 @@
                             </Column>
                             <Column field="nombre" header="Nombre" sortable></Column>
                             <Column field="tipo_actividad.nombre" header="Tipo" sortable></Column>
-                            <Column field="fecha_inicio" header="Fecha y hora" sortable></Column>
+                            <Column header="Fecha Inicio" sortable field="fecha_inicio">
+                                <template #body="slotProps">
+                                    {{ slotProps.data.fecha_inicio ? new Date(slotProps.data.fecha_inicio).toLocaleDateString('es-AR') : '-' }}
+                                </template>
+                            </Column>
+                            <Column header="Fecha Fin" sortable field="fecha_fin">
+                                <template #body="slotProps">
+                                    {{ slotProps.data.fecha_fin ? new Date(slotProps.data.fecha_fin).toLocaleDateString('es-AR') : '-' }}
+                                </template>
+                            </Column>
                             <Column field="modalidad.nombre" header="Modalidad" sortable></Column>
                             <Column header="Estado">
                                 <template #body="slotProps">
@@ -137,25 +161,31 @@
                             </Column>
                             <Column header="Acciones">
                                 <template #body="slotProps">
-                                    <div class="flex justify-center space-x-2">
-                                        <!-- <a
-                                            @click.prevent="verActividad(parseInt(slotProps.data.id))"
+                                    <div class="flex justify-center items-center space-x-4">
+                                        <!-- <button
+                                            @click="verActividad(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('read actividades')"
-                                            v-tooltip="'Ver actividad'">
-                                            <i class="pi pi-eye cursor-pointer text-indigo-400 mr-2"></i>
-                                        </a> -->
+                                            v-tooltip="'Ver actividad'"
+                                            class="text-indigo-600 hover:text-indigo-800"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </button> -->
                                         <Link
                                             :href="route('actividades.edit', { actividad: parseInt(slotProps.data.id) })"
                                             v-if="$page.props.user.permissions.includes('update actividades')"
-                                            v-tooltip="'Editar actividad'">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            v-tooltip="'Editar actividad'"
+                                            class="text-indigo-600 hover:text-indigo-800"
+                                            style="display: flex; align-items: center;">
+                                            <i class="fas fa-pen-to-square" style="font-size: 18px !important; line-height: 1;"></i>
                                         </Link>
-                                        <a
-                                            @click.prevent="deleteActividad(parseInt(slotProps.data.id))"
+                                        <button
+                                            @click="deleteActividad(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete actividades')"
-                                            v-tooltip="'Borrar actividad'">
-                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
-                                        </a>
+                                            v-tooltip="'Borrar actividad'"
+                                            class="text-red-600 hover:text-red-800"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-trash" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </button>
                                     </div>
                                 </template>
                             </Column>
@@ -210,15 +240,31 @@
                                         </div>
 
                                         <!-- Programa -->
-                                        <div v-if="data.programa">
+                                        <div v-if="data.programa" class="flex items-center">
                                             <span class="font-semibold text-gray-700">Programa:</span>
                                             <span class="ml-2">{{ data.programa.nombre }}</span>
+                                            <button 
+                                                @click="verPrograma(data.programa)" 
+                                                class="ml-2 text-indigo-600 hover:text-indigo-800"
+                                                style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;"
+                                                title="Ver programa completo"
+                                            >
+                                                <i class="fas fa-eye" style="font-size: 16px;"></i>
+                                            </button>
                                         </div>
 
                                         <!-- Esquema de Precios -->
-                                        <div v-if="data.esquema_precio">
-                                            <span class="font-semibold text-gray-700">Esquema Precios:</span>
+                                        <div v-if="data.esquema_precio" class="flex items-center">
+                                            <span class="font-semibold text-gray-700">Esquema de precios:</span>
                                             <span class="ml-2">{{ data.esquema_precio.nombre }}</span>
+                                            <button 
+                                                @click="verEsquemaPrecio(data.esquema_precio)" 
+                                                class="ml-2 text-indigo-600 hover:text-indigo-800"
+                                                style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;"
+                                                title="Ver esquema de precios completo"
+                                            >
+                                                <i class="fas fa-eye" style="font-size: 16px;"></i>
+                                            </button>
                                         </div>
 
                                         <!-- Esquema de Descuentos -->
@@ -282,13 +328,21 @@
                                         <!-- Fecha Fin -->
                                         <div v-if="data.fecha_fin">
                                             <span class="font-semibold text-gray-700">Fecha Fin:</span>
-                                            <span class="ml-2">{{ data.fecha_fin }}</span>
+                                            <span class="ml-2">{{ new Date(data.fecha_fin).toLocaleDateString('es-AR') }}</span>
                                         </div>
 
                                         <!-- Pago Anticipado -->
                                         <div v-if="data.pagoAmticipado">
                                             <span class="font-semibold text-gray-700">Fecha Pago Anticipado:</span>
-                                            <span class="ml-2">{{ data.pagoAmticipado }}</span>
+                                            <span class="ml-2">{{ new Date(data.pagoAmticipado).toLocaleDateString('es-AR') }}</span>
+                                        </div>
+
+                                        <!-- Métodos de Pago -->
+                                        <div v-if="data.metodos_pago && data.metodos_pago.length > 0" class="md:col-span-2">
+                                            <span class="font-semibold text-gray-700">Métodos de Pago:</span>
+                                            <div class="ml-2 flex flex-wrap gap-2 mt-1">
+                                                <Tag v-for="metodo in data.metodos_pago" :key="metodo.id" severity="info" :value="metodo.nombre"></Tag>
+                                            </div>
                                         </div>
 
                                         <!-- Link Web -->
@@ -339,5 +393,65 @@
 
         </template>
         <p v-else>Cargando datos...</p>
+    </Dialog>
+
+    <!-- Dialog para mostrar programa -->
+    <Dialog 
+        v-model:visible="programaVisible" 
+        modal 
+        :header="programaSeleccionado ? `Programa: ${programaSeleccionado.nombre}` : 'Programa'"
+        :style="{ width: '50rem' }" 
+        :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+        dismissableMask
+    >
+        <template v-if="programaSeleccionado">
+            <div class="prose max-w-none">
+                <p style="white-space: pre-wrap;">{{ programaSeleccionado.programa }}</p>
+            </div>
+        </template>
+        <p v-else>Cargando...</p>
+    </Dialog>
+
+    <!-- Dialog para mostrar esquema de precios -->
+    <Dialog 
+        v-model:visible="esquemaPrecioVisible" 
+        modal 
+        :header="esquemaPrecioSeleccionado ? `Esquema de Precios: ${esquemaPrecioSeleccionado.nombre}` : 'Esquema de Precios'"
+        :style="{ width: '70rem' }" 
+        :breakpoints="{ '1199px': '90vw', '575px': '95vw' }"
+        dismissableMask
+    >
+        <template v-if="esquemaPrecioSeleccionado && esquemaPrecioSeleccionado.membresias">
+            <DataTable 
+                :value="esquemaPrecioSeleccionado.membresias"
+                stripedRows
+                tableStyle="min-width: 50rem"
+            >
+                <!-- Columna Membresía / Entidad -->
+                <Column header="Membresía - Entidad">
+                    <template #body="{ data: mem }">
+                        {{ mem.membresia
+                            ? mem.membresia.nombre + ' - ' + mem.membresia.entidad.abreviacion
+                            : '—'
+                        }}
+                    </template>
+                </Column>
+
+                <!-- Columna Precio -->
+                <Column header="Precio">
+                    <template #body="{ data: mem }">
+                        $ {{ parseFloat(mem.precio).toLocaleString('es-AR', { minimumFractionDigits: 0 }) }}
+                    </template>
+                </Column>
+
+                <!-- Columna Moneda -->
+                <Column header="Moneda">
+                    <template #body="{ data: mem }">
+                        {{ mem.moneda ? mem.moneda.nombre : '—' }}
+                    </template>
+                </Column>
+            </DataTable>
+        </template>
+        <p v-else>No hay información de precios disponible</p>
     </Dialog>
 </template>

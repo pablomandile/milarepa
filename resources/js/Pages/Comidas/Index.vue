@@ -80,19 +80,23 @@
                             </Column>
                             <Column header="Acciones">
                                 <template #body="slotProps">
-                                    <div class="flex space-x-2">
+                                    <div class="flex justify-center items-center space-x-4">
                                         <Link
                                             :href="route('comidas.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update comidas')"
-                                            v-tooltip="'Editar comida'">
-                                            <i class="pi pi-pencil text-indigo-400 mr-4"></i>
+                                            v-tooltip="'Editar comida'"
+                                            class="text-indigo-600 hover:text-indigo-800"
+                                            style="display: flex; align-items: center;">
+                                            <i class="fas fa-pen-to-square" style="font-size: 18px !important; line-height: 1;"></i>
                                         </Link>
-                                        <a
-                                            @click.prevent="deleteComida(parseInt(slotProps.data.id))"
+                                        <button
+                                            @click="deleteComida(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete comidas')"
-                                            v-tooltip="'Borrar comida'">
-                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
-                                        </a>
+                                            v-tooltip="'Borrar comida'"
+                                            class="text-red-600 hover:text-red-800"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-trash" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </button>
                                     </div>
                                 </template>
                             </Column>

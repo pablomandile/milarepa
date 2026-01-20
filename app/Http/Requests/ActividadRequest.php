@@ -42,7 +42,19 @@ class ActividadRequest extends FormRequest
             'stream_id' => ['nullable','exists:streams,id'],
             'grabacion_id' => ['nullable','exists:grabaciones,id'],
             'programa_id' => ['nullable','exists:programas,id'],
-            'estado' => ['required', 'boolean'],
+            'estado' => ['nullable', 'boolean'],
+            'metodos_pago_ids' => ['nullable', 'array'],
+            'metodos_pago_ids.*' => ['exists:metodos_pago,id'],
+            'hospedajes_ids' => ['nullable', 'array'],
+            'hospedajes_ids.*' => ['exists:hospedajes,id'],
+            'comidas_ids' => ['nullable', 'array'],
+            'comidas_ids.*' => ['exists:comidas,id'],
+            'transportes_ids' => ['nullable', 'array'],
+            'transportes_ids.*' => ['exists:transportes,id'],
+            'maestros_ids' => ['nullable', 'array'],
+            'maestros_ids.*' => ['exists:maestros,id'],
+            'coordinadores_ids' => ['nullable', 'array'],
+            'coordinadores_ids.*' => ['exists:coordinadores,id'],
         ];
     }
 

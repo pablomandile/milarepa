@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class PerfilesController extends Controller
 {
@@ -11,7 +14,13 @@ class PerfilesController extends Controller
      */
     public function index()
     {
-        //
+        $roles = Role::with('permissions')->paginate(15);
+        $permissions = Permission::all();
+
+        return Inertia::render('Perfiles/Index', [
+            'roles' => $roles,
+            'permissions' => $permissions,
+        ]);
     }
 
     /**

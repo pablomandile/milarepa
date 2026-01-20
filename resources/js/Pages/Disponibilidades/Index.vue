@@ -54,21 +54,21 @@ const deleteDisponibilidad = (id) => {
 
                             <Column header="Acciones" class="flex justify-center space-x-2">
                                 <template #body="slotProps">
-                                    <div class="flex justify-center space-x-2">
+                                    <div class="flex justify-center items-center space-x-4">
                                         <Link
                                             :href="route('disponibilidades.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update disponibilidades')"
-                                            class="text-indigo-500"
-                                            v-tooltip="'Editar disponibilidad'">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            v-tooltip="'Editar disponibilidad'"
+                                            style="display: flex; align-items: center;">
+                                            <i class="fas fa-pen-to-square" style="font-size: 18px !important; line-height: 1; color: rgb(99, 102, 241);"></i>
                                         </Link>
-                                        <a
-                                            @click.prevent="deleteDisponibilidad(parseInt(slotProps.data.id))"
+                                        <button
+                                            @click="deleteDisponibilidad(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete disponibilidades')"
-                                            class="text-red-300 cursor-pointer"
-                                            v-tooltip="'Borrar disponibilidad'">
-                                            <i class="pi pi-trash text-red-300"></i>
-                                        </a>
+                                            v-tooltip="'Borrar disponibilidad'"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-trash" style="font-size: 18px !important; line-height: 1; color: rgb(239, 68, 68);"></i>
+                                        </button>
                                     </div>
                                 </template>
                             </Column>

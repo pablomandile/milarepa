@@ -6,6 +6,7 @@
 
 <script setup>
 import FormSection from '@/Components/FormSection.vue'
+import SectionTitle from '@/Components/SectionTitle.vue'
 import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
@@ -30,10 +31,14 @@ import TextInput from '../TextInput.vue';
 <template>
     <FormSection @submitted="$emit('submit')">
         <template #title>
-            {{ updating ? 'Actualizar Método de Pago' : 'Nuevo Método de Pago' }}
-        </template>
-        <template #description>
-            {{ updating ? 'Actualizando el Método de Pago seleccionado' : 'Agregando un nuevo Método de Pago.' }}
+            <SectionTitle>
+                <template #title>
+                    {{ updating ? 'Actualizar Método de Pago' : 'Nuevo Método de Pago' }}
+                </template>
+                <template #description>
+                    {{ updating ? 'Actualizando el Método de Pago seleccionado' : 'Agregando un nuevo Método de Pago.' }}
+                </template>
+            </SectionTitle>
         </template>
         <template #form>
             <div class="col-span-6 sm:col-span-6">

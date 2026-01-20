@@ -77,25 +77,28 @@
                             <Column field="telefono" header="Teléfono"></Column>
                             <Column header="Acciones">
                                 <template #body="slotProps">
-                                    <div class="flex justify-center space-x-2">
-                                        <a
-                                            @click.prevent="verLugarHospedaje(parseInt(slotProps.data.id))"
+                                    <div class="flex justify-center items-center space-x-4">
+                                        <button
+                                            @click="verLugarHospedaje(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('read entidades')"
-                                            v-tooltip="'Ver lugar'">
-                                            <i class="pi pi-eye cursor-pointer text-indigo-400 mr-2"></i>
-                                        </a>
+                                            v-tooltip="'Ver lugar'"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1; color: rgb(99, 102, 241);"></i>
+                                        </button>
                                         <Link
                                             :href="route('lugareshospedaje.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update lugares_hospedaje')"
-                                            v-tooltip="'Editar lugar'">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            v-tooltip="'Editar lugar'"
+                                            style="display: flex; align-items: center;">
+                                            <i class="fas fa-pen-to-square" style="font-size: 18px !important; line-height: 1; color: rgb(99, 102, 241);"></i>
                                         </Link>
-                                        <a
-                                            @click.prevent="deleteLugarHospedaje(parseInt(slotProps.data.id))"
+                                        <button
+                                            @click="deleteLugarHospedaje(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete lugares_hospedaje')"
-                                            v-tooltip="'Borrar lugar'">
-                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
-                                        </a>
+                                            v-tooltip="'Borrar lugar'"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-trash" style="font-size: 18px !important; line-height: 1; color: rgb(239, 68, 68);"></i>
+                                        </button>
                                     </div>
                                 </template>
                             </Column>

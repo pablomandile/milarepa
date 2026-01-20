@@ -6,6 +6,7 @@
 
 <script setup>
 import FormSection from '@/Components/FormSection.vue'
+import SectionTitle from '@/Components/SectionTitle.vue'
 import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
@@ -32,10 +33,14 @@ defineEmits(['submit'])
 <template>
     <FormSection @submitted="$emit('submit')">
         <template #title>
-            {{ updating ? 'Actualizar Entidad' : 'Nueva Entidad' }}
-        </template>
-        <template #description>
-            {{ updating ? 'Actualizando la Entidad seleccionada' : 'Las Entidades pueden ser Centros, Anexos, lugares de retiro o salas para charlas' }}
+            <SectionTitle>
+                <template #title>
+                    {{ updating ? 'Actualizar Entidad' : 'Nueva Entidad' }}
+                </template>
+                <template #description>
+                    {{ updating ? 'Actualizando la Entidad seleccionada' : 'Las Entidades pueden ser Centros, Anexos, lugares de retiro o salas para charlas' }}
+                </template>
+            </SectionTitle>
         </template>
         <template #form>
             <div class="col-span-6 sm:col-span-6">

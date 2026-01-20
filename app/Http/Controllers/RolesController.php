@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
 
 class RolesController extends Controller
 {
@@ -11,7 +13,9 @@ class RolesController extends Controller
      */
     public function index()
     {
-        //
+        return Inertia::render('Roles/Index', [
+            'roles' => Role::paginate(15),
+        ]);
     }
 
     /**
@@ -19,7 +23,7 @@ class RolesController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('Roles/Create');
     }
 
     /**
@@ -27,7 +31,14 @@ class RolesController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:roles'],
+            'guard_name' => ['required', 'string', 'max:255'],
+        ]);
+
+        Role::create($validated);
+
+        return redirect()->route('roles.index')->with('success', 'Rol creado exitosamente.');
     }
 
     /**
@@ -43,7 +54,9 @@ class RolesController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        return Inertia::render('Roles/Edit', [
+            'role' => Role::findOrFail($id),
+        ]);
     }
 
     /**
@@ -51,7 +64,16 @@ class RolesController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $role = Role::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:roles,name,' . $id],
+            'guard_name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $role->update($validated);
+
+        return redirect()->route('roles.index')->with('success', 'Rol actualizado exitosamente.');
     }
 
     /**
@@ -59,6 +81,9 @@ class RolesController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $role = Role::findOrFail($id);
+        $role->delete();
+
+        return redirect()->route('roles.index')->with('success', 'Rol eliminado exitosamente.');
     }
 }

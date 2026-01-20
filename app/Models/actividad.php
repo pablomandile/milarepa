@@ -34,6 +34,8 @@ class Actividad extends Model
 
     protected $casts = [
         'estado' => 'boolean',
+        'fecha_inicio' => 'datetime',
+        'fecha_fin' => 'datetime',
     ];
 
     public function metodosPago() 

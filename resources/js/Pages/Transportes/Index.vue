@@ -89,21 +89,25 @@
                                     $ {{ parseFloat(slotProps.data.precio).toLocaleString('es-AR', { minimumFractionDigits: 0 }) }}
                                 </template>
                             </Column>
-                            <Column header="Acciones" class="flex justify-center space-x-2">
+                            <Column header="Acciones">
                                 <template #body="slotProps">
-                                    <div class="flex justify-center space-x-2">
+                                    <div class="flex justify-center items-center space-x-4">
                                         <Link
                                             :href="route('transportes.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update transportes')"
-                                            v-tooltip="'Editar transporte'">
-                                            <i class="pi pi-pencil text-indigo-400 mr-4"></i>
+                                            v-tooltip="'Editar transporte'"
+                                            class="text-indigo-600 hover:text-indigo-800"
+                                            style="display: flex; align-items: center;">
+                                            <i class="fas fa-pen-to-square" style="font-size: 18px !important; line-height: 1;"></i>
                                         </Link>
-                                        <a
-                                            @click.prevent="deleteTransporte(parseInt(slotProps.data.id))"
+                                        <button
+                                            @click="deleteTransporte(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete transportes')"
-                                            v-tooltip="'Borrar transporte'">
-                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
-                                        </a>
+                                            v-tooltip="'Borrar transporte'"
+                                            class="text-red-600 hover:text-red-800"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-trash" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </button>
                                     </div>
                                 </template>
                             </Column>

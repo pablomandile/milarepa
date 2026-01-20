@@ -175,37 +175,40 @@
                             </Column>
                             <Column header="Acciones">
                                 <template #body="slotProps">
-                                    <div class="flex space-x-2">
-                                        <a
-                                            @click.prevent="verTicket(parseInt(slotProps.data.id))"
+                                    <div class="flex justify-center items-center space-x-4">
+                                        <button
+                                            @click="verTicket(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('read tickets')"
-                                            v-tooltip="'Ver ticket'">
-                                            <i class="pi pi-eye cursor-pointer text-indigo-400 mr-1"></i>
-                                        </a>
-                                        <a
-                                            @click.prevent="asignarTicket(parseInt(slotProps.data.id))"
+                                            v-tooltip="'Ver ticket'"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1; color: rgb(99, 102, 241);"></i>
+                                        </button>
+                                        <button
+                                            @click="asignarTicket(parseInt(slotProps.data.id))"
                                             v-if="
                                                 $page.props.user.permissions.includes('asign tickets') && 
                                                 slotProps.data.estado_ticket &&
                                                 slotProps.data.estado_ticket.id !== 3"
                                             v-tooltip="'Asignar ticket'"
-                                            >
-                                            <i class="pi pi-user-plus cursor-pointer text-indigo-400 mr-1"></i>
-                                        </a>
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-user-plus" style="font-size: 18px !important; line-height: 1; color: rgb(99, 102, 241);"></i>
+                                        </button>
                                         <Link
                                             :href="route('centroayuda.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update tickets') &&
                                             slotProps.data.estado_ticket &&
                                                 slotProps.data.estado_ticket.id !== 3"
-                                            v-tooltip="'Editar ticket'">
-                                            <i class="pi pi-pencil text-indigo-400 mr-1"></i>
+                                            v-tooltip="'Editar ticket'"
+                                            style="display: flex; align-items: center;">
+                                            <i class="fas fa-pen-to-square" style="font-size: 18px !important; line-height: 1; color: rgb(99, 102, 241);"></i>
                                         </Link>
-                                        <a
-                                            @click.prevent="deleteTicket(parseInt(slotProps.data.id))"
+                                        <button
+                                            @click="deleteTicket(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete tickets')"
-                                            v-tooltip="'Borrar ticket'">
-                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
-                                        </a>
+                                            v-tooltip="'Borrar ticket'"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-trash" style="font-size: 18px !important; line-height: 1; color: rgb(239, 68, 68);"></i>
+                                        </button>
                                     </div>
                                 </template>
                             </Column>

@@ -113,6 +113,7 @@
         stream_id: props.actividad.stream_id,
         grabacion_id: props.actividad.grabacion_id,
         programa_id: props.actividad.programa_id,
+        estado: props.actividad.estado,
         metodos_pago_ids: props.actividad.metodos_pago ? props.actividad.metodos_pago.map(m => m.id) : [],
         hospedajes_ids: props.actividad.hospedajes ? props.actividad.hospedajes.map(h => h.id) : [],
         comidas_ids: props.actividad.comidas ? props.actividad.comidas.map(c => c.id) : [],

@@ -37,7 +37,8 @@ class ActividadesController extends Controller
             'entidad',
             'disponibilidad',
             'modalidad',
-            'esquemaPrecio',
+            'esquemaPrecio.membresias.moneda',
+            'esquemaPrecio.membresias.membresia.entidad',
             'esquemaDescuento',
             'stream',
             'grabacion',
@@ -263,48 +264,47 @@ class ActividadesController extends Controller
                 'maestros' => $maestros,
                 'coordinadores' => $coordinadores
             ]);
-            $actividad = Actividad::findOrFail($id);
-        
-            $validated = $request->validated();
-
-            // Extraer arrays de ids para relaciones muchos-a-muchos
-            $metodosPagoIds = $request->input('metodos_pago_ids', []);
-            $hospedajesIds  = $request->input('hospedajes_ids', []);
-            $comidasIds     = $request->input('comidas_ids', []);
-            $transportesIds = $request->input('transportes_ids', []);
-            $maestrosIds = $request->input('maestros_ids', []);
-            $coordinadoresIds = $request->input('coordinadores_ids', []);
-
-            if (empty($metodosPagoIds)) {
-                $metodosPagoIds = [1];
-            }
-
-            // Quitar del array validated los que no están en fillable
-            unset($validated['metodos_pago_ids'], $validated['hospedajes_ids'],
-                  $validated['comidas_ids'], $validated['transportes_ids'],
-                  $validated['maestros_ids'], $validated['coordinadores_ids']);
-
-            // Actualizar la actividad
-            $actividad->update($validated);
-
-            // Sincronizar relaciones muchos-a-muchos
-            $actividad->metodosPago()->sync($metodosPagoIds);
-            $actividad->hospedajes()->sync($hospedajesIds);
-            $actividad->comidas()->sync($comidasIds);
-            $actividad->transportes()->sync($transportesIds);
-            $actividad->maestros()->sync($maestrosIds);
-            $actividad->coordinadores()->sync($coordinadoresIds);
-
-            return redirect()->route('actividades.index')
-                ->with('success', 'Actividad actualizada correctamente.');
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(ActividadRequest $request, string $id)
     {
-        //
+        $actividad = Actividad::findOrFail($id);
+        
+        $validated = $request->validated();
+
+        // Extraer arrays de ids para relaciones muchos-a-muchos
+        $metodosPagoIds = $request->input('metodos_pago_ids', []);
+        $hospedajesIds  = $request->input('hospedajes_ids', []);
+        $comidasIds     = $request->input('comidas_ids', []);
+        $transportesIds = $request->input('transportes_ids', []);
+        $maestrosIds = $request->input('maestros_ids', []);
+        $coordinadoresIds = $request->input('coordinadores_ids', []);
+
+        if (empty($metodosPagoIds)) {
+            $metodosPagoIds = [1];
+        }
+
+        // Quitar del array validated los que no están en fillable
+        unset($validated['metodos_pago_ids'], $validated['hospedajes_ids'],
+              $validated['comidas_ids'], $validated['transportes_ids'],
+              $validated['maestros_ids'], $validated['coordinadores_ids']);
+
+        // Actualizar la actividad
+        $actividad->update($validated);
+
+        // Sincronizar relaciones muchos-a-muchos
+        $actividad->metodosPago()->sync($metodosPagoIds);
+        $actividad->hospedajes()->sync($hospedajesIds);
+        $actividad->comidas()->sync($comidasIds);
+        $actividad->transportes()->sync($transportesIds);
+        $actividad->maestros()->sync($maestrosIds);
+        $actividad->coordinadores()->sync($coordinadoresIds);
+
+        return redirect()->route('actividades.index')
+            ->with('success', 'Actividad actualizada correctamente.');
     }
 
     /**
