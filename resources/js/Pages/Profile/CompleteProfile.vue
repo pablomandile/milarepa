@@ -23,7 +23,15 @@
             type: Array,
             default: () => [],
         },
-        localidades: {
+        provincias: {
+            type: Array,
+            default: () => [],
+        },
+        municipios: {
+            type: Array,
+            default: () => [],
+        },
+        barrios: {
             type: Array,
             default: () => [],
         },
@@ -43,10 +51,12 @@
         accesibilidad_desc: '',
         direccion: '',
         pais_id: '',
-        localidad_id: '',
+        provincia_id: '',
+        municipio_id: '',
+        barrio_id: '',
         telefono: '',
         whatsapp: '',
-        edad: '',
+        fecha_nacimiento: null,
         sexo_id: '',
         membresia_id: '',
         es_maestro: false,
@@ -60,10 +70,12 @@
         form.accesibilidad_desc = props.user.accesibilidad_desc ?? '';
         form.direccion = props.user.direccion ?? '';
         form.pais_id = props.user.pais_id ?? '';
-        form.localidad_id = props.user.localidad_id ?? '';
+        form.provincia_id = props.user.provincia_id ?? '';
+        form.municipio_id = props.user.municipio_id ?? '';
+        form.barrio_id = props.user.barrio_id ?? '';
         form.telefono = props.user.telefono ?? '';
         form.whatsapp = props.user.whatsapp ?? '';
-        form.edad = props.user.edad ?? '';
+        form.fecha_nacimiento = props.user.fecha_nacimiento ?? '';
         form.sexo_id = props.user.sexo_id ?? '';
         form.membresia_id = props.user.membresia_id ?? '';
         form.es_maestro = props.user.es_mastro;
@@ -73,6 +85,15 @@
     }
 
     function submit() {
+        // Formatear fecha_nacimiento al formato YYYY-MM-DD si existe
+        if (form.fecha_nacimiento) {
+            const fecha = new Date(form.fecha_nacimiento);
+            const year = fecha.getFullYear();
+            const month = String(fecha.getMonth() + 1).padStart(2, '0');
+            const day = String(fecha.getDate()).padStart(2, '0');
+            form.fecha_nacimiento = `${year}-${month}-${day}`;
+        }
+        
         if (props.updating) {
             // Si estamos en modo edición
             form.put(route('profile.complete.update'), {
@@ -98,7 +119,7 @@
             <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Agregar datos a tu Perfil</h1>
         </template>
         <div class="py-12">
-            <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="w-[70%] mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
                     <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white border-b border-gray-200">
@@ -106,7 +127,9 @@
                             :updating="updating"
                             :membresias="membresias"
                             :paises="paises"
-                            :localidades="localidades"
+                            :provincias="provincias"
+                            :municipios="municipios"
+                            :barrios="barrios"
                             :sexos="sexos"
                             :form="form" 
                             @submit="submit"

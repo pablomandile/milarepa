@@ -1,17 +1,73 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import DataView from 'primevue/dataview';
+import Dialog from 'primevue/dialog';
+import Button from 'primevue/button';
 import { ref } from 'vue';
+import Swal from 'sweetalert2';
+
+const page = usePage();
 
 const props = defineProps({
     membresias: {
         type: Object,
         required: true
+    },
+    user_membresia: {
+        type: Object,
+        default: null
     }
 });
 
 const layout = ref('grid');
+const showConfirmDialog = ref(false);
+const membresiaPendiente = ref(null);
+
+const userMembresia = props.user_membresia;
+
+const inscrbirme = (membresia) => {
+    const userActive = userMembresia;
+
+    if (!userActive) {
+        // Si no tiene membresía, inscribirse directamente
+        router.post(route('membresias.subscribe'), {
+            membresia_id: membresia.id
+        }, {
+            onSuccess: () => {
+                Swal.fire('¡Éxito!', 'Te has inscrito a la membresía correctamente', 'success');
+            },
+            onError: () => {
+                Swal.fire('Error', 'Hubo un problema al inscribirse', 'error');
+            }
+        });
+    } else if (userActive.id === membresia.id) {
+        // Si es la misma membresía
+        Swal.fire('Información', 'Ya tienes esta membresía activa', 'info');
+    } else {
+        // Si tiene otra membresía, mostrar modal de confirmación
+        membresiaPendiente.value = membresia;
+        showConfirmDialog.value = true;
+    }
+};
+
+const confirmarCambio = () => {
+    router.post(route('membresias.subscribe'), {
+        membresia_id: membresiaPendiente.value.id
+    }, {
+        onSuccess: () => {
+            showConfirmDialog.value = false;
+            Swal.fire('¡Éxito!', 'Tu membresía ha sido actualizada', 'success');
+        },
+        onError: () => {
+            Swal.fire('Error', 'Hubo un problema al cambiar la membresía', 'error');
+        }
+    });
+};
+
+const isDisabledButton = (membresia) => {
+    return userMembresia && userMembresia.id === membresia.id;
+};
 </script>
 
 <template>
@@ -21,7 +77,15 @@ const layout = ref('grid');
                 <div class="bg-white border-round shadow-1">
                     <div class="p-6 border-bottom-1 border-200">
                         <div class="flex justify-content-between align-items-center mb-4">
-                            <h2 class="text-2xl font-bold text-900 m-0">Membresías Disponibles</h2>
+                            <div>
+                                <h2 class="text-2xl font-bold text-900 m-0">Membresías Disponibles</h2>
+                                <p v-if="userMembresia" class="text-base text-600 mt-2">
+                                    <span class="font-semibold">Tu membresía actual:</span> <span class="font-bold text-green-600">{{ userMembresia.nombre }}</span>
+                                </p>
+                                <p v-else class="text-base text-600 mt-2">
+                                    No tienes una membresía activa. ¡Elige una y únete ahora!
+                                </p>
+                            </div>
                             <div class="flex gap-2">
                                 <button
                                     @click="layout = 'grid'"
@@ -76,13 +140,19 @@ const layout = ref('grid');
                                                             </span>
                                                         </div>
                                                         <div class="mt-auto">
-                                                            <Link
-                                                                :href="route('registromembresias.create', { membresia_id: membresia.id })"
-                                                                class="p-button p-button-primary p-button-rounded w-full text-center no-underline text-white"
+                                                            <button
+                                                                @click="inscrbirme(membresia)"
+                                                                :disabled="isDisabledButton(membresia)"
+                                                                :class="[
+                                                                    'w-full py-2 px-4 rounded-md font-medium transition-colors flex items-center justify-center gap-2',
+                                                                    isDisabledButton(membresia) 
+                                                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                                                        : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                                                ]"
                                                             >
-                                                                <i class="pi pi-plus-circle mr-2"></i>
-                                                                Inscribirme
-                                                            </Link>
+                                                                <i class="pi pi-plus-circle"></i>
+                                                                {{ isDisabledButton(membresia) ? 'Mi membresía actual' : 'Inscribirme' }}
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -122,13 +192,19 @@ const layout = ref('grid');
                                                         </p>
                                                     </div>
                                                     <div class="mt-4 md:mt-0 md:ml-4">
-                                                        <Link
-                                                            :href="route('registromembresias.create', { membresia_id: membresia.id })"
-                                                            class="p-button p-button-primary p-button-rounded no-underline text-white"
+                                                        <button
+                                                            @click="inscrbirme(membresia)"
+                                                            :disabled="isDisabledButton(membresia)"
+                                                            :class="[
+                                                                'py-2 px-4 rounded-md font-medium transition-colors flex items-center justify-center gap-2',
+                                                                isDisabledButton(membresia) 
+                                                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                                                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                                            ]"
                                                         >
-                                                            <i class="pi pi-plus-circle mr-2"></i>
-                                                            Inscribirme
-                                                        </Link>
+                                                            <i class="pi pi-plus-circle"></i>
+                                                            {{ isDisabledButton(membresia) ? 'Mi membresía actual' : 'Inscribirme' }}
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -152,6 +228,44 @@ const layout = ref('grid');
             </div>
         </div>
     </AppLayout>
+
+    <!-- Modal de confirmación para cambio de membresía -->
+    <Dialog 
+        v-model:visible="showConfirmDialog" 
+        modal 
+        header="Cambiar membresía"
+        :style="{ width: '30rem' }"
+        :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+    >
+        <template v-if="membresiaPendiente">
+            <div class="flex flex-col items-center justify-center mb-4">
+                <i class="pi pi-exclamation-triangle text-yellow-500 mb-3" style="font-size: 3rem"></i>
+                <p class="text-center mb-3">
+                    Actualmente tienes la membresía <strong>{{ userMembresia?.nombre }}</strong>.
+                </p>
+                <p class="text-center mb-4">
+                    ¿Deseas cambiar a la membresía <strong>{{ membresiaPendiente.nombre }}</strong>?
+                </p>
+            </div>
+        </template>
+
+        <template #footer>
+            <div class="flex justify-end space-x-2">
+                <button 
+                    @click="showConfirmDialog = false"
+                    class="py-2 px-4 rounded-md font-medium transition-colors bg-gray-500 text-white hover:bg-gray-600"
+                >
+                    Cancelar
+                </button>
+                <button 
+                    @click="confirmarCambio"
+                    class="py-2 px-4 rounded-md font-medium transition-colors bg-green-600 text-white hover:bg-green-700"
+                >
+                    Sí, cambiar
+                </button>
+            </div>
+        </template>
+    </Dialog>
 </template>
 
 <style scoped>

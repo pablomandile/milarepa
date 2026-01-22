@@ -273,16 +273,6 @@
                                             <span class="ml-2">{{ data.esquema_descuento.nombre }}</span>
                                         </div>
 
-                                        <!-- Métodos de Pago -->
-                                        <div v-if="data.metodos_pago && data.metodos_pago.length > 0">
-                                            <span class="font-semibold text-gray-700">Métodos de Pago:</span>
-                                            <div class="ml-2">
-                                                <span v-for="(metodo, index) in data.metodos_pago" :key="metodo.id" class="text-sm">
-                                                    {{ metodo.descripcion }}<span v-if="index < data.metodos_pago.length - 1">, </span>
-                                                </span>
-                                            </div>
-                                        </div>
-
                                         <!-- Hospedajes -->
                                         <div v-if="data.hospedajes && data.hospedajes.length > 0">
                                             <span class="font-semibold text-gray-700">Hospedajes:</span>
@@ -342,6 +332,11 @@
                                             <span class="font-semibold text-gray-700">Métodos de Pago:</span>
                                             <div class="ml-2 flex flex-wrap gap-2 mt-1">
                                                 <Tag v-for="metodo in data.metodos_pago" :key="metodo.id" severity="info" :value="metodo.nombre"></Tag>
+                                            </div>
+                                            <div class="ml-2 mt-2">
+                                                <span v-for="(metodo, index) in data.metodos_pago" :key="metodo.id" class="text-sm block">
+                                                    {{ metodo.descripcion }}<span v-if="index < data.metodos_pago.length - 1"></span>
+                                                </span>
                                             </div>
                                         </div>
 

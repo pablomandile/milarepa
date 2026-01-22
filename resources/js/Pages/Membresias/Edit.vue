@@ -29,7 +29,8 @@
     const form = useForm({
         nombre: props.membresia.nombre,
         descripcion: props.membresia.descripcion,
-        entidad_id: props.membresia.entidad_id
+        entidad_id: props.membresia.entidad_id,
+        valor: props.membresia.valor
     });
 
     const handleSubmit = () => {
@@ -56,7 +57,7 @@
                     <!-- Botón de Volver -->
                     <div class="flex justify-end mr-5 mb-6 mt-3">
                         <Link 
-                            :href="route('membresias.index')" 
+                            :href="route('membresias.gestion')" 
                             class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
                             Volver
                         </Link>

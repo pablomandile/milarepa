@@ -13,7 +13,7 @@ class NovedadesController extends Controller
      */
     public function index()
     {
-        $novedades = Novedad::all();
+        $novedades = Novedad::orderBy('fecha', 'desc')->get();
         return inertia('Novedades/Index', ['novedades' => $novedades]);
     }
 
@@ -22,7 +22,7 @@ class NovedadesController extends Controller
      */
     public function gestion()
     {
-        $novedades = Novedad::all();
+        $novedades = Novedad::orderBy('fecha', 'desc')->get();
         return inertia('Novedades/Gestion', ['novedades' => $novedades]);
     }
 

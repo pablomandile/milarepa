@@ -26,6 +26,7 @@ use App\Http\Controllers\CentroAyudaController;
 use App\Http\Controllers\NovedadesController;
 use App\Http\Controllers\ReporteErrorController;
 use App\Http\Controllers\AcercaDeController;
+use App\Http\Controllers\VersionesController;
 use App\Http\Controllers\TicketsController;
 use App\Http\Controllers\TransportesController;
 use App\Http\Controllers\DescripcionesController;
@@ -35,6 +36,8 @@ use App\Http\Controllers\GrabacionesController;
 use App\Http\Controllers\GridActividadesController;
 use App\Http\Controllers\ImagenesController;
 use App\Http\Controllers\RegistroMembresiasController;
+use App\Http\Controllers\EstadoCuentaMembresiasController;
+use App\Http\Controllers\MembresiasGestionController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\StreamsController;
 use App\Http\Controllers\ProfileCompletionController;
@@ -84,6 +87,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/roles', RolesController::class);
     Route::resource('/membresias', MembresiasController::class);
     Route::get('/membresias-gestion', [MembresiasController::class, 'gestion'])->name('membresias.gestion');
+    Route::post('/membresias/subscribe', [MembresiasController::class, 'subscribe'])->name('membresias.subscribe');
+    Route::get('/membresias-gestion-usuarios', [MembresiasGestionController::class, 'index'])->name('membresias.gestion-usuarios');
+    Route::put('/membresias-gestion-usuarios/{user}/asignar', [MembresiasGestionController::class, 'asignar'])->name('membresias.asignar');
+    Route::delete('/membresias-gestion-usuarios/{user}/eliminar', [MembresiasGestionController::class, 'eliminar'])->name('membresias.eliminar');
     Route::resource('/comidas', ComidasController::class);
     Route::resource('/hospedajes', HospedajesController::class);
     Route::resource('/transportes', TransportesController::class);
@@ -107,6 +114,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         'parameters' => ['novedades' => 'novedad'],]);
     Route::resource('/reporteerror', ReporteErrorController::class);
     Route::resource('/acercade', AcercaDeController::class);
+    Route::resource('/versiones', VersionesController::class, [
+        'parameters' => ['versiones' => 'version'],]);
     Route::put('/tickets/asignar/{ticket}', [TicketsController::class, 'asignar'])->name('tickets.asignar');
     Route::resource('/descripciones', DescripcionesController::class, [
         'parameters' => ['descripciones' => 'descripcion'],]);
@@ -150,6 +159,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     ->name('grabaciones.destroyLink');
     
     Route::resource('/registromembresias', RegistroMembresiasController::class);
+
+    Route::resource('/estado-cuenta-membresias', EstadoCuentaMembresiasController::class, [
+        'parameters' => ['estado-cuenta-membresias' => 'estadoCuentaMembresia'],
+        'except' => ['create', 'store']
+    ]);
 
     Route::resource('/imagenes', ImagenesController::class, [
         'parameters' => ['imagenes' => 'imagen'],]);

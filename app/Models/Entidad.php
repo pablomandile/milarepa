@@ -30,6 +30,25 @@ class Entidad extends Model
         'entidad_principal'
     ];
 
+    protected $appends = ['logo_url'];
+
+    public function getLogoUrlAttribute()
+    {
+        if ($this->logo_uri) {
+            // Si la URI ya es una URL completa (http/https), retornarla tal cual
+            if (filter_var($this->logo_uri, FILTER_VALIDATE_URL)) {
+                return $this->logo_uri;
+            }
+            // Si empieza con /storage/, retornarla tal cual
+            if (str_starts_with($this->logo_uri, '/storage/')) {
+                return $this->logo_uri;
+            }
+            // De lo contrario, agregar el prefijo /storage/
+            return '/storage/' . ltrim($this->logo_uri, '/');
+        }
+        return null;
+    }
+
     public function membresias()
     {
         return $this->hasMany(Membresia::class, 'entidad_id');

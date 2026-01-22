@@ -69,6 +69,21 @@ import Dropdown from 'primevue/dropdown';
                 />
                 <InputError :message="$page.props.errors.lugar_hospedaje_id" class="mt-2" />
             </div>
+            <div class="col-span-6 sm:col-span-6">
+                <InputLabel for="valor" value="Valor (ARS)" :required="true"/>
+                <div class="mt-1 flex rounded-md shadow-sm">
+                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">$</span>
+                    <TextInput
+                        id="valor"
+                        v-model.number="form.valor"
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        class="flex-1 rounded-none rounded-r-md"
+                    />
+                </div>
+                <InputError :message="$page.props.errors.valor" class="mt-2" />
+            </div>
         </template>
         <template #actions>
             <PrimaryButton>
@@ -77,3 +92,4 @@ import Dropdown from 'primevue/dropdown';
         </template>
     </FormSection>
 </template>
+

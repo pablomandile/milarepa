@@ -20,7 +20,8 @@
     const form = useForm({
         nombre: '',
         descripcion: '',
-        entidad_id: ''
+        entidad_id: '',
+        valor: ''
     })
 </script>
 

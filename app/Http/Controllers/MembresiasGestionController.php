@@ -1,0 +1,97 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use App\Models\Membresia;
+use App\Models\EstadoCuentaMembresia;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Carbon\Carbon;
+
+class MembresiasGestionController extends Controller
+{
+    public function index()
+    {
+        $usuarios = User::with('membresia')
+            ->orderBy('name')
+            ->paginate(15);
+
+        $membresias = Membresia::with('entidad')
+            ->select('id', 'nombre', 'entidad_id')
+            ->where('nombre', '!=', 'Sin membresía')
+            ->orderBy('nombre')
+            ->get();
+
+        return inertia('MembresiasGestion/Index', [
+            'usuarios' => $usuarios,
+            'membresias' => $membresias
+        ]);
+    }
+
+    public function asignar(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'membresia_id' => 'nullable|exists:membresias,id'
+        ]);
+
+        $membresia = $validated['membresia_id'] ? Membresia::find($validated['membresia_id']) : null;
+
+        $user->update([
+            'membresia_id' => $validated['membresia_id'],
+            'membresia_inscripcion_fecha' => $validated['membresia_id'] ? now()->toDateString() : null
+        ]);
+
+        if ($validated['membresia_id'] && $membresia) {
+            $this->crearEstadosCuenta(
+                $user->id,
+                $validated['membresia_id'],
+                now()->toDateString(),
+                12,
+                $membresia->valor ?? 0
+            );
+        }
+
+        return redirect()->back()
+            ->with('success', 'Membresía asignada correctamente a ' . $user->name);
+    }
+
+    public function eliminar(User $user)
+    {
+        $user->update([
+            'membresia_id' => null,
+            'membresia_inscripcion_fecha' => null
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Membresía eliminada correctamente de ' . $user->name);
+    }
+
+    private function crearEstadosCuenta($userId, $membresiaId, $fechaInicio, $cantidadMeses = 12, $importe = null)
+    {
+        $fecha = Carbon::parse($fechaInicio);
+
+        for ($i = 0; $i < $cantidadMeses; $i++) {
+            $mesPagado = $fecha->format('Y-m');
+
+            $existe = EstadoCuentaMembresia::where('user_id', $userId)
+                ->where('membresia_id', $membresiaId)
+                ->where('mes_pagado', $mesPagado)
+                ->exists();
+
+            if (!$existe) {
+                EstadoCuentaMembresia::create([
+                    'user_id' => $userId,
+                    'membresia_id' => $membresiaId,
+                    'mes_pagado' => $mesPagado,
+                    'fecha_pago' => null,
+                    'importe' => $importe,
+                    'pagado' => false,
+                    'observaciones' => 'Registro automático'
+                ]);
+            }
+
+            $fecha->addMonth();
+        }
+    }
+}

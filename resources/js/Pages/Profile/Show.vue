@@ -52,10 +52,26 @@ defineProps({
                                             </span>
                                         </div>
                                         <div class="mb-2">
-                                            Localidad<br>
+                                            Provincia<br>
                                             <span class="text-indigo-600">
                                                 <strong>
-                                                    {{ $page.props.auth.user.localidad.nombre }}
+                                                    {{ $page.props.auth.user.provincia?.nombre ?? 'No especificado' }}
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="mb-2">
+                                            Municipio<br>
+                                            <span class="text-indigo-600">
+                                                <strong>
+                                                    {{ $page.props.auth.user.municipio?.nombre ?? 'No especificado' }}
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <div class="mb-2" v-if="$page.props.auth.user.barrio">
+                                            Barrio<br>
+                                            <span class="text-indigo-600">
+                                                <strong>
+                                                    {{ $page.props.auth.user.barrio.nombre }}
                                                 </strong>
                                             </span>
                                         </div>

@@ -8,13 +8,6 @@ import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import Footer from '@/Components/Footer.vue';
-import Dialog from 'primevue/dialog';
-import { usePage } from '@inertiajs/vue3';
-
-const page = usePage();
-const dialogVisible = ref(false);
-const dialogTitle = ref('Acerca de');
-const dialogContent = ref('');
 
 const props = defineProps({
   title: {
@@ -22,29 +15,6 @@ const props = defineProps({
     default: 'Default Title'
   },
 });
-
-const mostrarAcercade = () => {
-    dialogContent.value = `
-        <div class="about-bg shadow-md rounded-lg p-6 max-w-md mx-auto border border-gray-200">
-            <div class="ml-6">
-                <p class="m-0">
-                    <strong> <span class="text-white"> ${page.props.version.version || 'Sin versión disponible'} </span>  </strong><br>
-                    <strong>Fecha de última actualización, <span class="text-white"> ${page.props.version.created_at || 'Fecha no especificada'} </span> </strong>
-                </p>
-                <p class="mt-4 mb-4">
-                    <strong>Desarrollado por  <br>
-                    <span class="text-white"> Pablo Mandile </span></strong>
-                    <span class="text-gray-500">
-                        <a href="mailto:pablo.mandile@gmail.com" target="_blank" class="underline hover:text-indigo-600">
-                            pablo.mandile@gmail.com
-                        </a>
-                    </span> 
-                </p>
-            </div>
-        </div>
-    `;
-    dialogVisible.value = true;
-};
 
 const showingNavigationDropdown = ref(false);
 
@@ -214,12 +184,12 @@ const logout = () => {
                                     <DropdownLink :href="route('membresias.index')" :active="route().current('membresias.*')">
                                         Membresías Disponibles
                                     </DropdownLink>
-                                    <!-- <DropdownLink :href="route('registromembresias.index')" :active="route().current('registromembresias.*')">
-                                        Mi Membresía
-                                    </DropdownLink>
                                     <DropdownLink :href="route('estado-cuenta-membresias.index')" :active="route().current('estado-cuenta-membresias.*')">
-                                        Estado de Cuenta
-                                    </DropdownLink> -->
+                                        Estado de Cuenta Membresías
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('membresias.gestion-usuarios')" :active="route().current('membresias.gestion-usuarios')">
+                                        Adminnistrar Membresías
+                                    </DropdownLink>
                                 </template>
                             </Dropdown>
                         </div>
@@ -236,10 +206,7 @@ const logout = () => {
 
                                 <template #content>
                                     <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
-                                        Pagar Membresía
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
-                                        Estado de Membresías
+                                        Monedas
                                     </DropdownLink>
                                     <DropdownLink :href="route('metodospago.index')" :active="route().current('metodos-pago.*')">
                                         Métodos de Pago
@@ -253,9 +220,7 @@ const logout = () => {
                                     <DropdownLink :href="route('esquemadescuentos.index')" :active="route().current('esquema-descuentos.*')">
                                         Exención de pago
                                     </DropdownLink>
-                                    <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
-                                        Monedas
-                                    </DropdownLink>
+
                                 </template>
                             </Dropdown>
                         </div>
@@ -301,31 +266,20 @@ const logout = () => {
                                     <DropdownLink :href="route('novedades.index')" :active="route().current('novedades.*')">
                                         Novedades
                                     </DropdownLink>
+                                    <DropdownLink :href="route('versiones.index')" :active="route().current('versiones.*')">
+                                        Versiones
+                                    </DropdownLink>
                                     <DropdownLink :href="route('reporteerror.index')" :active="route().current('reporteerror.*')">
                                         Reportar un error
                                     </DropdownLink>
                                     <div class="border-t border-gray-200" />
-                                    <div class="text-gray-500 ml-4">
-                                        <button 
-                                            @click="mostrarAcercade" 
-                                            class=" mt-2 text-left w-full hover:bg-gray-100">
-                                            <i class="pi pi-info-circle mr-1" style="color: slateblue"></i>
-                                            Acerca de
-                                        </button>
-                                    </div>
+                                    <DropdownLink :href="route('acercade.index')" :active="route().current('acercade.*')">
+                                        <i class="fas fa-info-circle mr-1" style="color: slateblue"></i>
+                                        Acerca de
+                                    </DropdownLink>
                                     
                                 </template>
                             </Dropdown>
-                            <Dialog 
-                                v-model:visible="dialogVisible" 
-                                :header="dialogTitle" 
-                                :style="{ width: '30vw' }" 
-                                dismissableMask
-                                modal>
-                                <template #default>
-                                    <div v-html="dialogContent"></div>
-                                </template>
-                            </Dialog>
 
                         </div>
                     </div>

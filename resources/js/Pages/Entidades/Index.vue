@@ -111,71 +111,218 @@
     <!-- Dialog para mostrar detalles -->
     <Dialog 
         v-model:visible="visible" 
-        maximizable 
         modal 
-        :header="entidadSeleccionada ? `Detalles de ${entidadSeleccionada.nombre}` : 'Detalles...'"
-        :style="{ width: '50rem' }" 
+        :header="entidadSeleccionada ? entidadSeleccionada.nombre : 'Detalles de la Entidad'"
+        :style="{ width: '55rem' }" 
         :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
-        dismissableMask
     >
-    <template v-if="entidadSeleccionada">
-        <!-- Mostrar imagen solo si logo_url no está vacío -->
-        <div class="mb-5" v-if="entidadSeleccionada.logo_uri">
-            <img :src="entidadSeleccionada.logo_uri" alt="Logo de la Entidad" style="max-width: 200px; max-height: 100px;" />
-            
-        </div>
-        
-        <p class="mb-3" v-if="entidadSeleccionada.descripcion && entidadSeleccionada.descripcion.trim() !== ''">
-            {{ entidadSeleccionada.descripcion }}
-        </p>
-        <p v-if="entidadSeleccionada.abreviacion && entidadSeleccionada.abreviacion.trim() !== ''">
-            <i class="pi pi-arrow-down-left-and-arrow-up-right-to-center mr-1"></i> {{ entidadSeleccionada.abreviacion }}
-        </p>
-        <p v-if="entidadSeleccionada.direccion && entidadSeleccionada.direccion.trim() !== ''">
-            <i class="pi pi-map-marker mr-1"></i> {{ entidadSeleccionada.direccion }}
-        </p>
-        <p v-if="entidadSeleccionada.telefono && entidadSeleccionada.telefono.trim() !== ''">
-            <i class="pi pi-phone mr-1"></i> {{ entidadSeleccionada.telefono }}
-        </p>
-        <p v-if="entidadSeleccionada.whatsapp && entidadSeleccionada.whatsapp.trim() !== ''">
-            <i class="pi pi-whatsapp mr-1"></i> {{ entidadSeleccionada.whatsapp }}
-        </p>
-        <p v-if="entidadSeleccionada.web_uri && entidadSeleccionada.web_uri.trim() !== ''">
-            <i class="pi pi-link mr-1"></i> <a :href="entidadSeleccionada.web_uri" target="_blank" rel="noopener noreferrer">
-                {{ entidadSeleccionada.web_uri }} </a>
-        </p>
-        <p v-if="entidadSeleccionada.instagram_uri && entidadSeleccionada.instagram_uri.trim() !== ''">
-            <i class="pi pi-instagram mr-1"></i> <a :href="entidadSeleccionada.instagram_uri" target="_blank" rel="noopener noreferrer">
-                {{ entidadSeleccionada.instagram_uri }} </a>
-        </p>
-        <p v-if="entidadSeleccionada.facebook_uri && entidadSeleccionada.facebook_uri.trim() !== ''">
-            <i class="pi pi-facebook mr-1"></i> <a :href="entidadSeleccionada.facebook_uri" target="_blank" rel="noopener noreferrer">
-                {{ entidadSeleccionada.facebook_uri }} </a>
-        </p>
-        <p v-if="entidadSeleccionada.twitter_uri && entidadSeleccionada.twitter_uri.trim() !== ''">
-            <i class="pi pi-twitter mr-1"></i> <a :href="entidadSeleccionada.twitter_uri" target="_blank" rel="noopener noreferrer">
-                {{ entidadSeleccionada.twitter_uri }} </a>
-        </p>
-        <p v-if="entidadSeleccionada.youtube_uri && entidadSeleccionada.youtube_uri.trim() !== ''">
-            <i class="pi pi-youtube mr-1"></i> <a :href="entidadSeleccionada.youtube_uri" target="_blank" rel="noopener noreferrer">
-            {{ entidadSeleccionada.youtube_uri }} </a>
-        </p>
-        <p v-if="entidadSeleccionada.spotify_uri && entidadSeleccionada.spotify_uri.trim() !== ''">
-            <i class="pi pi-headphones mr-1"></i> <a :href="entidadSeleccionada.spotify_uri" target="_blank" rel="noopener noreferrer">
-                {{ entidadSeleccionada.spotify_uri }} </a>
-        </p>
-        <p v-if="entidadSeleccionada.email1 && entidadSeleccionada.email1.trim() !== ''">
-            <i class="pi pi-envelope mr-1"></i> {{ entidadSeleccionada.email1 }}
-        </p>
-        <p v-if="entidadSeleccionada.email2 && entidadSeleccionada.email2.trim() !== ''">
-            <i class="pi pi-envelope mr-1"></i> {{ entidadSeleccionada.email2 }}
-        </p>
+        <template v-if="entidadSeleccionada">
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 shadow-inner">
+                <!-- Logo y nombre destacado -->
+                <div class="bg-white rounded-lg p-5 mb-4 shadow-sm border-l-4 border-indigo-500">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center flex-1">
+                            <i class="fas fa-building text-indigo-600 text-2xl mr-3"></i>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">{{ entidadSeleccionada.nombre }}</h3>
+                                <p v-if="entidadSeleccionada.abreviacion && entidadSeleccionada.abreviacion.trim() !== ''" 
+                                   class="text-sm text-gray-500 mt-1">
+                                    {{ entidadSeleccionada.abreviacion }}
+                                </p>
+                            </div>
+                        </div>
+                        <div v-if="entidadSeleccionada.logo_url" class="ml-4">
+                            <img :src="entidadSeleccionada.logo_url" 
+                                 alt="Logo" 
+                                 class="max-w-[120px] max-h-[60px] object-contain" />
+                        </div>
+                    </div>
+                    <!-- Badge de entidad principal -->
+                    <div v-if="entidadSeleccionada.entidad_principal === 1" 
+                         class="mt-3 inline-flex items-center bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-semibold">
+                        <i class="fas fa-star text-indigo-600 mr-2"></i>
+                        Entidad Principal
+                    </div>
+                </div>
 
-        <!-- Mostrar solo si entidad_principal es true -->
-        <p class="mt-3 text-center text-indigo-500" v-if="entidadSeleccionada.entidad_principal === 1">
-            {{ entidadSeleccionada.nombre }}<strong> es la entidad principal.</strong>
-        </p>
+                <!-- Descripción -->
+                <div v-if="entidadSeleccionada.descripcion && entidadSeleccionada.descripcion.trim() !== ''" 
+                     class="bg-white rounded-lg p-5 mb-4 shadow-sm">
+                    <div class="flex items-start">
+                        <i class="fas fa-align-left text-indigo-600 text-lg mr-3 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Descripción</h4>
+                            <p class="text-gray-600 leading-relaxed">{{ entidadSeleccionada.descripcion }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Información de contacto -->
+                    <div class="bg-white rounded-lg p-5 shadow-sm">
+                        <h4 class="font-semibold text-gray-700 mb-4 flex items-center">
+                            <i class="fas fa-address-card text-indigo-600 text-lg mr-2"></i>
+                            Contacto
+                        </h4>
+                        
+                        <div class="space-y-3">
+                            <div v-if="entidadSeleccionada.direccion && entidadSeleccionada.direccion.trim() !== ''" 
+                                 class="flex items-start">
+                                <i class="fas fa-map-marker-alt text-indigo-600 mr-3 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-500 mb-0.5">Dirección</p>
+                                    <p class="text-gray-700 text-sm">{{ entidadSeleccionada.direccion }}</p>
+                                </div>
+                            </div>
+
+                            <div v-if="entidadSeleccionada.telefono && entidadSeleccionada.telefono.trim() !== ''" 
+                                 class="flex items-start">
+                                <i class="fas fa-phone text-indigo-600 mr-3 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-500 mb-0.5">Teléfono</p>
+                                    <a :href="`tel:${entidadSeleccionada.telefono}`" 
+                                       class="text-gray-700 hover:text-indigo-600 transition-colors text-sm">
+                                        {{ entidadSeleccionada.telefono }}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div v-if="entidadSeleccionada.whatsapp && entidadSeleccionada.whatsapp.trim() !== ''" 
+                                 class="flex items-start">
+                                <i class="fab fa-whatsapp text-indigo-600 mr-3 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-500 mb-0.5">WhatsApp</p>
+                                    <a :href="`https://wa.me/${entidadSeleccionada.whatsapp.replace(/[^0-9]/g, '')}`" 
+                                       target="_blank"
+                                       class="text-gray-700 hover:text-indigo-600 transition-colors text-sm">
+                                        {{ entidadSeleccionada.whatsapp }}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div v-if="entidadSeleccionada.email1 && entidadSeleccionada.email1.trim() !== ''" 
+                                 class="flex items-start">
+                                <i class="fas fa-envelope text-indigo-600 mr-3 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-500 mb-0.5">Email</p>
+                                    <a :href="`mailto:${entidadSeleccionada.email1}`" 
+                                       class="text-gray-700 hover:text-indigo-600 transition-colors text-sm break-all">
+                                        {{ entidadSeleccionada.email1 }}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div v-if="entidadSeleccionada.email2 && entidadSeleccionada.email2.trim() !== ''" 
+                                 class="flex items-start">
+                                <i class="fas fa-envelope text-indigo-600 mr-3 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-500 mb-0.5">Email 2</p>
+                                    <a :href="`mailto:${entidadSeleccionada.email2}`" 
+                                       class="text-gray-700 hover:text-indigo-600 transition-colors text-sm break-all">
+                                        {{ entidadSeleccionada.email2 }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Redes sociales y web -->
+                    <div class="bg-white rounded-lg p-5 shadow-sm">
+                        <h4 class="font-semibold text-gray-700 mb-4 flex items-center">
+                            <i class="fas fa-share-nodes text-indigo-600 text-lg mr-2"></i>
+                            Redes y Web
+                        </h4>
+                        
+                        <div class="space-y-3">
+                            <div v-if="entidadSeleccionada.web_uri && entidadSeleccionada.web_uri.trim() !== ''" 
+                                 class="flex items-start">
+                                <i class="fas fa-globe text-indigo-600 mr-3 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-500 mb-0.5">Sitio Web</p>
+                                    <a :href="entidadSeleccionada.web_uri" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="text-indigo-600 hover:text-indigo-800 transition-colors text-sm flex items-center break-all">
+                                        {{ entidadSeleccionada.web_uri }}
+                                        <i class="fas fa-external-link-alt text-xs ml-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div v-if="entidadSeleccionada.instagram_uri && entidadSeleccionada.instagram_uri.trim() !== ''" 
+                                 class="flex items-start">
+                                <i class="fab fa-instagram text-indigo-600 mr-3 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-500 mb-0.5">Instagram</p>
+                                    <a :href="entidadSeleccionada.instagram_uri" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="text-indigo-600 hover:text-indigo-800 transition-colors text-sm break-all">
+                                        {{ entidadSeleccionada.instagram_uri }}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div v-if="entidadSeleccionada.facebook_uri && entidadSeleccionada.facebook_uri.trim() !== ''" 
+                                 class="flex items-start">
+                                <i class="fab fa-facebook text-indigo-600 mr-3 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-500 mb-0.5">Facebook</p>
+                                    <a :href="entidadSeleccionada.facebook_uri" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="text-indigo-600 hover:text-indigo-800 transition-colors text-sm break-all">
+                                        {{ entidadSeleccionada.facebook_uri }}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div v-if="entidadSeleccionada.twitter_uri && entidadSeleccionada.twitter_uri.trim() !== ''" 
+                                 class="flex items-start">
+                                <i class="fab fa-twitter text-indigo-600 mr-3 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-500 mb-0.5">Twitter</p>
+                                    <a :href="entidadSeleccionada.twitter_uri" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="text-indigo-600 hover:text-indigo-800 transition-colors text-sm break-all">
+                                        {{ entidadSeleccionada.twitter_uri }}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div v-if="entidadSeleccionada.youtube_uri && entidadSeleccionada.youtube_uri.trim() !== ''" 
+                                 class="flex items-start">
+                                <i class="fab fa-youtube text-indigo-600 mr-3 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-500 mb-0.5">YouTube</p>
+                                    <a :href="entidadSeleccionada.youtube_uri" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="text-indigo-600 hover:text-indigo-800 transition-colors text-sm break-all">
+                                        {{ entidadSeleccionada.youtube_uri }}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div v-if="entidadSeleccionada.spotify_uri && entidadSeleccionada.spotify_uri.trim() !== ''" 
+                                 class="flex items-start">
+                                <i class="fab fa-spotify text-indigo-600 mr-3 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-500 mb-0.5">Spotify</p>
+                                    <a :href="entidadSeleccionada.spotify_uri" 
+                                       target="_blank" 
+                                       rel="noopener noreferrer"
+                                       class="text-indigo-600 hover:text-indigo-800 transition-colors text-sm break-all">
+                                        {{ entidadSeleccionada.spotify_uri }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </template>
-        <p v-else>Cargando datos...</p>
+        <p v-else class="text-center text-gray-500">Cargando datos...</p>
     </Dialog>
 </template>

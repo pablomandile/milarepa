@@ -63,9 +63,10 @@
                                 :key="novedad.id"
                                 :legend="novedad.nombre"
                                 :toggleable="true"
+                                :collapsed="index !== 0"
                                 >
                                     <p class="m-0">
-                                        <i class="pi pi-info-circle mr-1" style="color: slateblue"></i>
+                                        <i class="fas fa-calendar-alt mr-1" style="color: slateblue"></i>
                                         {{ novedad.fecha }}
                                     </p>
                                     <p class="m-0">

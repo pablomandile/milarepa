@@ -31,7 +31,16 @@ class MembresiasController extends Controller
                 ->paginate(10);
         }
 
-        return inertia('Membresias/Index', ['membresias' => $membresias]);
+        // Obtener membresía actual del usuario
+        $userMembresia = null;
+        if (auth()->check() && auth()->user()->membresia_id) {
+            $userMembresia = Membresia::find(auth()->user()->membresia_id);
+        }
+
+        return inertia('Membresias/Index', [
+            'membresias' => $membresias,
+            'user_membresia' => $userMembresia
+        ]);
     }
 
     /**
@@ -54,7 +63,7 @@ class MembresiasController extends Controller
     public function store(MembresiaRequest $request)
     {
         Membresia::create($request->validated());
-        return redirect()->route('membresias.index');
+        return redirect()->route('membresias.gestion')->with('success', 'Membresía creada con éxito.');
     }
 
     /**
@@ -85,7 +94,7 @@ class MembresiasController extends Controller
 
         $membresia->update($request->validated());
 
-        return redirect()->route('membresias.index');
+        return redirect()->route('membresias.gestion')->with('success', 'Membresía actualizada con éxito.');
     }
 
     /**
@@ -110,5 +119,20 @@ class MembresiasController extends Controller
         $membresias = Membresia::with('entidad')->paginate(10);
 
         return inertia('Membresias/Gestion', ['membresias' => $membresias]);
+    }
+
+    /**
+     * Subscribe a user to a membership
+     */
+    public function subscribe(Request $request)
+    {
+        $request->validate([
+            'membresia_id' => 'required|exists:membresias,id'
+        ]);
+
+        $user = auth()->user();
+        $user->update(['membresia_id' => $request->membresia_id]);
+
+        return redirect()->route('membresias.index')->with('success', 'Te has inscrito correctamente a la membresía');
     }
 }

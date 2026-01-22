@@ -10,13 +10,26 @@
     import Swal from "sweetalert2";
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
+    import Dialog from 'primevue/dialog';
+    import { ref } from 'vue';
     
-    defineProps({
+    const { hospedajes } = defineProps({
         hospedajes: {
             type: Object,
             required: true
         }
-    })
+    });
+
+    const visible = ref(false);
+    const hospedajeSeleccionado = ref(null);
+
+    const verHospedaje = (id) => {
+        const hospedaje = hospedajes.data.find((hosp) => hosp.id === id);
+        if (hospedaje) {
+            hospedajeSeleccionado.value = hospedaje;
+            visible.value = true;
+        }
+    };
 
     const deleteHospedaje = (id) => {
     Swal.fire({
@@ -72,19 +85,29 @@
                             <Column header="Acciones">
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
+                                        <button
+                                            @click="verHospedaje(parseInt(slotProps.data.id))"
+                                            v-if="$page.props.user.permissions.includes('read hospedajes')"
+                                            v-tooltip="'Ver acomodación'"
+                                            class="text-indigo-600 hover:text-indigo-800"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </button>
                                         <Link
                                             :href="route('hospedajes.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update hospedajes')"
                                             v-tooltip="'Editar acomodación'"
+                                            class="text-indigo-600 hover:text-indigo-800"
                                             style="display: flex; align-items: center;">
-                                            <i class="fas fa-pen-to-square" style="font-size: 18px !important; line-height: 1; color: rgb(99, 102, 241);"></i>
+                                            <i class="fas fa-pen-to-square" style="font-size: 18px !important; line-height: 1;"></i>
                                         </Link>
                                         <button
                                             @click="deleteHospedaje(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete hospedajes')"
                                             v-tooltip="'Borrar acomodación'"
+                                            class="text-red-600 hover:text-red-800"
                                             style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
-                                            <i class="fas fa-trash" style="font-size: 18px !important; line-height: 1; color: rgb(239, 68, 68);"></i>
+                                            <i class="fas fa-trash" style="font-size: 18px !important; line-height: 1;"></i>
                                         </button>
                                     </div>
                                 </template>
@@ -95,4 +118,60 @@
             </div>
         </div>
     </AppLayout>
+
+    <!-- Modal de información de hospedaje -->
+    <Dialog 
+        v-model:visible="visible" 
+        modal 
+        :header="hospedajeSeleccionado ? hospedajeSeleccionado.nombre : 'Detalles de Acomodación'"
+        :style="{ width: '45rem' }" 
+        :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+    >
+        <template v-if="hospedajeSeleccionado">
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 shadow-inner">
+                <!-- Nombre y Precio destacados -->
+                <div class="bg-white rounded-lg p-5 mb-4 shadow-sm border-l-4 border-indigo-500">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-bed text-indigo-600 text-xl mr-3"></i>
+                                <h3 class="text-xl font-bold text-gray-800">{{ hospedajeSeleccionado.nombre }}</h3>
+                            </div>
+                            <div class="flex items-center mt-3 bg-green-50 rounded-md px-3 py-2 w-fit">
+                                <i class="fas fa-dollar-sign text-green-600 text-lg mr-2"></i>
+                                <span class="text-2xl font-bold text-green-700">
+                                    {{ parseFloat(hospedajeSeleccionado.precio).toLocaleString('es-AR', { minimumFractionDigits: 0 }) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Descripción -->
+                <div v-if="hospedajeSeleccionado.descripcion && hospedajeSeleccionado.descripcion.trim() !== ''" 
+                     class="bg-white rounded-lg p-5 mb-4 shadow-sm">
+                    <div class="flex items-start">
+                        <i class="fas fa-align-left text-indigo-600 text-lg mr-3 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Descripción</h4>
+                            <p class="text-gray-600 leading-relaxed">{{ hospedajeSeleccionado.descripcion }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lugar de Hospedaje -->
+                <div v-if="hospedajeSeleccionado.lugar_hospedaje" 
+                     class="bg-white rounded-lg p-5 shadow-sm">
+                    <div class="flex items-center">
+                        <i class="fas fa-map-marker-alt text-indigo-600 text-lg mr-3"></i>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-1">Lugar de Hospedaje</h4>
+                            <p class="text-gray-600">{{ hospedajeSeleccionado.lugar_hospedaje.nombre }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+        <p v-else class="text-center text-gray-500">Cargando datos...</p>
+    </Dialog>
 </template>

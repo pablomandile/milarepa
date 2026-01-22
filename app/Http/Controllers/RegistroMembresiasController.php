@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\users;
 use App\Http\Requests\ComidaRequest;
 use App\Models\Membresia;
+use App\Models\EstadoCuentaMembresia;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 
 class RegistroMembresiasController extends Controller
@@ -16,7 +18,9 @@ class RegistroMembresiasController extends Controller
      */
     public function index()
     {
-        $membresias = Membresia::all();
+        $membresias = Membresia::with(['entidad', 'esquemaPrecioMembresias'])
+            ->where('nombre', '!=', 'Sin membresía')
+            ->get();
         return inertia('RegistroMembresias/Index', ['membresias' => $membresias]);
     }
 
@@ -38,9 +42,35 @@ class RegistroMembresiasController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store($request)
+    public function store(Request $request)
     {
+        $validated = $request->validate([
+            'membresia_id' => 'required|exists:membresias,id',
+            'fecha_inicio' => 'required|date',
+            'cantidad_meses' => 'required|integer|min:1|max:36',
+            'importe' => 'nullable|numeric|min:0'
+        ]);
 
+        $user = auth()->user();
+        $membresia = Membresia::findOrFail($validated['membresia_id']);
+        
+        // Determinar el importe
+        $importe = $validated['importe'];
+        if (!$importe && $membresia->esquemaPrecioMembresias()->first()) {
+            $importe = $membresia->esquemaPrecioMembresias()->first()->precio ?? 0;
+        }
+
+        // Crear los registros de estado de cuenta
+        $this->crearEstadosCuenta(
+            $user->id,
+            $membresia->id,
+            $validated['fecha_inicio'],
+            $validated['cantidad_meses'],
+            $importe
+        );
+
+        return redirect()->route('estado-cuenta-membresias.index')
+            ->with('success', 'Membresía registrada correctamente. Se han creado los registros mensuales.');
     }
 
     /**
@@ -73,5 +103,43 @@ class RegistroMembresiasController extends Controller
     public function destroy( $id)
     {
 
+    }
+
+    /**
+     * Create monthly account statements for a membership
+     */
+    private function crearEstadosCuenta($userId, $membresiaId, $fechaInicio, $cantidadMeses = 12, $importe = null)
+    {
+        $membresia = Membresia::findOrFail($membresiaId);
+        
+        if (!$importe && $membresia->esquemaPrecioMembresias()->first()) {
+            $importe = $membresia->esquemaPrecioMembresias()->first()->precio ?? 0;
+        }
+
+        $fecha = Carbon::parse($fechaInicio);
+
+        for ($i = 0; $i < $cantidadMeses; $i++) {
+            $mesPagado = $fecha->format('Y-m');
+
+            // Evitar crear duplicados
+            $existe = EstadoCuentaMembresia::where('user_id', $userId)
+                ->where('membresia_id', $membresiaId)
+                ->where('mes_pagado', $mesPagado)
+                ->exists();
+
+            if (!$existe) {
+                EstadoCuentaMembresia::create([
+                    'user_id' => $userId,
+                    'membresia_id' => $membresiaId,
+                    'mes_pagado' => $mesPagado,
+                    'fecha_pago' => null,
+                    'importe' => $importe ?? 0,
+                    'pagado' => false,
+                    'observaciones' => 'Registro automático'
+                ]);
+            }
+
+            $fecha->addMonth();
+        }
     }
 }

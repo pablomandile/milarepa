@@ -12,12 +12,27 @@ class Membresia extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
-        'entidad_id'
+        'entidad_id',
+        'valor'
+    ];
+
+    protected $casts = [
+        'valor' => 'decimal:2'
     ];
 
     public function entidad()
     {
         return $this->belongsTo(Entidad::class, 'entidad_id');
+    }
+
+    public function estadoCuenta()
+    {
+        return $this->hasMany(EstadoCuentaMembresia::class, 'membresia_id');
+    }
+
+    public function esquemaPrecioMembresias()
+    {
+        return $this->hasMany(EsquemaPrecioMembresia::class, 'membresia_id');
     }
 
 }

@@ -106,24 +106,30 @@
                             <Column header="Acciones" class="flex justify-center space-x-2">
                                 <template #body="slotProps">
                                     <div class="flex justify-center space-x-2">
-                                        <a
-                                            @click.prevent="verDescripcion(parseInt(slotProps.data.id))"
+                                        <button
+                                            @click="verDescripcion(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('read descripciones')"
-                                            v-tooltip="'Ver descripción'">
-                                            <i class="pi pi-eye cursor-pointer text-indigo-400 mr-2"></i>
-                                        </a>
+                                            v-tooltip="'Ver descripción'"
+                                            class="text-indigo-600 hover:text-indigo-800"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </button>
                                         <Link
                                             :href="route('descripciones.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update descripciones')"
-                                            v-tooltip="'Editar descripción'">
-                                            <i class="pi pi-pencil text-indigo-400 mr-2"></i>
+                                            v-tooltip="'Editar descripción'"
+                                            class="text-indigo-600 hover:text-indigo-800"
+                                            style="display: flex; align-items: center;">
+                                            <i class="fas fa-pen-to-square" style="font-size: 18px !important; line-height: 1;"></i>
                                         </Link>
-                                        <a
-                                            @click.prevent="deleteDescripcion(parseInt(slotProps.data.id))"
+                                        <button
+                                            @click="deleteDescripcion(parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('delete descripciones')"
-                                            v-tooltip="'Borrar descripción'">
-                                            <i class="pi pi-trash cursor-pointer text-red-300"></i>
-                                        </a>
+                                            v-tooltip="'Borrar descripción'"
+                                            class="text-red-600 hover:text-red-800"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-trash" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </button>
                                     </div>
                                 </template>
                             </Column>

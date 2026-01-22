@@ -41,12 +41,16 @@ class User extends Authenticatable
         'accesibilidad_desc',
         'direccion',
         'pais_id',
-        'localidad_id',
+        
+        'provincia_id',
+        'municipio_id',
+        'barrio_id',
         'telefono',
         'whatsapp',
-        'edad',
+        'fecha_nacimiento',
         'sexo_id',
         'membresia_id',
+        'membresia_inscripcion_fecha',
         'es_maestro',
         'es_coordinador',
         'perfil_completo',
@@ -94,13 +98,28 @@ class User extends Authenticatable
         return $this->belongsTo(Membresia::class, 'membresia_id');
     }
 
-    public function localidad()
+    public function provincia()
     {
-        return $this->belongsTo(Localidad::class, 'localidad_id');
+        return $this->belongsTo(Provincia::class, 'provincia_id');
+    }
+
+    public function municipio()
+    {
+        return $this->belongsTo(Municipio::class, 'municipio_id');
+    }
+
+    public function barrio()
+    {
+        return $this->belongsTo(Barrio::class, 'barrio_id');
     }
 
     public function sexo()
     {
         return $this->belongsTo(Sexo::class, 'sexo_id');
+    }
+
+    public function estadoCuentasMembresias()
+    {
+        return $this->hasMany(EstadoCuentaMembresia::class, 'user_id');
     }
 }

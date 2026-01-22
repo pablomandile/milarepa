@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileRequest;
-use App\Models\Localidad;
+use App\Models\Provincia;
+use App\Models\Municipio;
+use App\Models\Barrio;
 use App\Models\Membresia;
 use App\Models\Pais;
 use App\Models\Sexo;
@@ -19,12 +21,16 @@ class ProfileCompletionController extends Controller
             return $m;
         });
         $paises = Pais::all();
-        $localidades = Localidad::all();
+        $provincias = Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get();
+        $municipios = Municipio::all();
+        $barrios = Barrio::all();
         $sexos = Sexo::all();
         return inertia('Profile/CompleteProfile', [
             'membresias'=>$membresias,
             'paises'=>$paises,
-            'localidades'=>$localidades,
+            'provincias'=>$provincias,
+            'municipios'=>$municipios,
+            'barrios'=>$barrios,
             'sexos'=>$sexos
         ]); 
     }
@@ -50,7 +56,9 @@ class ProfileCompletionController extends Controller
                 return $m;
             }),
             'paises' => Pais::all(),
-            'localidades' => Localidad::all(),
+            'provincias' => Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get(),
+            'municipios' => Municipio::all(),
+            'barrios' => Barrio::all(),
             'sexos' => Sexo::all(),
             'updating' => true, 
         ]);

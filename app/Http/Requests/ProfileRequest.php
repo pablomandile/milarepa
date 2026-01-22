@@ -27,10 +27,13 @@ class ProfileRequest extends FormRequest
             'accesibilidad_desc' => ['nullable','string'],
             'direccion' => ['nullable','string', 'max:255'],
             'pais_id' => ['required', 'exists:paises,id'],
-            'localidad_id' => ['required', 'exists:localidades,id'],
+            'provincia_id' => ['required', 'exists:provincias,id'],
+            'municipio_id' => ['nullable', 'exists:municipios,id'],
+            'barrio_id' => ['nullable', 'exists:barrios,id'],
             'telefono' => ['required','string', 'max:100'],
             'whatsapp' => ['nullable','string', 'max:100'],
-            'edad' => ['nullable','string', 'max:3'],
+            'fecha_nacimiento' => ['nullable','date'],
+
             'sexo_id' => ['required', 'exists:sexos,id'],
             'membresia_id' => ['required', 'exists:membresias,id'],
             'es_maestro' => ['nullable', 'boolean'],
@@ -44,7 +47,9 @@ class ProfileRequest extends FormRequest
     public function messages():array {
         return [
             'pais_id.required' => __('El país no puede quedar vacío'),
-            'localidad_id.required' => __('La localidad no puede quedar vacía'),
+            'provincia_id.required' => __('La provincia no puede quedar vacía'),
+            'municipio_id.exists' => __('Seleccione un municipio válido'),
+            'barrio_id.exists' => __('Seleccione un barrio válido'),
             'telefono.required' => __('El telefono no puede quedar vacío'),
             'sexo_id.required' => __('El sexo no puede quedar vacío'),
             'membresia_id.required' => __('La membresía no puede quedar vacía')

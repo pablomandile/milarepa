@@ -14,126 +14,131 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $role_admin = Role::create ([ 'name' => 'admin' ]);
-        $role_editor = Role::create ([ 'name' => 'editor' ]);
-        $role_asistant = Role::create ([ 'name' => 'asistant' ]);
+        $role_admin = Role::firstOrCreate([ 'name' => 'admin' ]);
+        $role_editor = Role::firstOrCreate([ 'name' => 'editor' ]);
+        $role_asistant = Role::firstOrCreate([ 'name' => 'asistant' ]);
 
 
-        $permission_create_role = Permission::create(['name' => 'create roles']);
-        $permission_create_role = Permission::create(['name' => 'read roles']);
-        $permission_create_role = Permission::create(['name' => 'update roles']);
-        $permission_create_role = Permission::create(['name' => 'delete roles']);
+        $permission_create_role = Permission::firstOrCreate(['name' => 'create roles']);
+        $permission_create_role = Permission::firstOrCreate(['name' => 'read roles']);
+        $permission_create_role = Permission::firstOrCreate(['name' => 'update roles']);
+        $permission_create_role = Permission::firstOrCreate(['name' => 'delete roles']);
 
-        $permission_create_entidades = Permission::create(['name' => 'create entidades']);
-        $permission_create_entidades = Permission::create(['name' => 'update entidades']);
-        $permission_create_entidades = Permission::create(['name' => 'read entidades']);
-        $permission_create_entidades = Permission::create(['name' => 'delete entidades']);
+        $permission_create_entidades = Permission::firstOrCreate(['name' => 'create entidades']);
+        $permission_create_entidades = Permission::firstOrCreate(['name' => 'update entidades']);
+        $permission_create_entidades = Permission::firstOrCreate(['name' => 'read entidades']);
+        $permission_create_entidades = Permission::firstOrCreate(['name' => 'delete entidades']);
 
-        $permission_create_disponibilidades = Permission::create(['name' => 'create disponibilidades']);
-        $permission_create_disponibilidades = Permission::create(['name' => 'update disponibilidades']);
-        $permission_create_disponibilidades = Permission::create(['name' => 'read disponibilidades']);
-        $permission_create_disponibilidades = Permission::create(['name' => 'delete disponibilidades']);
+        $permission_create_disponibilidades = Permission::firstOrCreate(['name' => 'create disponibilidades']);
+        $permission_create_disponibilidades = Permission::firstOrCreate(['name' => 'update disponibilidades']);
+        $permission_create_disponibilidades = Permission::firstOrCreate(['name' => 'read disponibilidades']);
+        $permission_create_disponibilidades = Permission::firstOrCreate(['name' => 'delete disponibilidades']);
 
-        $permission_create_maestros = Permission::create(['name' => 'create maestros']);
-        $permission_create_maestros = Permission::create(['name' => 'update maestros']);
-        $permission_create_maestros = Permission::create(['name' => 'read maestros']);
-        $permission_create_maestros = Permission::create(['name' => 'delete maestros']);
+        $permission_create_maestros = Permission::firstOrCreate(['name' => 'create maestros']);
+        $permission_create_maestros = Permission::firstOrCreate(['name' => 'update maestros']);
+        $permission_create_maestros = Permission::firstOrCreate(['name' => 'read maestros']);
+        $permission_create_maestros = Permission::firstOrCreate(['name' => 'delete maestros']);
 
-        $permission_create_coordinadores = Permission::create(['name' => 'create coordinadores']);
-        $permission_create_coordinadores = Permission::create(['name' => 'update coordinadores']);
-        $permission_create_coordinadores = Permission::create(['name' => 'read coordinadores']);
-        $permission_create_coordinadores = Permission::create(['name' => 'delete coordinadores']);
+        $permission_create_coordinadores = Permission::firstOrCreate(['name' => 'create coordinadores']);
+        $permission_create_coordinadores = Permission::firstOrCreate(['name' => 'update coordinadores']);
+        $permission_create_coordinadores = Permission::firstOrCreate(['name' => 'read coordinadores']);
+        $permission_create_coordinadores = Permission::firstOrCreate(['name' => 'delete coordinadores']);
 
-        $permission_create_monedas = Permission::create(['name' => 'create monedas']);
-        $permission_create_monedas = Permission::create(['name' => 'update monedas']);
-        $permission_create_monedas = Permission::create(['name' => 'read monedas']);
-        $permission_create_monedas = Permission::create(['name' => 'delete monedas']);
+        $permission_create_monedas = Permission::firstOrCreate(['name' => 'create monedas']);
+        $permission_create_monedas = Permission::firstOrCreate(['name' => 'update monedas']);
+        $permission_create_monedas = Permission::firstOrCreate(['name' => 'read monedas']);
+        $permission_create_monedas = Permission::firstOrCreate(['name' => 'delete monedas']);
 
-        $permission_create_esquema_precios = Permission::create(['name' => 'create esquema_precios']);
-        $permission_create_esquema_precios = Permission::create(['name' => 'update esquema_precios']);
-        $permission_create_esquema_precios = Permission::create(['name' => 'read esquema_precios']);
-        $permission_create_esquema_precios = Permission::create(['name' => 'delete esquema_precios']);
+        $permission_create_esquema_precios = Permission::firstOrCreate(['name' => 'create esquema_precios']);
+        $permission_create_esquema_precios = Permission::firstOrCreate(['name' => 'update esquema_precios']);
+        $permission_create_esquema_precios = Permission::firstOrCreate(['name' => 'read esquema_precios']);
+        $permission_create_esquema_precios = Permission::firstOrCreate(['name' => 'delete esquema_precios']);
 
-        $permission_create_aplica_descuento = Permission::create(['name' => 'create aplica_descuento']);
-        $permission_create_aplica_descuento = Permission::create(['name' => 'update aplica_descuento']);
-        $permission_create_aplica_descuento = Permission::create(['name' => 'read aplica_descuento']);
-        $permission_create_aplica_descuento = Permission::create(['name' => 'delete aplica_descuento']);
+        $permission_create_aplica_descuento = Permission::firstOrCreate(['name' => 'create aplica_descuento']);
+        $permission_create_aplica_descuento = Permission::firstOrCreate(['name' => 'update aplica_descuento']);
+        $permission_create_aplica_descuento = Permission::firstOrCreate(['name' => 'read aplica_descuento']);
+        $permission_create_aplica_descuento = Permission::firstOrCreate(['name' => 'delete aplica_descuento']);
 
-        $permission_create_membresias = Permission::create(['name' => 'create membresias']);
-        $permission_create_membresias = Permission::create(['name' => 'update membresias']);
-        $permission_create_membresias = Permission::create(['name' => 'read membresias']);
-        $permission_create_membresias = Permission::create(['name' => 'delete membresias']);
+        $permission_create_membresias = Permission::firstOrCreate(['name' => 'create membresias']);
+        $permission_create_membresias = Permission::firstOrCreate(['name' => 'update membresias']);
+        $permission_create_membresias = Permission::firstOrCreate(['name' => 'read membresias']);
+        $permission_create_membresias = Permission::firstOrCreate(['name' => 'delete membresias']);
 
-        $permission_create_tipos_actividad = Permission::create(['name' => 'create tipos_actividad']);
-        $permission_create_tipos_actividad = Permission::create(['name' => 'update tipos_actividad']);
-        $permission_create_tipos_actividad = Permission::create(['name' => 'read tipos_actividad']);
-        $permission_create_tipos_actividad = Permission::create(['name' => 'delete tipos_actividad']);
+        $permission_create_tipos_actividad = Permission::firstOrCreate(['name' => 'create tipos_actividad']);
+        $permission_create_tipos_actividad = Permission::firstOrCreate(['name' => 'update tipos_actividad']);
+        $permission_create_tipos_actividad = Permission::firstOrCreate(['name' => 'read tipos_actividad']);
+        $permission_create_tipos_actividad = Permission::firstOrCreate(['name' => 'delete tipos_actividad']);
 
-        $permission_create_esquema_descuentos = Permission::create(['name' => 'create esquema_descuentos']);
-        $permission_create_esquema_descuentos = Permission::create(['name' => 'update esquema_descuentos']);
-        $permission_create_esquema_descuentos = Permission::create(['name' => 'read esquema_descuentos']);
-        $permission_create_esquema_descuentos = Permission::create(['name' => 'delete esquema_descuentos']);
+        $permission_create_esquema_descuentos = Permission::firstOrCreate(['name' => 'create esquema_descuentos']);
+        $permission_create_esquema_descuentos = Permission::firstOrCreate(['name' => 'update esquema_descuentos']);
+        $permission_create_esquema_descuentos = Permission::firstOrCreate(['name' => 'read esquema_descuentos']);
+        $permission_create_esquema_descuentos = Permission::firstOrCreate(['name' => 'delete esquema_descuentos']);
 
-        $permission_create_metodos_pago = Permission::create(['name' => 'create metodos_pago']);
-        $permission_create_metodos_pago = Permission::create(['name' => 'update metodos_pago']);
-        $permission_create_metodos_pago = Permission::create(['name' => 'read metodos_pago']);
-        $permission_create_metodos_pago = Permission::create(['name' => 'delete metodos_pago']);
+        $permission_create_metodos_pago = Permission::firstOrCreate(['name' => 'create metodos_pago']);
+        $permission_create_metodos_pago = Permission::firstOrCreate(['name' => 'update metodos_pago']);
+        $permission_create_metodos_pago = Permission::firstOrCreate(['name' => 'read metodos_pago']);
+        $permission_create_metodos_pago = Permission::firstOrCreate(['name' => 'delete metodos_pago']);
 
-        $permission_create_actividades = Permission::create(['name' => 'create actividades']);
-        $permission_create_actividades = Permission::create(['name' => 'update actividades']);
-        $permission_create_actividades = Permission::create(['name' => 'read actividades']);
-        $permission_create_actividades = Permission::create(['name' => 'delete actividades']);
+        $permission_create_actividades = Permission::firstOrCreate(['name' => 'create actividades']);
+        $permission_create_actividades = Permission::firstOrCreate(['name' => 'update actividades']);
+        $permission_create_actividades = Permission::firstOrCreate(['name' => 'read actividades']);
+        $permission_create_actividades = Permission::firstOrCreate(['name' => 'delete actividades']);
 
-        $permission_create_comidas = Permission::create(['name' => 'create comidas']);
-        $permission_create_comidas = Permission::create(['name' => 'update comidas']);
-        $permission_create_comidas = Permission::create(['name' => 'read comidas']);
-        $permission_create_comidas = Permission::create(['name' => 'delete comidas']);
+        $permission_create_comidas = Permission::firstOrCreate(['name' => 'create comidas']);
+        $permission_create_comidas = Permission::firstOrCreate(['name' => 'update comidas']);
+        $permission_create_comidas = Permission::firstOrCreate(['name' => 'read comidas']);
+        $permission_create_comidas = Permission::firstOrCreate(['name' => 'delete comidas']);
         
-        $permission_create_hospedajes = Permission::create(['name' => 'create hospedajes']);
-        $permission_create_hospedajes = Permission::create(['name' => 'update hospedajes']);
-        $permission_create_hospedajes = Permission::create(['name' => 'read hospedajes']);
-        $permission_create_hospedajes = Permission::create(['name' => 'delete hospedajes']);
+        $permission_create_hospedajes = Permission::firstOrCreate(['name' => 'create hospedajes']);
+        $permission_create_hospedajes = Permission::firstOrCreate(['name' => 'update hospedajes']);
+        $permission_create_hospedajes = Permission::firstOrCreate(['name' => 'read hospedajes']);
+        $permission_create_hospedajes = Permission::firstOrCreate(['name' => 'delete hospedajes']);
 
-        $permission_create_lugares_hospedaje = Permission::create(['name' => 'create lugares_hospedaje']);
-        $permission_create_lugares_hospedaje = Permission::create(['name' => 'update lugares_hospedaje']);
-        $permission_create_lugares_hospedaje = Permission::create(['name' => 'read lugares_hospedaje']);
-        $permission_create_lugares_hospedaje = Permission::create(['name' => 'delete lugares_hospedaje']);
+        $permission_create_lugares_hospedaje = Permission::firstOrCreate(['name' => 'create lugares_hospedaje']);
+        $permission_create_lugares_hospedaje = Permission::firstOrCreate(['name' => 'update lugares_hospedaje']);
+        $permission_create_lugares_hospedaje = Permission::firstOrCreate(['name' => 'read lugares_hospedaje']);
+        $permission_create_lugares_hospedaje = Permission::firstOrCreate(['name' => 'delete lugares_hospedaje']);
 
-        $permission_create_modalidades = Permission::create(['name' => 'create modalidades']);
-        $permission_create_modalidades = Permission::create(['name' => 'update modalidades']);
-        $permission_create_modalidades = Permission::create(['name' => 'read modalidades']);
-        $permission_create_modalidades = Permission::create(['name' => 'delete modalidades']);
+        $permission_create_modalidades = Permission::firstOrCreate(['name' => 'create modalidades']);
+        $permission_create_modalidades = Permission::firstOrCreate(['name' => 'update modalidades']);
+        $permission_create_modalidades = Permission::firstOrCreate(['name' => 'read modalidades']);
+        $permission_create_modalidades = Permission::firstOrCreate(['name' => 'delete modalidades']);
 
-        $permission_create_tickets = Permission::create(['name' => 'create tickets']);
-        $permission_create_tickets = Permission::create(['name' => 'update tickets']);
-        $permission_create_tickets = Permission::create(['name' => 'read tickets']);
-        $permission_create_tickets = Permission::create(['name' => 'delete tickets']);
-        $permission_create_tickets = Permission::create(['name' => 'asign tickets']);
+        $permission_create_tickets = Permission::firstOrCreate(['name' => 'create tickets']);
+        $permission_create_tickets = Permission::firstOrCreate(['name' => 'update tickets']);
+        $permission_create_tickets = Permission::firstOrCreate(['name' => 'read tickets']);
+        $permission_create_tickets = Permission::firstOrCreate(['name' => 'delete tickets']);
+        $permission_create_tickets = Permission::firstOrCreate(['name' => 'asign tickets']);
 
-        $permission_create_transportes = Permission::create(['name' => 'create transportes']);
-        $permission_create_transportes = Permission::create(['name' => 'update transportes']);
-        $permission_create_transportes = Permission::create(['name' => 'read transportes']);
-        $permission_create_transportes = Permission::create(['name' => 'delete transportes']);
+        $permission_create_transportes = Permission::firstOrCreate(['name' => 'create transportes']);
+        $permission_create_transportes = Permission::firstOrCreate(['name' => 'update transportes']);
+        $permission_create_transportes = Permission::firstOrCreate(['name' => 'read transportes']);
+        $permission_create_transportes = Permission::firstOrCreate(['name' => 'delete transportes']);
 
-        $permission_create_streams = Permission::create(['name' => 'create streams']);
-        $permission_create_streams = Permission::create(['name' => 'update streams']);
-        $permission_create_streams = Permission::create(['name' => 'read streams']);
-        $permission_create_streams = Permission::create(['name' => 'delete streams']);
+        $permission_create_streams = Permission::firstOrCreate(['name' => 'create streams']);
+        $permission_create_streams = Permission::firstOrCreate(['name' => 'update streams']);
+        $permission_create_streams = Permission::firstOrCreate(['name' => 'read streams']);
+        $permission_create_streams = Permission::firstOrCreate(['name' => 'delete streams']);
 
-        $permission_create_novedades = Permission::create(['name' => 'create novedades']);
-        $permission_create_novedades = Permission::create(['name' => 'update novedades']);
-        $permission_create_novedades = Permission::create(['name' => 'read novedades']);
-        $permission_create_novedades = Permission::create(['name' => 'delete novedades']);
+        $permission_create_novedades = Permission::firstOrCreate(['name' => 'create novedades']);
+        $permission_create_novedades = Permission::firstOrCreate(['name' => 'update novedades']);
+        $permission_create_novedades = Permission::firstOrCreate(['name' => 'read novedades']);
+        $permission_create_novedades = Permission::firstOrCreate(['name' => 'delete novedades']);
 
-        $permission_create_usuarios = Permission::create(['name' => 'create usuarios']);
-        $permission_create_usuarios = Permission::create(['name' => 'update usuarios']);
-        $permission_create_usuarios = Permission::create(['name' => 'read usuarios']);
-        $permission_create_usuarios = Permission::create(['name' => 'delete usuarios']);
+        $permission_create_versiones = Permission::firstOrCreate(['name' => 'create versiones']);
+        $permission_create_versiones = Permission::firstOrCreate(['name' => 'update versiones']);
+        $permission_create_versiones = Permission::firstOrCreate(['name' => 'read versiones']);
+        $permission_create_versiones = Permission::firstOrCreate(['name' => 'delete versiones']);
 
-        $permission_create_grabaciones = Permission::create(['name' => 'create grabaciones']);
-        $permission_create_grabaciones = Permission::create(['name' => 'update grabaciones']);
-        $permission_create_grabaciones = Permission::create(['name' => 'read grabaciones']);
-        $permission_create_grabaciones = Permission::create(['name' => 'delete grabaciones']);
+        $permission_create_usuarios = Permission::firstOrCreate(['name' => 'create usuarios']);
+        $permission_create_usuarios = Permission::firstOrCreate(['name' => 'update usuarios']);
+        $permission_create_usuarios = Permission::firstOrCreate(['name' => 'read usuarios']);
+        $permission_create_usuarios = Permission::firstOrCreate(['name' => 'delete usuarios']);
+
+        $permission_create_grabaciones = Permission::firstOrCreate(['name' => 'create grabaciones']);
+        $permission_create_grabaciones = Permission::firstOrCreate(['name' => 'update grabaciones']);
+        $permission_create_grabaciones = Permission::firstOrCreate(['name' => 'read grabaciones']);
+        $permission_create_grabaciones = Permission::firstOrCreate(['name' => 'delete grabaciones']);
 
 
         $permissions_admin = [
@@ -173,10 +178,10 @@ class RoleSeeder extends Seeder
             'update membresias',
             'read membresias',
             'delete membresias',
-            'create tipo_actividades',
-            'update tipo_actividades',
-            'read tipo_actividades',
-            'delete tipo_actividades',
+            'create tipos_actividad',
+            'update tipos_actividad',
+            'read tipos_actividad',
+            'delete tipos_actividad',
             'create esquema_descuentos',
             'update esquema_descuentos',
             'read esquema_descuentos',
@@ -222,6 +227,10 @@ class RoleSeeder extends Seeder
             'update novedades',
             'read novedades',
             'delete novedades',
+            'create versiones',
+            'update versiones',
+            'read versiones',
+            'delete versiones',
             'create usuarios',
             'update usuarios',
             'read usuarios',
@@ -266,10 +275,10 @@ class RoleSeeder extends Seeder
             'update membresias',
             'read membresias',
             'delete membresias',
-            'create tipo_actividades',
-            'update tipo_actividades',
-            'read tipo_actividades',
-            'delete tipo_actividades',
+            'create tipos_actividad',
+            'update tipos_actividad',
+            'read tipos_actividad',
+            'delete tipos_actividad',
             'create esquema_descuentos',
             'update esquema_descuentos',
             'read esquema_descuentos',
@@ -315,6 +324,10 @@ class RoleSeeder extends Seeder
             'update novedades',
             'read novedades',
             'delete novedades',
+            'create versiones',
+            'update versiones',
+            'read versiones',
+            'delete versiones',
             'create usuarios',
             'update usuarios',
             'read usuarios',
@@ -341,3 +354,5 @@ class RoleSeeder extends Seeder
 
     }
 }
+
+

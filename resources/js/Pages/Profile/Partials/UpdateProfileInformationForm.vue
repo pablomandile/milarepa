@@ -7,6 +7,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import Dialog from 'primevue/dialog';
 import TextInput from '@/Components/TextInput.vue';
 
 const props = defineProps({
@@ -23,6 +24,8 @@ const form = useForm({
 const verificationLinkSent = ref(null);
 const photoPreview = ref(null);
 const photoInput = ref(null);
+const editing = ref(false);
+const confirmVisible = ref(false);
 
 const updateProfileInformation = () => {
     if (photoInput.value) {
@@ -73,12 +76,25 @@ const clearPhotoFileInput = () => {
         photoInput.value.value = null;
     }
 };
+const openConfirm = () => {
+    // Open confirmation modal instead of direct submit
+    if (!editing.value) return;
+    confirmVisible.value = true;
+};
+
 </script>
 
 <template>
-    <FormSection @submitted="updateProfileInformation">
+    <FormSection @submitted="openConfirm">
         <template #title>
-            Información de Perfil 
+            <SectionTitle>
+                <template #title>
+                    Información de Perfil 
+                </template>
+                <template #description>
+                    Actualizá la información de perfil de tu cuenta y correo electrónico.
+                </template>
+            </SectionTitle>
         </template>
 
         <template #description>
@@ -136,6 +152,7 @@ const clearPhotoFileInput = () => {
                     v-model="form.name"
                     type="text"
                     class="mt-1 block w-full"
+                    :disabled="!editing"
                     required
                     autocomplete="name"
                 />
@@ -150,6 +167,7 @@ const clearPhotoFileInput = () => {
                     v-model="form.email"
                     type="email"
                     class="mt-1 block w-full"
+                    :disabled="!editing"
                     required
                     autocomplete="username"
                 />
@@ -182,9 +200,24 @@ const clearPhotoFileInput = () => {
                 Saved.
             </ActionMessage>
 
-            <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+            <!-- Botón Editar visible inicialmente; al presionarlo, muestra Guardar -->
+            <PrimaryButton v-if="!editing" type="button" @click="editing = true" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                Editar
+            </PrimaryButton>
+
+            <!-- Botón Guardar oculto inicialmente; aparece al activar edición -->
+            <PrimaryButton v-else type="submit" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
                 Guardar
             </PrimaryButton>
         </template>
     </FormSection>
+
+    <!-- Confirmación de guardado -->
+    <Dialog v-model:visible="confirmVisible" modal header="Confirmar cambios" :style="{ width: '28rem' }">
+        <p class="mb-4">¿Deseas guardar los cambios realizados en tu perfil?</p>
+        <div class="flex justify-end gap-2">
+            <SecondaryButton type="button" @click="confirmVisible = false">Cancelar</SecondaryButton>
+            <PrimaryButton type="button" @click="() => { confirmVisible = false; updateProfileInformation(); }">Confirmar</PrimaryButton>
+        </div>
+    </Dialog>
 </template>

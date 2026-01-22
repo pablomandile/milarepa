@@ -112,31 +112,89 @@
     <Dialog 
         v-model:visible="visible" 
         modal 
-        :header="lugarHospedajeSeleccionado ? `Detalles de ${lugarHospedajeSeleccionado.nombre}` : 'Detalles...'"
-
+        :header="lugarHospedajeSeleccionado ? lugarHospedajeSeleccionado.nombre : 'Detalles del Lugar'"
         :style="{ width: '50rem' }" 
         :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
-        dismissableMask
     >
-    <template v-if="lugarHospedajeSeleccionado">
-        <p class="mb-3" v-if="lugarHospedajeSeleccionado.descripcion && lugarHospedajeSeleccionado.descripcion.trim() !== ''">
-            <i class="pi pi-sparkles mr-1"></i> {{ lugarHospedajeSeleccionado.descripcion }}
-        </p>
-        <p v-if="lugarHospedajeSeleccionado.direccion && lugarHospedajeSeleccionado.direccion.trim() !== ''">
-            <i class="pi pi-map-marker mr-1"></i> {{ lugarHospedajeSeleccionado.direccion }}
-        </p>
-        <p v-if="lugarHospedajeSeleccionado.telefono && lugarHospedajeSeleccionado.telefono.trim() !== ''">
-            <i class="pi pi-phone mr-1"></i> {{ lugarHospedajeSeleccionado.telefono }}
-        </p>
-        <p v-if="lugarHospedajeSeleccionado.email && lugarHospedajeSeleccionado.email.trim() !== ''">
-            <i class="pi pi-envelope mr-1"></i> {{ lugarHospedajeSeleccionado.email }}
-        </p>
-        <p v-if="lugarHospedajeSeleccionado.web && lugarHospedajeSeleccionado.web.trim() !== ''">
-            <a :href="lugarHospedajeSeleccionado.web" target="_blank" rel="noopener noreferrer">
-                <i class="pi pi-link mr-1"></i>
-                {{ lugarHospedajeSeleccionado.web }} </a>
-        </p>
+        <template v-if="lugarHospedajeSeleccionado">
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 shadow-inner">
+                <!-- Nombre destacado -->
+                <div class="bg-white rounded-lg p-5 mb-4 shadow-sm border-l-4 border-indigo-500">
+                    <div class="flex items-center">
+                        <i class="fas fa-hotel text-indigo-600 text-2xl mr-3"></i>
+                        <h3 class="text-xl font-bold text-gray-800">{{ lugarHospedajeSeleccionado.nombre }}</h3>
+                    </div>
+                </div>
+
+                <!-- Descripción -->
+                <div v-if="lugarHospedajeSeleccionado.descripcion && lugarHospedajeSeleccionado.descripcion.trim() !== ''" 
+                     class="bg-white rounded-lg p-5 mb-4 shadow-sm">
+                    <div class="flex items-start">
+                        <i class="fas fa-align-left text-indigo-600 text-lg mr-3 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Descripción</h4>
+                            <p class="text-gray-600 leading-relaxed">{{ lugarHospedajeSeleccionado.descripcion }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de contacto -->
+                <div class="bg-white rounded-lg p-5 shadow-sm space-y-4">
+                    <h4 class="font-semibold text-gray-700 mb-3 flex items-center">
+                        <i class="fas fa-address-card text-indigo-600 text-lg mr-2"></i>
+                        Información de Contacto
+                    </h4>
+                    
+                    <div v-if="lugarHospedajeSeleccionado.direccion && lugarHospedajeSeleccionado.direccion.trim() !== ''" 
+                         class="flex items-start pl-2">
+                        <i class="fas fa-map-marker-alt text-indigo-600 text-lg mr-3 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">Dirección</p>
+                            <p class="text-gray-700">{{ lugarHospedajeSeleccionado.direccion }}</p>
+                        </div>
+                    </div>
+
+                    <div v-if="lugarHospedajeSeleccionado.telefono && lugarHospedajeSeleccionado.telefono.trim() !== ''" 
+                         class="flex items-start pl-2">
+                        <i class="fas fa-phone text-indigo-600 text-lg mr-3 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">Teléfono</p>
+                            <a :href="`tel:${lugarHospedajeSeleccionado.telefono}`" 
+                               class="text-gray-700 hover:text-indigo-600 transition-colors">
+                                {{ lugarHospedajeSeleccionado.telefono }}
+                            </a>
+                        </div>
+                    </div>
+
+                    <div v-if="lugarHospedajeSeleccionado.email && lugarHospedajeSeleccionado.email.trim() !== ''" 
+                         class="flex items-start pl-2">
+                        <i class="fas fa-envelope text-indigo-600 text-lg mr-3 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">Email</p>
+                            <a :href="`mailto:${lugarHospedajeSeleccionado.email}`" 
+                               class="text-gray-700 hover:text-indigo-600 transition-colors">
+                                {{ lugarHospedajeSeleccionado.email }}
+                            </a>
+                        </div>
+                    </div>
+
+                    <div v-if="lugarHospedajeSeleccionado.web && lugarHospedajeSeleccionado.web.trim() !== ''" 
+                         class="flex items-start pl-2">
+                        <i class="fas fa-globe text-indigo-600 text-lg mr-3 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">Sitio Web</p>
+                            <a :href="lugarHospedajeSeleccionado.web" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="text-indigo-600 hover:text-indigo-800 transition-colors flex items-center">
+                                {{ lugarHospedajeSeleccionado.web }}
+                                <i class="fas fa-external-link-alt text-xs ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </template>
-        <p v-else>Cargando datos...</p>
+        <p v-else class="text-center text-gray-500">Cargando datos...</p>
     </Dialog>
 </template>
