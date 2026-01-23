@@ -45,6 +45,7 @@ class User extends Authenticatable
         'provincia_id',
         'municipio_id',
         'barrio_id',
+        'programa_estudio_id',
         'telefono',
         'whatsapp',
         'fecha_nacimiento',
@@ -116,6 +117,11 @@ class User extends Authenticatable
     public function sexo()
     {
         return $this->belongsTo(Sexo::class, 'sexo_id');
+    }
+
+    public function programaEstudio()
+    {
+        return $this->belongsTo(ProgramaEstudio::class, 'programa_estudio_id');
     }
 
     public function estadoCuentasMembresias()

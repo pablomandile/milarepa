@@ -9,6 +9,7 @@ use App\Models\Barrio;
 use App\Models\Membresia;
 use App\Models\Pais;
 use App\Models\Sexo;
+use App\Models\ProgramaEstudio;
 use Inertia\Inertia;
 
 class ProfileCompletionController extends Controller
@@ -25,13 +26,15 @@ class ProfileCompletionController extends Controller
         $municipios = Municipio::all();
         $barrios = Barrio::all();
         $sexos = Sexo::all();
+        $programas = ProgramaEstudio::orderBy('nombre')->get();
         return inertia('Profile/CompleteProfile', [
             'membresias'=>$membresias,
             'paises'=>$paises,
             'provincias'=>$provincias,
             'municipios'=>$municipios,
             'barrios'=>$barrios,
-            'sexos'=>$sexos
+            'sexos'=>$sexos,
+            'programa_estudios' => $programas
         ]); 
     }
 
@@ -60,6 +63,7 @@ class ProfileCompletionController extends Controller
             'municipios' => Municipio::all(),
             'barrios' => Barrio::all(),
             'sexos' => Sexo::all(),
+            'programa_estudios' => ProgramaEstudio::orderBy('nombre')->get(),
             'updating' => true, 
         ]);
     }

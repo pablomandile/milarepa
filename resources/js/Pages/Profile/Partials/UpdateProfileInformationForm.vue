@@ -85,22 +85,7 @@ const openConfirm = () => {
 </script>
 
 <template>
-    <FormSection @submitted="openConfirm">
-        <template #title>
-            <SectionTitle>
-                <template #title>
-                    Información de Perfil 
-                </template>
-                <template #description>
-                    Actualizá la información de perfil de tu cuenta y correo electrónico.
-                </template>
-            </SectionTitle>
-        </template>
-
-        <template #description>
-            Actualizá la información de perfil de tu cuenta y correo electrónico.
-        </template>
-
+    <FormSection @submitted="openConfirm" :no-aside="true">
         <template #form>
             <!-- Profile Photo -->
             <div v-if="$page.props.jetstream.managesProfilePhotos" class="col-span-6 sm:col-span-4">
@@ -205,10 +190,15 @@ const openConfirm = () => {
                 Editar
             </PrimaryButton>
 
-            <!-- Botón Guardar oculto inicialmente; aparece al activar edición -->
-            <PrimaryButton v-else type="submit" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                Guardar
-            </PrimaryButton>
+            <!-- Botones Cancelar y Guardar cuando está en modo edición -->
+            <template v-else>
+                <SecondaryButton type="button" @click="editing = false; form.reset()" :disabled="form.processing" class="me-2">
+                    Cancelar
+                </SecondaryButton>
+                <PrimaryButton type="submit" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                    Guardar
+                </PrimaryButton>
+            </template>
         </template>
     </FormSection>
 

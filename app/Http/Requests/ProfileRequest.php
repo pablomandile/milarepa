@@ -30,6 +30,7 @@ class ProfileRequest extends FormRequest
             'provincia_id' => ['required', 'exists:provincias,id'],
             'municipio_id' => ['nullable', 'exists:municipios,id'],
             'barrio_id' => ['nullable', 'exists:barrios,id'],
+            'programa_estudio_id' => ['nullable', 'exists:programa_estudios,id'],
             'telefono' => ['required','string', 'max:100'],
             'whatsapp' => ['nullable','string', 'max:100'],
             'fecha_nacimiento' => ['nullable','date'],

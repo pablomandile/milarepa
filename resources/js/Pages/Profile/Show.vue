@@ -16,6 +16,23 @@ defineProps({
     sessions: Array,
 });
 
+function computeAge(dateStr) {
+    if (!dateStr) return 'No especificado';
+    const isoPart = String(dateStr).split('T')[0];
+    const parts = isoPart.split('-');
+    if (parts.length < 3) return 'No especificado';
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    if (Number.isNaN(y) || Number.isNaN(m) || Number.isNaN(d)) return 'No especificado';
+    const today = new Date();
+    let age = today.getFullYear() - y;
+    const mm = today.getMonth() + 1;
+    const dd = today.getDate();
+    if (mm < m || (mm === m && dd < d)) age--;
+    return age;
+}
+
 </script>
 
 <template>
@@ -27,171 +44,207 @@ defineProps({
         </template>
 
         <div>
-            <div class="max-w-5xl mx-auto py-10 sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
                 <div v-if="$page.props.jetstream.canUpdateProfileInformation">
-                    <UpdateProfileInformationForm :user="$page.props.auth.user" />
+                    <div class="max-w-xl mx-auto mb-3">
+                        <Card class="shadow-md">
+                            <template #header>
+                                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-t-lg">
+                                    <h3 class="text-white font-semibold flex items-center">
+                                        <i class="pi pi-user-edit mr-2 text-xl"></i>
+                                        Datos básicos
+                                    </h3>
+                                </div>
+                            </template>
+                            <template #content>
+                                <UpdateProfileInformationForm :user="$page.props.auth.user" />
+                            </template>
+                        </Card>
+                    </div>
 
                     <SectionBorder />
 
-                    <!-- Mostrar datos extras en una tarjeta PrimeVue -->
-                    <Card class="mb-6">
-                        <template #header>
-                            <h2 class="text-lg font-semibold ml-6 pt-4">Datos adicionales</h2>
-                        </template>
-
-                        <template #content>
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 ml-6 mr-10">
-                                 <!-- Columna 1 -->
-                                    <div>
-                                        <div class="mb-2">
-                                            País<br>
-                                            <span class="text-indigo-600">
-                                                <strong>
-                                                    <p>{{ $page.props.auth.user.pais.nombre }}</p>
-                                                </strong>
-                                            </span>
-                                        </div>
-                                        <div class="mb-2">
-                                            Provincia<br>
-                                            <span class="text-indigo-600">
-                                                <strong>
-                                                    {{ $page.props.auth.user.provincia?.nombre ?? 'No especificado' }}
-                                                </strong>
-                                            </span>
-                                        </div>
-                                        <div class="mb-2">
-                                            Municipio<br>
-                                            <span class="text-indigo-600">
-                                                <strong>
-                                                    {{ $page.props.auth.user.municipio?.nombre ?? 'No especificado' }}
-                                                </strong>
-                                            </span>
-                                        </div>
-                                        <div class="mb-2" v-if="$page.props.auth.user.barrio">
-                                            Barrio<br>
-                                            <span class="text-indigo-600">
-                                                <strong>
-                                                    {{ $page.props.auth.user.barrio.nombre }}
-                                                </strong>
-                                            </span>
-                                        </div>
-                                        <div class="mb-2">
-                                            Dirección<br>
-                                            <span class="text-indigo-600">
-                                                <strong>
-                                                    {{ $page.props.auth.user.direccion ?? 'No especificado' }}
-                                                </strong>
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Columna 2 -->
-                                    <div class="ml-8">
-                                        <div class="mb-2">
-                                            Teléfono<br>
-                                            <span class="text-indigo-600">
-                                                <strong>
-                                                    {{ $page.props.auth.user.telefono ?? 'No especificado' }}
-                                                </strong>
-                                            </span>
-                                        </div>
-                                        <div class="mb-2">
-                                            WhatsApp<br>
-                                            <span class="text-indigo-600">
-                                                <strong>
-                                                    {{ $page.props.auth.user.whatsapp ?? 'No especificado' }}
-                                                </strong>
-                                            </span>
-                                        </div>
-                                        <div class="mb-2">
-                                            ¿Recibe info por Whatsapp?<br>
-                                            <strong class="text-indigo-600">
-                                                <div v-if="$page.props.auth.user.msgxwapp">Sí</div>
-                                                <div v-else>No</div>
-                                            </strong>
-                                        </div>
-                                    </div>
-
-                                    <!-- Columna 3 -->
-                                    <div class="ml-8">
-                                        
-                                        <div class="mb-2">
-                                            Edad<br>
-                                            <span class="text-indigo-600">
-                                                <strong>
-                                                    {{ $page.props.auth.user.edad ?? 'No especificado' }}
-                                                </strong>
-                                            </span>
-                                        </div>
-                                        <div class="mb-2">
-                                            Sexo<br>
-                                            <span class="text-indigo-600">
-                                                <strong>
-                                                    {{ $page.props.auth.user.sexo.sexo }}
-                                                </strong>
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Columna 4 -->
-                                    <div>
-                                        <div class="mb-2">
-                                            Membresía<br>
-                                            <span class="text-indigo-500">
-                                                <strong>
-                                                    {{ $page.props.auth.user.membresia.nombre }}
-                                                </strong>
-                                            </span>
-                                        </div>
-                                        <div class="mb-2">
-                                            Asiste a:<br>
-                                            <span class="text-indigo-500">
-                                                <strong>
-                                                    {{ $page.props.auth.user.membresia.entidad.nombre }}
-                                                </strong>
-                                            </span>
-                                        </div>
-                                        <div class="mb-2">
-                                            ¿Recibe info por correo electrónico?<br>
-                                            <strong class="text-indigo-600">
-                                                <div v-if="$page.props.auth.user.msgxmail">Sí</div>
-                                                <div v-else>No</div>
-                                            </strong>
-                                        </div>
-                                       
-                                    </div>
-                                    <div class="col-span-4">
-                                        <div class="mb-2">
-                                            
-                                            Necesidades especiales
-                                            <div v-if="$page.props.auth.user.accesibilidad"> 
-                                                <span class="text-indigo-600">
-                                                   <strong>Sí</strong>
-                                                </span>
-                                                <div class="mt-1">
-                                                    <p>Detalle de necesidad especial</p><br>
-                                                    <span style="font-size: 1.5rem" class="pi pi-exclamation-triangle text-white bg-yellow-300 p-3" >
-                                                        <strong style="font-size: 1rem" class="ml-2">{{ $page.props.auth.user.accesibilidad_desc ?? 'No especificado' }} </strong>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div v-else class="text-indigo-600">
-                                                <strong>No</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-                            </div>
-                        </template>
-
-                        <template #footer>
-                            <!-- Botón que lleva a la página separada -->
+                    <!-- Mostrar datos extras con cards coloridas -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-bold text-indigo-700">Datos adicionales</h2>
                             <Link :href="route('profile.complete.edit')">
-                                <PrimaryButton class="mt-4 ml-4">
-                                    Completar / Editar Datos Adicionales
+                                <PrimaryButton>
+                                    <i class="pi pi-pencil mr-2"></i>
+                                    Editar Datos
                                 </PrimaryButton>
                             </Link>
-                        </template>
-                    </Card>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <!-- Card Ubicación -->
+                            <Card class="shadow-md hover:shadow-lg transition-shadow">
+                                <template #header>
+                                    <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 rounded-t-lg">
+                                        <h3 class="text-white font-semibold flex items-center">
+                                            <i class="pi pi-map-marker mr-2 text-xl"></i>
+                                            Ubicación
+                                        </h3>
+                                    </div>
+                                </template>
+                                <template #content>
+                                    <div class="space-y-3">
+                                        <div class="flex items-start">
+                                            <i class="pi pi-globe text-indigo-500 mr-2 mt-1"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">País</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.pais.nombre }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <i class="pi pi-building text-indigo-500 mr-2 mt-1"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Provincia</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.provincia?.nombre ?? 'No especificado' }}</p>
+                                            </div>
+                                        </div>
+                                        <div v-if="$page.props.auth.user.municipio" class="flex items-start">
+                                            <i class="pi pi-map text-indigo-500 mr-2 mt-1"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Municipio</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.municipio.nombre }}</p>
+                                            </div>
+                                        </div>
+                                        <div v-if="$page.props.auth.user.barrio" class="flex items-start">
+                                            <i class="pi pi-home text-indigo-500 mr-2 mt-1"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Barrio</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.barrio.nombre }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <i class="pi pi-directions text-indigo-500 mr-2 mt-1"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Dirección</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.direccion ?? 'No especificado' }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </Card>
+
+                            <!-- Card Contacto -->
+                            <Card class="shadow-md hover:shadow-lg transition-shadow">
+                                <template #header>
+                                    <div class="bg-gradient-to-r from-green-500 to-teal-600 p-4 rounded-t-lg">
+                                        <h3 class="text-white font-semibold flex items-center">
+                                            <i class="pi pi-phone mr-2 text-xl"></i>
+                                            Contacto
+                                        </h3>
+                                    </div>
+                                </template>
+                                <template #content>
+                                    <div class="space-y-3">
+                                        <div class="flex items-start">
+                                            <i class="pi pi-mobile text-green-600 mr-2 mt-1 text-lg"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Teléfono</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.telefono ?? 'No especificado' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <i class="pi pi-whatsapp text-green-600 mr-2 mt-1 text-lg"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">WhatsApp</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.whatsapp ?? 'No especificado' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="bg-green-50 p-3 rounded-lg">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm text-gray-700 mr-3">Info por WhatsApp</span>
+                                                <i :class="$page.props.auth.user.msgxwapp ? 'pi pi-check-circle text-green-600' : 'pi pi-times-circle text-gray-400'" class="text-xl"></i>
+                                            </div>
+                                        </div>
+                                        <div class="bg-blue-50 p-3 rounded-lg">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm text-gray-700 mr-3">Info por Email</span>
+                                                <i :class="$page.props.auth.user.msgxmail ? 'pi pi-check-circle text-blue-600' : 'pi pi-times-circle text-gray-400'" class="text-xl"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </Card>
+
+                            <!-- Card Perfil Personal -->
+                            <Card class="shadow-md hover:shadow-lg transition-shadow">
+                                <template #header>
+                                    <div class="bg-gradient-to-r from-purple-500 to-pink-600 p-4 rounded-t-lg">
+                                        <h3 class="text-white font-semibold flex items-center">
+                                            <i class="pi pi-user mr-2 text-xl"></i>
+                                            Perfil Personal
+                                        </h3>
+                                    </div>
+                                </template>
+                                <template #content>
+                                    <div class="space-y-3">
+                                        <div class="flex items-start">
+                                            <i class="pi pi-users text-purple-600 mr-2 mt-1"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Sexo</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.sexo.sexo }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <i class="pi pi-calendar text-purple-600 mr-2 mt-1"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Edad</p>
+                                                <p class="font-semibold text-gray-800">{{ computeAge($page.props.auth.user.fecha_nacimiento) }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <i class="pi pi-id-card text-purple-600 mr-2 mt-1"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Membresía</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.membresia.nombre }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <i class="pi pi-building text-purple-600 mr-2 mt-1"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Asiste a</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.membresia.entidad.nombre }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <i class="pi pi-book text-purple-600 mr-2 mt-1"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Programa de estudio</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.programa_estudio ? $page.props.auth.user.programa_estudio.nombre : ($page.props.auth.user.programa_estudio_id ? 'ID ' + $page.props.auth.user.programa_estudio_id : 'No especificado') }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </Card>
+
+                            <!-- Card Accesibilidad (si aplica) -->
+                            <Card v-if="$page.props.auth.user.accesibilidad" class="shadow-md hover:shadow-lg transition-shadow md:col-span-2 lg:col-span-3">
+                                <template #header>
+                                    <div class="bg-gradient-to-r from-yellow-400 to-orange-500 p-4 rounded-t-lg">
+                                        <h3 class="text-white font-semibold flex items-center">
+                                            <i class="pi pi-exclamation-triangle mr-2 text-xl"></i>
+                                            Necesidades Especiales
+                                        </h3>
+                                    </div>
+                                </template>
+                                <template #content>
+                                    <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400">
+                                        <div class="flex items-start">
+                                            <i class="pi pi-info-circle text-yellow-600 mr-3 mt-1 text-2xl"></i>
+                                            <div>
+                                                <p class="text-sm font-semibold text-gray-700 mb-1">Detalle de necesidad especial:</p>
+                                                <p class="text-gray-800">{{ $page.props.auth.user.accesibilidad_desc ?? 'No especificado' }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </Card>
+                        </div>
+                    </div>
 
                     <SectionBorder />
 

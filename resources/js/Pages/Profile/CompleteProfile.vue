@@ -39,6 +39,10 @@
             type: Array,
             default: () => [],
         },
+        programa_estudios: {
+            type: Array,
+            default: () => [],
+        },
         updating: {
             type: Boolean,
             default: false,
@@ -59,11 +63,28 @@
         fecha_nacimiento: null,
         sexo_id: '',
         membresia_id: '',
+        programa_estudio_id: '',
         es_maestro: false,
         es_coordinador: false,
         perfil_completo: false
 
     });
+
+    function parseISODateToLocal(dateStr) {
+        if (!dateStr) return null;
+        const isoPart = String(dateStr).split('T')[0];
+        const [y, m, d] = isoPart.split('-').map((n) => parseInt(n, 10));
+        if (Number.isNaN(y) || Number.isNaN(m) || Number.isNaN(d)) return null;
+        return new Date(y, m - 1, d);
+    }
+
+    function toYYYYMMDDLocal(date) {
+        if (!(date instanceof Date)) return '';
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
 
     if (props.updating && props.user) {
         form.accesibilidad = props.user.accesibilidad === 1;
@@ -75,9 +96,10 @@
         form.barrio_id = props.user.barrio_id ?? '';
         form.telefono = props.user.telefono ?? '';
         form.whatsapp = props.user.whatsapp ?? '';
-        form.fecha_nacimiento = props.user.fecha_nacimiento ?? '';
+        form.fecha_nacimiento = parseISODateToLocal(props.user.fecha_nacimiento) ?? null;
         form.sexo_id = props.user.sexo_id ?? '';
         form.membresia_id = props.user.membresia_id ?? '';
+        form.programa_estudio_id = props.user.programa_estudio_id ?? '';
         form.es_maestro = props.user.es_mastro;
         form.es_coordinador = props.user.es_coordinador;
         form.msgxmail = props.user.msgxmail === 1;
@@ -87,11 +109,18 @@
     function submit() {
         // Formatear fecha_nacimiento al formato YYYY-MM-DD si existe
         if (form.fecha_nacimiento) {
-            const fecha = new Date(form.fecha_nacimiento);
-            const year = fecha.getFullYear();
-            const month = String(fecha.getMonth() + 1).padStart(2, '0');
-            const day = String(fecha.getDate()).padStart(2, '0');
-            form.fecha_nacimiento = `${year}-${month}-${day}`;
+            if (form.fecha_nacimiento instanceof Date) {
+                form.fecha_nacimiento = toYYYYMMDDLocal(form.fecha_nacimiento);
+            } else if (typeof form.fecha_nacimiento === 'string') {
+                // Try to parse ISO string safely to local and format
+                const dt = parseISODateToLocal(form.fecha_nacimiento);
+                form.fecha_nacimiento = dt ? toYYYYMMDDLocal(dt) : form.fecha_nacimiento;
+            }
+        }
+
+        // Map 'Ninguno' sentinel to id 1 before submit
+        if (form.programa_estudio_id === '__NONE__' || form.programa_estudio_id === '' || form.programa_estudio_id === null) {
+            form.programa_estudio_id = 1;
         }
         
         if (props.updating) {
@@ -131,6 +160,7 @@
                             :municipios="municipios"
                             :barrios="barrios"
                             :sexos="sexos"
+                            :programa-estudios="programa_estudios"
                             :form="form" 
                             @submit="submit"
                         />

@@ -5,7 +5,8 @@
 </script>
 
 <script setup>
-import { computed, watch } from 'vue';
+import { computed, watch, ref, onMounted } from 'vue';
+import { router } from '@inertiajs/vue3';
 import FormSection from '@/Components/FormSection.vue'
 import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
@@ -50,6 +51,10 @@ const props = defineProps({
     sexos: {
         type: Array,
         default: () => []
+    },
+    programaEstudios: {
+        type: Array,
+        default: () => []
     }
 
 })
@@ -82,6 +87,12 @@ const barriosFiltrados = computed(() => {
     });
 });
 
+// Programa de estudio options with synthetic 'Ninguno' option
+const programaOptions = computed(() => {
+    const base = props.programaEstudios || [];
+    return [{ id: '__NONE__', nombre: 'Ninguno' }, ...base];
+});
+
 watch(() => props.form.pais_id, () => {
     if (!provinciasFiltradas.value.find(p => p.id == props.form.provincia_id)) {
         props.form.provincia_id = '';
@@ -99,6 +110,53 @@ watch(() => props.form.provincia_id, () => {
 });
 
 defineEmits(['submit'])
+
+const fields = [
+    'accesibilidad',
+    'accesibilidad_desc',
+    'direccion',
+    'pais_id',
+    'provincia_id',
+    'municipio_id',
+    'barrio_id',
+    'telefono',
+    'whatsapp',
+    'fecha_nacimiento',
+    'sexo_id',
+    'msgxmail',
+    'msgxwapp',
+    'programa_estudio_id'
+];
+
+function normalizeDate(val) {
+    if (!val) return null;
+    if (val instanceof Date) {
+        const y = val.getFullYear();
+        const m = String(val.getMonth() + 1).padStart(2, '0');
+        const d = String(val.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    return String(val);
+}
+
+function pickFormValues() {
+    const out = {};
+    fields.forEach((k) => {
+        const v = props.form[k];
+        out[k] = k === 'fecha_nacimiento' ? normalizeDate(v) : v;
+    });
+    return out;
+}
+
+const initialSnapshot = ref({});
+onMounted(() => {
+    initialSnapshot.value = pickFormValues();
+});
+
+const isDirty = computed(() => {
+    const current = pickFormValues();
+    return JSON.stringify(current) !== JSON.stringify(initialSnapshot.value);
+});
 
 </script>
 
@@ -218,7 +276,19 @@ defineEmits(['submit'])
                     />
                     <InputError :message="$page.props.errors.sexo_id" class="mt-2" />
                 </div>
-                <div></div>
+                <div class="col-span-1">
+                    <InputLabel for="programa_estudio_id" class="mt-4" value="Programa de estudio al que asiste" :required="false"/>
+                    <Dropdown
+                        id="programa_estudio_id"
+                        v-model="form.programa_estudio_id"
+                        :options="programaOptions"
+                        optionLabel="nombre"
+                        optionValue="id"
+                        placeholder="Seleccione un programa de estudio"
+                        class="w-full mt-1 border border-gray-300"
+                    />
+                    <InputError :message="$page.props.errors.programa_estudio_id" class="mt-2" />
+                </div>
 
             </div>
 
@@ -283,9 +353,19 @@ defineEmits(['submit'])
             </div> -->
         </template>
         <template #actions>
-            <PrimaryButton>
+            <PrimaryButton
+                :disabled="!isDirty"
+                :class="!isDirty ? 'bg-gray-300 text-gray-600 hover:bg-gray-300 cursor-not-allowed' : ''"
+            >
                 {{ updating ? 'Actualizar' : 'Crear' }}
             </PrimaryButton>
+            <button
+                type="button"
+                class="ml-3 bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300"
+                @click="() => { updating ? router.visit(route('profile.show')) : window.history.back(); }"
+            >
+                Volver
+            </button>
         </template>
     </FormSection>
 </template>

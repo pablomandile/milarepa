@@ -33,7 +33,7 @@ class JetstreamServiceProvider extends ServiceProvider
             'auth.user' => function () {
                 // Lógica para retornar el user con relaciones
                 return auth()->user()
-                    ? auth()->user()->load('pais', 'membresia.entidad', 'provincia', 'municipio', 'barrio', 'sexo')
+                    ? auth()->user()->load('pais', 'membresia.entidad', 'provincia', 'municipio', 'barrio', 'sexo', 'programaEstudio')
                     : null;
             },
         ]);
