@@ -17,7 +17,7 @@ class PerfilesController extends Controller
         $roles = Role::with('permissions')->paginate(15);
         $permissions = Permission::all();
 
-        return Inertia::render('Perfiles/Index', [
+        return Inertia::render('Permisos/Index', [
             'roles' => $roles,
             'permissions' => $permissions,
         ]);

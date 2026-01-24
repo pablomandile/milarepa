@@ -92,36 +92,32 @@ class EstadoCuentaMembresiasController extends Controller
      */
     public function crearEstadosCuenta($userId, $membresiaId, $fechaInicio, $cantidadMeses = 12, $importe = null)
     {
+        // Obsoleto: usar comando membresias:renovar-mensual
         $membresia = Membresia::findOrFail($membresiaId);
-        
+
         if (!$importe && $membresia->esquemaPrecio) {
             $importe = $membresia->esquemaPrecio->precio ?? 0;
         }
 
         $fecha = Carbon::parse($fechaInicio);
 
-        for ($i = 0; $i < $cantidadMeses; $i++) {
-            $mesPagado = $fecha->format('Y-m');
+        $mesPagado = $fecha->format('Y-m');
+        $existe = EstadoCuentaMembresia::where('user_id', $userId)
+            ->where('membresia_id', $membresiaId)
+            ->where('mes_pagado', $mesPagado)
+            ->exists();
 
-            // Evitar crear duplicados
-            $existe = EstadoCuentaMembresia::where('user_id', $userId)
-                ->where('membresia_id', $membresiaId)
-                ->where('mes_pagado', $mesPagado)
-                ->exists();
-
-            if (!$existe) {
-                EstadoCuentaMembresia::create([
-                    'user_id' => $userId,
-                    'membresia_id' => $membresiaId,
-                    'mes_pagado' => $mesPagado,
-                    'fecha_pago' => null,
-                    'importe' => $importe,
-                    'pagado' => false,
-                    'observaciones' => 'Registro automático'
-                ]);
-            }
-
-            $fecha->addMonth();
+        if (!$existe) {
+            EstadoCuentaMembresia::create([
+                'user_id' => $userId,
+                'membresia_id' => $membresiaId,
+                'mes_pagado' => $mesPagado,
+                'fecha_pago' => null,
+                'importe' => $importe,
+                'pagado' => false,
+                'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
+                'observaciones' => 'Registro automático (único mes)'
+            ]);
         }
     }
 }

@@ -18,13 +18,18 @@ class EstadoCuentaMembresia extends Model
         'mes_pagado',
         'importe',
         'observaciones',
-        'pagado'
+        'pagado',
+        'estado',
+        'modo'
     ];
 
     protected $casts = [
         'pagado' => 'boolean',
         'fecha_pago' => 'date',
     ];
+
+    public const ESTADO_ACTIVA = 'Activa';
+    public const ESTADO_EXPIRADA = 'Expirada';
 
     public function user()
     {

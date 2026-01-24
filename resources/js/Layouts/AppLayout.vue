@@ -239,11 +239,11 @@ const logout = () => {
                                     <DropdownLink :href="route('usuarios.index')" :active="route().current('usuarios.*')">
                                         Usuarios
                                     </DropdownLink>
-                                    <DropdownLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
-                                        Perfiles
-                                    </DropdownLink>
                                     <DropdownLink :href="route('roles.index')" :active="route().current('roles.*')">
                                         Roles
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
+                                        Permisos
                                     </DropdownLink>
                                 </template>
                             </Dropdown>

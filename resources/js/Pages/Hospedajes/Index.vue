@@ -55,6 +55,10 @@
     
 </script>
 
+<style scoped>
+@import '../../../css/datatable-header-style.css';
+</style>
+
 <template>
     <AppLayout>
         <template #header>

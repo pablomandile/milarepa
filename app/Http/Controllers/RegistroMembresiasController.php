@@ -60,12 +60,11 @@ class RegistroMembresiasController extends Controller
             $importe = $membresia->esquemaPrecioMembresias()->first()->precio ?? 0;
         }
 
-        // Crear los registros de estado de cuenta
+        // Crear solo la inscripción del mes actual
         $this->crearEstadosCuenta(
             $user->id,
             $membresia->id,
             $validated['fecha_inicio'],
-            $validated['cantidad_meses'],
             $importe
         );
 
@@ -106,9 +105,9 @@ class RegistroMembresiasController extends Controller
     }
 
     /**
-     * Create monthly account statements for a membership
+     * Create account statement for current month only
      */
-    private function crearEstadosCuenta($userId, $membresiaId, $fechaInicio, $cantidadMeses = 12, $importe = null)
+    private function crearEstadosCuenta($userId, $membresiaId, $fechaInicio, $importe = null)
     {
         $membresia = Membresia::findOrFail($membresiaId);
         
@@ -117,29 +116,25 @@ class RegistroMembresiasController extends Controller
         }
 
         $fecha = Carbon::parse($fechaInicio);
+        $mesPagado = $fecha->format('Y-m');
 
-        for ($i = 0; $i < $cantidadMeses; $i++) {
-            $mesPagado = $fecha->format('Y-m');
+        // Solo crear inscripción del mes actual
+        $existe = EstadoCuentaMembresia::where('user_id', $userId)
+            ->where('membresia_id', $membresiaId)
+            ->where('mes_pagado', $mesPagado)
+            ->exists();
 
-            // Evitar crear duplicados
-            $existe = EstadoCuentaMembresia::where('user_id', $userId)
-                ->where('membresia_id', $membresiaId)
-                ->where('mes_pagado', $mesPagado)
-                ->exists();
-
-            if (!$existe) {
-                EstadoCuentaMembresia::create([
-                    'user_id' => $userId,
-                    'membresia_id' => $membresiaId,
-                    'mes_pagado' => $mesPagado,
-                    'fecha_pago' => null,
-                    'importe' => $importe ?? 0,
-                    'pagado' => false,
-                    'observaciones' => 'Registro automático'
-                ]);
-            }
-
-            $fecha->addMonth();
+        if (!$existe) {
+            EstadoCuentaMembresia::create([
+                'user_id' => $userId,
+                'membresia_id' => $membresiaId,
+                'mes_pagado' => $mesPagado,
+                'fecha_pago' => null,
+                'importe' => $importe ?? 0,
+                'pagado' => false,
+                'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
+                'observaciones' => 'Inscripción del mes actual'
+            ]);
         }
     }
 }

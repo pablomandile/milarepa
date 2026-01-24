@@ -140,6 +140,10 @@ class RoleSeeder extends Seeder
         $permission_create_grabaciones = Permission::firstOrCreate(['name' => 'read grabaciones']);
         $permission_create_grabaciones = Permission::firstOrCreate(['name' => 'delete grabaciones']);
 
+        $permission_estado_cuenta_membresias = Permission::firstOrCreate(['name' => 'create estado_cuenta_membresias']);
+        $permission_estado_cuenta_membresias = Permission::firstOrCreate(['name' => 'update estado_cuenta_membresias']);
+        $permission_estado_cuenta_membresias = Permission::firstOrCreate(['name' => 'read estado_cuenta_membresias']);
+        $permission_estado_cuenta_membresias = Permission::firstOrCreate(['name' => 'delete estado_cuenta_membresias']);
 
         $permissions_admin = [
             'create roles',
@@ -239,6 +243,10 @@ class RoleSeeder extends Seeder
             'update grabaciones',
             'read grabaciones',
             'delete grabaciones',
+            'create estado_cuenta_membresias',
+            'update estado_cuenta_membresias',
+            'read estado_cuenta_membresias',
+            'delete estado_cuenta_membresias',
                                     
         ];
         
@@ -310,7 +318,6 @@ class RoleSeeder extends Seeder
             'create tickets',
             'update tickets',
             'read tickets',
-            'delete tickets',
             'asign tickets',
             'create transportes',
             'update transportes',
@@ -331,11 +338,14 @@ class RoleSeeder extends Seeder
             'create usuarios',
             'update usuarios',
             'read usuarios',
-            'delete usuarios',
             'create grabaciones',
             'update grabaciones',
             'read grabaciones',
             'delete grabaciones',
+            'create estado_cuenta_membresias',
+            'update estado_cuenta_membresias',
+            'read estado_cuenta_membresias',
+            'delete estado_cuenta_membresias',
         ];
 
         $permissions_asistant = [

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class RolesController extends Controller
 {
@@ -54,8 +55,14 @@ class RolesController extends Controller
      */
     public function edit(string $id)
     {
+        $role = Role::findOrFail($id);
+        $allPermissions = Permission::all();
+        $rolePermissions = $role->permissions->pluck('id')->toArray();
+
         return Inertia::render('Roles/Edit', [
-            'role' => Role::findOrFail($id),
+            'role' => $role,
+            'allPermissions' => $allPermissions,
+            'rolePermissions' => $rolePermissions,
         ]);
     }
 
@@ -69,11 +76,19 @@ class RolesController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:roles,name,' . $id],
             'guard_name' => ['required', 'string', 'max:255'],
+            'permissions' => ['required', 'array'],
+            'permissions.*' => ['integer', 'exists:permissions,id'],
         ]);
 
-        $role->update($validated);
+        $role->update([
+            'name' => $validated['name'],
+            'guard_name' => $validated['guard_name'],
+        ]);
 
-        return redirect()->route('roles.index')->with('success', 'Rol actualizado exitosamente.');
+        // Sincronizar permisos
+        $role->syncPermissions(Permission::whereIn('id', $validated['permissions'])->pluck('id'));
+
+        return redirect()->route('perfiles.index')->with('success', 'Rol actualizado exitosamente.');
     }
 
     /**

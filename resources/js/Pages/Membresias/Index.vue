@@ -82,6 +82,20 @@ const isDisabledButton = (membresia) => {
                                 <p v-if="userMembresia" class="text-base text-600 mt-2">
                                     <span class="font-semibold">Tu membresía actual:</span> <span class="font-bold text-green-600">{{ userMembresia.nombre }}</span>
                                 </p>
+                                <div v-if="userMembresia" class="flex gap-2 mt-3">
+                                    <button
+                                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition"
+                                    >
+                                        <i class="pi pi-credit-card mr-2"></i>
+                                        Pagar
+                                    </button>
+                                    <button
+                                        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition"
+                                    >
+                                        <i class="pi pi-upload mr-2"></i>
+                                        Informar Pago
+                                    </button>
+                                </div>
                                 <p v-else class="text-base text-600 mt-2">
                                     No tienes una membresía activa. ¡Elige una y únete ahora!
                                 </p>

@@ -20,7 +20,7 @@
                         <!-- Tabla de Usuarios -->
                         <div v-if="usuarios.data.length > 0" class="overflow-x-auto">
                             <table class="min-w-full border-collapse border border-gray-300">
-                                <thead class="bg-indigo-600 text-white">
+                                <thead class="bg-indigo-300 text-white">
                                     <tr>
                                         <th class="border border-gray-300 px-6 py-3 text-left">Usuario</th>
                                         <th class="border border-gray-300 px-6 py-3 text-left">Email</th>

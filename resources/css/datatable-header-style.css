@@ -1,0 +1,11 @@
+/*
+ * DataTable Styles - Reutilizable para todos los componentes que usen PrimeVue DataTable
+ * Importar en <style scoped> de cada componente:
+ * @import '@/css/datatable-header-style.css';
+ */
+
+:deep(.p-datatable .p-datatable-thead > tr > th) {
+    background-color: rgb(165, 180, 252) !important;
+    color: rgb(255, 255, 255) !important;
+    font-weight: 600 !important;
+}

@@ -42,6 +42,11 @@
     
 </script>
 
+<style scoped>
+@import '../../../css/datatable-header-style.css';
+
+</style>
+
 <template>
     <AppLayout>
         <template #header>
@@ -56,7 +61,14 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="maestros.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                        <DataTable 
+                            :value="maestros.data" 
+                            stripedRows 
+                            paginator 
+                            :rows="5" 
+                            :rowsPerPageOptions="[5, 10, 20, 50]" 
+                            tableStyle="min-width: 50rem"
+                        >
                             <Column field="nombre" header="Nombre"></Column>
                             <Column field="telefono" header="Telefono"></Column>
                             <Column field="email" header="Correo electrónico"></Column>
