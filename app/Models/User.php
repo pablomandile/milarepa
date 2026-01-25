@@ -128,4 +128,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(EstadoCuentaMembresia::class, 'user_id');
     }
+
+    public function inscripciones()
+    {
+        return $this->hasMany(Inscripcion::class, 'user_id');
+    }
 }

@@ -4,8 +4,7 @@ import DataView from 'primevue/dataview';
 import Dialog from 'primevue/dialog';
 import { useToast } from 'primevue/usetoast';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { usePage } from '@inertiajs/vue3';
-import { router } from '@inertiajs/vue3';
+import { usePage, Link, router } from '@inertiajs/vue3';
 
 const $page = usePage();
 
@@ -13,6 +12,11 @@ const props = defineProps({
   actividades: {
     type: Array,
     required: true,
+    default: () => []
+  },
+  userInscripcionesActividadIds: {
+    type: Array,
+    required: false,
     default: () => []
   }
 });
@@ -24,6 +28,15 @@ const flippedCards = ref({});
 const confirmModalVisible = ref(false);
 const actividadAInscribir = ref(null);
 const toast = useToast();
+
+// Función para formatear precios con punto para miles y coma para decimales
+const formatPrice = (price) => {
+  if (!price || isNaN(price)) return '0,00';
+  return new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(price);
+};
 
 // Mostrar toast cuando cambian los mensajes flash (éxito / error)
 watch(() => $page.props.flash, (flash) => {
@@ -115,6 +128,10 @@ function precioMembresiaUsuario(actividad) {
   return pivot ? pivot.precio : 0;
 }
 
+function esInscrito(actividadId) {
+  return props.userInscripcionesActividadIds.includes(actividadId);
+}
+
 const actividadesActivas = ref([]);
 
 watch(() => props.actividades, (newActividades) => {
@@ -153,8 +170,9 @@ watch(() => props.actividades, (newActividades) => {
                             >
                                 <!-- Contenedor flip-card -->
                                 <div
-                                class="flip-card-container border-round bg-white shadow-sm hover:shadow-md transition-shadow"
+                                class="flip-card-container border-round shadow-sm hover:shadow-md transition-shadow"
                                 :class="{ 'flipped': flippedCards[actividad.id] }"
+                                style="background: linear-gradient(135deg, #f3e8ff 0%, #d8b4f8 100%);"
                                 >
                                 <!-- flip-card-inner envuelve front y back -->
                                 <div class="flip-card-inner">
@@ -162,7 +180,7 @@ watch(() => props.actividades, (newActividades) => {
                                     <!-- FRONT: imagen e info breve -->
                                     <div class="flip-card-front flex flex-row h-full p-4">
                                         <!-- Imagen a la izquierda -->
-                                        <div class="w-1/2 pr-3 flex items-center justify-center bg-gray-50 cursor-pointer rounded h-full" @click="toggleFlip(actividad.id)">
+                                        <div class="w-1/2 pr-3 flex items-center justify-center bg-transparent cursor-pointer rounded h-full" @click="toggleFlip(actividad.id)">
                                             <img
                                                 class="w-full h-full object-contain rounded"
                                                 :src="actividad.imagen?.ruta
@@ -187,30 +205,42 @@ watch(() => props.actividades, (newActividades) => {
                                                 <p
                                                 class="text-sm mb-1"
                                                 :class="{
-                                                    'text-gray-600': user.membresia?.nombre === 'Sin membresía',
-                                                    'text-red-300 line-through': user.membresia?.nombre !== 'Sin membresía'
+                                                    'font-bold': !user?.membresia || user.membresia?.nombre === 'Sin membresía',
+                                                    'text-gray-700 line-through text-gray-400': user?.membresia && user.membresia?.nombre !== 'Sin membresía'
                                                 }"
                                                 >
-                                                    <strong>Valor:</strong> ${{
-                                                        actividad.esquema_precio?.membresias
-                                                        ?.find(epm => epm.membresia?.nombre === 'Sin membresía')
-                                                        ?.precio
-                                                        || 'Precio no definido'
-                                                    }}
+                                                    <strong>Valor:</strong> 
+                                                    <span v-if="parseInt(actividad.esquema_precio?.membresias?.find(epm => epm.membresia?.nombre === 'Sin membresía')?.precio) === 0" class="font-bold text-gray-700">
+                                                      Incluído
+                                                    </span>
+                                                    <span v-else class="font-bold text-gray-700">
+                                                      ${{ formatPrice(actividad.esquema_precio?.membresias?.find(epm => epm.membresia?.nombre === 'Sin membresía')?.precio || 0) }}
+                                                    </span>
                                                 </p>
-                                                <p v-if="user.membresia?.nombre !== 'Sin membresía'" class="text-sm text-gray-600 mb-2">
+                                                <p v-if="user?.membresia && user.membresia?.nombre !== 'Sin membresía'" class="text-sm text-gray-600 mb-2">
                                                     <strong>Con {{ user.membresia?.nombre }}:</strong>
-                                                    ${{ precioMembresiaUsuario(actividad) }}
+                                                    <span v-if="parseInt(precioMembresiaUsuario(actividad)) === 0" class="font-bold text-green-700"> Incluído</span>
+                                                    <span v-else class="font-bold text-green-700"> ${{ formatPrice(precioMembresiaUsuario(actividad)) }}</span>
                                                 </p>
                                             </div>
 
-                                            <!-- Botón -->
-                                            <div class="mt-2">
+                                            <!-- Botones -->
+                                            <div class="mt-2 flex gap-2">
+                                                <Link
+                                                :href="route('actividades.show', actividad.id)"
+                                                class="bg-gray-500 hover:bg-gray-600 text-white py-1 px-2 rounded text-xs flex-1 transition-colors text-center flex items-center justify-center gap-1 whitespace-nowrap"
+                                                >
+                                                <i class="pi pi-plus"></i>
+                                                <span>Más info.</span>
+                                                </Link>
                                                 <button
-                                                class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-sm w-full transition-colors"
+                                                :disabled="esInscrito(actividad.id)"
+                                                class="py-1 px-3 rounded text-sm flex-1 transition-colors flex items-center justify-center gap-1"
+                                                :class="esInscrito(actividad.id) ? 'bg-gray-200 text-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
                                                 @click="inscribir(actividad)"
                                                 >
-                                                Inscribirme
+                                                <i v-if="esInscrito(actividad.id)" class="pi pi-heart-fill"></i>
+                                                {{ esInscrito(actividad.id) ? 'Inscripto' : 'Inscribirme' }}
                                                 </button>
                                             </div>
                                         </div>
@@ -226,10 +256,13 @@ watch(() => props.actividades, (newActividades) => {
                                         </div>
                                         <div class="mt-4 pt-4 border-t border-gray-200">
                                             <button
-                                            class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded w-full transition-colors"
+                                            :disabled="esInscrito(actividad.id)"
+                                            class="py-2 px-4 rounded w-full transition-colors flex items-center justify-center gap-2"
+                                            :class="esInscrito(actividad.id) ? 'bg-gray-400 text-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
                                             @click="inscribir(actividad)"
                                             >
-                                            Inscribirme
+                                            <i v-if="esInscrito(actividad.id)" class="pi pi-heart-fill"></i>
+                                            {{ esInscrito(actividad.id) ? 'Inscripto' : 'Inscribirme' }}
                                             </button>
                                         </div>
                                     </div>

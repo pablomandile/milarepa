@@ -167,7 +167,7 @@ class ActividadesController extends Controller
             'entidad',
             'disponibilidad',
             'modalidad',
-            'esquemaPrecio',
+            'esquemaPrecio.membresias.membresia',
             'esquemaDescuento',
             'stream',
             'grabacion',
@@ -190,8 +190,12 @@ class ActividadesController extends Controller
             }
         }
 
+        // Obtener IDs de actividades donde el usuario actual está inscripto
+        $userInscripcionesActividadIds = auth()->user()->inscripciones()->pluck('actividad_id')->toArray();
+
         return inertia('Actividades/Show', [
             'actividad' => $actividad->toArray(),
+            'userInscripcionesActividadIds' => $userInscripcionesActividadIds
         ]);
     }
 

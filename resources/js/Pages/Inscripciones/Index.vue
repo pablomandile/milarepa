@@ -96,20 +96,24 @@ watch(() => $page.props.flash, (flash) => {
                                 >
                                     <div class="flex flex-row gap-4 h-full">
                                         <!-- Imagen fija adaptada a la altura de la card -->
-                                        <div class="w-40 md:w-56 h-full flex items-center justify-center bg-gray-100 rounded">
+                                        <Link
+                                            :href="route('inscripciones.show', { inscripcion: inscripcion.id })"
+                                            class="w-40 md:w-56 h-full flex items-center justify-center bg-gray-100 rounded hover:ring-2 hover:ring-indigo-300 transition group overflow-hidden"
+                                            title="Ver inscripción"
+                                        >
                                             <img
                                                 v-if="inscripcion.actividad?.imagen"
                                                 :src="'/storage/' + inscripcion.actividad.imagen.ruta"
                                                 :alt="'Imagen de ' + inscripcion.actividad.nombre"
-                                                class="max-w-full max-h-full object-contain"
+                                                class="max-w-full max-h-full object-contain transition-transform duration-300 ease-out transform group-hover:scale-110 cursor-pointer"
                                             />
                                             <img
                                                 v-else
                                                 src="/storage/img/actividades/imagen-no-disponible.jpg"
                                                 alt="Sin imagen"
-                                                class="max-w-full max-h-full object-contain"
+                                                class="max-w-full max-h-full object-contain transition-transform duration-300 ease-out transform group-hover:scale-110 cursor-pointer"
                                             />
-                                        </div>
+                                        </Link>
                                         <!-- Información principal -->
                                         <div class="flex-1 flex flex-col justify-between">
                                             <h3 class="text-lg font-semibold text-gray-800 mb-2">

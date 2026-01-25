@@ -46,8 +46,14 @@ class GridActividadesController extends Controller
         return $actividad;
     });
 
+        // Obtener IDs de actividades donde el usuario actual está inscripto
+        $userInscripcionesActividadIds = auth()->user()->inscripciones()->pluck('actividad_id')->toArray();
+
         // dd($actividades->toArray());
-        return inertia('GridActividades/Index', ['actividades' => $actividades->toArray()]);
+        return inertia('GridActividades/Index', [
+            'actividades' => $actividades->toArray(),
+            'userInscripcionesActividadIds' => $userInscripcionesActividadIds
+        ]);
     }
 
     /**
