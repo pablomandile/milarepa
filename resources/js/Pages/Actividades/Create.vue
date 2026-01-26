@@ -118,6 +118,46 @@
         coordinadores_ids: []
     });
 
+    function handleSubmit() {
+        // Formatear las fechas usando transform de Inertia
+        form.transform((data) => {
+            // Función para formatear fechas
+            function formatDatetime(date) {
+              if (!date) return null;
+              
+              if (date instanceof Date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+              }
+              
+              if (typeof date === 'string') {
+                const dateObj = new Date(date);
+                const year = dateObj.getFullYear();
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                const hours = String(dateObj.getHours()).padStart(2, '0');
+                const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+              }
+              
+              return date;
+            }
+            
+            return {
+                ...data,
+                fecha_inicio: formatDatetime(data.fecha_inicio),
+                fecha_fin: formatDatetime(data.fecha_fin),
+                pagoAmticipado: formatDatetime(data.pagoAmticipado),
+            };
+        }).post(route('actividades.store'));
+    }
+
 </script>
 
 <template>
@@ -171,7 +211,7 @@
                               :maestros="maestros"
                               :form="form"
                               :hide-header="true"
-                              @submit="form.post(route('actividades.store'))"
+                              @submit="handleSubmit"
                               @refresh-descripciones="reloadDescripciones"
                             />
                         </div>

@@ -95,15 +95,22 @@
         console.error('La actividad no está definida');
     }
 
+    // Función para convertir string ISO a Date object
+    function parseDateTime(isoString) {
+        if (!isoString) return null;
+        // Convierte "2026-01-27T22:00:25.000000Z" a un Date object
+        return new Date(isoString);
+    }
+
     const form = useForm({
         tipo_actividad_id: props.actividad.tipo_actividad_id,
         nombre: props.actividad.nombre,
         descripcion_id: props.actividad.descripcion_id,
         observaciones: props.actividad.observaciones,
         imagen_id: props.actividad.imagen_id,
-        fecha_inicio: props.actividad.fecha_inicio ? new Date(props.actividad.fecha_inicio) : null,
-        fecha_fin: props.actividad.fecha_fin ? new Date(props.actividad.fecha_fin) : null,
-        pagoAmticipado: props.actividad.pagoAmticipado ? new Date(props.actividad.pagoAmticipado) : null,
+        fecha_inicio: parseDateTime(props.actividad.fecha_inicio),
+        fecha_fin: parseDateTime(props.actividad.fecha_fin),
+        pagoAmticipado: parseDateTime(props.actividad.pagoAmticipado),
         entidad_id: props.actividad.entidad_id,
         disponibilidad_id: props.actividad.disponibilidad_id,
         modalidad_id: props.actividad.modalidad_id,
@@ -123,7 +130,31 @@
     });
 
     const handleSubmit = () => {
-        form.put(route('actividades.update', { actividad: props.actividad.id }), {
+        // Convertir Date objects a strings formateados
+        form.transform((data) => {
+            function formatDatetime(date) {
+              if (!date) return null;
+              
+              if (date instanceof Date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+              }
+              
+              return date;
+            }
+            
+            return {
+                ...data,
+                fecha_inicio: formatDatetime(data.fecha_inicio),
+                fecha_fin: formatDatetime(data.fecha_fin),
+                pagoAmticipado: formatDatetime(data.pagoAmticipado),
+            };
+        }).put(route('actividades.update', { actividad: props.actividad.id }), {
             onSuccess: () => {
                 console.log('Actividad actualizada exitosamente');
             },

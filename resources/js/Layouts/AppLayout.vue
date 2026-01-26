@@ -142,6 +142,9 @@ const logout = () => {
                                     <DropdownLink :href="route('grabaciones.index')" :active="route().current('grabaciones.*')">
                                         Grabaciones
                                     </DropdownLink>
+                                    <DropdownLink href="/email-preview" :active="route().current('email.preview.landing')">
+                                        Plantillas de Emails
+                                    </DropdownLink>
                                 </template>
                             </Dropdown>
                         </div>

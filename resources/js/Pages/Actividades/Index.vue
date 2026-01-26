@@ -147,9 +147,9 @@
                                     {{ slotProps.data.fecha_inicio ? new Date(slotProps.data.fecha_inicio).toLocaleDateString('es-AR') : '-' }}
                                 </template>
                             </Column>
-                            <Column header="Fecha Fin" sortable field="fecha_fin">
+                            <Column header="Hora Inicio" sortable field="fecha_inicio">
                                 <template #body="slotProps">
-                                    {{ slotProps.data.fecha_fin ? new Date(slotProps.data.fecha_fin).toLocaleDateString('es-AR') : '-' }}
+                                    {{ slotProps.data.fecha_inicio ? new Date(slotProps.data.fecha_inicio).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' hs.' : '-' }}
                                 </template>
                             </Column>
                             <Column field="modalidad.nombre" header="Modalidad" sortable></Column>
@@ -323,6 +323,12 @@
                                         <div v-if="data.fecha_fin">
                                             <span class="font-semibold text-gray-700">Fecha Fin:</span>
                                             <span class="ml-2">{{ new Date(data.fecha_fin).toLocaleDateString('es-AR') }}</span>
+                                        </div>
+
+                                        <!-- Hora Fin -->
+                                        <div v-if="data.fecha_fin">
+                                            <span class="font-semibold text-gray-700">Hora Fin:</span>
+                                            <span class="ml-2">{{ new Date(data.fecha_fin).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }) }} hs.</span>
                                         </div>
 
                                         <!-- Pago Anticipado -->

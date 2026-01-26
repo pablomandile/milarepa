@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Inscripcion;
 use App\Models\EstadoTicket;
+use App\Mail\InscripcionConfirmada;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 
 class InscripcionesController extends Controller
 {
@@ -91,9 +93,45 @@ class InscripcionesController extends Controller
 
         $inscripcion = Inscripcion::create($data);
 
+        // Cargar relaciones para el email
+        $inscripcion->load([
+            'actividad.entidad',
+            'actividad.descripcion',
+            'actividad.modalidad',
+            'user',
+            'estado'
+        ]);
+
+        // Enviar email de confirmación
+        $emailEnviado = false;
+        $mensajeEmail = '';
+        
+        try {
+            Mail::to($inscripcion->user->email)->send(new InscripcionConfirmada($inscripcion));
+            $emailEnviado = true;
+            $mensajeEmail = 'Email de confirmación enviado correctamente a ' . $inscripcion->user->email;
+            \Log::info('Email de inscripción enviado correctamente', [
+                'inscripcion_id' => $inscripcion->id,
+                'user_email' => $inscripcion->user->email
+            ]);
+        } catch (\Exception $e) {
+            $emailEnviado = false;
+            $mensajeEmail = 'Advertencia: No se pudo enviar el email de confirmación. Error: ' . $e->getMessage();
+            \Log::error('Error al enviar email de inscripción', [
+                'inscripcion_id' => $inscripcion->id,
+                'user_email' => $inscripcion->user->email,
+                'error' => $e->getMessage(),
+                'exception' => get_class($e)
+            ]);
+        }
+
         // Redirigir a la vista de detalle (show) de la Inscripción
         return redirect()->route('inscripciones.show', ['inscripcion' => $inscripcion->id])
-            ->with('success', 'Inscripción creada correctamente.');
+            ->with('success', 'Inscripción creada correctamente.')
+            ->with('email_status', [
+                'enviado' => $emailEnviado,
+                'mensaje' => $mensajeEmail
+            ]);
     }
 
     /**

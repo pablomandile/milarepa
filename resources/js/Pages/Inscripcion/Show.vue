@@ -32,6 +32,15 @@ watch(() => $page.props.flash, (flash) => {
       life: 5000,
     });
   }
+  if (flash?.email_status) {
+    const severity = flash.email_status.enviado ? 'success' : 'warn';
+    toast.add({
+      severity: severity,
+      summary: flash.email_status.enviado ? 'Email Enviado' : 'Advertencia de Email',
+      detail: flash.email_status.mensaje,
+      life: 7000,
+    });
+  }
   if (flash?.error) {
     toast.add({
       severity: 'warn',

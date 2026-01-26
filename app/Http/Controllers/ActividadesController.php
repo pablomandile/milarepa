@@ -130,8 +130,32 @@ class ActividadesController extends Controller
             $metodosPagoIds = [1];
         }
  
-
-        // Quitar del array $validated los que no estén en la BD si no vas a guardarlos como columna
+        // DEBUG: Ver qué está llegando
+        \Log::info('Fecha inicio recibida:', ['fecha_inicio' => $validated['fecha_inicio'] ?? 'NULL']);
+        \Log::info('Fecha fin recibida:', ['fecha_fin' => $validated['fecha_fin'] ?? 'NULL']);
+        
+        // Procesar fechas - parsear si vienen como string
+        // PrimeVue Calendar envía la fecha/hora tal cual el usuario la selecciona
+        // No necesitamos convertir de zona horaria porque JavaScript Date está en UTC
+        if (!empty($validated['fecha_inicio'])) {
+            $fecha = $validated['fecha_inicio'];
+            if (is_string($fecha)) {
+                // Solo parsear, sin convertir zona horaria
+                $validated['fecha_inicio'] = \Carbon\Carbon::parse($fecha);
+            } elseif ($fecha instanceof \DateTime) {
+                $validated['fecha_inicio'] = \Carbon\Carbon::instance($fecha);
+            }
+            \Log::info('Fecha inicio parseada:', ['fecha_inicio' => $validated['fecha_inicio']]);
+        }
+        if (!empty($validated['fecha_fin'])) {
+            $fecha = $validated['fecha_fin'];
+            if (is_string($fecha)) {
+                $validated['fecha_fin'] = \Carbon\Carbon::parse($fecha);
+            } elseif ($fecha instanceof \DateTime) {
+                $validated['fecha_fin'] = \Carbon\Carbon::instance($fecha);
+            }
+            \Log::info('Fecha fin parseada:', ['fecha_fin' => $validated['fecha_fin']]);
+        }
         //    (o si no definiste esas columnas en $fillable)
         unset($validated['metodos_pago_ids'], $validated['hospedajes_ids'],
               $validated['comidas_ids'], $validated['transportes_ids'],
@@ -277,6 +301,12 @@ class ActividadesController extends Controller
     {
         $actividad = Actividad::findOrFail($id);
         
+        // DEBUG: Ver datos crudos del request
+        \Log::info('=== UPDATE - REQUEST COMPLETO ===');
+        \Log::info('fecha_inicio RAW:', ['value' => $request->input('fecha_inicio'), 'type' => gettype($request->input('fecha_inicio'))]);
+        \Log::info('fecha_fin RAW:', ['value' => $request->input('fecha_fin'), 'type' => gettype($request->input('fecha_fin'))]);
+        \Log::info('Todos los datos:', $request->all());
+        
         $validated = $request->validated();
 
         // Extraer arrays de ids para relaciones muchos-a-muchos
@@ -289,6 +319,27 @@ class ActividadesController extends Controller
 
         if (empty($metodosPagoIds)) {
             $metodosPagoIds = [1];
+        }
+
+        // Procesar fechas - parsear si vienen como string
+        // PrimeVue Calendar envía la fecha/hora tal cual el usuario la selecciona
+        // No necesitamos convertir de zona horaria porque JavaScript Date está en UTC
+        if (!empty($validated['fecha_inicio'])) {
+            $fecha = $validated['fecha_inicio'];
+            if (is_string($fecha)) {
+                // Solo parsear, sin convertir zona horaria
+                $validated['fecha_inicio'] = \Carbon\Carbon::parse($fecha);
+            } elseif ($fecha instanceof \DateTime) {
+                $validated['fecha_inicio'] = \Carbon\Carbon::instance($fecha);
+            }
+        }
+        if (!empty($validated['fecha_fin'])) {
+            $fecha = $validated['fecha_fin'];
+            if (is_string($fecha)) {
+                $validated['fecha_fin'] = \Carbon\Carbon::parse($fecha);
+            } elseif ($fecha instanceof \DateTime) {
+                $validated['fecha_fin'] = \Carbon\Carbon::instance($fecha);
+            }
         }
 
         // Quitar del array validated los que no están en fillable

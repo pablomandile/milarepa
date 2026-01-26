@@ -196,17 +196,17 @@ watch(() => props.actividades, (newActividades) => {
                                                 <h3 class="text-lg font-semibold mb-2 text-gray-800 leading-tight">
                                                     {{ actividad.nombre }}
                                                 </h3>
-                                                <p class="text-sm text-gray-600 mb-1">
+                                                <p class="text-base text-gray-600 mb-1">
                                                     <strong>Fecha:</strong> {{ actividad.fecha_inicio_formateada }}
                                                 </p>
-                                                <p class="text-sm text-gray-600 mb-1">
+                                                <p class="text-base text-gray-600 mb-1">
                                                     <strong>Lugar:</strong> {{ actividad.entidad?.direccion }}
                                                 </p>
                                                 <p
                                                 class="text-sm mb-1"
                                                 :class="{
                                                     'font-bold': !user?.membresia || user.membresia?.nombre === 'Sin membresía',
-                                                    'text-gray-700 line-through text-gray-400': user?.membresia && user.membresia?.nombre !== 'Sin membresía'
+                                                    'text-gray-800 line-through': user?.membresia && user.membresia?.nombre !== 'Sin membresía'
                                                 }"
                                                 >
                                                     <strong>Valor:</strong> 

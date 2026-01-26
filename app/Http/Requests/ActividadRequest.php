@@ -73,22 +73,8 @@ class ActividadRequest extends FormRequest
 
     public function prepareForValidation()
     {
-        if ($this->has('fecha_inicio')) {
-            $this->merge([
-                'fecha_inicio' => \Carbon\Carbon::parse($this->fecha)->format('Y-m-d'),
-            ]);
-        }
-        if ($this->has('fecha_fin')) {
-            $this->merge([
-                'fecha_fin' => \Carbon\Carbon::parse($this->fecha)->format('Y-m-d'),
-            ]);
-        }
-        if ($this->has('pagoAmticipado')) {
-            $this->merge([
-                'pagoAmticipado' => \Carbon\Carbon::parse($this->fecha)->format('Y-m-d'),
-            ]);
-        }
-        // Ejemplo de imprimir un log con todo el request:
+        // No transformar fechas aquí: deben conservar hora
+        // Solo log para diagnóstico
         Log::info('Datos originales del request:', $this->all());
 
     }

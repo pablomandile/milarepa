@@ -143,12 +143,56 @@ const detalleSeleccionado = ref(null);
   
 }
 
+function formatDatetime(date) {
+  if (!date) return null;
+  
+  // Si es una instancia de Date
+  if (date instanceof Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+  
+  // Si es string, normalizar formato
+  if (typeof date === 'string') {
+    const dateObj = new Date(date);
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const hours = String(dateObj.getHours()).padStart(2, '0');
+    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+    const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+  
+  return date;
+}
+
+function submitForm() {
+  // Formatear las fechas antes de enviar
+  if (props.form.fecha_inicio) {
+    props.form.fecha_inicio = formatDatetime(props.form.fecha_inicio);
+  }
+  if (props.form.fecha_fin) {
+    props.form.fecha_fin = formatDatetime(props.form.fecha_fin);
+  }
+  if (props.form.pagoAmticipado) {
+    props.form.pagoAmticipado = formatDatetime(props.form.pagoAmticipado);
+  }
+  
+  emit('submit');
+}
+
 </script>
 
 <template>
   <Toast position="top-right" />
   <!-- pasar no-aside basado en hideHeader -->
-  <FormSection :no-aside="hideHeader" @submitted="() => emit('submit')">
+  <FormSection :no-aside="hideHeader" @submitted="submitForm">
     <template #title></template>
     <template #description></template>
 
@@ -353,11 +397,13 @@ const detalleSeleccionado = ref(null);
             v-model="form.fecha_inicio"
             dateFormat="dd/mm/yy"
             :showIcon="true"
-            showTime 
+            showTime
             hourFormat="24"
+            :stepMinute="1"
             class="w-full mt-1"
             icon="pi pi-calendar text-indigo-500 text-xl"
-            inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300" 
+            inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
+            @update:modelValue="form.fecha_inicio = $event"
           />
           <InputError :message="$page.props.errors.fecha_inicio" class="mt-2" />
         </div>

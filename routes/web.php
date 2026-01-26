@@ -41,9 +41,17 @@ use App\Http\Controllers\MembresiasGestionController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\StreamsController;
 use App\Http\Controllers\ProfileCompletionController;
+use App\Http\Controllers\EmailPreviewController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
+
+// Rutas públicas para preview de emails
+Route::get('/email-preview', [EmailPreviewController::class, 'landing'])->name('email.preview.landing');
+Route::get('/email-preview/inscripcion', [EmailPreviewController::class, 'inscripcionConfirmada'])
+    ->name('preview.email.inscripcion');
+Route::get('/email-preview/inscripcion/{id}', [EmailPreviewController::class, 'inscripcionConfirmada'])
+    ->name('preview.email.inscripcion.id');
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/complete-profile', [ProfileCompletionController::class, 'create'])
