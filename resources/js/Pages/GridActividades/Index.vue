@@ -177,39 +177,49 @@ watch(() => props.actividades, (newActividades) => {
                                 <!-- flip-card-inner envuelve front y back -->
                                 <div class="flip-card-inner">
 
-                                    <!-- FRONT: imagen e info breve -->
-                                    <div class="flip-card-front flex flex-row h-full p-4">
-                                        <!-- Imagen a la izquierda -->
-                                        <div class="w-1/2 pr-3 flex items-center justify-center bg-transparent cursor-pointer rounded h-full" @click="toggleFlip(actividad.id)">
-                                            <img
-                                                class="w-full h-full object-contain rounded"
-                                                :src="actividad.imagen?.ruta
-                                                    ? `/storage/${actividad.imagen.ruta}`
-                                                    : '/storage/img/actividades/imagen-no-disponible.jpg'"
-                                                :alt="actividad.nombre"
-                                            />
+                                    <!-- FRONT: header + imagen e info breve -->
+                                    <div class="flip-card-front flex flex-col h-full p-4">
+                                        <!-- Header a lo ancho -->
+                                        <div class="flip-card-header w-full mb-3">
+                                            <h3 class="text-lg font-semibold leading-tight">
+                                                {{ actividad.nombre }}
+                                            </h3>
                                         </div>
 
-                                        <!-- Texto a la derecha -->
-                                        <div class="w-1/2 flex flex-col justify-between pl-2">
-                                            <div class="flex-1">
-                                                <h3 class="text-lg font-semibold mb-2 text-gray-800 leading-tight">
-                                                    {{ actividad.nombre }}
-                                                </h3>
-                                                <p class="text-base text-gray-600 mb-1">
-                                                    <strong>Fecha:</strong> {{ actividad.fecha_inicio_formateada }}
+                                        <div class="flex flex-row flex-1">
+                                            <!-- Imagen a la izquierda -->
+                                            <div class="w-1/2 pr-3 flex items-center justify-center bg-transparent cursor-pointer rounded h-full" @click="toggleFlip(actividad.id)">
+                                                <img
+                                                    class="w-full h-full object-contain rounded"
+                                                    :src="actividad.imagen?.ruta
+                                                        ? `/storage/${actividad.imagen.ruta}`
+                                                        : '/storage/img/actividades/imagen-no-disponible.jpg'"
+                                                    :alt="actividad.nombre"
+                                                />
+                                            </div>
+
+                                            <!-- Texto a la derecha -->
+                                            <div class="w-1/2 flex flex-col justify-between pl-2">
+                                                <div class="flex-1">
+                                                <p class="text-base text-gray-600 mb-1 flex items-center gap-2">
+                                                    <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                                                    <span class="sr-only">Fecha</span>
+                                                    <span>{{ actividad.fecha_inicio_formateada }}</span>
                                                 </p>
-                                                <p class="text-base text-gray-600 mb-1">
-                                                    <strong>Lugar:</strong> {{ actividad.entidad?.direccion }}
+                                                <p class="text-base text-gray-600 mb-1 flex items-center gap-2">
+                                                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                                                    <span class="sr-only">Lugar</span>
+                                                    <span>{{ actividad.entidad?.direccion }}</span>
                                                 </p>
                                                 <p
-                                                class="text-sm mb-1"
+                                                class="text-sm mb-1 flex items-center gap-2"
                                                 :class="{
                                                     'font-bold': !user?.membresia || user.membresia?.nombre === 'Sin membresía',
                                                     'text-gray-800 line-through': user?.membresia && user.membresia?.nombre !== 'Sin membresía'
                                                 }"
                                                 >
-                                                    <strong>Valor:</strong> 
+                                                    <i class="fa-solid fa-ticket" aria-hidden="true"></i>
+                                                    <span class="sr-only">Valor</span>
                                                     <span v-if="parseInt(actividad.esquema_precio?.membresias?.find(epm => epm.membresia?.nombre === 'Sin membresía')?.precio) === 0" class="font-bold text-gray-700">
                                                       Incluído
                                                     </span>
@@ -224,8 +234,8 @@ watch(() => props.actividades, (newActividades) => {
                                                 </p>
                                             </div>
 
-                                            <!-- Botones -->
-                                            <div class="mt-2 flex gap-2">
+                                                <!-- Botones -->
+                                                <div class="mt-2 flex gap-2">
                                                 <Link
                                                 :href="route('actividades.show', actividad.id)"
                                                 class="bg-gray-500 hover:bg-gray-600 text-white py-1 px-2 rounded text-xs flex-1 transition-colors text-center flex items-center justify-center gap-1 whitespace-nowrap"
@@ -242,6 +252,7 @@ watch(() => props.actividades, (newActividades) => {
                                                 <i v-if="esInscrito(actividad.id)" class="pi pi-heart-fill"></i>
                                                 {{ esInscrito(actividad.id) ? 'Inscripto' : 'Inscribirme' }}
                                                 </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -325,7 +336,7 @@ watch(() => props.actividades, (newActividades) => {
   border-radius: 8px;
   overflow: hidden;
   position: relative;
-  height: 300px;
+  height: 360px;
 }
 
 .flip-card-inner {
@@ -342,9 +353,24 @@ watch(() => props.actividades, (newActividades) => {
 
 .flip-card-front {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-between;
   height: 100%;
+  background: linear-gradient(135deg, #e879f9 0%, #a855f7 50%, #7c3aed 100%);
+  color: white;
+}
+
+.flip-card-front h3,
+.flip-card-front p,
+.flip-card-front strong,
+.flip-card-front span {
+  color: white !important;
+}
+
+.flip-card-header {
+  background: #fa7b6f; /* rojo pastel */
+  border-radius: 6px;
+  padding: 8px 12px;
 }
 
 /* front y back se apilan, uno rota 0°, el otro 180° */
