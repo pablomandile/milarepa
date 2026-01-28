@@ -166,7 +166,7 @@ watch(() => props.actividades, (newActividades) => {
                             <div
                                 v-for="(actividad, index) in slotProps.items"
                                 :key="actividad.id"
-                                class="col-12 md:col-6 xl:col-4 p-2"
+                                class="col-12 md:col-6 xl:col-6 p-2"
                             >
                                 <!-- Contenedor flip-card -->
                                 <div
@@ -178,14 +178,13 @@ watch(() => props.actividades, (newActividades) => {
                                 <div class="flip-card-inner">
 
                                     <!-- FRONT: header + imagen e info breve -->
-                                    <div class="flip-card-front flex flex-col h-full p-4">
+                                    <div class="flip-card-front flex flex-col h-full p-4 pb-8">
                                         <!-- Header a lo ancho -->
                                         <div class="flip-card-header w-full mb-3">
                                             <h3 class="text-lg font-semibold leading-tight">
                                                 {{ actividad.nombre }}
                                             </h3>
                                         </div>
-
                                         <div class="flex flex-row flex-1">
                                             <!-- Imagen a la izquierda -->
                                             <div class="w-1/2 pr-3 flex items-center justify-center bg-transparent cursor-pointer rounded h-full" @click="toggleFlip(actividad.id)">
@@ -197,63 +196,61 @@ watch(() => props.actividades, (newActividades) => {
                                                     :alt="actividad.nombre"
                                                 />
                                             </div>
-
                                             <!-- Texto a la derecha -->
                                             <div class="w-1/2 flex flex-col justify-between pl-2">
                                                 <div class="flex-1">
-                                                <p class="text-base text-gray-600 mb-1 flex items-center gap-2">
-                                                    <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
-                                                    <span class="sr-only">Fecha</span>
-                                                    <span>{{ actividad.fecha_inicio_formateada }}</span>
-                                                </p>
-                                                <p class="text-base text-gray-600 mb-1 flex items-center gap-2">
-                                                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                                                    <span class="sr-only">Lugar</span>
-                                                    <span>{{ actividad.entidad?.direccion }}</span>
-                                                </p>
-                                                <p
-                                                class="text-sm mb-1 flex items-center gap-2"
-                                                :class="{
-                                                    'font-bold': !user?.membresia || user.membresia?.nombre === 'Sin membresía',
-                                                    'text-gray-800 line-through': user?.membresia && user.membresia?.nombre !== 'Sin membresía'
-                                                }"
-                                                >
-                                                    <i class="fa-solid fa-ticket" aria-hidden="true"></i>
-                                                    <span class="sr-only">Valor</span>
-                                                    <span v-if="parseInt(actividad.esquema_precio?.membresias?.find(epm => epm.membresia?.nombre === 'Sin membresía')?.precio) === 0" class="font-bold text-gray-700">
-                                                      Incluído
-                                                    </span>
-                                                    <span v-else class="font-bold text-gray-700">
-                                                      ${{ formatPrice(actividad.esquema_precio?.membresias?.find(epm => epm.membresia?.nombre === 'Sin membresía')?.precio || 0) }}
-                                                    </span>
-                                                </p>
-                                                <p v-if="user?.membresia && user.membresia?.nombre !== 'Sin membresía'" class="text-sm text-gray-600 mb-2">
-                                                    <strong>Con {{ user.membresia?.nombre }}:</strong>
-                                                    <span v-if="parseInt(precioMembresiaUsuario(actividad)) === 0" class="font-bold text-green-700"> Incluído</span>
-                                                    <span v-else class="font-bold text-green-700"> ${{ formatPrice(precioMembresiaUsuario(actividad)) }}</span>
-                                                </p>
+                                                    <p class="text-base text-gray-600 mb-1 flex items-center gap-2">
+                                                        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                                                        <span class="sr-only">Fecha</span>
+                                                        <span>{{ actividad.fecha_inicio_formateada }}</span>
+                                                    </p>
+                                                    <p class="text-base text-gray-600 mb-1 flex items-center gap-2">
+                                                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                                                        <span class="sr-only">Lugar</span>
+                                                        <span>{{ actividad.entidad?.direccion }}</span>
+                                                    </p>
+                                                    <p
+                                                        class="text-sm mb-1 flex items-center gap-2"
+                                                        :class="{
+                                                            'font-bold': !user?.membresia || user.membresia?.nombre === 'Sin membresía',
+                                                            'text-gray-800 line-through': user?.membresia && user.membresia?.nombre !== 'Sin membresía'
+                                                        }"
+                                                    >
+                                                        <i class="fa-solid fa-ticket" aria-hidden="true"></i>
+                                                        <span class="sr-only">Valor</span>
+                                                        <span v-if="parseInt(actividad.esquema_precio?.membresias?.find(epm => epm.membresia?.nombre === 'Sin membresía')?.precio) === 0" class="font-bold text-gray-700">
+                                                            Incluído
+                                                        </span>
+                                                        <span v-else class="font-bold text-gray-700">
+                                                            ${{ formatPrice(actividad.esquema_precio?.membresias?.find(epm => epm.membresia?.nombre === 'Sin membresía')?.precio || 0) }}
+                                                        </span>
+                                                    </p>
+                                                    <p v-if="user?.membresia && user.membresia?.nombre !== 'Sin membresía'" class="text-sm text-gray-600 mb-2">
+                                                        <strong>Con {{ user.membresia?.nombre }}:</strong>
+                                                        <span v-if="parseInt(precioMembresiaUsuario(actividad)) === 0" class="font-bold text-green-700"> Incluído</span>
+                                                        <span v-else class="font-bold text-green-700"> ${{ formatPrice(precioMembresiaUsuario(actividad)) }}</span>
+                                                    </p>
+                                                </div>
                                             </div>
-
-                                                <!-- Botones -->
-                                                <div class="mt-2 flex gap-2">
-                                                <Link
+                                        </div>
+                                        <!-- Footer visual de la card SIEMPRE visible -->
+                                        <div class="flip-card-footer w-full mt-4 p-2 flex gap-2" style="background:transparent; border-radius:6px;">
+                                            <Link
                                                 :href="route('actividades.show', actividad.id)"
                                                 class="bg-gray-500 hover:bg-gray-600 text-white py-1 px-2 rounded text-xs flex-1 transition-colors text-center flex items-center justify-center gap-1 whitespace-nowrap"
-                                                >
+                                            >
                                                 <i class="pi pi-plus"></i>
                                                 <span>Más info.</span>
-                                                </Link>
-                                                <button
+                                            </Link>
+                                            <button
                                                 :disabled="esInscrito(actividad.id)"
                                                 class="py-1 px-3 rounded text-sm flex-1 transition-colors flex items-center justify-center gap-1"
                                                 :class="esInscrito(actividad.id) ? 'bg-gray-200 text-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
                                                 @click="inscribir(actividad)"
-                                                >
+                                            >
                                                 <i v-if="esInscrito(actividad.id)" class="pi pi-heart-fill"></i>
                                                 {{ esInscrito(actividad.id) ? 'Inscripto' : 'Inscribirme' }}
-                                                </button>
-                                                </div>
-                                            </div>
+                                            </button>
                                         </div>
                                     </div>
 
@@ -330,13 +327,13 @@ watch(() => props.actividades, (newActividades) => {
 
 <style scoped>
 /* Estilos para flip-card */
-.flip-card-container {
-  perspective: 1000px;
-  /* Un poco de borde redondo: */
-  border-radius: 8px;
-  overflow: hidden;
-  position: relative;
-  height: 360px;
+ .flip-card-container {
+    perspective: 1000px;
+    /* Un poco de borde redondo: */
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    height: 460px; /* Un poco más alto para mejor visualización */
 }
 
 .flip-card-inner {
