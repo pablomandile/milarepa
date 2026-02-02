@@ -47,7 +47,7 @@ class Inscripcion extends Model
 
     public function estado()
     {
-        return $this->belongsTo(EstadoTicket::class, 'estado_id');
+        return $this->belongsTo(EstadoActividad::class, 'estado_id');
     }
 
     public function hospedaje()

@@ -55,7 +55,7 @@ class EstadoCuentaMembresiasController extends Controller
     public function edit(EstadoCuentaMembresia $estadoCuentaMembresia)
     {
         return inertia('EstadoCuentaMembresias/Edit', [
-            'estadoCuenta' => $estadoCuentaMembresia->load(['membresia', 'membresia.entidad'])
+            'estadoCuenta' => $estadoCuentaMembresia->load(['user', 'membresia', 'membresia.entidad'])
         ]);
     }
 
@@ -67,8 +67,13 @@ class EstadoCuentaMembresiasController extends Controller
         $validated = $request->validate([
             'pagado' => 'required|boolean',
             'fecha_pago' => 'nullable|date',
-            'observaciones' => 'nullable|string|max:255'
+            'observaciones' => 'nullable|string|max:255',
+            'modo' => 'nullable|string|max:100'
         ]);
+
+        if ($validated['pagado'] && empty($validated['fecha_pago'])) {
+            $validated['fecha_pago'] = Carbon::today()->toDateString();
+        }
 
         $estadoCuentaMembresia->update($validated);
 

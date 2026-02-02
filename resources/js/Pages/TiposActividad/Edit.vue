@@ -22,7 +22,8 @@
         console.error('El tipo de actividad no está definido');
     }
     const form = useForm({
-        nombre: props.tipoActividad.nombre
+        nombre: props.tipoActividad.nombre, // ahora será la descripción
+        abreviacion: props.tipoActividad.abreviacion || '' // ahora será el nombre
     });
 
     const handleSubmit = () => {

@@ -11,5 +11,5 @@ class TipoActividad extends Model
     
     protected $table = 'tipos_actividad';
 
-    protected $fillable = ['nombre'];
+    protected $fillable = ['nombre', 'abreviacion'];
 }

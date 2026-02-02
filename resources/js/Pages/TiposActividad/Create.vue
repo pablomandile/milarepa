@@ -12,7 +12,8 @@
 
 
     const form = useForm({
-        nombre: ''
+        nombre: '', // ahora será la descripción
+        abreviacion: '' // ahora será el nombre
     })
 </script>
 

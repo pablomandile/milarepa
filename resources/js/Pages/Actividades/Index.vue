@@ -141,7 +141,7 @@
                                 </template>
                             </Column>
                             <Column field="nombre" header="Nombre" sortable></Column>
-                            <Column field="tipo_actividad.nombre" header="Tipo" sortable></Column>
+                            <Column field="tipo_actividad.abreviacion" header="Tipo" sortable></Column>
                             <Column header="Fecha Inicio" sortable field="fecha_inicio">
                                 <template #body="slotProps">
                                     {{ slotProps.data.fecha_inicio ? new Date(slotProps.data.fecha_inicio).toLocaleDateString('es-AR') : '-' }}
@@ -277,6 +277,16 @@
                                             <span class="ml-2">{{ data.esquema_descuento.nombre }}</span>
                                         </div>
 
+                                        <!-- Lugares de Hospedajes -->
+                                        <div v-if="data.hospedajes && data.hospedajes.length > 0">
+                                            <span class="font-semibold text-gray-700">Hospedajes:</span>
+                                            <div class="ml-2">
+                                                <span v-for="(hospedaje, index) in data.hospedajes" :key="hospedaje.id" class="text-sm">
+                                                    {{ hospedaje.nombre }}<span v-if="index < data.hospedajes.length - 1">, </span>
+                                                </span>
+                                            </div>
+                                        </div>
+
                                         <!-- Hospedajes -->
                                         <div v-if="data.hospedajes && data.hospedajes.length > 0">
                                             <span class="font-semibold text-gray-700">Hospedajes:</span>
@@ -302,7 +312,7 @@
                                             <span class="font-semibold text-gray-700">Transportes:</span>
                                             <div class="ml-2">
                                                 <span v-for="(transporte, index) in data.transportes" :key="transporte.id" class="text-sm">
-                                                    {{ transporte.nombre }}<span v-if="index < data.transportes.length - 1">, </span>
+                                                    {{ transporte.descripcion }}<span v-if="index < data.transportes.length - 1">, </span>
                                                 </span>
                                             </div>
                                         </div>
@@ -335,6 +345,12 @@
                                         <div v-if="data.pagoAmticipado">
                                             <span class="font-semibold text-gray-700">Fecha Pago Anticipado:</span>
                                             <span class="ml-2">{{ new Date(data.pagoAmticipado).toLocaleDateString('es-AR') }}</span>
+                                        </div>
+
+                                        <!-- Tipo de actividad -->
+                                        <div v-if="data.tipo_actividad.nombre">
+                                            <span class="font-semibold text-gray-700">Tipo de Actividad:</span>
+                                            <span class="ml-2">{{ data.tipo_actividad.nombre }}</span>
                                         </div>
 
                                         <!-- Métodos de Pago -->

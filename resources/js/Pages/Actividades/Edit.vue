@@ -73,6 +73,10 @@
             type: Array,
             default: () => [],
         },
+        lugaresHospedaje: {
+            type: Array,
+            default: () => [],
+        },
         comidas: {
             type: Array,
             default: () => [],
@@ -123,6 +127,9 @@
         estado: props.actividad.estado,
         metodos_pago_ids: props.actividad.metodos_pago ? props.actividad.metodos_pago.map(m => m.id) : [],
         hospedajes_ids: props.actividad.hospedajes ? props.actividad.hospedajes.map(h => h.id) : [],
+        lugar_hospedaje_id: props.actividad.hospedajes && props.actividad.hospedajes.length > 0
+            ? props.actividad.hospedajes[0].lugar_hospedaje_id
+            : null,
         comidas_ids: props.actividad.comidas ? props.actividad.comidas.map(c => c.id) : [],
         transportes_ids: props.actividad.transportes ? props.actividad.transportes.map(t => t.id) : [],
         maestros_ids: props.actividad.maestros ? props.actividad.maestros.map(m => m.id) : [],
@@ -210,6 +217,7 @@
                               :grabaciones="grabaciones"
                               :programas="programas"
                               :metodosPago="metodosPago"
+                              :lugaresHospedaje="lugaresHospedaje"
                               :hospedajes="hospedajes"
                               :comidas="comidas"
                               :transportes="transportes"

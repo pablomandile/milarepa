@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inscripcion;
-use App\Models\EstadoTicket;
+use App\Models\EstadoActividad;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -18,7 +18,7 @@ class InscripcionController extends Controller
             'precioGeneral' => 'required|numeric',
             'montoapagar' => 'required|numeric',
             'pago' => 'required|in:total,parcial,impago',
-            'estado_id' => 'required|exists:estados_ticket,id',
+            'estado_id' => 'required|exists:estados_actividad,id',
             'envioLinkStream' => 'required|in:enviado,pendiente',
             'envioGrabación' => 'required|in:enviada,pendiente',
             'comprobante' => 'nullable|string',

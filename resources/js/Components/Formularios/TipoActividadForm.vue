@@ -42,8 +42,13 @@ import TextInput from '../TextInput.vue';
         </template>
         <template #form>
             <div class="col-span-6 sm:col-span-6">
-                <InputLabel for="nombre" value="Tipo" :required="true"/>
-                <TextInput id="nombre" v-model="form.nombre" type="text" autocomplete="nombre" class="mt-1 block w-full" />
+                <InputLabel for="nombre" value="Nombre" :required="true"/>
+                <TextInput id="nombre" v-model="form.abreviacion" type="text" autocomplete="nombre" class="mt-1 block w-full" maxlength="10" />
+                <InputError :message="$page.props.errors.abreviacion" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6 mt-4">
+                <InputLabel for="descripcion" value="Descripción" />
+                <TextInput id="descripcion" v-model="form.nombre" type="text" autocomplete="descripcion" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.nombre" class="mt-2" />
             </div>
         </template>

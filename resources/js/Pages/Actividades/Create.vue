@@ -71,6 +71,10 @@
             type: Array,
             default: () => [],
         },
+        lugaresHospedaje: {
+            type: Array,
+            default: () => [],
+        },
         comidas: {
             type: Array,
             default: () => [],
@@ -112,6 +116,7 @@
         programa_id: null,
         metodos_pago_ids: [],
         hospedajes_ids: [],
+        lugar_hospedaje_id: null,
         comidas_ids: [],
         transportes_ids: [],
         maestros_ids: [],
@@ -204,6 +209,7 @@
                               :grabaciones="grabaciones"
                               :programas="programas"
                               :metodosPago="metodosPago"
+                              :lugaresHospedaje="lugaresHospedaje"
                               :hospedajes="hospedajes"
                               :comidas="comidas"
                               :transportes="transportes"

@@ -14,6 +14,7 @@ use App\Models\EsquemaDescuento;
 use App\Models\EsquemaPrecio;
 use App\Models\Grabacion;
 use App\Models\Hospedaje;
+use App\Models\LugarHospedaje;
 use App\Models\Maestro;
 use App\Models\MetodoPago;
 use App\Models\Modalidad;
@@ -21,6 +22,7 @@ use App\Models\Programa;
 use App\Models\Stream;
 use App\Models\TipoActividad;
 use App\Models\Transporte;
+use Illuminate\Support\Facades\Log;
 
 
 class ActividadesController extends Controller
@@ -83,6 +85,7 @@ class ActividadesController extends Controller
         ])->get();
         $programas = Programa::all();
         $metodosPago = MetodoPago::all();
+        $lugarHospedaje = LugarHospedaje::all();
         $hospedajes = Hospedaje::all();
         $comidas = Comida::all();
         $transportes = Transporte::all();
@@ -101,6 +104,7 @@ class ActividadesController extends Controller
             'grabaciones' => $grabaciones, 
             'programas' => $programas,
             'metodosPago' => $metodosPago,
+            'lugaresHospedaje' => $lugarHospedaje,
             'hospedajes' => $hospedajes,
             'comidas' => $comidas,
             'transportes' => $transportes
@@ -131,8 +135,8 @@ class ActividadesController extends Controller
         }
  
         // DEBUG: Ver qué está llegando
-        \Log::info('Fecha inicio recibida:', ['fecha_inicio' => $validated['fecha_inicio'] ?? 'NULL']);
-        \Log::info('Fecha fin recibida:', ['fecha_fin' => $validated['fecha_fin'] ?? 'NULL']);
+        Log::info('Fecha inicio recibida:', ['fecha_inicio' => $validated['fecha_inicio'] ?? 'NULL']);
+        Log::info('Fecha fin recibida:', ['fecha_fin' => $validated['fecha_fin'] ?? 'NULL']);
         
         // Procesar fechas - parsear si vienen como string
         // PrimeVue Calendar envía la fecha/hora tal cual el usuario la selecciona
@@ -145,7 +149,7 @@ class ActividadesController extends Controller
             } elseif ($fecha instanceof \DateTime) {
                 $validated['fecha_inicio'] = \Carbon\Carbon::instance($fecha);
             }
-            \Log::info('Fecha inicio parseada:', ['fecha_inicio' => $validated['fecha_inicio']]);
+            Log::info('Fecha inicio parseada:', ['fecha_inicio' => $validated['fecha_inicio']]);
         }
         if (!empty($validated['fecha_fin'])) {
             $fecha = $validated['fecha_fin'];
@@ -154,7 +158,7 @@ class ActividadesController extends Controller
             } elseif ($fecha instanceof \DateTime) {
                 $validated['fecha_fin'] = \Carbon\Carbon::instance($fecha);
             }
-            \Log::info('Fecha fin parseada:', ['fecha_fin' => $validated['fecha_fin']]);
+            Log::info('Fecha fin parseada:', ['fecha_fin' => $validated['fecha_fin']]);
         }
         //    (o si no definiste esas columnas en $fillable)
         unset($validated['metodos_pago_ids'], $validated['hospedajes_ids'],
@@ -269,6 +273,7 @@ class ActividadesController extends Controller
             $grabaciones = Grabacion::with(['linksgrabacion'])->get();
             $programas = Programa::all();
             $metodosPago = MetodoPago::all();
+            $lugarHospedaje = LugarHospedaje::all();
             $hospedajes = Hospedaje::all();
             $comidas = Comida::all();
             $transportes = Transporte::all();
@@ -286,6 +291,7 @@ class ActividadesController extends Controller
                 'grabaciones' => $grabaciones,
                 'programas' => $programas,
                 'metodosPago' => $metodosPago,
+                'lugaresHospedaje' => $lugarHospedaje,
                 'hospedajes' => $hospedajes,
                 'comidas' => $comidas,
                 'transportes' => $transportes,
@@ -302,10 +308,10 @@ class ActividadesController extends Controller
         $actividad = Actividad::findOrFail($id);
         
         // DEBUG: Ver datos crudos del request
-        \Log::info('=== UPDATE - REQUEST COMPLETO ===');
-        \Log::info('fecha_inicio RAW:', ['value' => $request->input('fecha_inicio'), 'type' => gettype($request->input('fecha_inicio'))]);
-        \Log::info('fecha_fin RAW:', ['value' => $request->input('fecha_fin'), 'type' => gettype($request->input('fecha_fin'))]);
-        \Log::info('Todos los datos:', $request->all());
+        Log::info('=== UPDATE - REQUEST COMPLETO ===');
+        Log::info('fecha_inicio RAW:', ['value' => $request->input('fecha_inicio'), 'type' => gettype($request->input('fecha_inicio'))]);
+        Log::info('fecha_fin RAW:', ['value' => $request->input('fecha_fin'), 'type' => gettype($request->input('fecha_fin'))]);
+        Log::info('Todos los datos:', $request->all());
         
         $validated = $request->validated();
 

@@ -4,7 +4,8 @@ import DataView from 'primevue/dataview';
 import Dialog from 'primevue/dialog';
 import { useToast } from 'primevue/usetoast';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { usePage, Link, router } from '@inertiajs/vue3';
+import { usePage, router } from '@inertiajs/vue3';
+import backgroundImage from '../../../images/7036360.svg';
 
 const $page = usePage();
 
@@ -138,6 +139,20 @@ watch(() => props.actividades, (newActividades) => {
   actividadesActivas.value = newActividades.filter(a => a.estado === true || a.estado === 1);
 }, { immediate: true });
 
+function formatFechaLarga(value) {
+  if (!value) return '-';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '-';
+  const meses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+  const dia = d.getDate();
+  const mes = meses[d.getMonth()];
+  const anio = d.getFullYear();
+  return `${dia} de ${mes} ${anio}`;
+}
+
 </script>
 
 <template>
@@ -166,7 +181,7 @@ watch(() => props.actividades, (newActividades) => {
                             <div
                                 v-for="(actividad, index) in slotProps.items"
                                 :key="actividad.id"
-                                class="col-12 md:col-6 xl:col-6 p-2"
+                                class="col-12 md:col-6 xl:col-6 p-2 mb-4"
                             >
                                 <!-- Contenedor flip-card -->
                                 <div
@@ -178,11 +193,19 @@ watch(() => props.actividades, (newActividades) => {
                                 <div class="flip-card-inner">
 
                                     <!-- FRONT: header + imagen e info breve -->
-                                    <div class="flip-card-front flex flex-col h-full p-4 pb-8">
+                                    <div
+                                        class="flip-card-front flex flex-col h-full p-4 pb-8"
+                                        :style="{
+                                            backgroundImage: `linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.75) 100%), url(${backgroundImage})`,
+                                            backgroundSize: 'cover',
+                                            backgroundPosition: 'center',
+                                            backgroundRepeat: 'no-repeat'
+                                        }"
+                                    >
                                         <!-- Header a lo ancho -->
                                         <div class="flip-card-header w-full mb-3">
                                             <h3 class="text-lg font-semibold leading-tight">
-                                                {{ actividad.nombre }}
+                                                <span v-if="actividad.tipo_actividad?.nombre">{{ actividad.tipo_actividad.nombre }} - </span>{{ actividad.nombre }}
                                             </h3>
                                         </div>
                                         <div class="flex flex-row flex-1">
@@ -202,7 +225,14 @@ watch(() => props.actividades, (newActividades) => {
                                                     <p class="text-base text-gray-600 mb-1 flex items-center gap-2">
                                                         <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
                                                         <span class="sr-only">Fecha</span>
-                                                        <span>{{ actividad.fecha_inicio_formateada }}</span>
+                                                        <span>
+                                                            {{ formatFechaLarga(actividad.fecha_inicio) }}
+                                                        </span>
+                                                    </p>
+                                                    <p v-if="actividad.fecha_inicio" class="text-base text-gray-600 mb-1 flex items-center gap-2">
+                                                        <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                                                        <span class="sr-only">Hora</span>
+                                                        <span>{{ new Date(actividad.fecha_inicio).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }) }} hs.</span>
                                                     </p>
                                                     <p class="text-base text-gray-600 mb-1 flex items-center gap-2">
                                                         <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
@@ -235,16 +265,16 @@ watch(() => props.actividades, (newActividades) => {
                                         </div>
                                         <!-- Footer visual de la card SIEMPRE visible -->
                                         <div class="flip-card-footer w-full mt-4 p-2 flex gap-2" style="background:transparent; border-radius:6px;">
-                                            <Link
-                                                :href="route('actividades.show', actividad.id)"
-                                                class="bg-gray-500 hover:bg-gray-600 text-white py-1 px-2 rounded text-xs flex-1 transition-colors text-center flex items-center justify-center gap-1 whitespace-nowrap"
+                                            <button
+                                                @click="router.visit(route('actividades.show', actividad.id))"
+                                                class="more-info-button bg-gray-500 hover:bg-gray-600 text-white py-3 px-2 rounded text-xs flex-1 transition-colors text-center flex items-center justify-center gap-1 whitespace-nowrap"
                                             >
                                                 <i class="pi pi-plus"></i>
                                                 <span>Más info.</span>
-                                            </Link>
+                                            </button>
                                             <button
                                                 :disabled="esInscrito(actividad.id)"
-                                                class="py-1 px-3 rounded text-sm flex-1 transition-colors flex items-center justify-center gap-1"
+                                                class="py-3 px-3 rounded text-sm flex-1 transition-colors flex items-center justify-center gap-1"
                                                 :class="esInscrito(actividad.id) ? 'bg-gray-200 text-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
                                                 @click="inscribir(actividad)"
                                             >
@@ -333,7 +363,7 @@ watch(() => props.actividades, (newActividades) => {
     border-radius: 8px;
     overflow: hidden;
     position: relative;
-    height: 460px; /* Un poco más alto para mejor visualización */
+    height: 580px; /* Más alto para que se vea todo el contenido y los botones */
 }
 
 .flip-card-inner {
@@ -349,25 +379,29 @@ watch(() => props.actividades, (newActividades) => {
 }
 
 .flip-card-front {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  background: linear-gradient(135deg, #e879f9 0%, #a855f7 50%, #7c3aed 100%);
-  color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    background-color: #ffffff;
+    color: #374151;
 }
 
 .flip-card-front h3,
 .flip-card-front p,
-.flip-card-front strong,
-.flip-card-front span {
-  color: white !important;
-}
-
-.flip-card-header {
-  background: #fa7b6f; /* rojo pastel */
+.flip-card-front strong {
+  color: #374151;
   border-radius: 6px;
   padding: 8px 12px;
+}
+
+.flip-card-front span:not(.button-span) {
+  color: #374151;
+}
+
+.more-info-button,
+.more-info-button span {
+  color: white !important;
 }
 
 /* front y back se apilan, uno rota 0°, el otro 180° */

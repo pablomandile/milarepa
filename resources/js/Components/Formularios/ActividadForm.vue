@@ -12,7 +12,7 @@ import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
 import { Link } from '@inertiajs/vue3';
 import Dialog from 'primevue/dialog';
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 
 // PrimeVue
@@ -88,6 +88,10 @@ const props = defineProps({
     default: () => [],
   },
   hospedajes: {
+    type: Array,
+    default: () => [],
+  },
+  lugaresHospedaje: {
     type: Array,
     default: () => [],
   },
@@ -186,6 +190,35 @@ function submitForm() {
   
   emit('submit');
 }
+
+const filteredHospedajes = computed(() => {
+  if (!props.form?.lugar_hospedaje_id) {
+    return props.hospedajes;
+  }
+  return props.hospedajes.filter(
+    (hospedaje) => hospedaje.lugar_hospedaje_id === props.form.lugar_hospedaje_id
+  );
+});
+
+function syncHospedajesSeleccionados() {
+  if (!Array.isArray(props.form?.hospedajes_ids)) return;
+  const allowedIds = new Set(filteredHospedajes.value.map((hospedaje) => hospedaje.id));
+  props.form.hospedajes_ids = props.form.hospedajes_ids.filter((id) => allowedIds.has(id));
+}
+
+watch(
+  () => props.form?.lugar_hospedaje_id,
+  () => {
+    syncHospedajesSeleccionados();
+  }
+);
+
+watch(
+  () => props.hospedajes,
+  () => {
+    syncHospedajesSeleccionados();
+  }
+);
 
 </script>
 
@@ -767,6 +800,24 @@ function submitForm() {
         <!-- Hospedaje, Comidas, Transportes (MultiSelect) -->
         <div class="col-span-6 sm:col-span-6">
           <InputLabel
+            for="lugar_hospedaje_id"
+            class="text-indigo-400"
+            value="Lugar de Hospedaje"
+          />
+          <Dropdown
+            id="lugar_hospedaje_id"
+            v-model="form.lugar_hospedaje_id"
+            :options="lugaresHospedaje"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Seleccione un lugar"
+            class="w-full mt-1 border border-gray-300"
+          />
+          <InputError :message="$page.props.errors.lugar_hospedaje_id" class="mt-2" />
+        </div>
+
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
             for="hospedajes"
             class="text-indigo-400"
             value="Hospedajes disponibles"
@@ -774,7 +825,7 @@ function submitForm() {
           <MultiSelect
             id="hospedajes"
             v-model="form.hospedajes_ids"
-            :options="hospedajes"
+            :options="filteredHospedajes"
             optionLabel="nombre"
             optionValue="id"
             class="w-full mt-1 border border-gray-300"
