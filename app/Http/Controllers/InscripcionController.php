@@ -17,7 +17,7 @@ class InscripcionController extends Controller
             'membresia' => 'required|string',
             'precioGeneral' => 'required|numeric',
             'montoapagar' => 'required|numeric',
-            'pago' => 'required|in:total,parcial,impago',
+            'pago' => 'required|in:Saldado,Parcial,Pendiente',
             'estado_id' => 'required|exists:estados_actividad,id',
             'envioLinkStream' => 'required|in:enviado,pendiente',
             'envioGrabación' => 'required|in:enviada,pendiente',

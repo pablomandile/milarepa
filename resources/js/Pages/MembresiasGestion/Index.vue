@@ -41,6 +41,7 @@
                                             <span v-if="tieneMembresiaReal(usuario)" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                                                 <i class="fas fa-crown mr-1"></i>
                                                 {{ usuario.membresia.nombre }}
+                                                <span v-if="usuario.membresia_online" class="ml-2 text-xs font-semibold text-indigo-600">Online</span>
                                             </span>
                                             <span v-else class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
                                                 Sin membresía

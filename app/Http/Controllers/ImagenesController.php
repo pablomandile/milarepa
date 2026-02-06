@@ -20,8 +20,7 @@ class ImagenesController extends Controller
         $imagenes = Imagen::paginate(16);
         return inertia('Imagenes/Index', [
             'imagenes' => $imagenes->items(),
-            // si quieres paginación, puedes también mandar enlaces, etc.
-            'links' => $imagenes->links()
+            'links' => $imagenes->toArray()['links']
         ]);
     }
 
@@ -32,9 +31,16 @@ class ImagenesController extends Controller
     public function store(Request $request)
     {
         // Validar el archivo (puede ser required|image|mimes:jpeg,png ...)
-        $request->validate([
-            'imagen' => 'required|image|max:2048'
-        ]);
+        $request->validate(
+            [
+                'imagen' => 'required|image|max:4096',
+            ],
+            [
+                'imagen.max' => 'La imagen supera el tamaño máximo permitido (4 MB).',
+                'imagen.image' => 'El archivo debe ser una imagen válida.',
+                'imagen.required' => 'Debes seleccionar una imagen.',
+            ]
+        );
 
         // Almacenar la imagen en /storage/app/public/img/actividades
         // Retorna la ruta del archivo (por ejemplo "img/actividades/xyz.jpg")
@@ -53,9 +59,16 @@ class ImagenesController extends Controller
 
     public function storeJson(Request $request)
     {
-        $request->validate([
-            'imagen' => 'required|image|max:2048'
-        ]);
+        $request->validate(
+            [
+                'imagen' => 'required|image|max:4096',
+            ],
+            [
+                'imagen.max' => 'La imagen supera el tamaño máximo permitido (4 MB).',
+                'imagen.image' => 'El archivo debe ser una imagen válida.',
+                'imagen.required' => 'Debes seleccionar una imagen.',
+            ]
+        );
 
         $path = $request->file('imagen')->store('img/actividades', 'public');
 

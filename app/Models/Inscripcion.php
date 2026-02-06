@@ -27,12 +27,16 @@ class Inscripcion extends Model
         'hospedaje_id',
         'comida_id',
         'transporte_id',
+        'guest_user_id',
+        'auditoria_fecha',
+        'auditor',
     ];
 
     protected $casts = [
         'precioGeneral' => 'decimal:2',
         'montoapagar' => 'decimal:2',
         'online' => 'boolean',
+        'auditoria_fecha' => 'datetime',
     ];
 
     public function actividad()
@@ -63,5 +67,15 @@ class Inscripcion extends Model
     public function transporte()
     {
         return $this->belongsTo(Transporte::class);
+    }
+
+    public function guestUser()
+    {
+        return $this->belongsTo(GuestUser::class, 'guest_user_id');
+    }
+
+    public function auditorUser()
+    {
+        return $this->belongsTo(User::class, 'auditor');
     }
 }

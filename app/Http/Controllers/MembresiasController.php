@@ -7,6 +7,8 @@ use App\Models\Membresia;
 use App\Http\Requests\MembresiaRequest;
 use Inertia\Inertia;
 use App\Models\Entidad;
+use Carbon\Carbon;
+use App\Models\EstadoCuentaMembresia;
 
 
 class MembresiasController extends Controller
@@ -33,13 +35,28 @@ class MembresiasController extends Controller
 
         // Obtener membresía actual del usuario
         $userMembresia = null;
+        $estadoCuenta = null;
+        $estadosCuenta = [];
         if (auth()->check() && auth()->user()->membresia_id) {
             $userMembresia = Membresia::find(auth()->user()->membresia_id);
+            if ($userMembresia) {
+                $estadoCuenta = EstadoCuentaMembresia::where('user_id', auth()->id())
+                    ->where('membresia_id', $userMembresia->id)
+                    ->orderBy('mes_pagado', 'desc')
+                    ->orderBy('fecha_pago', 'desc')
+                    ->first();
+                $estadosCuenta = EstadoCuentaMembresia::where('user_id', auth()->id())
+                    ->where('membresia_id', $userMembresia->id)
+                    ->orderBy('mes_pagado', 'desc')
+                    ->get(['id', 'mes_pagado', 'pagado']);
+            }
         }
 
         return inertia('Membresias/Index', [
             'membresias' => $membresias,
-            'user_membresia' => $userMembresia
+            'user_membresia' => $userMembresia,
+            'estado_cuenta' => $estadoCuenta,
+            'estados_cuenta' => $estadosCuenta,
         ]);
     }
 
@@ -127,11 +144,38 @@ class MembresiasController extends Controller
     public function subscribe(Request $request)
     {
         $request->validate([
-            'membresia_id' => 'required|exists:membresias,id'
+            'membresia_id' => 'required|exists:membresias,id',
+            'modalidad' => 'required|in:PRESENCIAL,ONLINE',
+            'motivo_online' => 'nullable|string|max:255',
         ]);
 
         $user = auth()->user();
-        $user->update(['membresia_id' => $request->membresia_id]);
+        $membresiaOnline = $request->modalidad === 'ONLINE';
+        $user->update([
+            'membresia_id' => $request->membresia_id,
+            'membresia_online' => $membresiaOnline,
+            'membresia_online_motivo' => $membresiaOnline ? $request->motivo_online : null,
+        ]);
+
+        $mesPagado = Carbon::now()->format('Y-m');
+        $existe = EstadoCuentaMembresia::where('user_id', $user->id)
+            ->where('membresia_id', $request->membresia_id)
+            ->where('mes_pagado', $mesPagado)
+            ->exists();
+
+        if (!$existe) {
+            $importe = optional($user->membresia)->valor ?? 0;
+            EstadoCuentaMembresia::create([
+                'user_id' => $user->id,
+                'membresia_id' => $request->membresia_id,
+                'mes_pagado' => $mesPagado,
+                'fecha_pago' => null,
+                'importe' => $importe,
+                'pagado' => false,
+                'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
+                'observaciones' => 'Inscripción realizada por ' . ($user->name ?? 'sistema'),
+            ]);
+        }
 
         return redirect()->route('membresias.index')->with('success', 'Te has inscrito correctamente a la membresía');
     }

@@ -1,5 +1,13 @@
 <script setup>
+import { computed } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { Link, usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+const isAsistant = computed(() => {
+    const roles = (page.props.user?.roles || []).map((role) => String(role).toLowerCase());
+    return roles.includes('asistant');
+});
 
 const props = defineProps({
     version: {
@@ -13,6 +21,14 @@ const props = defineProps({
     <AppLayout title="Acerca de">
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div v-if="isAsistant" class="mb-4">
+                    <Link
+                        :href="route('asistant.panel')"
+                        class="inline-flex items-center rounded-md border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-600 hover:text-white transition-colors"
+                    >
+                        Volver al panel
+                    </Link>
+                </div>
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                     <!-- Header -->
                     <div class="p-6 bg-gradient-to-r from-indigo-500 to-purple-600">
@@ -77,7 +93,7 @@ const props = defineProps({
                             <div class="mt-8 text-center">
                                 <p class="text-gray-500 text-sm">
                                     <i class="fas fa-heart text-red-500 mr-1"></i>
-                                    Desarrollado con dedicación para Milarepa
+                                    Desarrollado con amor para Milarepa
                                 </p>
                             </div>
                         </div>

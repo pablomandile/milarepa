@@ -283,7 +283,7 @@
                 <div class="info-row">
                     <strong>Estado de Pago:</strong> 
                     <span class="badge" style="background-color: 
-                        {{ $inscripcion->pago === 'total' ? '#28a745' : ($inscripcion->pago === 'parcial' ? '#ffc107' : '#dc3545') }};">
+                        {{ $inscripcion->pago === 'Saldado' ? '#28a745' : ($inscripcion->pago === 'Parcial' ? '#ffc107' : '#dc3545') }};">
                         {{ ucfirst($inscripcion->pago) }}
                     </span>
                 </div>

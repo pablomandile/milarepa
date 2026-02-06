@@ -133,7 +133,7 @@ class RegistroMembresiasController extends Controller
                 'importe' => $importe ?? 0,
                 'pagado' => false,
                 'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
-                'observaciones' => 'Inscripción del mes actual'
+                'observaciones' => 'Inscripción realizada por ' . (auth()->user()->name ?? 'sistema')
             ]);
         }
     }

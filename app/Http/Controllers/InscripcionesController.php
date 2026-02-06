@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class InscripcionesController extends Controller
 {
@@ -61,7 +62,7 @@ class InscripcionesController extends Controller
             'membresia' => 'required|string',
             'precioGeneral' => 'required|numeric',
             'montoapagar' => 'required|numeric',
-            'pago' => 'required|in:total,parcial,impago',
+            'pago' => 'required|in:Saldado,Parcial,Pendiente',
             'estado_id' => 'required|exists:estados_actividad,id',
             'envioLinkStream' => 'required|in:enviado,pendiente',
             'envioGrabaci贸n' => 'required|in:enviada,pendiente',
@@ -87,7 +88,7 @@ class InscripcionesController extends Controller
             return back()->with('error', 'Ya est谩 inscripto a esa actividad!');
         }
 
-        // Crear inscripci贸n usando el usuario autenticado
+        // Crear Inscripci髇 usando el usuario autenticado
         $data = $request->all();
         $data['user_id'] = $userId;
 
@@ -110,14 +111,14 @@ class InscripcionesController extends Controller
             Mail::to($inscripcion->user->email)->send(new InscripcionConfirmada($inscripcion));
             $emailEnviado = true;
             $mensajeEmail = 'Email de confirmaci贸n enviado correctamente a ' . $inscripcion->user->email;
-            \Log::info('Email de inscripci贸n enviado correctamente', [
+            Log::info('Email de Inscripci髇 enviado correctamente', [
                 'inscripcion_id' => $inscripcion->id,
                 'user_email' => $inscripcion->user->email
             ]);
         } catch (\Exception $e) {
             $emailEnviado = false;
             $mensajeEmail = 'Advertencia: No se pudo enviar el email de confirmaci贸n. Error: ' . $e->getMessage();
-            \Log::error('Error al enviar email de inscripci贸n', [
+            Log::error('Error al enviar email de Inscripci髇', [
                 'inscripcion_id' => $inscripcion->id,
                 'user_email' => $inscripcion->user->email,
                 'error' => $e->getMessage(),
@@ -125,9 +126,9 @@ class InscripcionesController extends Controller
             ]);
         }
 
-        // Redirigir a la vista de detalle (show) de la Inscripci贸n
+        // Redirigir a la vista de detalle (show) de la Inscripci髇
         return redirect()->route('inscripciones.show', ['inscripcion' => $inscripcion->id])
-            ->with('success', 'Inscripci贸n creada correctamente.')
+            ->with('success', 'Inscripci髇 creada correctamente.')
             ->with('email_status', [
                 'enviado' => $emailEnviado,
                 'mensaje' => $mensajeEmail
@@ -152,9 +153,9 @@ class InscripcionesController extends Controller
             'transporte',
         ])->findOrFail($id);
 
-        // Verificar que la inscripci贸n pertenece al usuario autenticado
+        // Verificar que la Inscripci髇 pertenece al usuario autenticado
         if ($inscripcion->user_id !== auth()->id()) {
-            return back()->with('error', 'No autorizado a ver esta inscripci贸n.');
+            return back()->with('error', 'No autorizado a ver esta Inscripci髇.');
         }
 
         // Formatear fecha de la actividad
@@ -173,7 +174,7 @@ class InscripcionesController extends Controller
     }
 
     /**
-     * Display a mobile ticket view for the given inscripci贸n.
+     * Display a mobile ticket view for the given Inscripci髇.
      */
     public function ticket(string $id)
     {
@@ -185,7 +186,7 @@ class InscripcionesController extends Controller
 
         // Authorize ownership
         if ($inscripcion->user_id !== auth()->id()) {
-            return back()->with('error', 'No autorizado a ver esta inscripci贸n.');
+            return back()->with('error', 'No autorizado a ver esta Inscripci髇.');
         }
 
         // Format activity start date
@@ -205,7 +206,7 @@ class InscripcionesController extends Controller
     }
 
     /**
-     * Mark attendance for the given inscripci贸n via a signed URL.
+     * Mark attendance for the given Inscripci髇 via a signed URL.
      */
     public function asistir(string $id)
     {
@@ -278,13 +279,39 @@ class InscripcionesController extends Controller
     {
         $inscripcion = Inscripcion::findOrFail($id);
         
-        // Verificar que la inscripci贸n pertenece al usuario autenticado
+        // Verificar que la Inscripci髇 pertenece al usuario autenticado
         if ($inscripcion->user_id !== auth()->id()) {
             return back()->withErrors(['message' => 'No autorizado']);
         }
         
         $inscripcion->delete();
         
-        return back()->with('success', 'Inscripci贸n eliminada correctamente');
+        return back()->with('success', 'Inscripci髇 eliminada correctamente');
+    }
+
+    public function uploadComprobante(Request $request, Inscripcion $inscripcion)
+    {
+        if ($inscripcion->user_id !== auth()->id()) {
+            return back()->withErrors(['message' => 'No autorizado']);
+        }
+
+        $request->validate([
+            'comprobante' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
+        ], [
+            'comprobante.max' => 'El comprobante supera el tama駉 m醲imo permitido (4 MB).',
+            'comprobante.mimes' => 'El comprobante debe ser PDF, JPG o PNG.',
+        ]);
+
+        $path = $request->file('comprobante')->store('comprobantes', 'public');
+        $inscripcion->comprobante = $path;
+        $inscripcion->save();
+
+        return back()->with('success', 'Comprobante subido correctamente.');
     }
 }
+
+
+
+
+
+

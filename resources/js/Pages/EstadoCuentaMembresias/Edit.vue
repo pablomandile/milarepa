@@ -55,7 +55,7 @@
                                             :value="false"
                                             class="mr-2"
                                         >
-                                        <span class="text-gray-700">Impago</span>
+                                        <span class="text-gray-700">Pendiente</span>
                                     </label>
                                     <label class="flex items-center">
                                         <input 
@@ -94,6 +94,25 @@
 
                             <div class="mb-6">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Comprobante
+                                </label>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <button
+                                        type="button"
+                                        @click="comprobanteModal = true"
+                                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium"
+                                    >
+                                        <i class="fas fa-upload mr-2"></i>
+                                        Adjuntar comprobante
+                                    </button>
+                                    <span v-if="estadoCuenta.comprobante" class="text-sm text-gray-600">
+                                        Archivo actual: {{ estadoCuenta.comprobante }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Observaciones
                                 </label>
                                 <textarea 
@@ -127,12 +146,36 @@
             </div>
         </div>
     </AppLayout>
+
+    <Dialog
+        v-model:visible="comprobanteModal"
+        modal
+        header="Subir comprobante"
+        :style="{ width: '500px' }"
+    >
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png" @change="seleccionarComprobante" />
+        <template #footer>
+            <div class="flex justify-end gap-2">
+                <button class="px-4 py-2 bg-gray-500 text-white rounded" @click="comprobanteModal = false">
+                    Cancelar
+                </button>
+                <button
+                    class="px-4 py-2 bg-indigo-600 text-white rounded disabled:opacity-60"
+                    :disabled="isUploading || !comprobanteFile"
+                    @click="subirComprobante"
+                >
+                    {{ isUploading ? 'Subiendo...' : 'Subir' }}
+                </button>
+            </div>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue';
+import { reactive, ref, watch } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import Dialog from 'primevue/dialog';
 
 const props = defineProps({
     estadoCuenta: Object
@@ -140,7 +183,7 @@ const props = defineProps({
 
 const form = useForm({
     pagado: props.estadoCuenta.pagado,
-    fecha_pago: props.estadoCuenta.fecha_pago,
+    fecha_pago: props.estadoCuenta.fecha_pago ? String(props.estadoCuenta.fecha_pago).split('T')[0] : '',
     observaciones: props.estadoCuenta.observaciones || '',
     modo: props.estadoCuenta.modo || ''
 });
@@ -167,4 +210,30 @@ watch(
         }
     }
 );
+
+const comprobanteModal = ref(false);
+const comprobanteFile = ref(null);
+const isUploading = ref(false);
+
+function seleccionarComprobante(event) {
+    comprobanteFile.value = event.target.files?.[0] || null;
+}
+
+async function subirComprobante() {
+    if (!comprobanteFile.value) return;
+    isUploading.value = true;
+    try {
+        const data = new FormData();
+        data.append('comprobante', comprobanteFile.value);
+        data.append('estado_cuenta_id', props.estadoCuenta.id);
+        await axios.post(route('estado-cuenta-membresias.comprobante'), data);
+        comprobanteModal.value = false;
+        comprobanteFile.value = null;
+    } catch (error) {
+        const mensaje = error?.response?.data?.message || error?.response?.data?.errors?.comprobante?.[0] || 'No se pudo subir el comprobante.';
+        alert(mensaje);
+    } finally {
+        isUploading.value = false;
+    }
+}
 </script>

@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import Banner from '@/Components/Banner.vue';
 import Dropdown from '@/Components/Dropdown.vue';
@@ -16,7 +16,12 @@ const props = defineProps({
   },
 });
 
+const page = usePage();
 const showingNavigationDropdown = ref(false);
+const isAsistant = computed(() => {
+    const roles = (page.props.user?.roles || []).map((role) => String(role).toLowerCase());
+    return roles.includes('asistant');
+});
 
 const switchToTeam = (team) => {
     router.put(route('current-team.update'), {
@@ -42,7 +47,7 @@ const logout = () => {
 
         <Banner />
 
-        <nav class="bg-white border-b border-gray-100">
+        <nav v-if="$page.props.auth?.user" class="bg-white border-b border-gray-100">
             <!-- Primary Navigation Menu -->
             <div class="px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
@@ -54,56 +59,57 @@ const logout = () => {
                             </Link>
                         </div>
 
-                        <!-- Navigation Links -->
-                        <!-- Gestión Dropdown -->
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                            <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                Inicio
-                            </NavLink>
-                        </div>
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
-                            <Dropdown>
-                                <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
-                                        Gestión
-                                        <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                        </svg>
-                                    </button>
-                                    </template>
+                        <template v-if="!isAsistant">
+                            <!-- Navigation Links -->
+                            <!-- Gestión Dropdown -->
+                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
+                                    Inicio
+                                </NavLink>
+                            </div>
+                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                                <Dropdown>
+                                    <template #trigger>
+                                        <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                            Gestión
+                                            <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+                                        </template>
 
-                                <template #content>
-                                    <DropdownLink :href="route('maestros.index')" :active="route().current('maestros.*')">
-                                        Maestros
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
-                                        Coordinadores
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('entidades.index')" :active="route().current('entidades.*')">
-                                        Entidades
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
-                                        Membresías
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('comidas.index')" :active="route().current('comidas.*')">
-                                        Comidas
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('lugareshospedaje.index')" :active="route().current('lugareshospedaje.*')">
-                                        Lugares de Hospedaje
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('hospedajes.index')" :active="route().current('hospedajes.*')">
-                                        Acomodaciones
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('transportes.index')" :active="route().current('transportes.*')">
-                                        Transportes
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('imagenes.index')" :active="route().current('imagenes.*')">
-                                        Imagenes
-                                    </DropdownLink>
-                                </template>
-                            </Dropdown>
-                        </div>
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                                    <template #content>
+                                        <DropdownLink :href="route('maestros.index')" :active="route().current('maestros.*')">
+                                            Maestros
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
+                                            Coordinadores
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('entidades.index')" :active="route().current('entidades.*')">
+                                            Entidades
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
+                                            Membresías
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('comidas.index')" :active="route().current('comidas.*')">
+                                            Comidas
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('lugareshospedaje.index')" :active="route().current('lugareshospedaje.*')">
+                                            Lugares de Hospedaje
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('hospedajes.index')" :active="route().current('hospedajes.*')">
+                                            Acomodaciones
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('transportes.index')" :active="route().current('transportes.*')">
+                                            Transportes
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('imagenes.index')" :active="route().current('imagenes.*')">
+                                            Imagenes
+                                        </DropdownLink>
+                                    </template>
+                                </Dropdown>
+                            </div>
+                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
                                     <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
@@ -185,7 +191,7 @@ const logout = () => {
 
                                 <template #content>
                                     <DropdownLink :href="route('membresias.index')" :active="route().current('membresias.*')">
-                                        Membresías Disponibles
+                                        Membresías (Tarjetas Kadampa)
                                     </DropdownLink>
                                     <DropdownLink :href="route('estado-cuenta-membresias.index')" :active="route().current('estado-cuenta-membresias.*')">
                                         Estado de Cuenta Membresías
@@ -285,12 +291,13 @@ const logout = () => {
                             </Dropdown>
 
                         </div>
+                        </template>
                     </div>
 
-                    <div class="hidden sm:flex sm:items-center sm:ms-6">
+                    <div v-if="$page.props.auth?.user" class="hidden sm:flex sm:items-center sm:ms-6">
                         <div class="ms-3 relative">
                             <!-- Teams Dropdown -->
-                            <Dropdown v-if="$page.props.jetstream.hasTeamFeatures" align="right" width="60">
+                            <Dropdown v-if="!isAsistant && $page.props.jetstream.hasTeamFeatures" align="right" width="60">
                                 <template #trigger>
                                     <span class="inline-flex rounded-md">
                                         <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
@@ -377,14 +384,14 @@ const logout = () => {
                                     <DropdownLink :href="route('profile.show')">
                                         Mi Perfil
                                     </DropdownLink>
-                                    <DropdownLink :href="route('registromembresias.create')" :active="route().current('monedas.*')">
+                                    <DropdownLink :href="route('membresias.index')" :active="route().current('monedas.*')">
                                         Mi Membresía
                                     </DropdownLink>
                                     <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
                                         Mi camino Budista
                                     </DropdownLink>
 
-                                    <DropdownLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')">
+                                    <DropdownLink v-if="!isAsistant && $page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')">
                                         API Tokens
                                     </DropdownLink>
 
@@ -432,14 +439,14 @@ const logout = () => {
 
             <!-- Responsive Navigation Menu -->
             <div :class="{'block': showingNavigationDropdown, 'hidden': ! showingNavigationDropdown}" class="sm:hidden">
-                <div class="pt-2 pb-3 space-y-1">
+                <div v-if="!isAsistant" class="pt-2 pb-3 space-y-1">
                     <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                         Dashboard
                     </ResponsiveNavLink>
                 </div>
 
                 <!-- Responsive Settings Options -->
-                <div class="pt-4 pb-1 border-t border-gray-200">
+                <div v-if="$page.props.auth?.user" class="pt-4 pb-1 border-t border-gray-200">
                     <div class="flex items-center px-4">
                         <div v-if="$page.props.jetstream.managesProfilePhotos" class="shrink-0 me-3">
                             <img class="h-10 w-10 rounded-full object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
@@ -459,8 +466,14 @@ const logout = () => {
                         <ResponsiveNavLink :href="route('profile.show')" :active="route().current('profile.show')">
                             Profile
                         </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('membresias.index')" :active="route().current('membresias.*')">
+                            Mi Membresia
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('monedas.index')" :active="route().current('monedas.*')">
+                            Mi camino Budista
+                        </ResponsiveNavLink>
 
-                        <ResponsiveNavLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')" :active="route().current('api-tokens.index')">
+                        <ResponsiveNavLink v-if="!isAsistant && $page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')" :active="route().current('api-tokens.index')">
                             API Tokens
                         </ResponsiveNavLink>
 
@@ -472,7 +485,7 @@ const logout = () => {
                         </form>
 
                         <!-- Team Management -->
-                        <template v-if="$page.props.jetstream.hasTeamFeatures">
+                        <template v-if="!isAsistant && $page.props.jetstream.hasTeamFeatures">
                             <div class="border-t border-gray-200" />
 
                             <div class="block px-4 py-2 text-xs text-gray-400">
@@ -526,6 +539,6 @@ const logout = () => {
         <main class="flex-grow">
             <slot />
         </main>
-        <Footer/>
+        <Footer v-if="$page.props.auth?.user" />
     </div>
 </template>

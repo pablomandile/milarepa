@@ -61,8 +61,8 @@
                     </div>
                     <div class="mt-4">
                         <DataTable :value="tiposActividad.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
-                            <Column field="abreviacion" header="Nombre"></Column>
-                            <Column field="nombre" header="Descripción"></Column>
+                            <Column field="abreviacion" header="Abreviación"></Column>
+                            <Column field="nombre" header="Nombre"></Column>
                             <Column header="Acciones" class="flex justify-center space-x-2" >
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">

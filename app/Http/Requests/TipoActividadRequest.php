@@ -24,7 +24,7 @@ class TipoActividadRequest extends FormRequest
     {
         return [
             'nombre' => ['required', 'string', 'max:50', Rule::unique(table: 'tipos_actividad', column: 'nombre')->ignore(id: request('tipoactividad'), idColumn: 'id')],
-            'abreviacion' => ['nullable', 'string', 'max:10']
+            'abreviacion' => ['nullable', 'string', 'max:20']
         ];
     }
 
@@ -32,7 +32,7 @@ class TipoActividadRequest extends FormRequest
         return [
             'nombre.required' => __('El Tipo no puede quedar vacío.'),
             'nombre.unique' => __('El Tipo ingresado ya existe'),
-            'abreviacion.max' => __('La abreviación debe tener como máximo 10 caracteres.')
+            'abreviacion.max' => __('La abreviación debe tener como máximo 20 caracteres.')
         ];
     }
 }

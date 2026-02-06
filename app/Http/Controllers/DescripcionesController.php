@@ -14,7 +14,7 @@ class DescripcionesController extends Controller
      */
     public function index()
     {
-        $descripciones = Descripcion::paginate(15);
+        $descripciones = Descripcion::orderByDesc('created_at')->paginate(15);
         return inertia('Descripciones/Index', ['descripciones'=>$descripciones]);
     }
 

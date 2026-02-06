@@ -20,6 +20,7 @@ import Calendar from 'primevue/calendar';
 import Dropdown from 'primevue/dropdown';
 import MultiSelect from 'primevue/multiselect';
 import Textarea from 'primevue/textarea';
+import InputSwitch from 'primevue/inputswitch';
 import SingleImageUploader from '@/Components/SingleImageUploader.vue';
 
 const emit = defineEmits(['submit','refresh-descripciones']);
@@ -116,6 +117,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  imagenPreviewUrl: {
+    type: String,
+    default: '',
+  },
 });
 
 
@@ -123,6 +128,9 @@ const props = defineProps({
 const dialogVisible = ref(false);
 const dialogTitle = ref('');
 const detalleSeleccionado = ref(null);
+const conDescuentoAnticipado = ref(false);
+const ofreceGrabacion = ref(!!props.form.grabacion_id);
+const grabacionImporteDisplay = ref('');
 
 /**
  * verDetalle(arrayName, id, title):
@@ -176,6 +184,52 @@ function formatDatetime(date) {
   return date;
 }
 
+function formatImporte(value) {
+  const numeric = String(value ?? '').replace(/[^\d]/g, '');
+  const cents = numeric.padStart(3, '0');
+  const entero = cents.slice(0, -2) || '0';
+  const dec = cents.slice(-2);
+  const enteroFmt = entero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `$ ${enteroFmt},${dec}`;
+}
+
+function parseImporte(displayValue) {
+  const numeric = String(displayValue ?? '').replace(/[^\d]/g, '');
+  if (!numeric) return null;
+  const cents = numeric.padStart(3, '0');
+  const entero = cents.slice(0, -2) || '0';
+  const dec = cents.slice(-2);
+  return Number(`${entero}.${dec}`);
+}
+
+function onGrabacionImporteInput(event) {
+  grabacionImporteDisplay.value = formatImporte(event.target.value);
+  props.form.grabacion_importe = parseImporte(grabacionImporteDisplay.value);
+}
+
+watch(
+  () => props.form.grabacion_importe,
+  (value) => {
+    if (value === null || value === undefined || value === '') {
+      grabacionImporteDisplay.value = '';
+      return;
+    }
+    grabacionImporteDisplay.value = formatImporte(value);
+  },
+  { immediate: true }
+);
+
+watch(
+  () => ofreceGrabacion.value,
+  (value) => {
+    if (!value) {
+      props.form.grabacion_id = null;
+      props.form.grabacion_importe = null;
+      grabacionImporteDisplay.value = '';
+    }
+  }
+);
+
 function submitForm() {
   // Formatear las fechas antes de enviar
   if (props.form.fecha_inicio) {
@@ -218,6 +272,14 @@ watch(
   () => {
     syncHospedajesSeleccionados();
   }
+);
+
+watch(
+  () => [props.form?.esquema_descuento_id, props.form?.pagoAmticipado],
+  () => {
+    conDescuentoAnticipado.value = !!props.form?.esquema_descuento_id || !!props.form?.pagoAmticipado;
+  },
+  { immediate: true }
 );
 
 </script>
@@ -359,26 +421,6 @@ watch(
           <InputError :message="$page.props.errors.observaciones" class="mt-2" />
         </div>
 
-        <!-- Imagen (URL o File) -->
-        <div class="col-span-6 sm:col-span-6">
-          <InputLabel
-            for="imagen"
-            class="text-indigo-400 mb-2"
-            value="Imagen"
-            :required="false"
-          />
-
-          <div class="flex items-center gap-4">
-            <!-- Componente personalizado para subir imágen -->
-            <div class="flex justify-between mb-6" v-if="$page.props.user.permissions.includes('create entidades')">
-              <SingleImageUploader 
-                v-model:imagenId="form.imagen_id"
-              />
-            </div>
-          <InputError :message="$page.props.errors.imagen" class="mt-2" />
-          </div>
-        </div>
-
        <!-- Maestros (MultiSelect) -->
        <div class="col-span-6 sm:col-span-6">
           <InputLabel
@@ -461,28 +503,6 @@ watch(
             inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
           />
           <InputError :message="$page.props.errors.fecha_fin" class="mt-2" />
-        </div>
-
-        <!-- Fecha para descuentos -->
-        <div class="col-span-6 sm:col-span-2">
-          <InputLabel
-            for="pagoAmticipado"
-            class="text-indigo-400"
-            value="Fecha pago anticipado"
-            inputClass="text-indigo-500"
-          />
-          <Calendar
-            id="pagoAmticipado"
-            v-model="form.pagoAmticipado"
-            dateFormat="dd/mm/yy"
-            showTime  
-            hourFormat="24"
-            class="w-full mt-1"
-            :showIcon="true"
-            icon="pi pi-calendar text-indigo-500 text-xl"
-            inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
-          />
-          <InputError :message="$page.props.errors.pagoAmticipado" class="mt-2" />
         </div>
 
         <!-- Entidad (Dropdown) -->
@@ -604,8 +624,48 @@ watch(
           <InputError :message="$page.props.errors.esquema_precio_id" class="mt-2" />
         </div>
 
-        <!-- Esquema de Descuentos (Dropdown) -->
+        <!-- Switch: descuento por pago anticipado -->
         <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="con_descuento_anticipado"
+            class="text-indigo-400"
+            value="Con descuento por pago anticipado"
+          />
+          <div class="flex items-center gap-3 mt-2">
+            <InputSwitch
+              id="con_descuento_anticipado"
+              v-model="conDescuentoAnticipado"
+            />
+            <span class="text-sm text-gray-600">
+              {{ conDescuentoAnticipado ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Fecha para descuentos -->
+        <div v-if="conDescuentoAnticipado" class="col-span-6 sm:col-span-2">
+          <InputLabel
+            for="pagoAmticipado"
+            class="text-indigo-400"
+            value="Fecha pago anticipado"
+            inputClass="text-indigo-500"
+          />
+          <Calendar
+            id="pagoAmticipado"
+            v-model="form.pagoAmticipado"
+            dateFormat="dd/mm/yy"
+            showTime  
+            hourFormat="24"
+            class="w-full mt-1"
+            :showIcon="true"
+            icon="pi pi-calendar text-indigo-500 text-xl"
+            inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
+          />
+          <InputError :message="$page.props.errors.pagoAmticipado" class="mt-2" />
+        </div>
+
+        <!-- Esquema de Descuentos (Dropdown) -->
+        <div v-if="conDescuentoAnticipado" class="col-span-6 sm:col-span-6">
           <InputLabel
             for="esquema_descuento_id"
             class="text-indigo-400"
@@ -658,44 +718,71 @@ watch(
           <InputError :message="$page.props.errors.web_actividad" class="mt-2" />
         </div>
 
-         <!-- Grabación (Dropdown) -->
-         <div class="col-span-6 sm:col-span-6 mt-4">
-          <InputLabel
-            for="grabacion_id"
-            class="text-indigo-400"
-            value="Grabaciones"
-          />
-          <div class="flex gap-2 items-center mt-1">
-            <Dropdown
-              id="grabacion_id"
-              v-model="form.grabacion_id"
-              :options="grabaciones"
-              optionLabel="nombre"
-              optionValue="id"
-              placeholder="Seleccione Geabación"
-              class="w-full mt-1 border border-gray-300"
+         <!-- Grabación -->
+         <div class="col-span-6 sm:col-span-6 mt-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <InputLabel
+              for="ofrece_grabacion"
+              class="text-indigo-400"
+              value="Ofrece Grabación"
             />
-            <!-- Botón ver -->
-            <button
-              type="button"
-              @click="verDetalle('grabaciones', form.grabacion_id, 'Grabación')"
-              :disabled="!form.grabacion_id"
-              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
-              v-tooltip="'Ver la Grabación'"
-            >
-              <i class="pi pi-eye"></i>
-            </button>
-
-            <!-- Botón nuevo (Redirecciona al create) -->
-            <Link
-              :href="route('grabaciones.create')"
-              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
-              v-tooltip="'Crear nueva Grabación'"
-            >
-              <i class="pi pi-file-plus"></i>
-            </Link>
+            <div class="mt-1">
+              <InputSwitch id="ofrece_grabacion" v-model="ofreceGrabacion" />
+            </div>
           </div>
-          <InputError :message="$page.props.errors.grabacion_id" class="mt-2" />
+
+          <div v-if="ofreceGrabacion">
+            <InputLabel
+              for="grabacion_id"
+              class="text-indigo-400"
+              value="Grabaciones"
+            />
+            <div class="flex gap-2 items-center mt-1">
+              <Dropdown
+                id="grabacion_id"
+                v-model="form.grabacion_id"
+                :options="grabaciones"
+                optionLabel="nombre"
+                optionValue="id"
+                placeholder="Seleccione Grabación"
+                class="w-full mt-1 border border-gray-300"
+              />
+              <button
+                type="button"
+                @click="verDetalle('grabaciones', form.grabacion_id, 'Grabación')"
+                :disabled="!form.grabacion_id"
+                class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+                v-tooltip="'Ver la Grabación'"
+              >
+                <i class="pi pi-eye"></i>
+              </button>
+              <Link
+                :href="route('grabaciones.create')"
+                class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+                v-tooltip="'Crear nueva Grabación'"
+              >
+                <i class="pi pi-file-plus"></i>
+              </Link>
+            </div>
+            <InputError :message="$page.props.errors.grabacion_id" class="mt-2" />
+          </div>
+
+          <div v-if="ofreceGrabacion">
+            <InputLabel
+              for="grabacion_importe"
+              class="text-indigo-400"
+              value="Importe Grabación"
+            />
+            <TextInput
+              id="grabacion_importe"
+              v-model="grabacionImporteDisplay"
+              type="text"
+              class="mt-1 block w-full"
+              placeholder="$ 0,00"
+              @input="onGrabacionImporteInput"
+            />
+            <InputError :message="$page.props.errors.grabacion_importe" class="mt-2" />
+          </div>
         </div>
 
         <!-- Stream (Dropdown) -->
@@ -870,6 +957,34 @@ watch(
           <InputError :message="$page.props.errors.transportes_ids" class="mt-2" />
         </div>
 
+        <!-- Imagen (URL o File) -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="imagen"
+            class="text-indigo-400 mb-2"
+            value="Imagen"
+            :required="false"
+          />
+
+          <div class="flex items-start gap-4">
+            <!-- Componente personalizado para subir imágen -->
+            <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
+              <SingleImageUploader 
+                v-model:imagenId="form.imagen_id"
+              />
+            </div>
+            <div v-if="imagenPreviewUrl" class="flex items-center gap-2">
+              <img
+                :src="imagenPreviewUrl"
+                alt="Imagen actual"
+                class="h-16 w-16 mt-0 pt-0 rounded border border-gray-200 object-cover"
+              />
+              <span class="text-xs text-gray-500">Actual</span>
+            </div>
+          <InputError :message="$page.props.errors.imagen" class="mt-2" />
+          </div>
+        </div>
+
         <!-- Estado (Activa/Inactiva) -->
         <div class="col-span-6 sm:col-span-6">
           <InputLabel
@@ -1003,3 +1118,4 @@ watch(
     </div>
   </Dialog>
 </template>
+

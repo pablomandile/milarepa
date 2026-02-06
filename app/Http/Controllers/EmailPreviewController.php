@@ -102,7 +102,7 @@ class EmailPreviewController extends Controller
             'membresia' => 'Miembro Activo',
             'precioGeneral' => 5000.00,
             'montoapagar' => 3500.00,
-            'pago' => 'parcial',
+            'pago' => 'Parcial',
             'actividad' => $actividad,
             'user' => $usuario,
             'estado' => $estado,

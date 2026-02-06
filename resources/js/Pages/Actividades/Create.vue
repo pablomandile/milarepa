@@ -119,6 +119,7 @@
         lugar_hospedaje_id: null,
         comidas_ids: [],
         transportes_ids: [],
+        estado: true,
         maestros_ids: [],
         coordinadores_ids: []
     });
@@ -171,7 +172,7 @@
             <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Agregar una Actividad</h1>
         </template>
         <div class="py-12">
-            <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
                     <!-- Botón de Volver -->
                     <div class="flex justify-end mr-5 mb-6 mt-3">

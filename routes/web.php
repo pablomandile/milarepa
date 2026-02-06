@@ -53,6 +53,28 @@ Route::get('/email-preview/inscripcion', [EmailPreviewController::class, 'inscri
 Route::get('/email-preview/inscripcion/{id}', [EmailPreviewController::class, 'inscripcionConfirmada'])
     ->name('preview.email.inscripcion.id');
 
+// Grid de actividades pÃºblico (solo index + lookup por email)
+Route::get('/grid-actividades', [GridActividadesController::class, 'index'])
+    ->name('grid-actividades.index');
+Route::get('/grid-actividades/{actividad}/public', [GridActividadesController::class, 'showPublicActividad'])
+    ->name('grid-actividades.show-public');
+Route::post('/grid-actividades/lookup-email', [GridActividadesController::class, 'lookupEmail'])
+    ->name('grid-actividades.lookup-email');
+Route::post('/grid-actividades/inscribir', [GridActividadesController::class, 'inscribir'])
+    ->name('grid-actividades.inscribir');
+Route::post('/grid-actividades/inscribir-guest', [GridActividadesController::class, 'inscribirGuest'])
+    ->name('grid-actividades.inscribir-guest');
+Route::post('/grid-actividades/pago/prepare', [GridActividadesController::class, 'preparePago'])
+    ->name('grid-actividades.pago.prepare');
+Route::get('/grid-actividades/pago/{actividad}', [GridActividadesController::class, 'pago'])
+    ->name('grid-actividades.pago');
+Route::post('/grid-actividades/pago/comprobante', [GridActividadesController::class, 'uploadComprobante'])
+    ->name('grid-actividades.pago.comprobante');
+Route::post('/grid-actividades/pago/finalizar', [GridActividadesController::class, 'finalizarPago'])
+    ->name('grid-actividades.pago.finalizar');
+Route::get('/grid-actividades/inscripcion/{inscripcion}', [GridActividadesController::class, 'showPublic'])
+    ->name('grid-actividades.inscripcion');
+
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/complete-profile', [ProfileCompletionController::class, 'create'])
         ->name('profile.complete');
@@ -69,8 +91,19 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         if (is_null($user->telefono)) {
             return redirect()->route('profile.complete');
         }
+        if ($user->hasRole('asistant')) {
+            return redirect()->route('asistant.panel');
+        }
         return inertia('Dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
+
+    Route::get('/panel-asistant', function () {
+        return inertia('Asistant/Panel');
+    })->middleware(['auth', 'verified'])->name('asistant.panel');
+
+    Route::get('/panel-asistant', function () {
+        return inertia('Asistant/Panel');
+    })->middleware(['auth', 'verified'])->name('asistant.panel');
 
     Route::resource('entidades', EntidadesController::class, [
         'parameters' => ['entidades' => 'entidad'], ]); // Renombrar el parámetro a 'entidad' por singular español
@@ -89,7 +122,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::patch('/actividades/{actividad}/estado', [ActividadesController::class, 'updateEstado'])
         ->name('actividades.updateEstado');
     Route::resource('/grid-actividades', GridActividadesController::class, [
-        'parameters' => ['grid-actividades' => 'grid-actividad'],]);
+        'parameters' => ['grid-actividades' => 'grid-actividad'],
+    ])->except(['index']);
     Route::resource('/usuarios', UsuariosController::class);
     Route::resource('/perfiles', PerfilesController::class);
     Route::resource('/roles', RolesController::class);
@@ -104,6 +138,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/transportes', TransportesController::class);
     Route::resource('/inscripciones', InscripcionesController::class, [
         'parameters' => ['inscripciones' => 'inscripcion'],]);
+    Route::post('/inscripciones/{inscripcion}/comprobante', [InscripcionesController::class, 'uploadComprobante'])
+        ->name('inscripciones.comprobante');
     Route::get('/inscripciones/{inscripcion}/ticket', [InscripcionesController::class, 'ticket'])
         ->name('inscripciones.ticket');
     Route::get('/inscripciones/{inscripcion}/asistir', [InscripcionesController::class, 'asistir'])
@@ -172,6 +208,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         'parameters' => ['estado-cuenta-membresias' => 'estadoCuentaMembresia'],
         'except' => ['create', 'store']
     ]);
+    Route::post('/estado-cuenta-membresias/comprobante', [EstadoCuentaMembresiasController::class, 'uploadComprobante'])
+        ->name('estado-cuenta-membresias.comprobante');
 
     Route::resource('/imagenes', ImagenesController::class, [
         'parameters' => ['imagenes' => 'imagen'],]);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EstadoCuentaMembresia;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Membresia;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -81,6 +82,67 @@ class EstadoCuentaMembresiasController extends Controller
             ->with('success', 'Estado de cuenta actualizado correctamente');
     }
 
+    public function uploadComprobante(Request $request)
+    {
+        $request->validate([
+            'comprobante' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
+            'estado_cuenta_id' => ['nullable', 'exists:estado_cuenta_membresias,id'],
+            'mes_pagado' => ['nullable', 'date_format:Y-m'],
+        ], [
+            'comprobante.max' => 'El comprobante supera el tamaño máximo permitido (4 MB).',
+            'comprobante.mimes' => 'El comprobante debe ser PDF, JPG o PNG.',
+        ]);
+
+        $userId = $request->user()->id;
+        $estadoCuenta = null;
+        if ($request->filled('estado_cuenta_id')) {
+            $estadoCuenta = EstadoCuentaMembresia::where('id', $request->estado_cuenta_id)
+                ->where('user_id', $userId)
+                ->firstOrFail();
+        } elseif ($request->filled('mes_pagado')) {
+            $user = $request->user();
+            $membresiaId = $user->membresia_id;
+            $estadoCuenta = EstadoCuentaMembresia::where('user_id', $userId)
+                ->where('membresia_id', $membresiaId)
+                ->where('mes_pagado', $request->mes_pagado)
+                ->first();
+            if ($estadoCuenta && $estadoCuenta->pagado) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Ya tiene el pago registrado para ese mes.',
+                ], 422);
+            }
+            if (!$estadoCuenta) {
+                $importe = optional($user->membresia)->valor ?? 0;
+                $estadoCuenta = EstadoCuentaMembresia::create([
+                    'user_id' => $userId,
+                    'membresia_id' => $membresiaId,
+                    'mes_pagado' => $request->mes_pagado,
+                    'fecha_pago' => null,
+                    'importe' => $importe,
+                    'pagado' => false,
+                    'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
+                    'observaciones' => 'Inscripción realizada por ' . ($request->user()->name ?? 'sistema'),
+                    'modo' => 'transferencia',
+                ]);
+            }
+        } else {
+            $estadoCuenta = EstadoCuentaMembresia::where('user_id', $userId)
+                ->orderBy('mes_pagado', 'desc')
+                ->orderBy('fecha_pago', 'desc')
+                ->firstOrFail();
+        }
+
+        $path = $request->file('comprobante')->store('comprobantes', 'public');
+        $estadoCuenta->comprobante = $path;
+        $estadoCuenta->save();
+
+        return response()->json([
+            'ok' => true,
+            'path' => $path,
+        ]);
+    }
+
     /**
      * Remove the specified resource from storage.
      */
@@ -121,7 +183,7 @@ class EstadoCuentaMembresiasController extends Controller
                 'importe' => $importe,
                 'pagado' => false,
                 'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
-                'observaciones' => 'Registro automático (único mes)'
+                'observaciones' => 'Inscripción realizada por ' . ($request->user()->name ?? 'sistema')
             ]);
         }
     }

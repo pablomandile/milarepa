@@ -107,11 +107,12 @@
         });
         resetForm();
       },
-      onError: () => {
+      onError: (errors) => {
+        const mensaje = errors?.imagen || 'Hubo un problema al subir la imagen.';
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'Hubo un problema al subir la imagen.',
+          text: mensaje,
         });
         isUploading.value = false;
       },

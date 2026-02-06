@@ -5,7 +5,8 @@
 </script>
 
 <script setup>
-    import { useForm } from '@inertiajs/vue3';
+    import { computed } from 'vue';
+    import { Link, useForm, usePage } from '@inertiajs/vue3';
     import AppLayout from '@/Layouts/AppLayout.vue'
     import CompleteProfileForm from '@/Components/Formularios/CompleteProfileForm.vue'
     import ScrollTop from 'primevue/scrolltop';
@@ -50,6 +51,11 @@
     });
 
   
+    const page = usePage();
+    const isAsistant = computed(() => {
+        const roles = (page.props.user?.roles || []).map((role) => String(role).toLowerCase());
+        return roles.includes('asistant');
+    });
     const form = useForm({
         accesibilidad: false,
         accesibilidad_desc: '',
@@ -164,6 +170,14 @@
                             :form="form" 
                             @submit="submit"
                         />
+                            <div class="mt-6 flex justify-end">
+                                <Link
+                                    :href="isAsistant ? route('asistant.panel') : route('dashboard')"
+                                    class="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                                >
+                                    Completar más tarde
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>

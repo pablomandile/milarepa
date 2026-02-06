@@ -81,7 +81,7 @@ const inscribir = () => {
     membresia: user.membresia?.nombre || 'Sin membresía',
     precioGeneral,
     montoapagar: precioMembresia,
-    pago: 'impago',
+    pago: 'Pendiente',
     estado_id: 1,
     envioLinkStream: 'pendiente',
     envioGrabación: 'pendiente',

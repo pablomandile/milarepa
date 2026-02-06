@@ -170,10 +170,13 @@
       // en vez del local previewUrl.
     } catch (error) {
       isUploading.value = false;
+      const mensaje =
+        error?.response?.data?.errors?.imagen?.[0] ||
+        'Hubo un problema al subir la imagen.';
       toast.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Hubo un problema al subir la imagen.',
+        detail: mensaje,
         life: 3000,
         });
     }

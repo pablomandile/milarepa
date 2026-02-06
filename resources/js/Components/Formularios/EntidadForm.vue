@@ -65,14 +65,15 @@ defineEmits(['submit'])
             </div>
             <div class="col-span-6 sm:col-span-6">
                 <InputLabel for="telefono" class="text-indigo-400" value="Teléfono" :required="true"/>
-                <TextInput id="telefono" v-model="form.telefono" type="text" autocomplete="telefono" class="mt-1 block w-full" />
+                <InputMask id="telefono" v-model="form.telefono" mask="+99 9 99 9999 9999" 
+                placeholder="+54 9 11 1234 5678" slotChar="_" :unmask="true"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
                 <InputError :message="$page.props.errors.telefono" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6">
                 <InputLabel for="whatsapp" class="text-indigo-400" value="WhatsApp" :required="false"/>
-                <!-- <TextInput id="whatsapp" v-model="form.whatsapp" type="text" autocomplete="whatsapp" class="mt-1 block w-full" /> -->
-                <InputMask id="whatsapp" v-model="form.whatsapp" mask="+999 99 9999 99" 
-                placeholder="+549 11 1234 5678" slotChar="_" :unmask="true"
+                <InputMask id="whatsapp" v-model="form.whatsapp" mask="+99 9 99 9999 9999" 
+                placeholder="+54 9 11 1234 5678" slotChar="_" :unmask="true"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
                 <InputError :message="$page.props.errors.whatsapp" class="mt-2" />
             </div>

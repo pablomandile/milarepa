@@ -206,6 +206,7 @@
                             <!-- Formulario: indicamos que oculte su header interno -->
                             <ActividadForm 
                               :updating="true"
+                              :imagen-preview-url="props.actividad.imagen ? `/storage/${props.actividad.imagen.ruta}` : ''"
                               :tiposActividad="tiposActividad"
                               :descripciones="descripciones"
                               :entidades="entidades"

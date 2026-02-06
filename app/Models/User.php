@@ -52,6 +52,8 @@ class User extends Authenticatable
         'sexo_id',
         'membresia_id',
         'membresia_inscripcion_fecha',
+        'membresia_online',
+        'membresia_online_motivo',
         'es_maestro',
         'es_coordinador',
         'perfil_completo',
@@ -78,6 +80,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'membresia_online' => 'boolean',
     ];
 
     /**

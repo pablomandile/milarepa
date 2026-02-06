@@ -57,9 +57,24 @@ class MembresiasGestionController extends Controller
 
     public function eliminar(User $user)
     {
+        // Borrado lógico del estado de cuenta del mes actual (si existe)
+        $mesActual = Carbon::now()->format('Y-m');
+        $estadoCuenta = EstadoCuentaMembresia::where('user_id', $user->id)
+            ->where('membresia_id', $user->membresia_id)
+            ->where('mes_pagado', $mesActual)
+            ->first();
+
+        if ($estadoCuenta) {
+            $estadoCuenta->estado = EstadoCuentaMembresia::ESTADO_EXPIRADA;
+            $estadoCuenta->observaciones = trim(($estadoCuenta->observaciones ?? '') . ' | Membresía eliminada');
+            $estadoCuenta->save();
+        }
+
         $user->update([
             'membresia_id' => null,
-            'membresia_inscripcion_fecha' => null
+            'membresia_inscripcion_fecha' => null,
+            'membresia_online' => false,
+            'membresia_online_motivo' => null,
         ]);
 
         return redirect()->back()
@@ -86,7 +101,7 @@ class MembresiasGestionController extends Controller
                 'importe' => $importe,
                 'pagado' => false,
                 'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
-                'observaciones' => 'Inscripción del mes actual'
+                'observaciones' => 'Inscripción realizada por ' . (auth()->user()->name ?? 'sistema')
             ]);
         }
     }

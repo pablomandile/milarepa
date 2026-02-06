@@ -14,7 +14,18 @@
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <!-- Tabla de Estado de Cuentas -->
-                        <div v-if="estadoCuentas.data.length > 0" class="overflow-x-auto">
+                        <div class="mb-4 flex items-center gap-3">
+                            <label class="text-sm font-medium text-gray-700">Filtro</label>
+                            <select
+                                v-model="filtroPeriodo"
+                                class="rounded border border-gray-300 px-4 py-1 text-sm w-56"
+                            >
+                                <option value="last1">Último mes</option>
+                                <option value="all">Mostrar todo</option>
+                            </select>
+                        </div>
+
+                        <div v-if="filtradas.length > 0" class="overflow-x-auto">
                             <table class="min-w-full border-collapse border border-gray-300">
                                 <thead class="bg-indigo-300 text-white text-sm">
                                     <tr>
@@ -27,12 +38,13 @@
                                         <th class="border border-gray-300 px-2 py-2 text-left">
                                             <i class="fas fa-calendar mr-1"></i>Pago
                                         </th>
+                                        <th class="border border-gray-300 px-2 py-2 text-center">Comprobante</th>
                                         <th class="border border-gray-300 px-2 py-2 text-left">Observaciones</th>
                                         <th class="border border-gray-300 px-2 py-2 text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="cuenta in estadoCuentas.data" :key="cuenta.id" class="hover:bg-gray-50">
+                                    <tr v-for="cuenta in filtradas" :key="cuenta.id" class="hover:bg-gray-50">
                                         <td class="border border-gray-300 px-2 py-2">
                                             <div>
                                                 <p class="text-sm font-semibold text-gray-800">{{ cuenta.user.name }}</p>
@@ -41,7 +53,10 @@
                                         </td>
                                         <td class="border border-gray-300 px-2 py-2">
                                             <div>
-                                                <p class="text-sm font-semibold text-gray-800">{{ cuenta.membresia.nombre }}</p>
+                                                <p class="text-sm font-semibold text-gray-800">
+                                                    {{ cuenta.membresia.nombre }}
+                                                    <span v-if="cuenta.user?.membresia_online" class="ml-2 text-xs font-semibold text-indigo-600">Online</span>
+                                                </p>
                                                 <p class="text-xs text-gray-600">{{ cuenta.membresia.entidad.nombre }}</p>
                                             </div>
                                         </td>
@@ -58,7 +73,7 @@
                                             </span>
                                             <span v-else class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                 <i class="fas fa-times-circle mr-1"></i>
-                                                Impago
+                                                Pendiente
                                             </span>
                                         </td>
                                         <td class="border border-gray-300 px-2 py-2 text-sm">
@@ -66,6 +81,17 @@
                                         </td>
                                         <td class="border border-gray-300 px-2 py-2 text-sm">
                                             {{ cuenta.fecha_pago ? formatearFecha(cuenta.fecha_pago) : '-' }}
+                                        </td>
+                                        <td class="border border-gray-300 px-2 py-2 text-center">
+                                            <button
+                                                v-if="cuenta.comprobante"
+                                                @click="abrirComprobante(cuenta.comprobante)"
+                                                class="inline-flex items-center justify-center px-2 py-1 text-indigo-600 hover:text-indigo-800"
+                                                title="Ver comprobante"
+                                            >
+                                                <i class="fas fa-file"></i>
+                                            </button>
+                                            <span v-else class="text-gray-400">-</span>
                                         </td>
                                         <td class="border border-gray-300 px-2 py-2 text-sm">
                                             {{ cuenta.observaciones || '-' }}
@@ -100,7 +126,7 @@
                         </div>
 
                         <!-- Paginación -->
-                        <div v-if="estadoCuentas.links.length > 3" class="mt-6 flex justify-center gap-2">
+                        <div v-if="filtroPeriodo === 'all' && estadoCuentas.links.length > 3" class="mt-6 flex justify-center gap-2">
                             <Link 
                                 v-for="link in estadoCuentas.links" 
                                 :key="link.label"
@@ -120,15 +146,42 @@
             </div>
         </div>
     </AppLayout>
+
+    <Dialog v-model:visible="comprobanteModal" modal header="Comprobante" :style="{ width: '600px' }">
+        <div class="max-h-[70vh] overflow-y-auto">
+            <template v-if="comprobanteIsPdf">
+                <iframe :src="'/storage/' + comprobantePath" class="w-full h-[60vh] rounded"></iframe>
+            </template>
+            <template v-else>
+                <img v-if="comprobantePath" :src="'/storage/' + comprobantePath" class="w-full rounded" alt="Comprobante" />
+            </template>
+        </div>
+    </Dialog>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import Dialog from 'primevue/dialog';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
-defineProps({
+const props = defineProps({
     estadoCuentas: Object
+});
+
+const filtroPeriodo = ref('last1');
+
+const filtradas = computed(() => {
+    const data = props.estadoCuentas?.data || [];
+    if (filtroPeriodo.value === 'all') return data;
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return data.filter((cuenta) => {
+        if (!cuenta.mes_pagado) return false;
+        const [year, month] = String(cuenta.mes_pagado).split('-');
+        const fecha = new Date(Number(year), Number(month) - 1, 1);
+        return fecha >= start;
+    });
 });
 
 const formatearMes = (mesPagado) => {
@@ -144,8 +197,19 @@ const formatearFecha = (fecha) => {
         day: 'numeric' 
     });
 };
+
+const comprobanteModal = ref(false);
+const comprobantePath = ref('');
+const comprobanteIsPdf = computed(() => (comprobantePath.value || '').toLowerCase().endsWith('.pdf'));
+
+const abrirComprobante = (path) => {
+    comprobantePath.value = path;
+    comprobanteModal.value = true;
+};
 </script>
 
 <style scoped>
 @import '../../../css/datatable-header-style.css';
 </style>
+
+

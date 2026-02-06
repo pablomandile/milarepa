@@ -20,7 +20,8 @@ class EstadoCuentaMembresia extends Model
         'observaciones',
         'pagado',
         'estado',
-        'modo'
+        'modo',
+        'comprobante'
     ];
 
     protected $casts = [

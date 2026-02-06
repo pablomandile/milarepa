@@ -72,8 +72,8 @@ class ActividadesController extends Controller
         ])->get();
         $tiposActividad = TipoActividad::all();
         $maestros = Maestro::all();
-        $coordinadores = Coordinador::all();
-        $descripciones = Descripcion::all();
+        $coordinadores = Coordinador::orderByDesc('created_at')->get();
+        $descripciones = Descripcion::orderByDesc('created_at')->get();
         $entidades = Entidad::all();
         $disponibilidades = Disponibilidad::all();
         $modalidades = Modalidad::all();
@@ -83,12 +83,12 @@ class ActividadesController extends Controller
         $grabaciones = Grabacion::with([
             'linksgrabacion'
         ])->get();
-        $programas = Programa::all();
+        $programas = Programa::orderByDesc('created_at')->get();
         $metodosPago = MetodoPago::all();
-        $lugarHospedaje = LugarHospedaje::all();
+        $lugarHospedaje = LugarHospedaje::orderByDesc('created_at')->get();
         $hospedajes = Hospedaje::all();
-        $comidas = Comida::all();
-        $transportes = Transporte::all();
+        $comidas = Comida::orderByDesc('created_at')->get();
+        $transportes = Transporte::orderByDesc('created_at')->get();
 
         return inertia('Actividades/Create', [
             'tiposActividad' => $tiposActividad, 
@@ -265,13 +265,13 @@ class ActividadesController extends Controller
             $tiposActividad = TipoActividad::all();
             $maestros = Maestro::all();
             $coordinadores = Coordinador::all();
-            $descripciones = Descripcion::all();
+            $descripciones = Descripcion::orderByDesc('created_at')->get();
             $entidades = Entidad::all();
             $disponibilidades = Disponibilidad::all();
             $modalidades = Modalidad::all();
             $streams = Stream::with(['links'])->get();
             $grabaciones = Grabacion::with(['linksgrabacion'])->get();
-            $programas = Programa::all();
+            $programas = Programa::orderByDesc('created_at')->get();
             $metodosPago = MetodoPago::all();
             $lugarHospedaje = LugarHospedaje::all();
             $hospedajes = Hospedaje::all();

@@ -6,16 +6,22 @@
 
 <script setup>
     import AppLayout from '@/Layouts/AppLayout.vue';
-    import { Link, router } from '@inertiajs/vue3';
+    import { Link, router, usePage } from '@inertiajs/vue3';
     import Swal from "sweetalert2";
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
     import Tag from 'primevue/tag';
-    import { ref } from 'vue';
+    import { computed, ref } from 'vue';
     import Dialog from 'primevue/dialog';
     import Button from 'primevue/button';
     import Dropdown from 'primevue/dropdown';
     
+
+    const page = usePage();
+    const isAsistant = computed(() => {
+        const roles = (page.props.user?.roles || []).map((role) => String(role).toLowerCase());
+        return roles.includes('asistant');
+    });
 
     const { tickets, usuariosResponsables } = defineProps({
         tickets: {
@@ -133,6 +139,14 @@
         </template>
         <div class="py-5">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div v-if="isAsistant" class="mb-4">
+                    <Link
+                        :href="route('asistant.panel')"
+                        class="inline-flex items-center rounded-md border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-600 hover:text-white transition-colors"
+                    >
+                        Volver al panel
+                    </Link>
+                </div>
                 <div class="p-6 bg-white border-b border-gray-200 max-w-4xl mx-auto">
                     <p><i class="pi pi-question-circle text-3xl"><span class="text-xl ml-2">Consulta la documentación para encontrar la solución a tu consulta</span></i></p>
                     <p class="text-xl ml-10">o abre un <span class="text-indigo-500"><strong>Ticket</strong></span> para ser atendido a la brevedad por alguien de nuestro equipo.</p>

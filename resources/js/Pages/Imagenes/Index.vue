@@ -6,7 +6,7 @@
 
 <script setup>
     import AppLayout from '@/Layouts/AppLayout.vue';
-    import { router, useForm } from '@inertiajs/vue3';
+    import { Link, router } from '@inertiajs/vue3';
     import Swal from "sweetalert2";
     import { ref } from 'vue';
     import DataView from 'primevue/dataview';
@@ -25,7 +25,11 @@
             type: Array,
             required: true,
             default: () => []
-        }
+        },
+        links: {
+            type: Array,
+            default: () => []
+        },
     });
 
     const deleteImagen = (id) => {
@@ -61,7 +65,7 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Imagenes</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Galería de Imágenes</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -72,7 +76,7 @@
                     </div>
 
                     <div class="mt-4">
-                        <DataView :value="imagenes" :layout="layout" paginator :rows="30" :rowsPerPageOptions="[5, 10, 20, 50]">
+                        <DataView :value="imagenes" :layout="layout">
                             <template #header>
                                 <div class="flex justify-content-end">
                                     <DataViewLayoutOptions v-model="layout" />
@@ -87,7 +91,7 @@
                                                 <div class="relative mx-10">
                                                     <img
                                                         class="border-round w-full"
-                                                        :src="`storage/${item.ruta}`"
+                                                        :src="`/storage/${item.ruta}`"
                                                         :alt="item.nombre"
                                                         style="max-width: 50px"
                                                     />
@@ -117,7 +121,7 @@
                                                 <div class="relative mx-auto">
                                                     <img
                                                         class="border-round w-full cursor-pointer"
-                                                        :src="`storage/${item.ruta}`"
+                                                        :src="`/storage/${item.ruta}`"
                                                         :alt="item.nombre"
                                                         style="max-width: 140px"
                                                         @click="onClickImage(item)"
@@ -140,6 +144,22 @@
                             </template>
                         </DataView>
                     </div>
+
+                    <div v-if="links.length > 3" class="mt-6 flex justify-center gap-2">
+                        <Link
+                            v-for="link in links"
+                            :key="link.label"
+                            :href="link.url || '#'"
+                            :class="[
+                                'px-4 py-2 rounded transition',
+                                link.active 
+                                    ? 'bg-indigo-600 text-white' 
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
+                                !link.url && 'opacity-50 cursor-not-allowed'
+                            ]"
+                            v-html="link.label"
+                        />
+                    </div>
                 </div>
             </div>
         </div>
@@ -152,7 +172,7 @@
             <template v-if="selectedImage">
                 <div class="text-center">
                 <img
-                    :src="`storage/${selectedImage.ruta}`"
+                    :src="`/storage/${selectedImage.ruta}`"
                     :alt="selectedImage.nombre"
                     style="max-width: 100%; height: auto;"
                 />
