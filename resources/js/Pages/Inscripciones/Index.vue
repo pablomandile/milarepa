@@ -91,6 +91,23 @@ const formatMoney = (value) => {
     return numeric.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
+const comprobanteModal = ref(false);
+const comprobanteUrl = ref('');
+const comprobanteIsPdf = computed(() => (comprobanteUrl.value || '').toLowerCase().includes('.pdf'));
+
+const urlComprobante = (inscripcion) => {
+    const raw = inscripcion?.comprobante_url || inscripcion?.comprobante;
+    if (!raw) return null;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    return `/storage/${raw}`;
+};
+
+const abrirComprobante = (url) => {
+    if (!url) return;
+    comprobanteUrl.value = url;
+    comprobanteModal.value = true;
+};
+
 // Mostrar toasts basados en mensajes flash compartidos
 watch(() => $page.props.flash, (flash) => {
     if (flash?.success) {
@@ -170,7 +187,7 @@ watch(() => $page.props.flash, (flash) => {
                                         <div class="flex flex-col justify-between text-sm self-center">
                                             <div class="p-3 md:p-4 bg-white rounded border border-gray-200 shadow-sm w-full md:max-w-3xl">
                                                 <div class="flex items-start justify-between gap-2 mb-2">
-                                                    <h3 class="text-lg font-semibold text-gray-800">
+                                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">
                                                         {{ inscripcion.actividad.nombre }}
                                                     </h3>
                                                     <p class="text-sm text-gray-500 shrink-0">
@@ -207,9 +224,19 @@ watch(() => $page.props.flash, (flash) => {
                                                         <li v-if="inscripcion.transporte">Transporte: {{ inscripcion.transporte.nombre }}</li>
                                                     </ul>
                                                 </div>
-                                                <p v-if="inscripcion.comprobante" class="text-sm text-gray-600 mt-2">
-                                                    <strong>Comprobante:</strong> {{ inscripcion.comprobante }}
-                                                </p>
+                                            <div class="mt-2 flex items-center gap-2 text-sm text-gray-700">
+                                                <span><strong>Comprobante: </strong></span>
+                                                <button
+                                                    v-if="urlComprobante(inscripcion)"
+                                                    type="button"
+                                                    @click="abrirComprobante(urlComprobante(inscripcion))"
+                                                    class="inline-flex items-center justify-center text-indigo-600 hover:text-indigo-700"
+                                                    title="Ver comprobante"
+                                                >
+                                                    <i class="fas fa-file-alt"></i>
+                                                </button>
+                                                <span v-else class="text-xs text-gray-400">Sin comprobante</span>
+                                            </div>
                                             </div>
                                         </div>
 
@@ -337,6 +364,17 @@ watch(() => $page.props.flash, (flash) => {
                             </button>
                         </div>
                     </template>
+                </Dialog>
+
+                <Dialog v-model:visible="comprobanteModal" modal header="Comprobante" :style="{ width: '700px' }">
+                    <div class="max-h-[70vh] overflow-y-auto">
+                        <template v-if="comprobanteIsPdf">
+                            <iframe :src="comprobanteUrl" class="w-full h-[60vh] rounded"></iframe>
+                        </template>
+                        <template v-else>
+                            <img v-if="comprobanteUrl" :src="comprobanteUrl" class="w-full rounded" alt="Comprobante" />
+                        </template>
+                    </div>
                 </Dialog>
             </div>
         </div>
