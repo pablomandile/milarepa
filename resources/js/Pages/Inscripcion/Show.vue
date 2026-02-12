@@ -3,10 +3,18 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { usePage } from '@inertiajs/vue3';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
-import { watch } from 'vue';
+import { ref, watch, computed } from 'vue';
+import Dialog from 'primevue/dialog';
 
 const $page = usePage();
 const toast = useToast();
+const comprobanteModal = ref(false);
+
+const comprobanteUrl = computed(() => {
+  if (!props.inscripcion?.comprobante) return null;
+  if (props.inscripcion.comprobante.startsWith('http')) return props.inscripcion.comprobante;
+  return `/storage/${props.inscripcion.comprobante}`;
+});
 
 const props = defineProps({
   inscripcion: {
@@ -146,7 +154,14 @@ watch(() => $page.props.flash, (flash) => {
               </div>
               <div v-if="inscripcion.comprobante" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:col-span-3">
                 <h4 class="text-sm font-semibold text-gray-900 mb-1">Comprobante</h4>
-                <p class="text-gray-700">{{ inscripcion.comprobante }}</p>
+                <button
+                  class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800"
+                  type="button"
+                  @click="comprobanteModal = true"
+                >
+                  <i class="fas fa-file-alt"></i>
+                  <span class="text-sm">Ver comprobante</span>
+                </button>
               </div>
             </div>
 
@@ -163,4 +178,19 @@ watch(() => $page.props.flash, (flash) => {
       </div>
     </div>
   </AppLayout>
+  <Dialog
+    v-model:visible="comprobanteModal"
+    modal
+    header="Comprobante"
+    :style="{ width: '720px' }"
+  >
+    <div class="w-full">
+      <img
+        v-if="comprobanteUrl"
+        :src="comprobanteUrl"
+        alt="Comprobante"
+        class="w-full max-h-[70vh] object-contain"
+      />
+    </div>
+  </Dialog>
 </template>

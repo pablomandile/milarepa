@@ -7,6 +7,7 @@ use App\Models\Hospedaje;
 use App\Models\LugarHospedaje;
 use App\Http\Requests\HospedajeRequest;
 use Inertia\Inertia;
+use App\Models\BotonPago;
 
 class HospedajesController extends Controller
 {
@@ -15,7 +16,7 @@ class HospedajesController extends Controller
      */
     public function index()
     {
-        $hospedajes = Hospedaje::with('lugarHospedaje')->paginate(10);
+        $hospedajes = Hospedaje::with(['lugarHospedaje', 'botonPago'])->paginate(10);
 
         return inertia('Hospedajes/Index', ['hospedajes'=>$hospedajes]);
     }
@@ -26,9 +27,11 @@ class HospedajesController extends Controller
     public function create()
     {
         $lugaresHospedaje = LugarHospedaje::select('id','nombre')->get();
+        $botonesPago = BotonPago::select('id', 'nombre')->get();
 
         return inertia('Hospedajes/Create', [
-            'lugaresHospedaje' => $lugaresHospedaje
+            'lugaresHospedaje' => $lugaresHospedaje,
+            'botonesPago' => $botonesPago,
         ]);
     }
 
@@ -55,8 +58,13 @@ class HospedajesController extends Controller
     public function edit(Hospedaje $hospedaje)
     {
         $lugaresHospedaje = LugarHospedaje::select('id','nombre')->get();
+        $botonesPago = BotonPago::select('id', 'nombre')->get();
 
-        return inertia::render('Hospedajes/Edit', ['hospedaje'=>$hospedaje, 'lugaresHospedaje' => $lugaresHospedaje]);
+        return inertia::render('Hospedajes/Edit', [
+            'hospedaje' => $hospedaje,
+            'lugaresHospedaje' => $lugaresHospedaje,
+            'botonesPago' => $botonesPago,
+        ]);
     }
 
     /**

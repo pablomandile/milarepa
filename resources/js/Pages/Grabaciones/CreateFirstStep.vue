@@ -5,9 +5,17 @@ import GrabacionForm from '@/Components/Formularios/GrabacionForm.vue';
 import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
+const props = defineProps({
+    botonesPago: {
+        type: Array,
+        default: () => []
+    }
+});
 
 const form = useForm({
-    nombre: ''
+    nombre: '',
+    botonpago_id: null,
+    valor: 0
 });
 
 const submit = () => {
@@ -36,7 +44,8 @@ const submit = () => {
                         <div class="p-6 bg-white border-b border-gray-200">
                             <GrabacionForm 
                                 :updating="false"
-                                :form="form" 
+                                :form="form"
+                                :botonesPago="props.botonesPago"
                                 @submit="submit"
                             />
                         </div>

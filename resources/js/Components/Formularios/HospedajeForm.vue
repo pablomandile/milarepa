@@ -1,4 +1,4 @@
-<script>
+﻿<script>
     export default {
         name: 'HospedajesForm'
     }
@@ -28,6 +28,11 @@ import Dropdown from 'primevue/dropdown';
         lugaresHospedaje: {
             type: Array,
             default: () => []
+        },
+
+        botonesPago: {
+            type: Array,
+            default: () => []
         }
 
     });
@@ -49,23 +54,37 @@ import Dropdown from 'primevue/dropdown';
             </SectionTitle>
         </template>
         <template #form>
-            <div class="col-span-6 sm:col-span-6">
+            <div class="col-span-6 sm:col-span-6 mb-2">
                 <InputLabel for="nombre" value="Nombre" :required="true"/>
                 <TextInput id="nombre" v-model="form.nombre" type="text" autocomplete="nombre" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.nombre" class="mt-2" />
             </div>
-            <div class="col-span-6 sm:col-span-6">
-                <InputLabel for="descripcion" value="Descripción" :required="false"/>
+            <div class="col-span-6 sm:col-span-6 mb-2">
+                <InputLabel for="descripcion" value="DescripciÃ³n" :required="false"/>
                 <TextInput id="descripcion" v-model="form.descripcion" type="text" autocomplete="descripcion" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />
             </div>
-            <div class="col-span-6 sm:col-span-6">
+            <div class="col-span-6 sm:col-span-6 mb-2">
+                <InputLabel for="botonpago_id" value="Boton de Pago" :required="false"/>
+                <Dropdown
+                    id="botonpago_id"
+                    v-model="form.botonpago_id"
+                    :options="botonesPago"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccione un boton de pago"
+                    class="w-full mt-1 md:w-14rem border border-gray-300"
+                    showClear
+                />
+                <InputError :message="$page.props.errors.botonpago_id" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6 mb-2">
                 <InputLabel for="precio" value="Precio" :required="true"/>
                 <TextInput id="precio" v-model="form.precio" type="number"  step="1" min="0" autocomplete="precio" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.precio" class="mt-2" />
             </div>
             <!-- Lugar de Hospedaje (Dropdown) -->
-            <div class="col-span-6 sm:col-span-6">
+            <div class="col-span-6 sm:col-span-6 mb-2">
                 <InputLabel for="lugar_hospedaje_id" value="Lugar de Hospedaje" :required="true"/>
                 <Dropdown
                     id="lugar_hospedaje_id"
@@ -86,3 +105,4 @@ import Dropdown from 'primevue/dropdown';
         </template>
     </FormSection>
 </template>
+

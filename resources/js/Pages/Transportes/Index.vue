@@ -1,4 +1,4 @@
-<script>
+﻿<script>
     export default {
         name: 'TransportesIndex'
     }
@@ -29,17 +29,17 @@
     
     const deleteTransporte = (id) => {
     Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Esta acción no se puede deshacer.",
+        title: "Â¿EstÃ¡s seguro?",
+        text: "Esta acciÃ³n no se puede deshacer.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Sí, eliminar",
+        confirmButtonText: "SÃ­, eliminar",
         cancelButtonText: "Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
         router.delete(route('transportes.destroy', id), {
                 onSuccess: () => {
-                Swal.fire("¡Eliminado!", "El Transporte ha sido eliminado.", "success");
+                Swal.fire("Â¡Eliminado!", "El Transporte ha sido eliminado.", "success");
                 },
                 onError: () => {
                 Swal.fire("Error", "Hubo un problema el eliminar el Transporte.", "error");
@@ -88,6 +88,11 @@
                                 </div>
                             </template>
                             <Column field="descripcion" header="Descripción" sortable></Column>
+                            <Column header="Boton de Pago">
+                                <template #body="slotProps">
+                                    {{ slotProps.data.boton_pago?.nombre || 'Sin boton' }}
+                                </template>
+                            </Column>
                             <Column field="precio" header="Precio">
                                 <template #body="slotProps">
                                     $ {{ parseFloat(slotProps.data.precio).toLocaleString('es-AR', { minimumFractionDigits: 0 }) }}

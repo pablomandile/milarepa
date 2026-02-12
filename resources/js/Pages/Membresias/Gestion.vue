@@ -73,6 +73,11 @@
                             <Column field="nombre" header="Nombre"></Column>
                             <Column field="descripcion" header="Descripción"></Column>
                             <Column field="entidad.nombre" header="Entidad"></Column>
+                            <Column header="Botón de Pago">
+                                <template #body="slotProps">
+                                    {{ slotProps.data.boton_pago?.nombre || 'Sin botón' }}
+                                </template>
+                            </Column>
                             <Column field="valor" header="Valor">
                                 <template #body="slotProps">
                                     {{ formatArs(slotProps.data.valor) }}

@@ -25,6 +25,7 @@ class ComidaRequest extends FormRequest
         return [
             'nombre' => ['required', 'string', 'max:100'],
             'descripcion' => ['required','string', 'max:255'],
+            'botonpago_id' => ['nullable', 'exists:botones_pago,id'],
             'precio' => ['required'],
             'vegano' => ['nullable', 'boolean'],
             'celiaco' => ['nullable', 'boolean']            

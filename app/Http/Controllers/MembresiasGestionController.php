@@ -32,14 +32,16 @@ class MembresiasGestionController extends Controller
     public function asignar(Request $request, User $user)
     {
         $validated = $request->validate([
-            'membresia_id' => 'nullable|exists:membresias,id'
+            'membresia_id' => 'nullable|exists:membresias,id',
+            'membresia_online' => 'required|boolean'
         ]);
 
         $membresia = $validated['membresia_id'] ? Membresia::find($validated['membresia_id']) : null;
 
         $user->update([
             'membresia_id' => $validated['membresia_id'],
-            'membresia_inscripcion_fecha' => $validated['membresia_id'] ? now()->toDateString() : null
+            'membresia_inscripcion_fecha' => $validated['membresia_id'] ? now()->toDateString() : null,
+            'membresia_online' => $validated['membresia_id'] ? (bool) $validated['membresia_online'] : false
         ]);
 
         if ($validated['membresia_id'] && $membresia) {

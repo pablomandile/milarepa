@@ -14,12 +14,17 @@
         lugaresHospedaje: {
         type: Array,
         default: () => []
+        },
+        botonesPago: {
+        type: Array,
+        default: () => []
         }
     });
 
     const form = useForm({
         nombre: '',
         descripcion: '',
+        botonpago_id: null,
         precio: '',
         lugar_hospedaje_id: ''
     });
@@ -47,6 +52,7 @@
                             <HospedajeForm 
                             :updating="false"
                             :lugaresHospedaje="lugaresHospedaje"
+                            :botonesPago="props.botonesPago"
                             :form="form" @submit="form.post(route('hospedajes.store'))"/>
                         </div>
                     </div>

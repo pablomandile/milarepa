@@ -14,6 +14,10 @@
         comida:{
             type: Object,
             required: true
+        },
+        botonesPago: {
+            type: Array,
+            default: () => []
         }
     });
     // console.log(props.comida);
@@ -24,6 +28,7 @@
     const form = useForm({
         nombre: props.comida.nombre,
         descripcion: props.comida.descripcion,
+        botonpago_id: props.comida.botonpago_id || null,
         precio: props.comida.precio,
         vegano: props.comida.vegano === 1,
         celiaco: props.comida.celiaco === 1
@@ -63,6 +68,7 @@
                             <ComidaForm 
                             :updating="true" 
                             :form="form" 
+                            :botonesPago="props.botonesPago"
                             @submit="handleSubmit"/>
                         </div>
                     </div>

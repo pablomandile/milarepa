@@ -26,6 +26,10 @@ import Dropdown from 'primevue/dropdown';
         entidades: {
         type: Array,
         default: () => []
+    },
+        botonesPago: {
+        type: Array,
+        default: () => []
     }
     })
 
@@ -68,6 +72,20 @@ import Dropdown from 'primevue/dropdown';
                     class="w-full mt-1 md:w-14rem border border-gray-300"
                 />
                 <InputError :message="$page.props.errors.lugar_hospedaje_id" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6">
+                <InputLabel for="botonpago_id" value="Botón de Pago" :required="false"/>
+                <Dropdown
+                    id="botonpago_id"
+                    v-model="form.botonpago_id"
+                    :options="botonesPago"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccione un botón de pago"
+                    class="w-full mt-1 md:w-14rem border border-gray-300"
+                    showClear
+                />
+                <InputError :message="$page.props.errors.botonpago_id" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6">
                 <InputLabel for="valor" value="Valor (ARS)" :required="true"/>

@@ -25,6 +25,7 @@ class HospedajeRequest extends FormRequest
         return [
             'nombre' => ['required', 'string', 'max:100'],
             'descripcion' => ['nullable','string', 'max:255'],
+            'botonpago_id' => ['nullable', 'exists:botones_pago,id'],
             'precio' => ['required', 'numeric', 'min:0'],
             'lugar_hospedaje_id' => ['required', 'exists:lugares_hospedaje,id'], 
         ];

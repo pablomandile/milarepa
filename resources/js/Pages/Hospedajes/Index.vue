@@ -1,4 +1,4 @@
-<script>
+﻿<script>
     export default {
         name: 'HospedajesIndex'
     }
@@ -33,17 +33,17 @@
 
     const deleteHospedaje = (id) => {
     Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Esta acción no se puede deshacer.",
+        title: "Â¿EstÃ¡s seguro?",
+        text: "Esta acciÃ³n no se puede deshacer.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Sí, eliminar",
+        confirmButtonText: "SÃ­, eliminar",
         cancelButtonText: "Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
         router.delete(route('hospedajes.destroy', id), {
                 onSuccess: () => {
-                Swal.fire("¡Eliminado!", "El Hospedaje ha sido eliminada.", "success");
+                Swal.fire("Â¡Eliminado!", "El Hospedaje ha sido eliminada.", "success");
                 },
                 onError: () => {
                 Swal.fire("Error", "Hubo un problema al eliminar el Hospedaje.", "error");
@@ -76,6 +76,11 @@
                         <DataTable :value="hospedajes.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre"></Column>
                             <Column field="descripcion" header="Descripción"></Column>
+                            <Column header="Boton de Pago">
+                                <template #body="slotProps">
+                                    {{ slotProps.data.boton_pago?.nombre || 'Sin boton' }}
+                                </template>
+                            </Column>
                             <Column field="precio" header="Precio">
                                 <template #body="slotProps">
                                     $ {{ parseFloat(slotProps.data.precio).toLocaleString('es-AR', { minimumFractionDigits: 0 }) }}
@@ -83,7 +88,7 @@
                             </Column>
                             <Column field="lugar_hospedaje" header="Lugar">
                                 <template #body="slotProps">
-                                    {{ slotProps.data.lugar_hospedaje ? slotProps.data.lugar_hospedaje.nombre : '—' }}
+                                    {{ slotProps.data.lugar_hospedaje ? slotProps.data.lugar_hospedaje.nombre : 'â€”' }}
                                 </template>
                             </Column>
                             <Column header="Acciones">
@@ -123,11 +128,11 @@
         </div>
     </AppLayout>
 
-    <!-- Modal de información de hospedaje -->
+    <!-- Modal de informaciÃ³n de hospedaje -->
     <Dialog 
         v-model:visible="visible" 
         modal 
-        :header="hospedajeSeleccionado ? hospedajeSeleccionado.nombre : 'Detalles de Acomodación'"
+        :header="hospedajeSeleccionado ? hospedajeSeleccionado.nombre : 'Detalles de AcomodaciÃ³n'"
         :style="{ width: '45rem' }" 
         :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
     >
@@ -151,13 +156,13 @@
                     </div>
                 </div>
 
-                <!-- Descripción -->
+                <!-- DescripciÃ³n -->
                 <div v-if="hospedajeSeleccionado.descripcion && hospedajeSeleccionado.descripcion.trim() !== ''" 
                      class="bg-white rounded-lg p-5 mb-4 shadow-sm">
                     <div class="flex items-start">
                         <i class="fas fa-align-left text-indigo-600 text-lg mr-3 mt-1"></i>
                         <div>
-                            <h4 class="font-semibold text-gray-700 mb-2">Descripción</h4>
+                            <h4 class="font-semibold text-gray-700 mb-2">DescripciÃ³n</h4>
                             <p class="text-gray-600 leading-relaxed">{{ hospedajeSeleccionado.descripcion }}</p>
                         </div>
                     </div>

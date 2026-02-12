@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Transporte;
 use App\Http\Requests\TransporteRequest;
 use Inertia\Inertia;
+use App\Models\BotonPago;
 
 class TransportesController extends Controller
 {
@@ -14,7 +15,7 @@ class TransportesController extends Controller
      */
     public function index()
     {
-        $transportes = Transporte::paginate(15);
+        $transportes = Transporte::with('botonPago')->paginate(15);
         return inertia('Transportes/Index', ['transportes'=>$transportes]);
     }
 
@@ -23,7 +24,10 @@ class TransportesController extends Controller
      */
     public function create()
     {
-        return inertia('Transportes/Create');
+        $botonesPago = BotonPago::select('id', 'nombre')->get();
+        return inertia('Transportes/Create', [
+            'botonesPago' => $botonesPago,
+        ]);
     }
 
     /**
@@ -48,7 +52,11 @@ class TransportesController extends Controller
      */
     public function edit(Transporte $transporte)
     {
-        return inertia::render('Transportes/Edit', ['transporte'=>$transporte]);
+        $botonesPago = BotonPago::select('id', 'nombre')->get();
+        return inertia::render('Transportes/Edit', [
+            'transporte' => $transporte,
+            'botonesPago' => $botonesPago,
+        ]);
     }
 
     /**

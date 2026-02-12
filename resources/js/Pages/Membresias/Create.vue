@@ -14,6 +14,10 @@
         entidades: {
         type: Array,
         default: () => []
+        },
+        botonesPago: {
+        type: Array,
+        default: () => []
         }
     });
 
@@ -21,6 +25,7 @@
         nombre: '',
         descripcion: '',
         entidad_id: '',
+        botonpago_id: null,
         valor: ''
     })
 </script>
@@ -46,6 +51,7 @@
                             <MembresiaForm 
                             :updating="false"
                             :entidades="entidades"
+                            :botonesPago="botonesPago"
                             :form="form" @submit="form.post(route('membresias.store'))"/>
                         </div>
                     </div>

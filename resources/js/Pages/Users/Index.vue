@@ -8,15 +8,56 @@
     import AppLayout from '@/Layouts/AppLayout.vue';
     import { Link, router } from '@inertiajs/vue3';
     import Swal from "sweetalert2";
+    import { computed, ref } from 'vue';
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
+    import Dropdown from 'primevue/dropdown';
+    import { FilterMatchMode } from 'primevue/api';
+    import Button from 'primevue/button';
+    import InputText from 'primevue/inputtext';
+    import IconField from 'primevue/iconfield';
+    import InputIcon from 'primevue/inputicon';
     
-    defineProps({
+    const props = defineProps({
         usuarios: {
             type: Object,
             required: true
         }
     })
+
+    const usuariosConRol = computed(() =>
+        props.usuarios.data.map((usuario) => ({
+            ...usuario,
+            role_name: usuario.roles && usuario.roles.length > 0 ? usuario.roles[0].name : '',
+            membresia_nombre: usuario.membresia && usuario.membresia.nombre ? usuario.membresia.nombre : ''
+        }))
+    );
+
+    const rolesDisponibles = computed(() =>
+        [...new Set(usuariosConRol.value.map((usuario) => usuario.role_name))]
+            .filter((role) => role !== '')
+            .map((role) => ({ label: role, value: role }))
+    );
+
+    const filters = ref({
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        email: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        telefono: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        membresia_nombre: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        role_name: { value: null, matchMode: FilterMatchMode.EQUALS }
+    });
+
+    const clearFilters = () => {
+        filters.value = {
+            global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            email: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            telefono: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            membresia_nombre: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            role_name: { value: null, matchMode: FilterMatchMode.EQUALS }
+        };
+    };
 
     const deleteUsuario = (id) => {
     Swal.fire({
@@ -60,17 +101,90 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="usuarios.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
-                            <Column field="name" header="Nombre"></Column>
-                            <Column field="email" header="Correo electrónico"></Column>
-                            <Column field="telefono" header="Teléfono"></Column>
-                            <Column field="membresia.nombre" header="Membresía"></Column>
-                            <Column header="Roles">
+                        <DataTable
+                            v-model:filters="filters"
+                            :value="usuariosConRol"
+                            filterDisplay="menu"
+                            :globalFilterFields="['name', 'email', 'telefono', 'membresia_nombre', 'role_name']"
+                            stripedRows
+                            paginator
+                            :rows="20"
+                            :rowsPerPageOptions="[5, 10, 20, 50]"
+                            tableStyle="min-width: 50rem"
+                        >
+                            <template #header>
+                                <div class="flex justify-between items-center">
+                                    <Button
+                                        type="button"
+                                        icon="pi pi-filter-slash"
+                                        label="Limpiar"
+                                        outlined
+                                        @click="clearFilters()"
+                                    />
+                                    <IconField iconPosition="right">
+                                        <InputIcon>
+                                            <i class="pi pi-search" />
+                                        </InputIcon>
+                                        <InputText
+                                            v-model="filters['global'].value"
+                                            placeholder="Buscar..."
+                                        />
+                                    </IconField>
+                                </div>
+                            </template>
+                            <Column field="name" header="Nombre" :showFilterMatchModes="false">
+                                <template #filter="{ filterModel }">
+                                    <InputText v-model="filterModel.value" type="text" placeholder="Buscar por nombre" class="p-column-filter" />
+                                </template>
+                            </Column>
+                            <Column field="email" header="Correo electrónico" :showFilterMatchModes="false">
+                                <template #filter="{ filterModel }">
+                                    <InputText v-model="filterModel.value" type="text" placeholder="Buscar por correo" class="p-column-filter" />
+                                </template>
+                            </Column>
+                            <Column field="telefono" header="Teléfono" :showFilterMatchModes="false">
+                                <template #filter="{ filterModel }">
+                                    <InputText v-model="filterModel.value" type="text" placeholder="Buscar por teléfono" class="p-column-filter" />
+                                </template>
+                            </Column>
+                            <Column field="membresia_nombre" header="Membresía" :showFilterMatchModes="false">
+                                <template #body="{ data }">
+                                    <span v-if="data.membresia_nombre">
+                                        {{ data.membresia_nombre }}
+                                        <span
+                                            v-if="data.membresia_online"
+                                            class="text-blue-600 text-xs ml-2"
+                                        >
+                                            Online
+                                        </span>
+                                    </span>
+                                    <span v-else class="text-gray-400">Sin membresía</span>
+                                </template>
+                                <template #filter="{ filterModel }">
+                                    <InputText v-model="filterModel.value" type="text" placeholder="Buscar por membresía" class="p-column-filter" />
+                                </template>
+                            </Column>
+                            <Column
+                                field="role_name"
+                                header="Roles"
+                            >
                                 <template #body="slotProps">
-                                    <span v-if="slotProps.data.roles && slotProps.data.roles.length > 0">
-                                        {{ slotProps.data.roles[0].name }}
+                                    <span v-if="slotProps.data.role_name">
+                                        {{ slotProps.data.role_name }}
                                     </span>
                                     <span v-else class="text-gray-400">Sin rol</span>
+                                </template>
+                                <template #filter="{ filterModel, filterCallback }">
+                                    <Dropdown
+                                        v-model="filterModel.value"
+                                        :options="rolesDisponibles"
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        placeholder="Filtrar rol"
+                                        showClear
+                                        class="p-column-filter"
+                                        @change="filterCallback()"
+                                    />
                                 </template>
                             </Column>
                             <Column header="Acciones">
@@ -102,3 +216,6 @@
         </div>
     </AppLayout>
 </template>
+
+
+

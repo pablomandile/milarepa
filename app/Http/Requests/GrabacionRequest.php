@@ -13,6 +13,8 @@ class GrabacionRequest extends FormRequest
     {
         return [
             'nombre' => ['required', 'string', 'max:50'],
+            'botonpago_id' => ['nullable', 'exists:botones_pago,id'],
+            'valor' => ['required', 'numeric', 'min:0'],
         ];
     }
 
@@ -20,6 +22,13 @@ class GrabacionRequest extends FormRequest
     {
         return [
             'nombre.required' => __('El nombre no puede quedar vacío'),
+            'valor.required' => __('El valor no puede quedar vacío'),
+            'valor.numeric' => __('El valor debe ser numérico'),
+            'valor.min' => __('El valor no puede ser negativo'),
         ];
     }
 }
+
+
+
+

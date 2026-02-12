@@ -1,4 +1,4 @@
-<script>
+﻿<script>
     export default {
         name: 'ComidasIndex'
     }
@@ -53,7 +53,7 @@
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-4xl mx-auto">
+                <div class="p-6 bg-white border-b border-gray-200 max-w-6xl mx-auto">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create comidas')">
                         <Link :href="route('comidas.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
                             NUEVA COMIDA
@@ -63,6 +63,11 @@
                         <DataTable :value="comidas.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre"></Column>
                             <Column field="descripcion" header="Descripción"></Column>
+                            <Column header="Botón de Pago">
+                                <template #body="slotProps">
+                                    {{ slotProps.data.boton_pago?.nombre || 'Sin botón' }}
+                                </template>
+                            </Column>
                             <Column field="precio" header="Precio"></Column>
                             <Column header="Vegano">
                                 <template #body="slotProps">
@@ -73,7 +78,7 @@
                                     </div>
                                 </template>
                             </Column>
-                            <Column header="Celíaco">
+                            <Column header="Celí­aco">
                                 <template #body="slotProps">
                                     <div class="flex justify-center">
                                     <!-- Muestra el icono "check" en verde si es true, "times" en rojo si es false -->

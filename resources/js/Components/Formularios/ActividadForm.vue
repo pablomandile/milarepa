@@ -1,4 +1,4 @@
-<script>
+﻿<script>
 export default {
   name: 'ActividadForm',
 };
@@ -12,7 +12,7 @@ import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
 import { Link } from '@inertiajs/vue3';
 import Dialog from 'primevue/dialog';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 
 
 // PrimeVue
@@ -26,12 +26,12 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
 const emit = defineEmits(['submit','refresh-descripciones']);
 
 function onClickRefresh() {
-  // En lugar de Inertia.reload aquí, emitimos al padre
+  // En lugar de Inertia.reload aquÃ­, emitimos al padre
     emit('refresh-descripciones');
 }
 
 const props = defineProps({
-  // Objeto con los campos que se bindearán en v-model
+  // Objeto con los campos que se bindearÃ¡n en v-model
   form: {
     type: Object,
     required: true,
@@ -43,7 +43,7 @@ const props = defineProps({
     default: false,
   },
 
-  // Arrays o catálogos necesarios para populates (opcional según tu diseño)
+  // Arrays o catÃ¡logos necesarios para populates (opcional segÃºn tu diseÃ±o)
   tiposActividad: {
     type: Array,
     default: () => [],
@@ -112,7 +112,7 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  // Nuevo prop para ocultar el header interno cuando se renderiza desde una vista que ya muestra el título
+  // Nuevo prop para ocultar el header interno cuando se renderiza desde una vista que ya muestra el tÃ­tulo
   hideHeader: {
     type: Boolean,
     default: false,
@@ -124,13 +124,15 @@ const props = defineProps({
 });
 
 
-// Manejo del dialog genérico
+// Manejo del dialog genÃ©rico
 const dialogVisible = ref(false);
 const dialogTitle = ref('');
 const detalleSeleccionado = ref(null);
 const conDescuentoAnticipado = ref(false);
 const ofreceGrabacion = ref(!!props.form.grabacion_id);
-const grabacionImporteDisplay = ref('');
+const ofreceHospedaje = ref(!!props.form.lugar_hospedaje_id || (Array.isArray(props.form.hospedajes_ids) && props.form.hospedajes_ids.length > 0));
+const ofreceComidas = ref(Array.isArray(props.form.comidas_ids) && props.form.comidas_ids.length > 0);
+const ofreceTransportes = ref(Array.isArray(props.form.transportes_ids) && props.form.transportes_ids.length > 0);
 
 /**
  * verDetalle(arrayName, id, title):
@@ -184,48 +186,39 @@ function formatDatetime(date) {
   return date;
 }
 
-function formatImporte(value) {
-  const numeric = String(value ?? '').replace(/[^\d]/g, '');
-  const cents = numeric.padStart(3, '0');
-  const entero = cents.slice(0, -2) || '0';
-  const dec = cents.slice(-2);
-  const enteroFmt = entero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return `$ ${enteroFmt},${dec}`;
-}
-
-function parseImporte(displayValue) {
-  const numeric = String(displayValue ?? '').replace(/[^\d]/g, '');
-  if (!numeric) return null;
-  const cents = numeric.padStart(3, '0');
-  const entero = cents.slice(0, -2) || '0';
-  const dec = cents.slice(-2);
-  return Number(`${entero}.${dec}`);
-}
-
-function onGrabacionImporteInput(event) {
-  grabacionImporteDisplay.value = formatImporte(event.target.value);
-  props.form.grabacion_importe = parseImporte(grabacionImporteDisplay.value);
-}
-
-watch(
-  () => props.form.grabacion_importe,
-  (value) => {
-    if (value === null || value === undefined || value === '') {
-      grabacionImporteDisplay.value = '';
-      return;
-    }
-    grabacionImporteDisplay.value = formatImporte(value);
-  },
-  { immediate: true }
-);
-
 watch(
   () => ofreceGrabacion.value,
   (value) => {
     if (!value) {
       props.form.grabacion_id = null;
-      props.form.grabacion_importe = null;
-      grabacionImporteDisplay.value = '';
+    }
+  }
+);
+
+watch(
+  () => ofreceHospedaje.value,
+  (value) => {
+    if (!value) {
+      props.form.lugar_hospedaje_id = null;
+      props.form.hospedajes_ids = [];
+    }
+  }
+);
+
+watch(
+  () => ofreceComidas.value,
+  (value) => {
+    if (!value) {
+      props.form.comidas_ids = [];
+    }
+  }
+);
+
+watch(
+  () => ofreceTransportes.value,
+  (value) => {
+    if (!value) {
+      props.form.transportes_ids = [];
     }
   }
 );
@@ -253,6 +246,30 @@ const filteredHospedajes = computed(() => {
     (hospedaje) => hospedaje.lugar_hospedaje_id === props.form.lugar_hospedaje_id
   );
 });
+
+function parseToDate(value) {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function normalizeDateFields() {
+  props.form.fecha_inicio = parseToDate(props.form.fecha_inicio);
+  props.form.fecha_fin = parseToDate(props.form.fecha_fin);
+  props.form.pagoAmticipado = parseToDate(props.form.pagoAmticipado);
+}
+
+onMounted(() => {
+  normalizeDateFields();
+});
+
+watch(
+  () => [props.form?.fecha_inicio, props.form?.fecha_fin, props.form?.pagoAmticipado],
+  () => {
+    normalizeDateFields();
+  }
+);
 
 function syncHospedajesSeleccionados() {
   if (!Array.isArray(props.form?.hospedajes_ids)) return;
@@ -478,6 +495,7 @@ watch(
             class="w-full mt-1"
             icon="pi pi-calendar text-indigo-500 text-xl"
             inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
+            appendTo="body"
             @update:modelValue="form.fecha_inicio = $event"
           />
           <InputError :message="$page.props.errors.fecha_inicio" class="mt-2" />
@@ -501,6 +519,7 @@ watch(
             class="w-full mt-1"
             icon="pi pi-calendar text-indigo-500 text-xl"
             inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
+            appendTo="body"
           />
           <InputError :message="$page.props.errors.fecha_fin" class="mt-2" />
         </div>
@@ -660,6 +679,7 @@ watch(
             :showIcon="true"
             icon="pi pi-calendar text-indigo-500 text-xl"
             inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
+            appendTo="body"
           />
           <InputError :message="$page.props.errors.pagoAmticipado" class="mt-2" />
         </div>
@@ -702,6 +722,10 @@ watch(
           </div>
         </div>
 
+        
+
+
+
         <!-- Web actividad -->
         <div class="col-span-6 sm:col-span-6">
           <InputLabel
@@ -716,113 +740,6 @@ watch(
             class="mt-1 block w-full"
           />
           <InputError :message="$page.props.errors.web_actividad" class="mt-2" />
-        </div>
-
-         <!-- Grabación -->
-         <div class="col-span-6 sm:col-span-6 mt-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <InputLabel
-              for="ofrece_grabacion"
-              class="text-indigo-400"
-              value="Ofrece Grabación"
-            />
-            <div class="mt-1">
-              <InputSwitch id="ofrece_grabacion" v-model="ofreceGrabacion" />
-            </div>
-          </div>
-
-          <div v-if="ofreceGrabacion">
-            <InputLabel
-              for="grabacion_id"
-              class="text-indigo-400"
-              value="Grabaciones"
-            />
-            <div class="flex gap-2 items-center mt-1">
-              <Dropdown
-                id="grabacion_id"
-                v-model="form.grabacion_id"
-                :options="grabaciones"
-                optionLabel="nombre"
-                optionValue="id"
-                placeholder="Seleccione Grabación"
-                class="w-full mt-1 border border-gray-300"
-              />
-              <button
-                type="button"
-                @click="verDetalle('grabaciones', form.grabacion_id, 'Grabación')"
-                :disabled="!form.grabacion_id"
-                class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
-                v-tooltip="'Ver la Grabación'"
-              >
-                <i class="pi pi-eye"></i>
-              </button>
-              <Link
-                :href="route('grabaciones.create')"
-                class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
-                v-tooltip="'Crear nueva Grabación'"
-              >
-                <i class="pi pi-file-plus"></i>
-              </Link>
-            </div>
-            <InputError :message="$page.props.errors.grabacion_id" class="mt-2" />
-          </div>
-
-          <div v-if="ofreceGrabacion">
-            <InputLabel
-              for="grabacion_importe"
-              class="text-indigo-400"
-              value="Importe Grabación"
-            />
-            <TextInput
-              id="grabacion_importe"
-              v-model="grabacionImporteDisplay"
-              type="text"
-              class="mt-1 block w-full"
-              placeholder="$ 0,00"
-              @input="onGrabacionImporteInput"
-            />
-            <InputError :message="$page.props.errors.grabacion_importe" class="mt-2" />
-          </div>
-        </div>
-
-        <!-- Stream (Dropdown) -->
-        <div v-if="form.modalidad_id !== 1" class="col-span-6 sm:col-span-6 mt-4">
-          <InputLabel
-            for="stream_id"
-            class="text-indigo-400"
-            value="Stream"
-          />
-          <div class="flex gap-2 items-center mt-1">
-            <Dropdown
-              id="stream_id"
-              v-model="form.stream_id"
-              :options="streams"
-              optionLabel="nombre"
-              optionValue="id"
-              placeholder="Seleccione Stream"
-              class="w-full mt-1 border border-gray-300"
-            />
-            <!-- Botón ver -->
-            <button
-              type="button"
-              @click="verDetalle('streams', form.stream_id, 'Stream')"
-              :disabled="!form.stream_id"
-              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
-              v-tooltip="'Ver el Stream'"
-            >
-              <i class="pi pi-eye"></i>
-            </button>
-
-            <!-- Botón nuevo (Redirecciona al create) -->
-            <Link
-              :href="route('streams.create')"
-              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
-              v-tooltip="'Crear nuevo Stream'"
-            >
-              <i class="pi pi-file-plus"></i>
-            </Link>
-          </div>
-          <InputError :message="$page.props.errors.stream_id" class="mt-2" />
         </div>
 
         <!-- Programa (Dropdown) -->
@@ -884,8 +801,129 @@ watch(
           <InputError :message="$page.props.errors.metodos_pago_ids" class="mt-2" />
         </div>
 
+         <!-- Grabación / Hospedaje / Comidas / Transportes -->
+         <div class="col-span-6 sm:col-span-6 mt-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <InputLabel
+              for="ofrece_grabacion"
+              class="text-indigo-400"
+              value="Ofrece Grabación"
+            />
+            <div class="mt-1">
+              <InputSwitch id="ofrece_grabacion" v-model="ofreceGrabacion" />
+            </div>
+          </div>
+          <div>
+            <InputLabel
+              for="ofrece_hospedaje"
+              class="text-indigo-400"
+              value="Ofrece Hospedaje"
+            />
+            <div class="mt-1">
+              <InputSwitch id="ofrece_hospedaje" v-model="ofreceHospedaje" />
+            </div>
+          </div>
+          <div>
+            <InputLabel
+              for="ofrece_comidas"
+              class="text-indigo-400"
+              value="Ofrece Comidas"
+            />
+            <div class="mt-1">
+              <InputSwitch id="ofrece_comidas" v-model="ofreceComidas" />
+            </div>
+          </div>
+          <div>
+            <InputLabel
+              for="ofrece_transportes"
+              class="text-indigo-400"
+              value="Ofrece Transportes"
+            />
+            <div class="mt-1">
+              <InputSwitch id="ofrece_transportes" v-model="ofreceTransportes" />
+            </div>
+          </div>
+
+          <div v-if="ofreceGrabacion">
+            <InputLabel
+              for="grabacion_id"
+              class="text-indigo-400"
+              value="Grabaciones"
+            />
+            <div class="flex gap-2 items-center mt-1">
+              <Dropdown
+                id="grabacion_id"
+                v-model="form.grabacion_id"
+                :options="grabaciones"
+                optionLabel="nombre"
+                optionValue="id"
+                placeholder="Seleccione Grabación"
+                class="w-full mt-1 border border-gray-300"
+              />
+              <button
+                type="button"
+                @click="verDetalle('grabaciones', form.grabacion_id, 'Grabación')"
+                :disabled="!form.grabacion_id"
+                class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+                v-tooltip="'Ver la Grabación'"
+              >
+                <i class="pi pi-eye"></i>
+              </button>
+              <Link
+                :href="route('grabaciones.create')"
+                class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+                v-tooltip="'Crear nueva Grabación'"
+              >
+                <i class="pi pi-file-plus"></i>
+              </Link>
+            </div>
+            <InputError :message="$page.props.errors.grabacion_id" class="mt-2" />
+          </div>
+
+        </div>
+
+        <!-- Stream (Dropdown) -->
+        <div v-if="form.modalidad_id !== 1" class="col-span-6 sm:col-span-6 mt-4">
+          <InputLabel
+            for="stream_id"
+            class="text-indigo-400"
+            value="Stream"
+          />
+          <div class="flex gap-2 items-center mt-1">
+            <Dropdown
+              id="stream_id"
+              v-model="form.stream_id"
+              :options="streams"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Seleccione Stream"
+              class="w-full mt-1 border border-gray-300"
+            />
+            <!-- Botón ver -->
+            <button
+              type="button"
+              @click="verDetalle('streams', form.stream_id, 'Stream')"
+              :disabled="!form.stream_id"
+              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+              v-tooltip="'Ver el Stream'"
+            >
+              <i class="pi pi-eye"></i>
+            </button>
+
+            <!-- Botón nuevo (Redirecciona al create) -->
+            <Link
+              :href="route('streams.create')"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              v-tooltip="'Crear nuevo Stream'"
+            >
+              <i class="pi pi-file-plus"></i>
+            </Link>
+          </div>
+          <InputError :message="$page.props.errors.stream_id" class="mt-2" />
+        </div>
+
         <!-- Hospedaje, Comidas, Transportes (MultiSelect) -->
-        <div class="col-span-6 sm:col-span-6">
+        <div v-if="ofreceHospedaje" class="col-span-6 sm:col-span-6">
           <InputLabel
             for="lugar_hospedaje_id"
             class="text-indigo-400"
@@ -903,7 +941,7 @@ watch(
           <InputError :message="$page.props.errors.lugar_hospedaje_id" class="mt-2" />
         </div>
 
-        <div class="col-span-6 sm:col-span-6">
+        <div v-if="ofreceHospedaje" class="col-span-6 sm:col-span-6">
           <InputLabel
             for="hospedajes"
             class="text-indigo-400"
@@ -921,7 +959,7 @@ watch(
           <InputError :message="$page.props.errors.hospedajes_ids" class="mt-2" />
         </div>
 
-        <div class="col-span-6 sm:col-span-6">
+        <div v-if="ofreceComidas" class="col-span-6 sm:col-span-6">
           <InputLabel
             for="comidas"
             class="text-indigo-400"
@@ -939,7 +977,7 @@ watch(
           <InputError :message="$page.props.errors.comidas_ids" class="mt-2" />
         </div>
 
-        <div class="col-span-6 sm:col-span-6">
+        <div v-if="ofreceTransportes" class="col-span-6 sm:col-span-6">
           <InputLabel
             for="transportes"
             class="text-indigo-400"
@@ -967,7 +1005,7 @@ watch(
           />
 
           <div class="flex items-start gap-4">
-            <!-- Componente personalizado para subir imágen -->
+            <!-- Componente personalizado para subir imÃ¡gen -->
             <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
               <SingleImageUploader 
                 v-model:imagenId="form.imagen_id"
@@ -1018,7 +1056,7 @@ watch(
     </template>
   </FormSection>
   <!-- ... -->
-   <!-- Dialog Genérico -->
+   <!-- Dialog GenÃ©rico -->
    <Dialog
       v-model:visible="dialogVisible"
       :header="dialogTitle"
@@ -1027,7 +1065,7 @@ watch(
       modal
     >
     <template v-if="detalleSeleccionado">
-      <!-- Aquí muestras la info según sea la data. Por ejemplo: -->
+      <!-- AquÃ­ muestras la info segÃºn sea la data. Por ejemplo: -->
       <h3 class="text-xl font-bold mb-2">{{ detalleSeleccionado.nombre }}</h3>
       <p class="text-sm text-gray-600 whitespace-pre-wrap">
         <!-- Muestra 'contenido' o 'descripcion' o 'info', depende de tu objeto -->
@@ -1046,7 +1084,7 @@ watch(
 
     <!-- Comprobamos si hay 'membresias' -->
     <div v-if="detalleSeleccionado.membresias && detalleSeleccionado.membresias.length > 0">
-      <h4 class="font-semibold mt-4 mb-2">Membresías</h4>
+      <h4 class="font-semibold mt-4 mb-2">MembresÃ­as</h4>
 
       <ul class="space-y-2">
         <li
@@ -1057,8 +1095,8 @@ watch(
           <!-- Ejemplo de campos:
                line.precio, line.moneda.simbolo, line.membresia.nombre, line.membresia.entidad.abreviacion -->
           <strong class="block">
-            <!-- Nombre de la Membresía -->
-            {{ line.membresia ? line.membresia.nombre : '—' }}
+            <!-- Nombre de la MembresÃ­a -->
+            {{ line.membresia ? line.membresia.nombre : 'â€”' }}
           </strong>
 
           <!-- Precio + Moneda -->
@@ -1118,4 +1156,3 @@ watch(
     </div>
   </Dialog>
 </template>
-

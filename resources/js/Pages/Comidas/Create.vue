@@ -10,10 +10,18 @@
     import ComidaForm from '@/Components/Formularios/ComidaForm.vue';
     import { Link } from '@inertiajs/vue3';
 
+    const props = defineProps({
+        botonesPago: {
+            type: Array,
+            default: () => []
+        }
+    });
+
 
     const form = useForm({
         nombre: '',
         descripcion: '',
+        botonpago_id: null,
         precio: '',
         vegano: false,
         celiaco: false
@@ -40,7 +48,9 @@
                         <div class="p-6 bg-white border-b border-gray-200">
                             <ComidaForm 
                             :updating="false"
-                            :form="form" @submit="form.post(route('comidas.store'))"/>
+                            :form="form"
+                            :botonesPago="props.botonesPago"
+                            @submit="form.post(route('comidas.store'))"/>
                         </div>
                     </div>
                 </div>

@@ -19,6 +19,10 @@
         lugaresHospedaje: {
         type: Array,
         default: () => []
+        },
+        botonesPago: {
+        type: Array,
+        default: () => []
         }
     });
 
@@ -30,6 +34,7 @@
     const form = useForm({
         nombre: props.hospedaje.nombre,
         descripcion: props.hospedaje.descripcion,
+        botonpago_id: props.hospedaje.botonpago_id || null,
         precio: props.hospedaje.precio,
         lugar_hospedaje_id: props.hospedaje.lugar_hospedaje_id
     });
@@ -69,6 +74,7 @@
                             :updating="true" 
                             :form="form" 
                             :lugaresHospedaje="lugaresHospedaje"
+                            :botonesPago="props.botonesPago"
                             @submit="handleSubmit"/>
                         </div>
                     </div>

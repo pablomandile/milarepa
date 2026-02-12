@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\BotonPago;
 
 class Membresia extends Model
 {
@@ -13,6 +14,7 @@ class Membresia extends Model
         'nombre',
         'descripcion',
         'entidad_id',
+        'botonpago_id',
         'valor'
     ];
 
@@ -23,6 +25,11 @@ class Membresia extends Model
     public function entidad()
     {
         return $this->belongsTo(Entidad::class, 'entidad_id');
+    }
+
+    public function botonPago()
+    {
+        return $this->belongsTo(BotonPago::class, 'botonpago_id');
     }
 
     public function estadoCuenta()

@@ -26,6 +26,7 @@ class MembresiaRequest extends FormRequest
             'nombre' => ['required', 'string', 'max:20'],
             'descripcion' => ['nullable', 'string', 'max:150'],
             'entidad_id' => ['required', 'exists:entidades,id'],
+            'botonpago_id' => ['nullable', 'exists:botones_pago,id'],
             'valor' => ['required', 'numeric', 'min:0'],
         ];
     }

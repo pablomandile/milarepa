@@ -8,6 +8,7 @@ use App\Models\Grabacion;
 use App\Models\LinkGrabacion;
 use App\Http\Requests\GrabacionRequest;
 use Inertia\Inertia;
+use App\Models\BotonPago;
 
 
 class GrabacionesController extends Controller
@@ -17,7 +18,7 @@ class GrabacionesController extends Controller
      */
     public function index()
     {
-        $grabaciones = Grabacion::with('linksgrabacion')->get();
+        $grabaciones = Grabacion::with(['linksgrabacion', 'botonPago'])->get();
        
         return inertia('Grabaciones/Index', [
             'grabaciones' => $grabaciones->toArray()
@@ -30,7 +31,10 @@ class GrabacionesController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Grabaciones/CreateFirstStep');
+        $botonesPago = BotonPago::select('id', 'nombre')->get();
+        return Inertia::render('Grabaciones/CreateFirstStep', [
+            'botonesPago' => $botonesPago,
+        ]);
     }
 
     /**
@@ -41,7 +45,7 @@ class GrabacionesController extends Controller
         $grabacion = Grabacion::create($request->validated());
 
         return redirect()
-        ->route('grabaciones.edit', $grabacion->id)
+        ->route('grabaciones.links', $grabacion->id)
         ->with('success', 'Grabacion creada con éxito. Ahora agrega Links.');
     }
 
@@ -53,7 +57,7 @@ class GrabacionesController extends Controller
         // Crea la fila en la tabla intermedia (esquema_precio_membresias)
         $grabacion->linksgrabacion()->create($request->validated());
 
-        return redirect()->route('grabaciones.edit', $id)
+        return redirect()->route('grabaciones.links', $id)
                         ->with('success', 'Se agregó el link a la grabación.');
     }
 
@@ -72,23 +76,33 @@ class GrabacionesController extends Controller
     public function edit($id)
     {
         $grabacion = Grabacion::with(['linksgrabacion'])->findOrFail($id);
-    
-        // $links = LinkGrabacion::all();
-
-
-        return Inertia::render('Grabaciones/EditSecondStep', [
+        $botonesPago = BotonPago::select('id', 'nombre')->get();
+        return Inertia::render('Grabaciones/EditFirstStep', [
             'grabacion' => $grabacion,
-            // 'links' => $links
-
+            'botonesPago' => $botonesPago,
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(GrabacionRequest $request, string $id)
     {
-        //
+        $grabacion = Grabacion::findOrFail($id);
+        $grabacion->update($request->validated());
+
+        return redirect()
+            ->route('grabaciones.index')
+            ->with('success', 'Grabación actualizada con éxito.');
+    }
+
+    public function editLinks($id)
+    {
+        $grabacion = Grabacion::with(['linksgrabacion'])->findOrFail($id);
+
+        return Inertia::render('Grabaciones/EditSecondStep', [
+            'grabacion' => $grabacion,
+        ]);
     }
 
     public function updateLink(LinkGrabacionRequest $request, $linkId)
@@ -122,3 +136,5 @@ class GrabacionesController extends Controller
     }
 
 }
+
+

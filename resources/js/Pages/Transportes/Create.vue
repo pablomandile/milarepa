@@ -10,9 +10,17 @@
     import TransporteForm from '@/Components/Formularios/TransporteForm.vue';
     import { Link } from '@inertiajs/vue3';
 
+    const props = defineProps({
+        botonesPago: {
+            type: Array,
+            default: () => []
+        }
+    });
+
 
     const form = useForm({
         descripcion: '',
+        botonpago_id: null,
         precio: ''
     })
 </script>
@@ -37,7 +45,9 @@
                         <div class="p-6 bg-white border-b border-gray-200">
                             <TransporteForm 
                             :updating="false"
-                            :form="form" @submit="form.post(route('transportes.store'))"/>
+                            :form="form"
+                            :botonesPago="props.botonesPago"
+                            @submit="form.post(route('transportes.store'))"/>
                         </div>
                     </div>
                 </div>

@@ -19,6 +19,10 @@
         entidades: {
             type: Array,
             default: () => []
+        },
+        botonesPago: {
+            type: Array,
+            default: () => []
         }
     });
     // console.log(props.membresia);
@@ -30,6 +34,7 @@
         nombre: props.membresia.nombre,
         descripcion: props.membresia.descripcion,
         entidad_id: props.membresia.entidad_id,
+        botonpago_id: props.membresia.botonpago_id || null,
         valor: props.membresia.valor
     });
 
@@ -68,6 +73,7 @@
                             :updating="true" 
                             :form="form" 
                             :entidades="entidades"
+                            :botonesPago="botonesPago"
                             @submit="handleSubmit"/>
                         </div>
                     </div>

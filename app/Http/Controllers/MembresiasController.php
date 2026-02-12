@@ -9,6 +9,7 @@ use Inertia\Inertia;
 use App\Models\Entidad;
 use Carbon\Carbon;
 use App\Models\EstadoCuentaMembresia;
+use App\Models\BotonPago;
 
 
 class MembresiasController extends Controller
@@ -22,13 +23,13 @@ class MembresiasController extends Controller
         $entidadPrincipal = Entidad::where('entidad_principal', true)->first();
 
         if ($entidadPrincipal) {
-            $membresias = Membresia::with('entidad')
+            $membresias = Membresia::with(['entidad', 'botonPago'])
                 ->where('entidad_id', $entidadPrincipal->id)
                 ->where('nombre', '!=', 'Sin membresía')
                 ->paginate(10);
         } else {
             // Si no hay entidad principal, mostrar todas las membresías excepto "Sin membresía"
-            $membresias = Membresia::with('entidad')
+            $membresias = Membresia::with(['entidad', 'botonPago'])
                 ->where('nombre', '!=', 'Sin membresía')
                 ->paginate(10);
         }
@@ -38,7 +39,7 @@ class MembresiasController extends Controller
         $estadoCuenta = null;
         $estadosCuenta = [];
         if (auth()->check() && auth()->user()->membresia_id) {
-            $userMembresia = Membresia::find(auth()->user()->membresia_id);
+            $userMembresia = Membresia::with('botonPago')->find(auth()->user()->membresia_id);
             if ($userMembresia) {
                 $estadoCuenta = EstadoCuentaMembresia::where('user_id', auth()->id())
                     ->where('membresia_id', $userMembresia->id)
@@ -64,13 +65,15 @@ class MembresiasController extends Controller
      * Show the form for creating a new resource.
      */
     public function create()
-    {
-        $entidades = Entidad::select('id','nombre')->get();
+{
+    $entidades = Entidad::select('id','nombre')->get();
+    $botonesPago = BotonPago::select('id', 'nombre')->get();
 
-        return inertia('Membresias/Create', [
-            'entidades' => $entidades
-        ]);
-    }
+    return inertia('Membresias/Create', [
+        'entidades' => $entidades,
+        'botonesPago' => $botonesPago
+    ]);
+}
 
        /**
      * Store a newly created resource in storage.
@@ -95,12 +98,17 @@ class MembresiasController extends Controller
      * Show the form for editing the specified resource.
      */
     public function edit(Membresia $membresia)
-    {
-        $entidades = Entidad::select('id','nombre')->get();
+{
+    $entidades = Entidad::select('id','nombre')->get();
+    $botonesPago = BotonPago::select('id', 'nombre')->get();
 
-        // Devolver la vista de edición
-        return Inertia::render('Membresias/Edit', ['membresia' => $membresia, 'entidades' => $entidades]);
-    }
+    // Devolver la vista de edición
+    return Inertia::render('Membresias/Edit', [
+        'membresia' => $membresia,
+        'entidades' => $entidades,
+        'botonesPago' => $botonesPago
+    ]);
+}
 
     /**
      * Update the specified resource in storage.
@@ -132,11 +140,11 @@ class MembresiasController extends Controller
      * Display a listing of the resource for admin management.
      */
     public function gestion()
-    {
-        $membresias = Membresia::with('entidad')->paginate(10);
+{
+    $membresias = Membresia::with(['entidad', 'botonPago'])->paginate(10);
 
-        return inertia('Membresias/Gestion', ['membresias' => $membresias]);
-    }
+    return inertia('Membresias/Gestion', ['membresias' => $membresias]);
+}
 
     /**
      * Subscribe a user to a membership
@@ -180,3 +188,9 @@ class MembresiasController extends Controller
         return redirect()->route('membresias.index')->with('success', 'Te has inscrito correctamente a la membresía');
     }
 }
+
+
+
+
+
+

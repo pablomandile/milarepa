@@ -36,6 +36,8 @@ use App\Http\Controllers\GrabacionesController;
 use App\Http\Controllers\GridActividadesController;
 use App\Http\Controllers\ImagenesController;
 use App\Http\Controllers\RegistroMembresiasController;
+use App\Http\Controllers\BotonesPagoController;
+use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\EstadoCuentaMembresiasController;
 use App\Http\Controllers\MembresiasGestionController;
 use App\Http\Controllers\UploadController;
@@ -127,6 +129,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/usuarios', UsuariosController::class);
     Route::resource('/perfiles', PerfilesController::class);
     Route::resource('/roles', RolesController::class);
+    Route::resource('/permisos', PermisosController::class, [
+        'parameters' => ['permisos' => 'permiso'],
+    ])->only(['create', 'store', 'edit', 'update', 'destroy']);
     Route::resource('/membresias', MembresiasController::class);
     Route::get('/membresias-gestion', [MembresiasController::class, 'gestion'])->name('membresias.gestion');
     Route::post('/membresias/subscribe', [MembresiasController::class, 'subscribe'])->name('membresias.subscribe');
@@ -195,6 +200,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::resource('/grabaciones', GrabacionesController::class, [
         'parameters' => ['grabaciones' => 'grabacion'],]);
+    Route::resource('/botonespago', BotonesPagoController::class, [
+        'parameters' => ['botonespago' => 'botonpago'],]);
+    Route::get('/grabaciones/{grabacion}/links', [GrabacionesController::class, 'editLinks'])
+    ->name('grabaciones.links');
     Route::post('/grabaciones/{id}/links', [GrabacionesController::class, 'storeLink'])
     ->name('grabaciones.storeLink');
     Route::put('/grabaciones/links/{linkLineId}', [GrabacionesController::class, 'updateLink'])

@@ -24,6 +24,7 @@ class TransporteRequest extends FormRequest
     {
         return [
             'descripcion' => ['required','string', 'max:255'],
+            'botonpago_id' => ['nullable', 'exists:botones_pago,id'],
             'precio' => ['required', 'numeric', 'min:0'],
         ];
     }

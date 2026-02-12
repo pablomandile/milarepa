@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Comida;
 use App\Http\Requests\ComidaRequest;
 use Inertia\Inertia;
+use App\Models\BotonPago;
 
 class ComidasController extends Controller
 {
@@ -14,7 +15,7 @@ class ComidasController extends Controller
      */
     public function index()
     {
-        $comidas = Comida::paginate(15);
+        $comidas = Comida::with('botonPago')->paginate(15);
         return inertia('Comidas/Index', ['comidas' => $comidas]);
     }
 
@@ -23,7 +24,10 @@ class ComidasController extends Controller
      */
     public function create()
     {
-        return inertia('Comidas/Create');
+        $botonesPago = BotonPago::select('id', 'nombre')->get();
+        return inertia('Comidas/Create', [
+            'botonesPago' => $botonesPago,
+        ]);
     }
 
     /**
@@ -48,7 +52,11 @@ class ComidasController extends Controller
      */
     public function edit(Comida $comida)
     {
-        return inertia::render('Comidas/Edit', ['comida'=>$comida]);
+        $botonesPago = BotonPago::select('id', 'nombre')->get();
+        return inertia::render('Comidas/Edit', [
+            'comida' => $comida,
+            'botonesPago' => $botonesPago,
+        ]);
     }
 
     /**

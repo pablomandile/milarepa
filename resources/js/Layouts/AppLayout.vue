@@ -229,6 +229,9 @@ const logout = () => {
                                     <DropdownLink :href="route('esquemadescuentos.index')" :active="route().current('esquema-descuentos.*')">
                                         Exención de pago
                                     </DropdownLink>
+                                    <DropdownLink :href="route('botonespago.index')" :active="route().current('botonespago.*')">
+                                        Botones de Pago
+                                    </DropdownLink>
 
                                 </template>
                             </Dropdown>

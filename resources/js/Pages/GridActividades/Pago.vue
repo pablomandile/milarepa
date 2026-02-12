@@ -33,8 +33,16 @@ const pagoMetodo = ref(props.pago?.pago_metodo || null);
 const comprobantePath = ref(props.pago?.comprobante_path || null);
 
 const saldoFinal = computed(() => parseFloat(props.saldo || 0));
+const esPagoCero = computed(() => {
+  return (
+    saldoFinal.value <= 0 ||
+    props.actividad?.gratuita === true ||
+    props.actividad?.es_gratuita === true
+  );
+});
 
 const puedeFinalizar = computed(() => {
+  if (esPagoCero.value) return true;
   return pagoMetodo.value === 'efectivo' || pagoMetodo.value === 'transferencia' || !!comprobantePath.value;
 });
 
@@ -97,7 +105,7 @@ async function terminar() {
   isFinalizing.value = true;
   try {
     const response = await axios.post(route('grid-actividades.pago.finalizar'), {
-      pago_metodo: pagoMetodo.value || 'efectivo',
+      pago_metodo: pagoMetodo.value || (esPagoCero.value ? 'gratis' : 'efectivo'),
     });
     const inscripcionId = response.data?.inscripcion_id;
     const registrado = response.data?.registered;
@@ -138,17 +146,17 @@ async function terminar() {
     <div class="py-12">
       <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 class="text-lg font-semibold text-gray-800">
+          <h2 class="text-2xl font-semibold text-gray-800">
             {{ actividad.nombre }}
           </h2>
-          <p class="text-sm text-gray-600 mt-1">
+          <p class="text-lg text-gray-600 mt-1">
             Saldo a pagar: <span class="font-semibold text-gray-800">$ {{ saldoFinal.toLocaleString('es-AR') }}</span>
           </p>
-          <p class="text-xs text-gray-500 mt-1">
+          <p class="text-lg text-green-600 mt-1">
             Membresía aplicada: {{ membresia }}
           </p>
 
-          <div class="mt-4">
+          <div v-if="!esPagoCero" class="mt-4">
             <p class="text-sm text-gray-700 mb-2">Medios de pago disponibles:</p>
             <div class="flex flex-wrap gap-2">
               <Tag
@@ -160,10 +168,10 @@ async function terminar() {
             </div>
           </div>
 
-          <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-if="!esPagoCero" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div v-if="tieneEfectivo" class="border rounded-lg p-4">
               <h3 class="text-sm font-semibold text-gray-700">Pago en efectivo</h3>
-              <p class="text-xs text-gray-500 mt-1">
+              <p class="text-sm text-green-600 mt-1">
                 {{ descripcionEfectivo }} Tu inscripción quedará en estado pendiente para aprobación.
               </p>
               <button
@@ -175,7 +183,7 @@ async function terminar() {
             </div>
             <div v-if="tieneTransferencia" class="border rounded-lg p-4">
               <h3 class="text-sm font-semibold text-gray-700">Pagar por transferencia</h3>
-              <p class="text-xs text-gray-500 mt-1">
+              <p class="text-sm text-green-600 mt-1">
                 {{ descripcionTransferencia }}
               </p>
               <div class="mt-3 flex flex-wrap gap-2">
@@ -198,7 +206,7 @@ async function terminar() {
           <div class="mt-6 flex justify-end">
             <button
               class="px-5 py-2 rounded text-white bg-green-600 hover:bg-green-700 disabled:opacity-60"
-              :disabled="!puedeFinalizar || isFinalizing"
+              :disabled="(!puedeFinalizar && !esPagoCero) || isFinalizing"
               @click="terminar"
             >
               {{ isFinalizing ? 'Finalizando...' : 'Terminar' }}

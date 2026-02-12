@@ -145,6 +145,11 @@ class RoleSeeder extends Seeder
         $permission_estado_cuenta_membresias = Permission::firstOrCreate(['name' => 'read estado_cuenta_membresias']);
         $permission_estado_cuenta_membresias = Permission::firstOrCreate(['name' => 'delete estado_cuenta_membresias']);
 
+        $permission_create_permisos = Permission::firstOrCreate(['name' => 'create permisos']);
+        $permission_create_permisos = Permission::firstOrCreate(['name' => 'update permisos']);
+        $permission_create_permisos = Permission::firstOrCreate(['name' => 'read permisos']);
+        $permission_create_permisos = Permission::firstOrCreate(['name' => 'delete permisos']);
+
         $permissions_admin = [
             'create roles',
             'read roles',
@@ -247,6 +252,10 @@ class RoleSeeder extends Seeder
             'update estado_cuenta_membresias',
             'read estado_cuenta_membresias',
             'delete estado_cuenta_membresias',
+            'create permisos',
+            'update permisos',
+            'read permisos',
+            'delete permisos',
                                     
         ];
         

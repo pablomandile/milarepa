@@ -14,6 +14,10 @@
         transporte:{
             type: Object,
             required: true
+        },
+        botonesPago: {
+            type: Array,
+            default: () => []
         }
     });
     if (!props.transporte) {
@@ -22,6 +26,7 @@
 
     const form = useForm({
         descripcion: props.transporte.descripcion,
+        botonpago_id: props.transporte.botonpago_id || null,
         precio: props.transporte.precio
     });
 
@@ -59,6 +64,7 @@
                             <TransporteForm 
                             :updating="true" 
                             :form="form" 
+                            :botonesPago="props.botonesPago"
                             @submit="handleSubmit"/>
                         </div>
                     </div>

@@ -24,14 +24,22 @@ createInertiaApp({
     title: (title) => `${appName}`,
     resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
-        return createApp({ render: () => h(App, props) })
+        const app = createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
             .use(PrimeVue)
             .use(ToastService)
             .directive('tooltip', Tooltip)
-            .component('Toast', Toast)
-            .mount(el);
+            .component('Toast', Toast);
+
+        // Merge locale to keep PrimeVue defaults (monthNames, dayNames, etc.)
+        app.config.globalProperties.$primevue.config.locale = {
+            ...app.config.globalProperties.$primevue.config.locale,
+            clear: 'Borrar',
+            apply: 'Aplicar'
+        };
+
+        return app.mount(el);
             
     },
     progress: {

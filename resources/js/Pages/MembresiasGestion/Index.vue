@@ -19,64 +19,95 @@
                     <div class="p-6 text-gray-900">
                         <!-- Tabla de Usuarios -->
                         <div v-if="usuarios.data.length > 0" class="overflow-x-auto">
-                            <table class="min-w-full border-collapse border border-gray-300">
-                                <thead class="bg-indigo-300 text-white">
-                                    <tr>
-                                        <th class="border border-gray-300 px-6 py-3 text-left">Usuario</th>
-                                        <th class="border border-gray-300 px-6 py-3 text-left">Email</th>
-                                        <th class="border border-gray-300 px-6 py-3 text-left">Membresía Actual</th>
-                                        <th class="border border-gray-300 px-6 py-3 text-left">Fecha de Inscripción</th>
-                                        <th class="border border-gray-300 px-6 py-3 text-center">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="usuario in usuarios.data" :key="usuario.id" class="hover:bg-gray-50">
-                                        <td class="border border-gray-300 px-6 py-4">
-                                            <p class="font-semibold text-gray-800">{{ usuario.name }}</p>
-                                        </td>
-                                        <td class="border border-gray-300 px-6 py-4">
-                                            {{ usuario.email }}
-                                        </td>
-                                        <td class="border border-gray-300 px-6 py-4">
-                                            <span v-if="tieneMembresiaReal(usuario)" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                                <i class="fas fa-crown mr-1"></i>
-                                                {{ usuario.membresia.nombre }}
-                                                <span v-if="usuario.membresia_online" class="ml-2 text-xs font-semibold text-indigo-600">Online</span>
-                                            </span>
-                                            <span v-else class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
-                                                Sin membresía
-                                            </span>
-                                        </td>
-                                        <td class="border border-gray-300 px-6 py-4">
-                                            <span v-if="tieneMembresiaReal(usuario) && usuario.membresia_inscripcion_fecha" class="text-sm text-gray-700">
-                                                {{ formatearFecha(usuario.membresia_inscripcion_fecha) }}
-                                            </span>
-                                            <span v-else class="text-sm text-gray-500">-</span>
-                                        </td>
-                                        <td class="border border-gray-300 px-6 py-4 text-center">
-                                            <div class="flex justify-center gap-2">
-                                                <button 
-                                                    @click="abrirModalAsignar(usuario)"
-                                                    class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition text-sm"
-                                                    title="Asignar membresía"
-                                                >
-                                                    <i class="fas fa-plus-circle mr-1"></i>
-                                                    Asignar
-                                                </button>
-                                                <button 
-                                                    v-if="tieneMembresiaReal(usuario)"
-                                                    @click="eliminarMembresia(usuario)"
-                                                    class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm"
-                                                    title="Eliminar membresía"
-                                                >
-                                                    <i class="fas fa-trash mr-1"></i>
-                                                    Eliminar
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <DataTable
+                                v-model:filters="filters"
+                                :value="usuariosConMembresia"
+                                filterDisplay="menu"
+                                :globalFilterFields="['name', 'email', 'membresia_nombre', 'membresia_inscripcion_fecha']"
+                                stripedRows
+                                tableStyle="min-width: 50rem"
+                            >
+                                <template #header>
+                                    <div class="flex justify-between items-center">
+                                        <Button
+                                            type="button"
+                                            icon="pi pi-filter-slash"
+                                            label="Limpiar"
+                                            outlined
+                                            @click="clearFilters()"
+                                        />
+                                        <IconField iconPosition="right">
+                                            <InputIcon>
+                                                <i class="pi pi-search" />
+                                            </InputIcon>
+                                            <InputText
+                                                v-model="filters['global'].value"
+                                                placeholder="Buscar..."
+                                            />
+                                        </IconField>
+                                    </div>
+                                </template>
+                                <Column field="name" header="Usuario" :showFilterMatchModes="false">
+                                    <template #body="{ data }">
+                                        <p class="font-semibold text-gray-800">{{ data.name }}</p>
+                                    </template>
+                                    <template #filter="{ filterModel }">
+                                        <InputText v-model="filterModel.value" type="text" placeholder="Buscar por usuario" class="p-column-filter" />
+                                    </template>
+                                </Column>
+                                <Column field="email" header="Email" :showFilterMatchModes="false">
+                                    <template #filter="{ filterModel }">
+                                        <InputText v-model="filterModel.value" type="text" placeholder="Buscar por email" class="p-column-filter" />
+                                    </template>
+                                </Column>
+                                <Column field="membresia_nombre" header="Membresía Actual" :showFilterMatchModes="false">
+                                    <template #body="{ data }">
+                                        <span v-if="tieneMembresiaReal(data)" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                            <i class="fas fa-crown mr-1"></i>
+                                            {{ data.membresia.nombre }}
+                                            <span v-if="data.membresia_online" class="ml-2 text-xs font-semibold text-indigo-600">Online</span>
+                                        </span>
+                                        <span v-else class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+                                            Sin membresía
+                                        </span>
+                                    </template>
+                                    <template #filter="{ filterModel }">
+                                        <InputText v-model="filterModel.value" type="text" placeholder="Buscar por membresía" class="p-column-filter" />
+                                    </template>
+                                </Column>
+                                <Column field="membresia_inscripcion_fecha" header="Fecha de Inscripción" :showFilterMatchModes="false">
+                                    <template #body="{ data }">
+                                        <span v-if="tieneMembresiaReal(data) && data.membresia_inscripcion_fecha" class="text-sm text-gray-700">
+                                            {{ formatearFecha(data.membresia_inscripcion_fecha) }}
+                                        </span>
+                                        <span v-else class="text-sm text-gray-500">-</span>
+                                    </template>
+                                    <template #filter="{ filterModel }">
+                                        <InputText v-model="filterModel.value" type="text" placeholder="Buscar por fecha" class="p-column-filter" />
+                                    </template>
+                                </Column>
+                                <Column header="Acciones">
+                                    <template #body="{ data }">
+                                        <div class="flex justify-center gap-2">
+                                            <button 
+                                                @click="abrirModalAsignar(data)"
+                                                class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition text-sm"
+                                                title="Asignar membresía" aria-label="Asignar membresía"
+                                            >
+                                                <i class="fas fa-plus-circle"></i>
+                                            </button>
+                                            <button 
+                                                v-if="tieneMembresiaReal(data)"
+                                                @click="eliminarMembresia(data)"
+                                                class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm"
+                                                title="Eliminar membresía" aria-label="Eliminar membresía"
+                                            >
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </Column>
+                            </DataTable>
                         </div>
 
                         <!-- Mensaje si no hay usuarios -->
@@ -129,6 +160,19 @@
                             </option>
                         </select>
                     </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Modalidad
+                        </label>
+                        <select
+                            v-model="formMembresiaOnline"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                            required
+                        >
+                            <option value="presencial">Presencial</option>
+                            <option value="online">Online</option>
+                        </select>
+                    </div>
 
                     <div class="flex gap-3">
                         <button 
@@ -154,19 +198,52 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Swal from 'sweetalert2';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import { FilterMatchMode } from 'primevue/api';
 
-defineProps({
+const props = defineProps({
     usuarios: Object,
     membresias: Array
 });
 
+const usuariosConMembresia = computed(() =>
+    props.usuarios.data.map((usuario) => ({
+        ...usuario,
+        membresia_nombre: usuario.membresia && usuario.membresia.nombre ? usuario.membresia.nombre : ''
+    }))
+);
+
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    email: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    membresia_nombre: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    membresia_inscripcion_fecha: { value: null, matchMode: FilterMatchMode.CONTAINS }
+});
+
+const clearFilters = () => {
+    filters.value = {
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        email: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        membresia_nombre: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        membresia_inscripcion_fecha: { value: null, matchMode: FilterMatchMode.CONTAINS }
+    };
+};
+
 const mostrarModal = ref(false);
 const usuarioSeleccionado = ref(null);
 const formMembresiaId = ref('');
+const formMembresiaOnline = ref('presencial');
 
 const tieneMembresiaReal = (usuario) => {
     return usuario.membresia && usuario.membresia.id !== 1;
@@ -183,6 +260,7 @@ const formatearFecha = (fecha) => {
 const abrirModalAsignar = (usuario) => {
     usuarioSeleccionado.value = usuario;
     formMembresiaId.value = '';
+    formMembresiaOnline.value = 'presencial';
     mostrarModal.value = true;
 };
 
@@ -190,6 +268,7 @@ const cerrarModal = () => {
     mostrarModal.value = false;
     usuarioSeleccionado.value = null;
     formMembresiaId.value = '';
+    formMembresiaOnline.value = 'presencial';
 };
 
 const asignarMembresia = () => {
@@ -199,7 +278,8 @@ const asignarMembresia = () => {
     }
 
     const form = useForm({
-        membresia_id: formMembresiaId.value
+        membresia_id: formMembresiaId.value,
+        membresia_online: formMembresiaOnline.value === 'online'
     });
 
     form.put(route('membresias.asignar', usuarioSeleccionado.value.id), {
@@ -227,3 +307,13 @@ const eliminarMembresia = (usuario) => {
     });
 };
 </script>
+
+<style scoped>
+@import '../../../css/datatable-header-style.css';
+</style>
+
+
+
+
+
+

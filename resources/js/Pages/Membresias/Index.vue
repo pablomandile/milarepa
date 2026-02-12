@@ -95,6 +95,14 @@ const estadoMesActual = computed(() => {
     return props.estados_cuenta.find((estado) => estado.mes_pagado === mesActualKey.value) || null;
 });
 
+const pagoPendiente = computed(() => {
+    return !!userMembresia && !estadoMesActual.value?.pagado;
+});
+
+const botonPagoLink = computed(() => {
+    return userMembresia?.boton_pago?.link || '';
+});
+
 const mesesDisponibles = computed(() => {
     const ahora = new Date();
     const year = ahora.getFullYear();
@@ -185,12 +193,16 @@ async function subirComprobante() {
                                     </p>
                                 </template>
                                 <div v-if="userMembresia" class="flex gap-2 mt-3">
-                                    <button
+                                    <a
+                                        v-if="pagoPendiente && botonPagoLink"
+                                        :href="botonPagoLink"
+                                        target="_blank"
+                                        rel="noopener"
                                         class="inline-flex items-center px-4 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition"
                                     >
                                         <i class="pi pi-credit-card mr-2"></i>
                                         Pagar
-                                    </button>
+                                    </a>
                                     <button
                                         @click="comprobanteModal = true"
                                         class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition"
