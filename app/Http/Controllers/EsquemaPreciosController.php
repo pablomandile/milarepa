@@ -9,6 +9,7 @@ use App\Models\Moneda;
 use App\Http\Requests\EsquemaPrecioRequest;
 use Inertia\Inertia;
 use App\Models\EsquemaPrecioMembresia;
+use App\Models\BotonPago;
 
 
 class EsquemaPreciosController extends Controller
@@ -20,7 +21,8 @@ class EsquemaPreciosController extends Controller
     {
         $esquemaprecios = EsquemaPrecio::with([
             'membresias.moneda',
-            'membresias.membresia.entidad'  // <- Eager load de la Entidad
+            'membresias.membresia.entidad',  // <- Eager load de la Entidad
+            'membresias.botonPago'
         ])->get();
         // dd($esquemaprecios->toArray());
         return inertia('EsquemaPrecios/Index', [
@@ -54,6 +56,7 @@ class EsquemaPreciosController extends Controller
 
         $validated = $request->validate([
             'membresia_id' => 'required|exists:membresias,id',
+            'botonpago_id' => 'nullable|exists:botones_pago,id',
             'precio' => 'required|numeric|min:0',
             'moneda_id' => 'required|exists:monedas,id'
         ]);
@@ -81,7 +84,8 @@ class EsquemaPreciosController extends Controller
     {
         $esquemaPrecio = EsquemaPrecio::with([
             'membresias.membresia.entidad',
-            'membresias.moneda'
+            'membresias.moneda',
+            'membresias.botonPago'
         ])->findOrFail($id);
     
         $membresias = Membresia::with('entidad')->get()
@@ -90,11 +94,13 @@ class EsquemaPreciosController extends Controller
                            return $m;
                        });
         $monedas = Moneda::select('id', 'nombre', 'simbolo')->get();
+        $botonesPago = BotonPago::select('id', 'nombre')->get();
     
         return Inertia::render('EsquemaPrecios/EditSecondStep', [
             'esquemaPrecio' => $esquemaPrecio,
             'membresias' => $membresias,
             'monedas' => $monedas,
+            'botonesPago' => $botonesPago,
         ]);
     }
 
@@ -112,6 +118,7 @@ class EsquemaPreciosController extends Controller
 
        $validated = $request->validate([
            'membresia_id' => 'required|exists:membresias,id',
+           'botonpago_id' => 'nullable|exists:botones_pago,id',
            'precio' => 'required|numeric|min:0',
            'moneda_id' => 'required|exists:monedas,id',
        ]);

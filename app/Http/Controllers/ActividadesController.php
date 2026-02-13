@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ActividadRequest;
 use Illuminate\Http\Request;
 use App\Models\Actividad;
+use App\Models\BotonPago;
 use App\Models\Comida;
 use App\Models\Coordinador;
 use App\Models\Descripcion;
@@ -85,6 +86,7 @@ class ActividadesController extends Controller
         ])->get();
         $programas = Programa::orderByDesc('created_at')->get();
         $metodosPago = MetodoPago::all();
+        $botonesPago = BotonPago::select('id', 'nombre')->orderByDesc('created_at')->get();
         $lugarHospedaje = LugarHospedaje::orderByDesc('created_at')->get();
         $hospedajes = Hospedaje::all();
         $comidas = Comida::orderByDesc('created_at')->get();
@@ -104,6 +106,7 @@ class ActividadesController extends Controller
             'grabaciones' => $grabaciones, 
             'programas' => $programas,
             'metodosPago' => $metodosPago,
+            'botonesPago' => $botonesPago,
             'lugaresHospedaje' => $lugarHospedaje,
             'hospedajes' => $hospedajes,
             'comidas' => $comidas,
@@ -273,6 +276,7 @@ class ActividadesController extends Controller
             $grabaciones = Grabacion::with(['linksgrabacion'])->get();
             $programas = Programa::orderByDesc('created_at')->get();
             $metodosPago = MetodoPago::all();
+            $botonesPago = BotonPago::select('id', 'nombre')->orderByDesc('created_at')->get();
             $lugarHospedaje = LugarHospedaje::all();
             $hospedajes = Hospedaje::all();
             $comidas = Comida::all();
@@ -291,6 +295,7 @@ class ActividadesController extends Controller
                 'grabaciones' => $grabaciones,
                 'programas' => $programas,
                 'metodosPago' => $metodosPago,
+                'botonesPago' => $botonesPago,
                 'lugaresHospedaje' => $lugarHospedaje,
                 'hospedajes' => $hospedajes,
                 'comidas' => $comidas,

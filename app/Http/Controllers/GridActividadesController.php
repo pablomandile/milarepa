@@ -216,7 +216,16 @@ class GridActividadesController extends Controller
                 ->with('error', 'No hay datos de pago para esta actividad.');
         }
 
-        $actividad->load(['metodosPago', 'esquemaPrecio.membresias.membresia']);
+        $actividad->load([
+            'metodosPago',
+            'esquemaPrecio.membresias.membresia',
+            'botonPago',
+            'grabacion.botonPago',
+            'comidas.botonPago',
+            'transportes.botonPago',
+            'hospedajes.botonPago',
+            'hospedajes.lugarHospedaje',
+        ]);
         $saldo = 0;
         $membresiaNombre = 'Sin membresía';
         if (!empty($pago['user_id'])) {

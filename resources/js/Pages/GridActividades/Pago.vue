@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Tag from 'primevue/tag';
 import Dialog from 'primevue/dialog';
+import Checkbox from 'primevue/checkbox';
 import { useToast } from 'primevue/usetoast';
 
 const props = defineProps({
@@ -33,6 +34,45 @@ const pagoMetodo = ref(props.pago?.pago_metodo || null);
 const comprobantePath = ref(props.pago?.comprobante_path || null);
 
 const saldoFinal = computed(() => parseFloat(props.saldo || 0));
+const actividadPagoLink = computed(() => props.actividad?.boton_pago?.link || '');
+const grabacionSeleccionada = ref(false);
+const comidasSeleccionadas = ref([]);
+const transportesSeleccionados = ref([]);
+const hospedajesSeleccionados = ref([]);
+
+const actividadPrecio = computed(() => parseFloat(props.saldo || 0) || 0);
+const grabacionDisponible = computed(() => !!props.actividad?.grabacion_id && !!props.actividad?.grabacion);
+const grabacionPrecio = computed(() => {
+  const valor = props.actividad?.grabacion?.valor;
+  return valor ? parseFloat(valor) : 0;
+});
+const grabacionPagoLink = computed(() => props.actividad?.grabacion?.boton_pago?.link || '');
+
+const comidasDisponibles = computed(() => props.actividad?.comidas || []);
+const totalComidas = computed(() => {
+  return comidasDisponibles.value
+    .filter((comida) => comidasSeleccionadas.value.includes(comida.id))
+    .reduce((acc, comida) => acc + (parseFloat(comida.precio || 0) || 0), 0);
+});
+
+const transportesDisponibles = computed(() => props.actividad?.transportes || []);
+const totalTransportes = computed(() => {
+  return transportesDisponibles.value
+    .filter((transporte) => transportesSeleccionados.value.includes(transporte.id))
+    .reduce((acc, transporte) => acc + (parseFloat(transporte.precio || 0) || 0), 0);
+});
+
+const hospedajesDisponibles = computed(() => props.actividad?.hospedajes || []);
+const totalHospedajes = computed(() => {
+  return hospedajesDisponibles.value
+    .filter((hospedaje) => hospedajesSeleccionados.value.includes(hospedaje.id))
+    .reduce((acc, hospedaje) => acc + (parseFloat(hospedaje.precio || 0) || 0), 0);
+});
+
+const saldoAPagar = computed(() => {
+  const totalGrabacion = grabacionSeleccionada.value ? grabacionPrecio.value : 0;
+  return actividadPrecio.value + totalGrabacion + totalComidas.value + totalTransportes.value + totalHospedajes.value;
+});
 const esPagoCero = computed(() => {
   return (
     saldoFinal.value <= 0 ||
@@ -149,15 +189,8 @@ async function terminar() {
           <h2 class="text-2xl font-semibold text-gray-800">
             {{ actividad.nombre }}
           </h2>
-          <p class="text-lg text-gray-600 mt-1">
-            Saldo a pagar: <span class="font-semibold text-gray-800">$ {{ saldoFinal.toLocaleString('es-AR') }}</span>
-          </p>
-          <p class="text-lg text-green-600 mt-1">
-            Membresía aplicada: {{ membresia }}
-          </p>
-
-          <div v-if="!esPagoCero" class="mt-4">
-            <p class="text-sm text-gray-700 mb-2">Medios de pago disponibles:</p>
+                    <div v-if="!esPagoCero" class="mt-4">
+            <p class="mt-2 text-sm text-gray-700 mb-2">Medios de pago disponibles:</p>
             <div class="flex flex-wrap gap-2">
               <Tag
                 v-for="metodo in actividad.metodos_pago"
@@ -167,6 +200,183 @@ async function terminar() {
               />
             </div>
           </div>
+          <p class="text-lg text-gray-600 mt-4">
+            Valor de la actividad: <span class="font-semibold text-gray-800">$ {{ saldoFinal.toLocaleString('es-AR') }}</span>
+          </p>
+
+          <div class="mt-2 flex flex-wrap items-center gap-2">
+            <a
+              v-if="actividadPagoLink"
+              :href="actividadPagoLink"
+              target="_blank"
+              class="inline-flex items-center px-3 py-1 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
+            >
+              Pagar Actividad
+            </a>
+            <span v-else class="text-xs text-gray-400">Sin botón de pago disponible</span>
+          </div>
+          <p class="text-lg text-green-600 mt-1">
+            Membresía aplicada: {{ membresia }}
+          </p>
+
+
+          <div class="mt-6 space-y-4">
+            <div v-if="grabacionDisponible" class="border rounded-lg p-4">
+              <div class="flex items-center gap-2">
+                <Checkbox
+                  inputId="grabacion_check"
+                  v-model="grabacionSeleccionada"
+                  binary
+                />
+                <label for="grabacion_check" class="text-sm font-semibold text-gray-700">
+                  Agregar grabación
+                </label>
+              </div>
+              <div v-if="grabacionSeleccionada" class="mt-2 text-sm text-gray-700">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span>Valor de grabación:</span>
+                  <span class="font-semibold">$ {{ grabacionPrecio.toLocaleString('es-AR') }}</span>
+                  <a
+                    v-if="grabacionPagoLink"
+                    :href="grabacionPagoLink"
+                    target="_blank"
+                    class="inline-flex items-center px-3 py-1 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700"
+                  >
+                    Pagar grabación
+                  </a>
+                  <span v-else class="text-xs text-gray-400">Sin botón de pago</span>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="comidasDisponibles.length" class="border rounded-lg p-4">
+              <p class="text-sm font-semibold text-gray-700 mb-2">Comidas</p>
+              <div class="space-y-2">
+                <div
+                  v-for="comida in comidasDisponibles"
+                  :key="comida.id"
+                  class="flex flex-wrap items-center justify-between gap-2"
+                >
+                  <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <Checkbox
+                      :inputId="`comida_${comida.id}`"
+                      :value="comida.id"
+                      v-model="comidasSeleccionadas"
+                    />
+                    {{ comida.nombre }}
+                  </label>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-700">$ {{ (parseFloat(comida.precio || 0) || 0).toLocaleString('es-AR') }}</span>
+                    <a
+                      v-if="comidasSeleccionadas.includes(comida.id) && comida.boton_pago?.link"
+                      :href="comida.boton_pago.link"
+                      target="_blank"
+                      class="inline-flex items-center px-2 py-1 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700"
+                    >
+                      Pagar
+                    </a>
+                    <span v-else-if="comidasSeleccionadas.includes(comida.id)" class="text-xs text-gray-400">Sin bot�n</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3 text-sm text-gray-800">
+                Total Comidas: <span class="font-semibold">$ {{ totalComidas.toLocaleString('es-AR') }}</span>
+              </div>
+            </div>
+
+            <div v-if="transportesDisponibles.length" class="border rounded-lg p-4">
+              <p class="text-sm font-semibold text-gray-700 mb-2">Transportes</p>
+              <div class="space-y-2">
+                <div
+                  v-for="transporte in transportesDisponibles"
+                  :key="transporte.id"
+                  class="flex flex-wrap items-center justify-between gap-2"
+                >
+                  <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <Checkbox
+                      :inputId="`transporte_${transporte.id}`"
+                      :value="transporte.id"
+                      v-model="transportesSeleccionados"
+                    />
+                    {{ transporte.descripcion || transporte.nombre }}
+                  </label>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-700">$ {{ (parseFloat(transporte.precio || 0) || 0).toLocaleString('es-AR') }}</span>
+                    <a
+                      v-if="transportesSeleccionados.includes(transporte.id) && transporte.boton_pago?.link"
+                      :href="transporte.boton_pago.link"
+                      target="_blank"
+                      class="inline-flex items-center px-2 py-1 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700"
+                    >
+                      Pagar
+                    </a>
+                    <span v-else-if="transportesSeleccionados.includes(transporte.id)" class="text-xs text-gray-400">Sin bot�n</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3 text-sm text-gray-800">
+                Total Transportes: <span class="font-semibold">$ {{ totalTransportes.toLocaleString('es-AR') }}</span>
+              </div>
+            </div>
+
+
+            <div v-if="hospedajesDisponibles.length" class="border rounded-lg p-4">
+              <p class="text-sm font-semibold text-gray-700 mb-2">Lugar de hospedaje</p>
+              <div class="text-sm text-gray-700 mb-3">
+                <template v-if="hospedajesDisponibles.some(h => h.lugar_hospedaje)">
+                  <span
+                    v-for="(lugar, idx) in Array.from(new Set(hospedajesDisponibles.map(h => h.lugar_hospedaje?.nombre).filter(Boolean)))"
+                    :key="lugar"
+                  >
+                    {{ lugar }}<span v-if="idx < Array.from(new Set(hospedajesDisponibles.map(h => h.lugar_hospedaje?.nombre).filter(Boolean))).length - 1">, </span>
+                  </span>
+                </template>
+                <span v-else class="text-xs text-gray-400">Sin lugar definido</span>
+              </div>
+
+              <p class="text-sm font-semibold text-gray-700 mb-2">Hospedajes</p>
+              <div class="space-y-2">
+                <div
+                  v-for="hospedaje in hospedajesDisponibles"
+                  :key="hospedaje.id"
+                  class="flex flex-wrap items-center justify-between gap-2"
+                >
+                  <label class="flex items-center gap-2 text-sm text-gray-700">
+                    <Checkbox
+                      :inputId="`hospedaje_${hospedaje.id}`"
+                      :value="hospedaje.id"
+                      v-model="hospedajesSeleccionados"
+                    />
+                    {{ hospedaje.nombre }}
+                  </label>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-700">$ {{ (parseFloat(hospedaje.precio || 0) || 0).toLocaleString('es-AR') }}</span>
+                    <a
+                      v-if="hospedajesSeleccionados.includes(hospedaje.id) && hospedaje.boton_pago?.link"
+                      :href="hospedaje.boton_pago.link"
+                      target="_blank"
+                      class="inline-flex items-center px-2 py-1 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700"
+                    >
+                      Pagar
+                    </a>
+                    <span v-else-if="hospedajesSeleccionados.includes(hospedaje.id)" class="text-xs text-gray-400">Sin bot�n</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3 text-sm text-gray-800">
+                Total Hospedaje: <span class="font-semibold">$ {{ totalHospedajes.toLocaleString('es-AR') }}</span>
+              </div>
+            </div>
+
+            <div class="border rounded-lg p-4 bg-gray-50">
+              <p class="text-sm text-gray-700">
+                Saldo a Pagar:
+                <span class="font-semibold text-gray-800">$ {{ saldoAPagar.toLocaleString('es-AR') }}</span>
+              </p>
+            </div>
+          </div>
+
+          
 
           <div v-if="!esPagoCero" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div v-if="tieneEfectivo" class="border rounded-lg p-4">
@@ -174,31 +384,27 @@ async function terminar() {
               <p class="text-sm text-green-600 mt-1">
                 {{ descripcionEfectivo }} Tu inscripción quedará en estado pendiente para aprobación.
               </p>
-              <button
+              <!-- <button
                 class="mt-3 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
                 @click="pagoMetodo = 'efectivo'"
               >
                 Pagaré en efectivo más tarde
-              </button>
+              </button> -->
             </div>
             <div v-if="tieneTransferencia" class="border rounded-lg p-4">
               <h3 class="text-sm font-semibold text-gray-700">Pagar por transferencia</h3>
               <p class="text-sm text-green-600 mt-1">
                 {{ descripcionTransferencia }}
               </p>
-              <div class="mt-3 flex flex-wrap gap-2">
+              <div class="mt-4 flex flex-wrap gap-2">
+                <h3 class="text-sm font-semibold text-gray-900">Recuerda subir el comprobante si pagaste por transferencia o Getnet</h3>
                 <button
                   class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
                   @click="comprobanteModal = true"
                 >
                   Subir comprobante
                 </button>
-                <button
-                  class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200"
-                  @click="pagoMetodo = 'transferencia'"
-                >
-                  Transferiré más tarde
-                </button>
+
               </div>
             </div>
           </div>
@@ -206,10 +412,10 @@ async function terminar() {
           <div class="mt-6 flex justify-end">
             <button
               class="px-5 py-2 rounded text-white bg-green-600 hover:bg-green-700 disabled:opacity-60"
-              :disabled="(!puedeFinalizar && !esPagoCero) || isFinalizing"
+              :disabled="isFinalizing"
               @click="terminar"
             >
-              {{ isFinalizing ? 'Finalizando...' : 'Terminar' }}
+              {{ isFinalizing ? 'Finalizando...' : 'Terminar inscripción' }}
             </button>
           </div>
         </div>
@@ -240,3 +446,46 @@ async function terminar() {
     </Dialog>
   </AppLayout>
 </template>
+
+
+
+
+
+
+
+<style scoped>
+:deep(.p-checkbox .p-checkbox-box) {
+  border: 1px solid #9ca3af;
+  background: #ffffff;
+}
+:deep(.p-checkbox .p-checkbox-box .p-checkbox-icon) {
+  color: #111827;
+  font-size: 0.8rem;
+}
+:deep(.p-checkbox .p-checkbox-box.p-highlight) {
+  border-color: #4f46e5;
+  background: #4f46e5;
+}
+:deep(.p-checkbox .p-checkbox-box.p-highlight .p-checkbox-icon) {
+  color: #ffffff;
+}
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

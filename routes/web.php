@@ -44,9 +44,18 @@ use App\Http\Controllers\UploadController;
 use App\Http\Controllers\StreamsController;
 use App\Http\Controllers\ProfileCompletionController;
 use App\Http\Controllers\EmailPreviewController;
+use App\Http\Controllers\ExcencionPagoController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
+Route::get('/welcome', function () {
+    return inertia('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => \Illuminate\Foundation\Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
+})->name('welcome');
 
 // Rutas públicas para preview de emails
 Route::get('/email-preview', [EmailPreviewController::class, 'landing'])->name('email.preview.landing');
@@ -202,6 +211,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         'parameters' => ['grabaciones' => 'grabacion'],]);
     Route::resource('/botonespago', BotonesPagoController::class, [
         'parameters' => ['botonespago' => 'botonpago'],]);
+    Route::resource('/excencionpago', ExcencionPagoController::class, [
+        'parameters' => ['excencionpago' => 'excencionpago'],]);
     Route::get('/grabaciones/{grabacion}/links', [GrabacionesController::class, 'editLinks'])
     ->name('grabaciones.links');
     Route::post('/grabaciones/{id}/links', [GrabacionesController::class, 'storeLink'])

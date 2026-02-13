@@ -67,6 +67,10 @@
             type: Array,
             default: () => [],
         },
+        botonesPago: {
+            type: Array,
+            default: () => [],
+        },
         hospedajes: {
             type: Array,
             default: () => [],
@@ -114,6 +118,7 @@
         stream_id: null,
         grabación_id: null,
         programa_id: null,
+        botonpago_id: null,
         metodos_pago_ids: [],
         hospedajes_ids: [],
         lugar_hospedaje_id: null,
@@ -210,6 +215,7 @@
                               :grabaciones="grabaciones"
                               :programas="programas"
                               :metodosPago="metodosPago"
+                              :botonesPago="botonesPago"
                               :lugaresHospedaje="lugaresHospedaje"
                               :hospedajes="hospedajes"
                               :comidas="comidas"

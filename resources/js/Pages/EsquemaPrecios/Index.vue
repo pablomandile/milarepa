@@ -1,4 +1,4 @@
-<script>
+﻿<script>
     export default {
         name: 'EsquemaPreciosIndex'
     }
@@ -19,22 +19,22 @@
         }
     })
 
-    // Controla qué filas de la tabla principal están expandidas
+    // Controla quÃ© filas de la tabla principal estÃ¡n expandidas
     const expandedRows = ref([]);
 
     const deleteEsquemaPrecio = (id) => {
     Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Esta acción no se puede deshacer.",
+        title: "Â¿EstÃ¡s seguro?",
+        text: "Esta acciÃ³n no se puede deshacer.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Sí, eliminar",
+        confirmButtonText: "SÃ­, eliminar",
         cancelButtonText: "Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
         router.delete(route('esquemaprecios.destroy', id), {
                 onSuccess: () => {
-                Swal.fire("¡Eliminado!", "El EsquemaPrecio ha sido eliminada.", "success");
+                Swal.fire("Â¡Eliminado!", "El EsquemaPrecio ha sido eliminada.", "success");
                 },
                 onError: () => {
                 Swal.fire("Error", "Hubo un problema al eliminar el EsquemaPrecio.", "error");
@@ -104,12 +104,12 @@
                                     stripedRows
                                     tableStyle="min-width: 50rem"
                                 >
-                                    <!-- Columna Membresía / Entidad -->
-                                    <Column header="Membresía - Entidad">
+                                    <!-- Columna MembresÃ­a / Entidad -->
+                                    <Column header="MembresÃ­a - Entidad">
                                         <template #body="{ data: mem }">
                                             {{ mem.membresia
                                                 ? mem.membresia.nombre + ' - ' + mem.membresia.entidad.abreviacion
-                                                : '—'
+                                                : 'â€”'
                                             }}
                                         </template>
                                     </Column>
@@ -124,7 +124,14 @@
                                     <!-- Columna Moneda -->
                                     <Column header="Moneda">
                                         <template #body="{ data: mem }">
-                                            {{ mem.moneda ? mem.moneda.nombre : '—' }}
+                                            {{ mem.moneda ? mem.moneda.nombre : 'â€”' }}
+                                        </template>
+                                    </Column>
+
+                                    <!-- Columna Boton de Pago -->
+                                    <Column header="Boton de Pago">
+                                        <template #body="{ data: mem }">
+                                            {{ mem.boton_pago ? mem.boton_pago.nombre : '—' }}
                                         </template>
                                     </Column>
 

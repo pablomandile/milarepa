@@ -19,6 +19,10 @@ const props = defineProps({
   monedas: {
     type: Array,
     default: () => []
+  },
+  botonesPago: {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -44,7 +48,7 @@ function handleSubmit() {
     </template>
 
     <template #form>
-            <div class="col-span-6 sm:col-span-2">
+            <div class="col-span-6 sm:col-span-2 mb-2">
                 <InputLabel for="membresia_id" value="Membresía" :required="true"/>
                 <Dropdown
                     id="membresia_id"
@@ -58,7 +62,7 @@ function handleSubmit() {
                 <InputError :message="$page.props.errors.membresia_id" class="mt-2" />
             </div>
 
-            <div class="col-span-6 sm:col-span-2">
+            <div class="col-span-6 sm:col-span-2 mb-2">
                 <InputLabel for="moneda_id" value="Moneda" :required="true"/>
                 <Dropdown
                     id="moneda_id"
@@ -72,7 +76,22 @@ function handleSubmit() {
                 <InputError :message="$page.props.errors.moneda_id" class="mt-2" />
             </div>
 
-            <div class="col-span-6 sm:col-span-2">
+            <div class="col-span-6 sm:col-span-2 mb-2">
+                <InputLabel for="botonpago_id" value="Boton de Pago" :required="false"/>
+                <Dropdown
+                    id="botonpago_id"
+                    v-model="form.botonpago_id"
+                    :options="botonesPago"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccione un boton de pago"
+                    class="w-full mt-1 border border-gray-300"
+                    showClear
+                />
+                <InputError :message="$page.props.errors.botonpago_id" class="mt-2" />
+            </div>
+
+            <div class="col-span-6 sm:col-span-2 mb-2">
                 <InputLabel for="precio" value="Precio" :required="true"/>
                 <TextInput
                     id="precio"

@@ -19,6 +19,8 @@
     const page = usePage();
     const visible = ref(false);
     const actividadSeleccionada = ref(null);
+    const imagenVisible = ref(false);
+    const imagenSeleccionada = ref(null);
     const programaVisible = ref(false);
     const programaSeleccionado = ref(null);
     const esquemaPrecioVisible = ref(false);
@@ -50,6 +52,18 @@
     const verEsquemaPrecio = (esquema) => {
         esquemaPrecioSeleccionado.value = esquema;
         esquemaPrecioVisible.value = true;
+    };
+
+    const verImagen = (actividad) => {
+        if (!actividad) return;
+        const src = actividad.imagen
+            ? `/storage/${actividad.imagen.ruta}`
+            : '/storage/img/actividades/imagen-no-disponible.jpg';
+        imagenSeleccionada.value = {
+            src,
+            nombre: actividad.nombre || 'Actividad'
+        };
+        imagenVisible.value = true;
     };
 
     const updateEstado = (row, nuevoEstado) => {
@@ -130,12 +144,16 @@
                                             :src="'/storage/' + slotProps.data.imagen.ruta"
                                             alt="Imagen de la Actividad"
                                             style="max-width: 50px; max-height: 50px;"
+                                            class="cursor-zoom-in hover:opacity-80"
+                                            @click="verImagen(slotProps.data)"
                                         />
                                         <img
                                             v-else
                                             src="/storage/img/actividades/imagen-no-disponible.jpg"
                                             alt="Sin imagen"
                                             style="max-width: 50px; max-height: 50px;"
+                                            class="cursor-zoom-in hover:opacity-80"
+                                            @click="verImagen(slotProps.data)"
                                         />
                                     </div>
                                 </template>
@@ -166,14 +184,6 @@
                             <Column header="Acciones">
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
-                                        <!-- <button
-                                            @click="verActividad(parseInt(slotProps.data.id))"
-                                            v-if="$page.props.user.permissions.includes('read actividades')"
-                                            v-tooltip="'Ver actividad'"
-                                            class="text-indigo-600 hover:text-indigo-800"
-                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
-                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1;"></i>
-                                        </button> -->
                                         <Link
                                             :href="route('actividades.edit', { actividad: parseInt(slotProps.data.id) })"
                                             v-if="$page.props.user.permissions.includes('update actividades')"
@@ -414,6 +424,27 @@
 
         </template>
         <p v-else>Cargando datos...</p>
+    </Dialog>
+
+    <!-- Dialog para mostrar imagen -->
+    <Dialog
+        v-model:visible="imagenVisible"
+        modal
+        :header="imagenSeleccionada ? `Imagen de ${imagenSeleccionada.nombre}` : 'Imagen'"
+        :style="{ width: '60rem' }"
+        :breakpoints="{ '1199px': '85vw', '575px': '95vw' }"
+        dismissableMask
+    >
+        <template v-if="imagenSeleccionada">
+            <div class="flex justify-center">
+                <img
+                    :src="imagenSeleccionada.src"
+                    :alt="`Imagen de ${imagenSeleccionada.nombre}`"
+                    class="max-w-full h-auto"
+                />
+            </div>
+        </template>
+        <p v-else>Cargando...</p>
     </Dialog>
 
     <!-- Dialog para mostrar programa -->

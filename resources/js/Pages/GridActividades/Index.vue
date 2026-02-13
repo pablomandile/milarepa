@@ -334,7 +334,7 @@ async function enviarInscripcionGuest() {
                         </div>
                             <div class="mt-2">
                                 <a
-                                    :href="route('login')"
+                                    :href="route('welcome')"
                                     target="_blank"
                                     rel="noopener"
                                     class="inline-flex items-center rounded-md border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-600 hover:text-white transition-colors"
@@ -613,3 +613,4 @@ async function enviarInscripcionGuest() {
   cursor: pointer;
 }
 </style>
+

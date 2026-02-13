@@ -245,6 +245,7 @@ watch(() => $page.props.flash, (flash) => {
                                             <div class="mt-2 flex flex-col gap-2 w-full items-end">
                                                 <div class="flex flex-wrap justify-end gap-2 p-2 bg-white border border-gray-200 rounded shadow-sm">
                                                     <Link
+                                                        v-if="inscripcion.pago !== 'Pendiente'"
                                                         :href="route('inscripciones.ticket', { inscripcion: inscripcion.id })"
                                                         class="w-24 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-700 transition-colors text-center"
                                                         title="Ver Ticket"

@@ -195,9 +195,9 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>¡Inscripción Confirmada!</h1>
-            <p>Tu registro ha sido procesado exitosamente</p>
-            <div class="success-badge">✓ Confirmado</div>
+            <h1>¡Inscripción Registrada!</h1>
+            <p>Tu registro a la actividad ha sido procesado exitosamente</p>
+            <div class="success-badge">✓ Registrado</div>
         </div>
 
         <!-- Content -->
@@ -262,7 +262,7 @@
                 <div class="info-row">
                     <strong>Estado:</strong> 
                     <span class="badge" style="background-color: #28a745; margin-left: 5px;">
-                        {{ $inscripcion->estado->nombre ?? 'Confirmada' }}
+                        {{ $inscripcion->estado->nombre ?? 'Registrada' }}
                     </span>
                 </div>
 

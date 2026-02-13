@@ -30,6 +30,7 @@ class Actividad extends Model
         'grabacion_importe',
         'stream_id', 
         'programa_id',
+        'botonpago_id',
         'estado'
     ];
 
@@ -123,6 +124,11 @@ class Actividad extends Model
     public function programa()
     {
         return $this->belongsTo(Programa::class, 'programa_id');
+    }
+
+    public function botonPago()
+    {
+        return $this->belongsTo(BotonPago::class, 'botonpago_id');
     }
 
 }

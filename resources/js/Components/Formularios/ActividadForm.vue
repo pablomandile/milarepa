@@ -88,6 +88,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  botonesPago: {
+    type: Array,
+    default: () => [],
+  },
   hospedajes: {
     type: Array,
     default: () => [],
@@ -133,6 +137,7 @@ const ofreceGrabacion = ref(!!props.form.grabacion_id);
 const ofreceHospedaje = ref(!!props.form.lugar_hospedaje_id || (Array.isArray(props.form.hospedajes_ids) && props.form.hospedajes_ids.length > 0));
 const ofreceComidas = ref(Array.isArray(props.form.comidas_ids) && props.form.comidas_ids.length > 0);
 const ofreceTransportes = ref(Array.isArray(props.form.transportes_ids) && props.form.transportes_ids.length > 0);
+const botonPagoUnico = ref(!!props.form.botonpago_id);
 
 /**
  * verDetalle(arrayName, id, title):
@@ -219,6 +224,15 @@ watch(
   (value) => {
     if (!value) {
       props.form.transportes_ids = [];
+    }
+  }
+);
+
+watch(
+  () => botonPagoUnico.value,
+  (value) => {
+    if (!value) {
+      props.form.botonpago_id = null;
     }
   }
 );
@@ -1044,6 +1058,43 @@ watch(
             class="w-full mt-1 border border-gray-300"
           />
           <InputError :message="$page.props.errors.estado" class="mt-2" />
+        </div>
+
+        <!-- Botón de pago único -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="boton_pago_unico"
+            class="text-indigo-400"
+            value="Botón de pago único"
+          />
+          <div class="flex items-center gap-3 mt-2">
+            <InputSwitch
+              id="boton_pago_unico"
+              v-model="botonPagoUnico"
+            />
+            <span class="text-sm text-gray-600">
+              {{ botonPagoUnico ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+        </div>
+
+        <div v-if="botonPagoUnico" class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="botonpago_id"
+            class="text-indigo-400"
+            value="Botón de pago"
+          />
+          <Dropdown
+            id="botonpago_id"
+            v-model="form.botonpago_id"
+            :options="botonesPago"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Seleccione un botón de pago"
+            class="w-full mt-1 border border-gray-300"
+            showClear
+          />
+          <InputError :message="$page.props.errors.botonpago_id" class="mt-2" />
         </div>
       </div>
     </template>

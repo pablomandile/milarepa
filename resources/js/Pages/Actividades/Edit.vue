@@ -69,6 +69,10 @@
             type: Array,
             default: () => [],
         },
+        botonesPago: {
+            type: Array,
+            default: () => [],
+        },
         hospedajes: {
             type: Array,
             default: () => [],
@@ -124,6 +128,7 @@
         stream_id: props.actividad.stream_id,
         grabacion_id: props.actividad.grabacion_id,
         programa_id: props.actividad.programa_id,
+        botonpago_id: props.actividad.botonpago_id || null,
         estado: props.actividad.estado,
         metodos_pago_ids: props.actividad.metodos_pago ? props.actividad.metodos_pago.map(m => m.id) : [],
         hospedajes_ids: props.actividad.hospedajes ? props.actividad.hospedajes.map(h => h.id) : [],
@@ -218,6 +223,7 @@
                               :grabaciones="grabaciones"
                               :programas="programas"
                               :metodosPago="metodosPago"
+                              :botonesPago="botonesPago"
                               :lugaresHospedaje="lugaresHospedaje"
                               :hospedajes="hospedajes"
                               :comidas="comidas"

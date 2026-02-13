@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\BotonPago;
 
 class EsquemaPrecioMembresia extends Model
 {
@@ -14,6 +15,7 @@ class EsquemaPrecioMembresia extends Model
     protected $fillable = [
         'esquema_precio_id',
         'membresia_id',
+        'botonpago_id',
         'moneda_id',
         'precio',
     ];
@@ -31,5 +33,10 @@ class EsquemaPrecioMembresia extends Model
     public function moneda()
     {
         return $this->belongsTo(Moneda::class, 'moneda_id');
+    }
+
+    public function botonPago()
+    {
+        return $this->belongsTo(BotonPago::class, 'botonpago_id');
     }
 }
