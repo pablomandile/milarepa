@@ -6,40 +6,15 @@
 
 <script setup>
     import AppLayout from '@/Layouts/AppLayout.vue';
-    import { Link, router } from '@inertiajs/vue3';
-    import Swal from "sweetalert2";
+    import { Link } from '@inertiajs/vue3';
     import Fieldset from 'primevue/fieldset';
 
-    
     defineProps({
         novedades: {
             type: Object,
             required: true
         }
     })
-
-    const deleteNovedad = (id) => {
-    Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Esta acción no se puede deshacer.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Sí, eliminar",
-        cancelButtonText: "Cancelar",
-    }).then((result) => {
-        if (result.isConfirmed) {
-        router.delete(route('novedades.destroy', id), {
-                onSuccess: () => {
-                Swal.fire("¡Eliminado!", "La Novedad ha sido eliminada.", "success");
-                },
-                onError: () => {
-                Swal.fire("Error", "Hubo un problema al eliminar la Novedad.", "error");
-                },
-            });
-            }
-        });
-    };
-    
 </script>
 
 <template>
