@@ -47,7 +47,7 @@ const props = defineProps({
             <div class="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-amber-100 p-5 shadow-sm">
               <p class="text-xs uppercase tracking-wide text-amber-600">Comprobante</p>
               <p class="mt-3 text-base font-semibold text-amber-900">
-                {{ inscripcion.comprobante ? 'Cargado' : 'No cargado' }}
+                {{ inscripcion.comprobantes?.length ? 'Cargado' : 'No cargado' }}
               </p>
             </div>
           </div>

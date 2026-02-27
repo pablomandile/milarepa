@@ -113,7 +113,7 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Actividades</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Cursos, Retiros y Eventos especiales</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

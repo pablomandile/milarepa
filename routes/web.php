@@ -34,6 +34,8 @@ use App\Http\Controllers\ProgramasController;
 use App\Http\Controllers\ActividadesController;
 use App\Http\Controllers\GrabacionesController;
 use App\Http\Controllers\GridActividadesController;
+use App\Http\Controllers\CalendarioController;
+use App\Http\Controllers\OracionesCantadasController;
 use App\Http\Controllers\ImagenesController;
 use App\Http\Controllers\RegistroMembresiasController;
 use App\Http\Controllers\BotonesPagoController;
@@ -67,6 +69,10 @@ Route::get('/email-preview/inscripcion/{id}', [EmailPreviewController::class, 'i
 // Grid de actividades pÃºblico (solo index + lookup por email)
 Route::get('/grid-actividades', [GridActividadesController::class, 'index'])
     ->name('grid-actividades.index');
+Route::get('/calendario', [CalendarioController::class, 'index'])
+    ->name('calendario.index');
+Route::get('/oraciones-cantadas/{oracionCantada}/public', [OracionesCantadasController::class, 'showPublic'])
+    ->name('oracionescantadas.show-public');
 Route::get('/grid-actividades/{actividad}/public', [GridActividadesController::class, 'showPublicActividad'])
     ->name('grid-actividades.show-public');
 Route::post('/grid-actividades/lookup-email', [GridActividadesController::class, 'lookupEmail'])
@@ -178,6 +184,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/descripciones', DescripcionesController::class, [
         'parameters' => ['descripciones' => 'descripcion'],]);
     Route::resource('/programas', ProgramasController::class);
+    Route::resource('/oracionescantadas', OracionesCantadasController::class, [
+        'parameters' => ['oracionescantadas' => 'oracionCantada'],
+    ]);
     Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');
 
     Route::resource('/esquemaprecios', EsquemaPreciosController::class);

@@ -462,7 +462,7 @@ class GridActividadesController extends Controller
     /**
      * Show pública de una actividad (sin login).
      */
-    public function showPublicActividad(Request $request, Actividad $actividad)
+    public function showPublicActividad(Actividad $actividad)
     {
         $actividad->load([
             'imagen',
@@ -501,7 +501,6 @@ class GridActividadesController extends Controller
             'municipios' => $municipios,
             'barrios' => $barrios,
             'userInscripcionesActividadIds' => $userInscripcionesActividadIds,
-            'returnUrl' => $request->query('return_url'),
         ]);
     }
 
@@ -739,4 +738,5 @@ class GridActividadesController extends Controller
         return [$precioGeneral, $precioMembresia, $membresiaNombre];
     }
 }
+
 

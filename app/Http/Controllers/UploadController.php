@@ -7,70 +7,48 @@ use Illuminate\Support\Facades\Storage;
 
 class UploadController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
+        $file = $request->file('file') ?? $request->file('imagen');
 
-            // Guarda el archivo en public/actividades
-            $path = $file->store('actividades', 'public');
-
-            // Retorna la URL pública del archivo
-            return response()->json(['filePath' => Storage::url($path)], 200);
+        if (!$file) {
+            return response()->json(['error' => 'No file uploaded'], 400);
         }
 
-        // Retorna error si no se envió un archivo
-        return response()->json(['error' => 'No file uploaded'], 400);
+        $folder = (string) $request->input('folder', 'actividades');
+        $allowedFolders = ['actividades', 'img/puyas'];
+
+        if (!in_array($folder, $allowedFolders, true)) {
+            $folder = 'actividades';
+        }
+
+        $path = $file->store($folder, 'public');
+
+        return response()->json(['filePath' => Storage::url($path)], 200);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit( )
+    public function edit()
     {
-
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update( )
+    public function update()
     {
-
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy()
     {
-       
     }
 }

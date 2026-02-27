@@ -140,7 +140,7 @@ class InscripcionesController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, string $id)
+    public function show(string $id)
     {
         $inscripcion = Inscripcion::with([
             'actividad.entidad',
@@ -173,7 +173,6 @@ class InscripcionesController extends Controller
 
         return Inertia::render('Inscripcion/Show', [
             'inscripcion' => $inscripcion,
-            'returnUrl' => $request->query('return_url'),
         ]);
     }
 
@@ -325,6 +324,8 @@ class InscripcionesController extends Controller
         return back()->with('success', 'Comprobante subido correctamente.');
     }
 }
+
+
 
 
 

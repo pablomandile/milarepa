@@ -122,10 +122,13 @@ const logout = () => {
 
                                 <template #content>
                                     <DropdownLink :href="route('actividades.index')" :active="route().current('actividades.*')">
-                                        Todas las Actividades 
+                                        Todas los Cursos y Retiros 
                                     </DropdownLink>
                                     <DropdownLink :href="route('grid-actividades.index')" :active="route().current('gridactividades.*')">
-                                        Actividades del mes
+                                        Grilla de Cursos y Retiros Activos
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('calendario.index')" :active="route().current('calendario.index')">
+                                        Calendario
                                     </DropdownLink>
                                     <DropdownLink :href="route('tiposactividad.index')" :active="route().current('tipoactividad.*')">
                                         Tipos de Actividad
@@ -135,6 +138,9 @@ const logout = () => {
                                     </DropdownLink>
                                     <DropdownLink :href="route('programas.index')" :active="route().current('programas.*')">
                                         Programas
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('oracionescantadas.index')" :active="route().current('oracionescantadas.*')">
+                                        Oraciones Cantadas
                                     </DropdownLink>
                                     <DropdownLink :href="route('disponibilidades.index')" :active="route().current('disponibilidades.*')">
                                         Disponibilidades
@@ -442,10 +448,161 @@ const logout = () => {
 
             <!-- Responsive Navigation Menu -->
             <div :class="{'block': showingNavigationDropdown, 'hidden': ! showingNavigationDropdown}" class="sm:hidden">
-                <div v-if="!isAsistant" class="pt-2 pb-3 space-y-1">
+                <div v-if="!isAsistant" class="pt-2 pb-3 space-y-4">
                     <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                        Dashboard
+                        Inicio
                     </ResponsiveNavLink>
+
+                    <div class="space-y-1">
+                        <div class="px-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Gestión</div>
+                        <ResponsiveNavLink :href="route('maestros.index')" :active="route().current('maestros.*')">
+                            Maestros
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
+                            Coordinadores
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('entidades.index')" :active="route().current('entidades.*')">
+                            Entidades
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
+                            Membresías
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('comidas.index')" :active="route().current('comidas.*')">
+                            Comidas
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('lugareshospedaje.index')" :active="route().current('lugareshospedaje.*')">
+                            Lugares de Hospedaje
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('hospedajes.index')" :active="route().current('hospedajes.*')">
+                            Acomodaciones
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('transportes.index')" :active="route().current('transportes.*')">
+                            Transportes
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('imagenes.index')" :active="route().current('imagenes.*')">
+                            Imagenes
+                        </ResponsiveNavLink>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="px-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Actividades</div>
+                        <ResponsiveNavLink :href="route('actividades.index')" :active="route().current('actividades.*')">
+                            Todas las Actividades
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('grid-actividades.index')" :active="route().current('gridactividades.*')">
+                            Actividades del mes
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('calendario.index')" :active="route().current('calendario.index')">
+                            Calendario
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('tiposactividad.index')" :active="route().current('tipoactividad.*')">
+                            Tipos de Actividad
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('descripciones.index')" :active="route().current('descripciones.*')">
+                            Descripciones
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('programas.index')" :active="route().current('programas.*')">
+                            Programas
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('oracionescantadas.index')" :active="route().current('oracionescantadas.*')">
+                            Oraciones Cantadas
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('disponibilidades.index')" :active="route().current('disponibilidades.*')">
+                            Disponibilidades
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('modalidades.index')" :active="route().current('modalidades.*')">
+                            Modalidades
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('streams.index')" :active="route().current('streams.*')">
+                            Streams
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('grabaciones.index')" :active="route().current('grabaciones.*')">
+                            Grabaciones
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink href="/email-preview" :active="route().current('email.preview.landing')">
+                            Plantillas de Emails
+                        </ResponsiveNavLink>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="px-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Inscripciones</div>
+                        <ResponsiveNavLink :href="route('inscripciones.index')" :active="route().current('inscripciones.*')">
+                            Mis Inscripciones
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
+                            Estado de inscripciones
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
+                            Histórico
+                        </ResponsiveNavLink>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="px-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Membresías</div>
+                        <ResponsiveNavLink :href="route('membresias.index')" :active="route().current('membresias.*')">
+                            Membresías (Tarjetas Kadampa)
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('estado-cuenta-membresias.index')" :active="route().current('estado-cuenta-membresias.*')">
+                            Estado de Cuenta Membresías
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('membresias.gestion-usuarios')" :active="route().current('membresias.gestion-usuarios')">
+                            Adminnistrar Membresías
+                        </ResponsiveNavLink>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="px-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Pagos</div>
+                        <ResponsiveNavLink :href="route('monedas.index')" :active="route().current('monedas.*')">
+                            Monedas
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('metodospago.index')" :active="route().current('metodos-pago.*')">
+                            Métodos de Pago
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('esquemaprecios.index')" :active="route().current('esquema-precios.*')">
+                            Esquema de Precios
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('esquemadescuentos.index')" :active="route().current('esquema-descuentos.*')">
+                            Esquema de Descuentos
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('botonespago.index')" :active="route().current('botonespago.*')">
+                            Botones de Pago
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('excencionpago.index')" :active="route().current('excencionpago.*')">
+                            Exención de pagos
+                        </ResponsiveNavLink>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="px-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Usuarios</div>
+                        <ResponsiveNavLink :href="route('usuarios.index')" :active="route().current('usuarios.*')">
+                            Usuarios
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('roles.index')" :active="route().current('roles.*')">
+                            Roles
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
+                            Permisos
+                        </ResponsiveNavLink>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="px-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Ayuda</div>
+                        <ResponsiveNavLink :href="route('centroayuda.index')" :active="route().current('centroayuda.*')">
+                            Centro de ayuda
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('novedades.index')" :active="route().current('novedades.*')">
+                            Novedades
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('versiones.index')" :active="route().current('versiones.*')">
+                            Versiones
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('reporteerror.index')" :active="route().current('reporteerror.*')">
+                            Reportar un error
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('acercade.index')" :active="route().current('acercade.*')">
+                            Acerca de
+                        </ResponsiveNavLink>
+                    </div>
                 </div>
 
                 <!-- Responsive Settings Options -->

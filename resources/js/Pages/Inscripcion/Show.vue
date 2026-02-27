@@ -11,17 +11,29 @@ const toast = useToast();
 const comprobanteModal = ref(false);
 
 const comprobanteUrl = computed(() => {
-  if (!props.inscripcion?.comprobante) return null;
-  if (props.inscripcion.comprobante.startsWith('http')) return props.inscripcion.comprobante;
-  return `/storage/${props.inscripcion.comprobante}`;
+  const raw = props.inscripcion?.comprobantes?.[0]?.ruta || props.inscripcion?.comprobante;
+  if (!raw) return null;
+  if (raw.startsWith('http')) return raw;
+  return `/storage/${raw}`;
 });
+
+const comprobanteDescripcion = computed(() =>
+  props.inscripcion?.comprobantes?.[0]?.descripcion || ''
+);
 
 const props = defineProps({
   inscripcion: {
     type: Object,
     required: true,
-  }
+  },
+  returnUrl: {
+    type: String,
+    default: null,
+  },
 });
+
+const backUrl = computed(() => props.returnUrl || '/inscripciones');
+const backLabel = computed(() => props.returnUrl ? 'Volver' : 'Volver a Inscripciones');
 
 const formatPrice = (value) => {
   if (value === null || value === undefined || isNaN(value)) return '0,00';
@@ -140,20 +152,30 @@ watch(() => $page.props.flash, (flash) => {
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div v-if="inscripcion.hospedaje" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                <h4 class="text-sm font-semibold text-gray-900 mb-1">Hospedaje</h4>
-                <p class="text-gray-700">{{ inscripcion.hospedaje.nombre }}</p>
+              <div
+                v-if="inscripcion.hospedaje || inscripcion.comida || inscripcion.transporte"
+                class="bg-rose-50 rounded-xl border border-rose-100 shadow-sm p-4 sm:p-5 sm:col-span-3"
+              >
+                <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-rose-500"></span> Servicios
+                </h3>
+                <div class="text-sm text-gray-700 space-y-1">
+                  <div v-if="inscripcion.hospedaje">
+                    <strong>Hospedaje:</strong> {{ inscripcion.hospedaje.nombre }}
+                  </div>
+                  <div v-if="inscripcion.comida">
+                    <strong>Comida:</strong> {{ inscripcion.comida.nombre }}
+                  </div>
+                  <div v-if="inscripcion.transporte">
+                    <strong>Transporte:</strong> {{ inscripcion.transporte.descripcion || inscripcion.transporte.nombre }}
+                  </div>
+                </div>
               </div>
-              <div v-if="inscripcion.comida" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                <h4 class="text-sm font-semibold text-gray-900 mb-1">Comida</h4>
-                <p class="text-gray-700">{{ inscripcion.comida.nombre }}</p>
-              </div>
-              <div v-if="inscripcion.transporte" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                <h4 class="text-sm font-semibold text-gray-900 mb-1">Transporte</h4>
-                <p class="text-gray-700">{{ inscripcion.transporte.nombre }}</p>
-              </div>
-              <div v-if="inscripcion.comprobante" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:col-span-3">
+              <div v-if="comprobanteUrl" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:col-span-3">
                 <h4 class="text-sm font-semibold text-gray-900 mb-1">Comprobante</h4>
+                <p v-if="comprobanteDescripcion" class="text-xs text-gray-500 mb-2">
+                  {{ comprobanteDescripcion }}
+                </p>
                 <button
                   class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800"
                   type="button"
@@ -167,10 +189,10 @@ watch(() => $page.props.flash, (flash) => {
 
             <div class="pt-2 flex flex-wrap gap-3">
               <button
-                @click="$inertia.visit('/inscripciones')"
+                @click="$inertia.visit(backUrl)"
                 class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors"
               >
-                Volver a Inscripciones
+                {{ backLabel }}
               </button>
             </div>
           </div>

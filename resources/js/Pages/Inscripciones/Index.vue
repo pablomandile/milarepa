@@ -1,7 +1,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
-import DataView from 'primevue/dataview';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { usePage } from '@inertiajs/vue3';
@@ -21,13 +22,14 @@ const props = defineProps({
   }
 });
 
-const layout = ref('list'); // Usar layout de lista
 const toast = useToast();
 const deleteModalVisible = ref(false);
 const inscripcionToDelete = ref(null);
+const expandedRows = ref([]);
 const comprobanteModalVisible = ref(false);
 const inscripcionParaComprobante = ref(null);
 const comprobanteFile = ref(null);
+const comprobanteDescripcion = ref('');
 
 const confirmDelete = (id) => {
     inscripcionToDelete.value = id;
@@ -57,6 +59,7 @@ const cancelDelete = () => {
 const openComprobanteModal = (inscripcion) => {
     inscripcionParaComprobante.value = inscripcion;
     comprobanteFile.value = null;
+    comprobanteDescripcion.value = '';
     comprobanteModalVisible.value = true;
 };
 
@@ -70,6 +73,9 @@ const subirComprobante = () => {
 
     const formData = new FormData();
     formData.append('comprobante', comprobanteFile.value);
+    if (comprobanteDescripcion.value) {
+        formData.append('descripcion', comprobanteDescripcion.value);
+    }
 
     router.post(
         route('inscripciones.comprobante', { inscripcion: inscripcionParaComprobante.value.id }),
@@ -80,6 +86,7 @@ const subirComprobante = () => {
                 comprobanteModalVisible.value = false;
                 inscripcionParaComprobante.value = null;
                 comprobanteFile.value = null;
+                comprobanteDescripcion.value = '';
             },
         }
     );
@@ -92,20 +99,65 @@ const formatMoney = (value) => {
 };
 
 const comprobanteModal = ref(false);
-const comprobanteUrl = ref('');
-const comprobanteIsPdf = computed(() => (comprobanteUrl.value || '').toLowerCase().includes('.pdf'));
+const comprobantesParaVer = ref([]);
+const mapModalVisible = ref(false);
+const selectedAddress = ref('');
+
+const mapEmbedUrl = computed(() => {
+    if (!selectedAddress.value) return '';
+    return `https://maps.google.com/maps?q=${encodeURIComponent(selectedAddress.value)}&output=embed`;
+});
+
+const normalizarComprobante = (ruta, descripcion) => {
+    if (!ruta) return null;
+    const url = /^https?:\/\//i.test(ruta) ? ruta : `/storage/${ruta}`;
+    return {
+        url,
+        descripcion: descripcion || '',
+        isPdf: url.toLowerCase().includes('.pdf'),
+    };
+};
 
 const urlComprobante = (inscripcion) => {
-    const raw = inscripcion?.comprobante_url || inscripcion?.comprobante;
+    const raw = inscripcion?.comprobantes?.[0]?.ruta || inscripcion?.comprobante_url || inscripcion?.comprobante;
     if (!raw) return null;
     if (/^https?:\/\//i.test(raw)) return raw;
     return `/storage/${raw}`;
 };
 
-const abrirComprobante = (url) => {
-    if (!url) return;
-    comprobanteUrl.value = url;
+const comprobantesExtras = (inscripcion) => {
+    const count = inscripcion?.comprobantes?.length || 0;
+    return count > 1 ? count - 1 : 0;
+};
+
+const abrirComprobante = (inscripcionOrUrl) => {
+    const items = [];
+    if (inscripcionOrUrl && typeof inscripcionOrUrl === 'object') {
+        const inscripcion = inscripcionOrUrl;
+        if (Array.isArray(inscripcion.comprobantes) && inscripcion.comprobantes.length) {
+            inscripcion.comprobantes.forEach((comprobante) => {
+                const item = normalizarComprobante(comprobante.ruta, comprobante.descripcion);
+                if (item) items.push(item);
+            });
+        } else {
+            const raw = inscripcion?.comprobante_url || inscripcion?.comprobante;
+            const item = normalizarComprobante(raw, '');
+            if (item) items.push(item);
+        }
+    } else {
+        const item = normalizarComprobante(inscripcionOrUrl, '');
+        if (item) items.push(item);
+    }
+
+    if (!items.length) return;
+    comprobantesParaVer.value = items;
     comprobanteModal.value = true;
+};
+
+const abrirMapa = (direccion) => {
+    if (!direccion) return;
+    selectedAddress.value = direccion;
+    mapModalVisible.value = true;
 };
 
 // Mostrar toasts basados en mensajes flash compartidos
@@ -117,6 +169,10 @@ watch(() => $page.props.flash, (flash) => {
     }
 }, { immediate: true });
 </script>
+
+<style scoped>
+@import '../../../css/datatable-header-style.css';
+</style>
 
 <template>
     <AppLayout>
@@ -146,154 +202,222 @@ watch(() => $page.props.flash, (flash) => {
                 
                 <div class="p-6 bg-white border-b border-gray-200">
                     <div class="mt-4">
-                        <DataView
-                        :value="inscripciones"
-                        :layout="layout"
-                        paginator
-                        :rows="10"
-                        :rowsPerPageOptions="[5, 10, 20]"
-                        class="mb-6"
+                        <DataTable
+                            :value="inscripciones"
+                            dataKey="id"
+                            v-model:expandedRows="expandedRows"
+                            paginator
+                            :rows="10"
+                            :rowsPerPageOptions="[5, 10, 20]"
+                            responsiveLayout="scroll"
+                            class="p-datatable-sm"
                         >
+                            <Column expander style="width: 3rem" />
+                            <Column header="Imagen" style="width: 90px">
+                                <template #body="{ data }">
+                                    <Link
+                                        :href="route('inscripciones.show', { inscripcion: data.id })"
+                                        class="block w-16 h-16 bg-gray-100 rounded overflow-hidden"
+                                        title="Ver inscripción"
+                                    >
+                                        <img
+                                            v-if="data.actividad?.imagen"
+                                            :src="'/storage/' + data.actividad.imagen.ruta"
+                                            :alt="'Imagen de ' + data.actividad.nombre"
+                                            class="w-full h-full object-contain"
+                                        />
+                                        <img
+                                            v-else
+                                            src="/storage/img/actividades/imagen-no-disponible.jpg"
+                                            alt="Sin imagen"
+                                            class="w-full h-full object-contain"
+                                        />
+                                    </Link>
+                                </template>
+                            </Column>
 
-                        <!-- Template list -->
-                        <template #list="slotProps">
-                            <div class="grid grid-cols-1 gap-4">
-                                <div
-                                    v-for="(inscripcion, index) in slotProps.items"
-                                    :key="inscripcion.id"
-                                    class="col-12 p-4 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors min-h-[12rem]"
-                                >
-                                    <div class="grid grid-cols-1 md:grid-cols-[180px_minmax(0,1fr)_auto] gap-4 h-full">
-                                        <!-- Imagen fija adaptada a la altura de la card -->
-                                        <Link
-                                            :href="route('inscripciones.show', { inscripcion: inscripcion.id })"
-                                            class="h-32 md:h-40 flex items-center justify-center bg-gray-100 rounded hover:ring-2 hover:ring-indigo-300 transition group overflow-hidden"
-                                            title="Ver inscripción"
+                            <Column header="Actividad">
+                                <template #body="{ data }">
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-800">
+                                            {{ data.actividad?.nombre || '-' }}
+                                        </p>
+                                        <p class="text-xs text-gray-600">
+                                            {{ data.actividad?.entidad?.nombre || '-' }}
+                                        </p>
+                                    </div>
+                                </template>
+                            </Column>
+
+                            <Column header="Fecha">
+                                <template #body="{ data }">
+                                    <span class="text-sm">{{ data.actividad?.fecha_inicio_formateada || '-' }}</span>
+                                </template>
+                            </Column>
+
+                            <Column header="Lugar">
+                                <template #body="{ data }">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm break-words">{{ data.actividad?.entidad?.direccion || '-' }}
+                                        <button
+                                            v-if="data.actividad?.entidad?.direccion"
+                                            type="button"
+                                            class="inline-flex items-center justify-center p-0 text-sky-700 hover:text-sky-900 shrink-0"
+                                            title="Ver en mapa"
+                                            aria-label="Ver en mapa"
+                                            @click="abrirMapa(data.actividad.entidad.direccion)"
                                         >
-                                            <img
-                                                v-if="inscripcion.actividad?.imagen"
-                                                :src="'/storage/' + inscripcion.actividad.imagen.ruta"
-                                                :alt="'Imagen de ' + inscripcion.actividad.nombre"
-                                                class="max-w-full max-h-32 md:max-h-40 object-contain transition-transform duration-300 ease-out transform group-hover:scale-110 cursor-pointer"
-                                            />
-                                            <img
-                                                v-else
-                                                src="/storage/img/actividades/imagen-no-disponible.jpg"
-                                                alt="Sin imagen"
-                                                class="max-w-full max-h-32 md:max-h-40 object-contain transition-transform duration-300 ease-out transform group-hover:scale-110 cursor-pointer"
-                                            />
-                                        </Link>
-                                        <!-- Información principal -->
-                                        <div class="flex flex-col justify-between text-sm self-center">
-                                            <div class="p-3 md:p-4 bg-white rounded border border-gray-200 shadow-sm w-full md:max-w-3xl">
-                                                <div class="flex items-start justify-between gap-2 mb-2">
-                                                    <h3 class="text-lg font-semibold text-gray-800 mb-3">
-                                                        {{ inscripcion.actividad.nombre }}
-                                                    </h3>
-                                                    <p class="text-sm text-gray-500 shrink-0">
-                                                        Inscrito el: {{ new Date(inscripcion.created_at).toLocaleDateString() }}
-                                                    </p>
-                                                </div>
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
-                                                    <p><strong>Fecha: </strong> {{ inscripcion.actividad.fecha_inicio_formateada }}</p>
-                                                    <p><strong>Lugar: </strong> {{ inscripcion.actividad.entidad?.direccion }}</p>
-                                                    <p><strong>Membresía: </strong> {{ inscripcion.membresia }}</p>
-                                                    <p><strong>Precio General: </strong> ${{ formatMoney(inscripcion.precioGeneral) }}</p>
-                                                    <p><strong>Monto a Pagar: </strong> <span class="text-green-600">${{ formatMoney(inscripcion.montoapagar) }}</span></p>
-                                                    <p><strong>Estado de Pago: </strong>
-                                                        <span :class="{
-                                                            'text-green-600': inscripcion.pago === 'Saldado',
-                                                            'text-yellow-600': inscripcion.pago === 'Parcial',
-                                                            'text-yellow-600': inscripcion.pago === 'Pendiente'
-                                                        }">
-                                                            {{ inscripcion.pago }}
-                                                        </span>
-                                                    </p>
-                                                    <p v-if="inscripcion.asistencia !== 'Pendiente'">
-                                                        <strong>Asistencia:</strong> {{ inscripcion.asistencia }}
-                                                    </p>
-                                                    <p><strong>Online:</strong> {{ inscripcion.online ? 'Sí' : 'No' }}</p>
-                                                    <p v-if="inscripcion.envioLinkStream && inscripcion.envioLinkStream !== 'No aplica'"><strong>Stream:</strong> {{ inscripcion.envioLinkStream }}</p>
-                                                    <p v-if="inscripcion.envioGrabación && inscripcion.envioGrabación !== 'No aplica'"><strong>Grabación:</strong> {{ inscripcion.envioGrabación }}</p>
-                                                </div>
-                                                <div v-if="inscripcion.hospedaje || inscripcion.comida || inscripcion.transporte" class="mt-2">
-                                                    <p class="text-sm font-medium text-gray-700">Servicios Adicionales:</p>
-                                                    <ul class="text-sm text-gray-600 ml-4">
-                                                        <li v-if="inscripcion.hospedaje">Hospedaje: {{ inscripcion.hospedaje.nombre }}</li>
-                                                        <li v-if="inscripcion.comida">Comida: {{ inscripcion.comida.nombre }}</li>
-                                                        <li v-if="inscripcion.transporte">Transporte: {{ inscripcion.transporte.nombre }}</li>
-                                                    </ul>
-                                                </div>
-                                            <div class="mt-2 flex items-center gap-2 text-sm text-gray-700">
-                                                <span><strong>Comprobante: </strong></span>
-                                                <button
-                                                    v-if="urlComprobante(inscripcion)"
-                                                    type="button"
-                                                    @click="abrirComprobante(urlComprobante(inscripcion))"
-                                                    class="inline-flex items-center justify-center text-indigo-600 hover:text-indigo-700"
-                                                    title="Ver comprobante"
-                                                >
-                                                    <i class="fas fa-file-alt"></i>
-                                                </button>
-                                                <span v-else class="text-xs text-gray-400">Sin comprobante</span>
-                                            </div>
-                                            </div>
-                                        </div>
+                                            <i class="pi pi-map"></i>
+                                        </button></span>
+                                    </div>
+                                </template>
+                            </Column>
 
-                                        <!-- Fecha de inscripción y acciones -->
-                                        <div class="text-right flex flex-col items-end justify-between ">
-                                            <div class="mt-2 flex flex-col gap-2 w-full items-end">
-                                                <div class="flex flex-wrap justify-end gap-2 p-2 bg-white border border-gray-200 rounded shadow-sm">
-                                                    <Link
-                                                        v-if="inscripcion.pago !== 'Pendiente'"
-                                                        :href="route('inscripciones.ticket', { inscripcion: inscripcion.id })"
-                                                        class="w-24 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-700 transition-colors text-center"
-                                                        title="Ver Ticket"
-                                                    >
-                                                        Ver Ticket
-                                                    </Link>
-                                                    <button 
-                                                        @click="confirmDelete(inscripcion.id)"
-                                                        class="w-24 px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-700 transition-colors"
-                                                        title="Eliminar inscripción"
-                                                    >
-                                                        Eliminar
-                                                    </button>
-                                                </div>
-                                                <div
-                                                    v-if="inscripcion.pago === 'Pendiente'"
-                                                    class="flex flex-wrap justify-end gap-2 p-2 bg-white border border-gray-200 rounded shadow-sm"
-                                                >
-                                                    <button
-                                                        type="button"
-                                                        disabled
-                                                        class="w-24 px-3 py-1 bg-green-600 text-white text-sm rounded opacity-70 cursor-not-allowed text-center inline-flex items-center justify-center"
-                                                        title="Disponible próximamente"
-                                                    >
-                                                        Pagar
-                                                    </button>
-                                                    <button
-                                                        @click="openComprobanteModal(inscripcion)"
-                                                        class="w-24 px-3 py-1 bg-indigo-500 text-white text-sm rounded hover:bg-indigo-700 transition-colors"
-                                                    >
-                                                        Informar pago
-                                                    </button>
-                                                </div>
-                                            </div>
+
+                            <Column header="Precio General">
+                                <template #body="{ data }">
+                                    <span class="text-sm">${{ formatMoney(data.precioGeneral) }}</span>
+                                </template>
+                            </Column>
+
+                            <Column header="Monto a pagar">
+                                <template #body="{ data }">
+                                    <span class="text-sm text-green-700 font-semibold">${{ formatMoney(data.montoapagar) }}</span>
+                                </template>
+                            </Column>
+
+                            <Column header="Pago">
+                                <template #body="{ data }">
+                                    <span
+                                        class="text-xs font-semibold px-2 py-1 rounded-full"
+                                        :class="{
+                                            'bg-green-100 text-green-700': data.pago === 'Saldado',
+                                            'bg-yellow-100 text-yellow-700': data.pago === 'Parcial',
+                                            'bg-yellow-100 text-yellow-700': data.pago === 'Pendiente'
+                                        }"
+                                    >
+                                        {{ data.pago }}
+                                    </span>
+                                </template>
+                            </Column>
+
+                            <Column header="Asistencia">
+                                <template #body="{ data }">
+                                    <span class="text-sm">{{ data.asistencia || '-' }}</span>
+                                </template>
+                            </Column>
+
+
+                            <Column header="Comprobante" class="text-center">
+                                <template #body="{ data }">
+                                    <button
+                                        v-if="urlComprobante(data)"
+                                        type="button"
+                                        @click="abrirComprobante(data)"
+                                        class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200"
+                                        title="Ver comprobante"
+                                        aria-label="Ver comprobante"
+                                    >
+                                        <i class="pi pi-file"></i>
+                                    </button>
+                                    <span
+                                        v-if="comprobantesExtras(data) > 0"
+                                        class="ms-1 text-xs font-semibold text-gray-500"
+                                    >
+                                        +{{ comprobantesExtras(data) }}
+                                    </span>
+                                    <span v-else class="text-xs text-gray-400">Sin comprobante</span>
+                                </template>
+                            </Column>
+
+                            <Column header="Inscripto">
+                                <template #body="{ data }">
+                                    <span class="text-sm">{{ new Date(data.created_at).toLocaleDateString() }}</span>
+                                </template>
+                            </Column>
+
+                            <Column header="Acciones" class="text-center">
+                                <template #body="{ data }">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <Link
+                                            v-if="data.pago === 'Saldado'"
+                                            :href="route('inscripciones.ticket', { inscripcion: data.id })"
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200"
+                                            title="Ver ticket"
+                                            aria-label="Ver ticket"
+                                        >
+                                            <i class="pi pi-ticket"></i>
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            @click="openComprobanteModal(data)"
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200"
+                                            title="Informar pago"
+                                            aria-label="Informar pago"
+                                        >
+                                            <i class="pi pi-upload"></i>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click="confirmDelete(data.id)"
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200"
+                                            title="Eliminar inscripción"
+                                            aria-label="Eliminar inscripción"
+                                        >
+                                            <i class="pi pi-trash"></i>
+                                        </button>
+                                    </div>
+                                </template>
+                            </Column>
+
+                            <template #empty>
+                                <div class="text-center py-8">
+                                    <p class="text-gray-500 text-lg">No tienes inscripciones registradas.</p>
+                                    <p class="text-gray-400 mt-2">¡Inscríbete en una actividad para comenzar!</p>
+                                </div>
+                            </template>
+
+                            <template #expansion="{ data }">
+                                <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+                                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-7">
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Membresía</p>
+                                            <p class="text-sm text-gray-800">{{ data.membresia || '-' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Online</p>
+                                            <p class="text-sm text-gray-800">{{ data.online ? 'Sí' : 'No' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Stream</p>
+                                            <p class="text-sm text-gray-800">{{ data.envioLinkStream || '-' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Grabación</p>
+                                            <p class="text-sm text-gray-800">{{ data.envioGrabación || '-' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Transporte</p>
+                                            <p class="text-sm text-gray-800">
+                                                {{ data.transporte?.descripcion || data.transporte?.nombre || '-' }}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Comida</p>
+                                            <p class="text-sm text-gray-800">
+                                                {{ data.comida?.nombre || '-' }}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Hospedaje</p>
+                                            <p class="text-sm text-gray-800">
+                                                {{ data.hospedaje?.nombre || '-' }}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </template>
-
-                        <!-- Mensaje cuando no hay inscripciones -->
-                        <template #empty>
-                            <div class="text-center py-8">
-                                <p class="text-gray-500 text-lg">No tienes inscripciones registradas.</p>
-                                <p class="text-gray-400 mt-2">¡Inscríbete en una actividad para comenzar!</p>
-                            </div>
-                        </template>
-                        </DataView>
+                            </template>
+                        </DataTable>
                     </div>
                 </div>
 
@@ -340,6 +464,18 @@ watch(() => $page.props.flash, (flash) => {
                     <p class="text-sm text-gray-600 mb-3">
                         Subí un comprobante (PDF, JPG o PNG).
                     </p>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="inscripcion_comprobante_descripcion">
+                            Descripción (opcional)
+                        </label>
+                        <input
+                            id="inscripcion_comprobante_descripcion"
+                            v-model="comprobanteDescripcion"
+                            type="text"
+                            class="block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-700"
+                            placeholder="Ej: Transferencia febrero"
+                        />
+                    </div>
                     <input
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
@@ -368,13 +504,35 @@ watch(() => $page.props.flash, (flash) => {
                 </Dialog>
 
                 <Dialog v-model:visible="comprobanteModal" modal header="Comprobante" :style="{ width: '700px' }">
-                    <div class="max-h-[70vh] overflow-y-auto">
-                        <template v-if="comprobanteIsPdf">
-                            <iframe :src="comprobanteUrl" class="w-full h-[60vh] rounded"></iframe>
-                        </template>
-                        <template v-else>
-                            <img v-if="comprobanteUrl" :src="comprobanteUrl" class="w-full rounded" alt="Comprobante" />
-                        </template>
+                    <div class="max-h-[70vh] overflow-y-auto space-y-4">
+                        <div
+                            v-for="(item, index) in comprobantesParaVer"
+                            :key="`${item.url}-${index}`"
+                            class="rounded border border-gray-200 p-3 bg-white"
+                        >
+                            <p v-if="item.descripcion" class="text-xs text-gray-500 mb-2">
+                                {{ item.descripcion }}
+                            </p>
+                            <iframe v-if="item.isPdf" :src="item.url" class="w-full h-[60vh] rounded"></iframe>
+                            <img v-else :src="item.url" class="w-full rounded" alt="Comprobante" />
+                        </div>
+                    </div>
+                </Dialog>
+
+                <Dialog
+                    v-model:visible="mapModalVisible"
+                    modal
+                    header="Ubicacion"
+                    :style="{ width: '800px' }"
+                >
+                    <div v-if="selectedAddress" class="space-y-3">
+                        <p class="text-sm text-gray-700">{{ selectedAddress }}</p>
+                        <iframe
+                            :src="mapEmbedUrl"
+                            class="w-full h-[60vh] rounded border border-gray-200"
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                        ></iframe>
                     </div>
                 </Dialog>
             </div>

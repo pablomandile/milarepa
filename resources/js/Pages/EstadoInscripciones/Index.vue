@@ -25,158 +25,204 @@
                         </div>
 
                         <div v-if="filtradas.length > 0" class="overflow-x-auto">
-                            <table class="min-w-full border-collapse border border-gray-300">
-                                <thead class="bg-indigo-300 text-white text-sm">
-                                    <tr>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Nombre</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Email</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">País</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Provincia</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Municipio/Barrio</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Actividad</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Membresía</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Monto</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-center">Pago</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-center">Comprobante</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Estado</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Inscripto</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Auditoría</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-center">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="inscripcion in filtradas" :key="inscripcion.id" class="hover:bg-gray-50">
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
-                                            <div class="flex flex-col gap-1">
-                                                <span class="font-semibold text-gray-800">{{ nombreUsuario(inscripcion) }}</span>
-                                                <span
-                                                    class="inline-flex w-fit items-center px-2 py-1 rounded-full text-xs font-medium"
-                                                    :class="isInvitado(inscripcion) ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
-                                                >
-                                                    {{ isInvitado(inscripcion) ? 'Invitado' : 'Registrado' }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
-                                            {{ emailUsuario(inscripcion) }}
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
-                                            {{ paisUsuario(inscripcion) }}
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
-                                            {{ provinciaUsuario(inscripcion) }}
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
-                                            {{ municipioBarrioUsuario(inscripcion) }}
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2">
-                                            <div>
-                                                <p class="text-sm font-semibold text-gray-800">
-                                                    {{ inscripcion.actividad?.nombre || '-' }}
-                                                </p>
-                                                <p class="text-xs text-gray-600">
-                                                    {{ inscripcion.actividad?.entidad?.nombre || '-' }}
-                                                </p>
-                                            </div>
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
-                                            {{ inscripcion.membresia || '-' }}
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
-                                            <input
-                                                v-if="isEditing(inscripcion)"
-                                                v-model.number="editForm.montoapagar"
-                                                type="number"
-                                                min="0"
-                                                step="0.01"
-                                                class="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
-                                            />
-                                            <span v-else>
-                                                ${{ formatearMonto(inscripcion.montoapagar) }}
-                                            </span>
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-center">
-                                            <select
-                                                v-if="isEditing(inscripcion)"
-                                                v-model="editForm.pago"
-                                                class="rounded border border-gray-300 px-2 py-1 text-sm"
-                                            >
-                                                <option value="Saldado">Saldado</option>
-                                                <option value="Parcial">Parcial</option>
-                                                <option value="Pendiente">Pendiente</option>
-                                            </select>
+                            <DataTable
+                                :value="filtradas"
+                                dataKey="id"
+                                v-model:expandedRows="expandedRows"
+                                responsiveLayout="scroll"
+                                class="p-datatable-sm"
+                            >
+                                <Column expander style="width: 3rem" />
+
+                                <Column header="Nombre">
+                                    <template #body="{ data }">
+                                        <div class="flex flex-col gap-1">
+                                            <span class="font-semibold text-gray-800">{{ nombreUsuario(data) }}</span>
                                             <span
-                                                v-else
-                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                                                :class="badgePagoClass(inscripcion.pago)"
+                                                class="inline-flex w-fit items-center px-2 py-1 rounded-full text-xs font-medium"
+                                                :class="isInvitado(data) ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
                                             >
-                                                {{ inscripcion.pago || '-' }}
+                                                {{ isInvitado(data) ? 'Invitado' : 'Registrado' }}
                                             </span>
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-center">
+                                        </div>
+                                    </template>
+                                </Column>
+
+                                <Column header="Actividad">
+                                    <template #body="{ data }">
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-800">
+                                                {{ data.actividad?.nombre || '-' }}
+                                            </p>
+                                            <p class="text-xs text-gray-600">
+                                                {{ data.actividad?.entidad?.nombre || '-' }}
+                                            </p>
+                                        </div>
+                                    </template>
+                                </Column>
+
+                                <Column header="Membresía">
+                                    <template #body="{ data }">
+                                        <span class="text-sm">{{ data.membresia || '-' }}</span>
+                                    </template>
+                                </Column>
+
+                                <Column header="Monto">
+                                    <template #body="{ data }">
+                                        <input
+                                            v-if="isEditing(data)"
+                                            v-model.number="editForm.montoapagar"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            class="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
+                                        />
+                                        <span v-else class="text-sm">
+                                            ${{ formatearMonto(data.montoapagar) }}
+                                        </span>
+                                    </template>
+                                </Column>
+
+                                <Column header="Pago" class="text-center">
+                                    <template #body="{ data }">
+                                        <select
+                                            v-if="isEditing(data)"
+                                            v-model="editForm.pago"
+                                            class="rounded border border-gray-300 px-2 py-1 text-sm"
+                                        >
+                                            <option value="Saldado">Saldado</option>
+                                            <option value="Parcial">Parcial</option>
+                                            <option value="Pendiente">Pendiente</option>
+                                        </select>
+                                        <span
+                                            v-else
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                            :class="badgePagoClass(data.pago)"
+                                        >
+                                            {{ data.pago || '-' }}
+                                        </span>
+                                    </template>
+                                </Column>
+
+                                <Column header="Comprobante" class="text-center">
+                                    <template #body="{ data }">
+                                        <button
+                                            v-if="isEditing(data)"
+                                            type="button"
+                                            @click="openComprobanteModal(data)"
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200"
+                                            title="Subir comprobante"
+                                        >
+                                            <i class="pi pi-upload"></i>
+                                        </button>
+                                        <template v-else>
                                             <button
-                                                v-if="urlComprobante(inscripcion)"
+                                                v-if="urlComprobante(data)"
                                                 type="button"
-                                                @click="abrirComprobante(urlComprobante(inscripcion))"
+                                                @click="abrirComprobante(data)"
                                                 class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200"
                                                 title="Ver comprobante"
                                             >
                                                 <i class="fas fa-file-alt"></i>
                                             </button>
+                                            <span
+                                                v-if="comprobantesExtras(data) > 0"
+                                                class="text-xs font-semibold text-gray-500"
+                                            >
+                                                +{{ comprobantesExtras(data) }}
+                                            </span>
                                             <span v-else class="text-xs text-gray-400">Sin comprobante</span>
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
-                                            {{ inscripcion.estado?.estado || '-' }}
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
-                                            {{ formatearFecha(inscripcion.created_at) }}
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
-                                            <div class="flex flex-col gap-1">
-                                                <span class="font-semibold text-gray-800">
-                                                    {{ inscripcion.auditor_user?.name || '-' }}
-                                                </span>
-                                                <span class="text-xs text-gray-500">
-                                                    {{ formatearFecha(inscripcion.auditoria_fecha) }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-center">
-                                            <div v-if="canEdit" class="flex justify-center gap-2">
-                                                <template v-if="isEditing(inscripcion)">
-                                                    <button
-                                                        class="inline-flex items-center justify-center rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700 disabled:opacity-60"
-                                                        :disabled="isSaving"
-                                                        @click="guardarEdicion(inscripcion)"
-                                                        aria-label="Guardar"
-                                                        title="Guardar"
-                                                    >
-                                                        ✓
-                                                    </button>
-                                                    <button
-                                                        class="inline-flex items-center justify-center rounded bg-gray-200 px-2 py-1 text-xs text-gray-700 hover:bg-gray-300"
-                                                        @click="cancelarEdicion"
-                                                        aria-label="Cancelar"
-                                                        title="Cancelar"
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                </template>
+                                        </template>
+                                    </template>
+                                </Column>
+
+                                <Column header="Estado">
+                                    <template #body="{ data }">
+                                        <span class="text-sm">{{ data.estado?.estado || '-' }}</span>
+                                    </template>
+                                </Column>
+
+                                <Column header="Acciones" class="text-center">
+                                    <template #body="{ data }">
+                                        <div v-if="canEdit" class="flex justify-center gap-2">
+                                            
+                                            <template v-if="isEditing(data)">
                                                 <button
-                                                    v-else
-                                                    class="inline-flex items-center justify-center rounded bg-indigo-50 px-2 py-1 text-xs text-indigo-700 hover:bg-indigo-100"
-                                                    @click="iniciarEdicion(inscripcion)"
-                                                    aria-label="Editar"
-                                                    title="Editar"
+                                                    class="inline-flex items-center justify-center rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700 disabled:opacity-60"
+                                                    :disabled="isSaving"
+                                                    @click="guardarEdicion(data)"
+                                                    aria-label="Guardar"
+                                                    title="Guardar"
                                                 >
-                                                    ✎
+                                                    ✓
                                                 </button>
+                                                <button
+                                                    class="inline-flex items-center justify-center rounded bg-gray-200 px-2 py-1 text-xs text-gray-700 hover:bg-gray-300"
+                                                    @click="cancelarEdicion"
+                                                    aria-label="Cancelar"
+                                                    title="Cancelar"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </template>
+                                            <button
+                                                v-else
+                                                class="inline-flex items-center justify-center rounded bg-indigo-50 px-2 py-1 text-xs text-indigo-700 hover:bg-indigo-100"
+                                                @click="iniciarEdicion(data)"
+                                                aria-label="Editar"
+                                                title="Editar"
+                                            >
+                                                <i class="pi pi-file-edit"></i>
+                                            </button>
+                                            <button
+                                                v-if="!isEditing(data)"
+                                                class="inline-flex items-center justify-center rounded bg-emerald-50 px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-100"
+                                                @click="abrirConfirmarSaldado(data)"
+                                                aria-label="Saldado"
+                                                title="Saldado"
+                                            >
+                                                <i class="pi pi-check-circle"></i>
+                                            </button>
+                                        </div>
+                                        <span v-else class="text-xs text-gray-400">Sin permisos</span>
+                                    </template>
+                                </Column>
+
+                                <template #expansion="{ data }">
+                                    <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+                                        <div class="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-6">
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</p>
+                                                <p class="text-sm text-gray-800">{{ emailUsuario(data) }}</p>
                                             </div>
-                                            <span v-else class="text-xs text-gray-400">Sin permisos</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">País</p>
+                                                <p class="text-sm text-gray-800">{{ paisUsuario(data) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Provincia</p>
+                                                <p class="text-sm text-gray-800">{{ provinciaUsuario(data) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Municipio/Barrio</p>
+                                                <p class="text-sm text-gray-800">{{ municipioBarrioUsuario(data) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Inscripto</p>
+                                                <p class="text-sm text-gray-800">{{ formatearFecha(data.created_at) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Auditor</p>
+                                                <p class="text-sm text-gray-800">{{ data.auditor_user?.name || '-' }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Auditado</p>
+                                                <p class="text-sm text-gray-800">{{ formatearFecha(data.auditoria_fecha) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </DataTable>
                         </div>
 
                         <div v-else class="text-center py-12">
@@ -208,22 +254,106 @@
         </div>
 
         <Dialog v-model:visible="comprobanteModal" modal header="Comprobante" :style="{ width: '700px' }">
-            <div class="max-h-[70vh] overflow-y-auto">
-                <template v-if="comprobanteIsPdf">
-                    <iframe :src="comprobanteUrl" class="w-full h-[60vh] rounded"></iframe>
-                </template>
-                <template v-else>
-                    <img v-if="comprobanteUrl" :src="comprobanteUrl" class="w-full rounded" alt="Comprobante" />
-                </template>
+            <div class="max-h-[70vh] overflow-y-auto space-y-4">
+                <div
+                    v-for="(item, index) in comprobantesParaVer"
+                    :key="`${item.url}-${index}`"
+                    class="rounded border border-gray-200 p-3 bg-white"
+                >
+                    <p v-if="item.descripcion" class="text-xs text-gray-500 mb-2">
+                        {{ item.descripcion }}
+                    </p>
+                    <iframe v-if="item.isPdf" :src="item.url" class="w-full h-[60vh] rounded"></iframe>
+                    <img v-else :src="item.url" class="w-full rounded" alt="Comprobante" />
+                </div>
             </div>
+        </Dialog>
+
+        <Dialog
+            v-model:visible="confirmSaldadoVisible"
+            modal
+            header="Confirmar saldado"
+            :style="{ width: '420px' }"
+        >
+            <p class="text-sm text-gray-700">
+                ¿Confirmas marcar la inscripción como saldada y dejar el monto en $0?
+            </p>
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <button
+                        type="button"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        @click="confirmSaldadoVisible = false"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+                        @click="confirmarSaldado"
+                    >
+                        Confirmar
+                    </button>
+                </div>
+            </template>
+        </Dialog>
+
+        <Dialog
+            v-model:visible="comprobanteModalVisible"
+            modal
+            header="Subir comprobante"
+            :style="{ width: '450px' }"
+        >
+            <p class="text-sm text-gray-600 mb-3">
+                Subí un comprobante (PDF, JPG o PNG).
+            </p>
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="estado_inscripciones_comprobante_descripcion">
+                    Descripción (opcional)
+                </label>
+                <input
+                    id="estado_inscripciones_comprobante_descripcion"
+                    v-model="comprobanteDescripcion"
+                    type="text"
+                    class="block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-700"
+                    placeholder="Ej: Transferencia febrero"
+                />
+            </div>
+            <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                @change="onComprobanteChange"
+                class="block w-full text-sm text-gray-700"
+            />
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <button
+                        type="button"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        @click="comprobanteModalVisible = false"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        class="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700"
+                        :disabled="!comprobanteFile"
+                        @click="subirComprobante"
+                    >
+                        Subir
+                    </button>
+                </div>
+            </template>
         </Dialog>
     </AppLayout>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, usePage, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
 
 const props = defineProps({
@@ -232,12 +362,17 @@ const props = defineProps({
 
 const page = usePage();
 const filtroPeriodo = ref('last1');
+const expandedRows = ref([]);
 const editRowId = ref(null);
 const editForm = ref({
     montoapagar: 0,
     pago: 'Pendiente'
 });
 const isSaving = ref(false);
+const comprobanteModalVisible = ref(false);
+const inscripcionParaComprobante = ref(null);
+const comprobanteFile = ref(null);
+const comprobanteDescripcion = ref('');
 
 const canEdit = computed(() => {
     const roles = (page.props.user?.roles || []).map((role) => String(role).toLowerCase());
@@ -294,6 +429,62 @@ const guardarEdicion = async (inscripcion) => {
     }
 };
 
+const openComprobanteModal = (inscripcion) => {
+    inscripcionParaComprobante.value = inscripcion;
+    comprobanteFile.value = null;
+    comprobanteDescripcion.value = '';
+    comprobanteModalVisible.value = true;
+};
+
+const onComprobanteChange = (event) => {
+    const files = event.target.files;
+    comprobanteFile.value = files && files[0] ? files[0] : null;
+};
+
+const subirComprobante = () => {
+    if (!inscripcionParaComprobante.value || !comprobanteFile.value) return;
+
+    const formData = new FormData();
+    formData.append('comprobante', comprobanteFile.value);
+    if (comprobanteDescripcion.value) {
+        formData.append('descripcion', comprobanteDescripcion.value);
+    }
+
+    const inscripcionId = inscripcionParaComprobante.value.id;
+
+    router.post(
+        route('inscripciones.comprobante', { inscripcion: inscripcionId }),
+        formData,
+        {
+            forceFormData: true,
+            onSuccess: () => {
+                comprobanteModalVisible.value = false;
+                inscripcionParaComprobante.value = null;
+                comprobanteFile.value = null;
+                comprobanteDescripcion.value = '';
+            },
+        }
+    );
+};
+
+const abrirConfirmarSaldado = (inscripcion) => {
+    if (!canEdit.value || isSaving.value) return;
+    inscripcionParaSaldar.value = inscripcion;
+    confirmSaldadoVisible.value = true;
+};
+
+const confirmarSaldado = () => {
+    const inscripcion = inscripcionParaSaldar.value;
+    if (!inscripcion || !canEdit.value || isSaving.value) return;
+    editForm.value = {
+        montoapagar: 0,
+        pago: 'Saldado',
+    };
+    confirmSaldadoVisible.value = false;
+    inscripcionParaSaldar.value = null;
+    guardarEdicion(inscripcion);
+};
+
 const paisUsuario = (inscripcion) => {
     if (isInvitado(inscripcion)) {
         return inscripcion.guest_user?.pais?.nombre || '-';
@@ -348,20 +539,48 @@ const badgePagoClass = (pago) => {
 };
 
 const urlComprobante = (inscripcion) => {
-    const raw = inscripcion?.comprobante_url || inscripcion?.comprobante;
+    const raw = inscripcion?.comprobantes?.[0]?.ruta || inscripcion?.comprobante_url || inscripcion?.comprobante;
     if (!raw) return null;
     // Si ya es URL absoluta, usarla; de lo contrario, asumir ruta en storage
     if (/^https?:\/\//i.test(raw)) return raw;
     return `/storage/${raw}`;
 };
 
-const comprobanteModal = ref(false);
-const comprobanteUrl = ref('');
-const comprobanteIsPdf = computed(() => (comprobanteUrl.value || '').toLowerCase().includes('.pdf'));
+const comprobantesExtras = (inscripcion) => {
+    const count = inscripcion?.comprobantes?.length || 0;
+    return count > 1 ? count - 1 : 0;
+};
 
-const abrirComprobante = (url) => {
-    if (!url) return;
-    comprobanteUrl.value = url;
+const comprobanteModal = ref(false);
+const comprobantesParaVer = ref([]);
+const confirmSaldadoVisible = ref(false);
+const inscripcionParaSaldar = ref(null);
+
+const normalizarComprobante = (ruta, descripcion) => {
+    if (!ruta) return null;
+    const url = /^https?:\/\//i.test(ruta) ? ruta : `/storage/${ruta}`;
+    return {
+        url,
+        descripcion: descripcion || '',
+        isPdf: url.toLowerCase().includes('.pdf'),
+    };
+};
+
+const abrirComprobante = (inscripcion) => {
+    if (!inscripcion) return;
+    const items = [];
+    if (Array.isArray(inscripcion.comprobantes) && inscripcion.comprobantes.length) {
+        inscripcion.comprobantes.forEach((comprobante) => {
+            const item = normalizarComprobante(comprobante.ruta, comprobante.descripcion);
+            if (item) items.push(item);
+        });
+    } else {
+        const raw = inscripcion?.comprobante_url || inscripcion?.comprobante;
+        const item = normalizarComprobante(raw, '');
+        if (item) items.push(item);
+    }
+    if (!items.length) return;
+    comprobantesParaVer.value = items;
     comprobanteModal.value = true;
 };
 

@@ -27,7 +27,6 @@ class Actividad extends Model
         'esquema_descuento_id', 
         'link_web', 
         'grabacion_id',
-        'grabacion_importe',
         'stream_id', 
         'programa_id',
         'botonpago_id',
@@ -38,7 +37,6 @@ class Actividad extends Model
         'estado' => 'boolean',
         'fecha_inicio' => 'datetime',
         'fecha_fin' => 'datetime',
-        'grabacion_importe' => 'decimal:2',
     ];
 
     public function metodosPago() 

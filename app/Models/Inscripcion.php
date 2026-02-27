@@ -21,7 +21,6 @@ class Inscripcion extends Model
         'estado_id',
         'envioLinkStream',
         'envioGrabación',
-        'comprobante',
         'asistencia',
         'online',
         'hospedaje_id',
@@ -77,5 +76,10 @@ class Inscripcion extends Model
     public function auditorUser()
     {
         return $this->belongsTo(User::class, 'auditor');
+    }
+
+    public function comprobantes()
+    {
+        return $this->hasMany(InscripcionComprobante::class)->latest();
     }
 }

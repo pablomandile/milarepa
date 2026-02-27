@@ -41,7 +41,6 @@ class ActividadRequest extends FormRequest
             'link_web' => ['nullable','string'],
             'stream_id' => ['nullable','exists:streams,id'],
             'grabacion_id' => ['nullable','exists:grabaciones,id'],
-            'grabacion_importe' => ['nullable', 'numeric', 'min:0'],
             'programa_id' => ['nullable','exists:programas,id'],
             'botonpago_id' => ['nullable', 'exists:botones_pago,id'],
             'estado' => ['nullable', 'boolean'],

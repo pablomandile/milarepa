@@ -53,6 +53,8 @@ const userByEmail = ref(null);
 const guestModalVisible = ref(false);
 const guestErrors = ref({});
 const isGuestSubmitting = ref(false);
+const mapModalVisible = ref(false);
+const selectedAddress = ref('');
 const guestForm = ref({
   name: '',
   email: '',
@@ -100,6 +102,10 @@ watch(() => $page.props.flash, (flash) => {
 
 const userContext = computed(() => {
   return userByEmail.value || $page.props?.auth?.user || null;
+});
+const mapEmbedUrl = computed(() => {
+  if (!selectedAddress.value) return '';
+  return `https://maps.google.com/maps?q=${encodeURIComponent(selectedAddress.value)}&output=embed`;
 });
 const isAuthenticated = computed(() => !!$page.props?.auth?.user);
 const isAsistant = computed(() => {
@@ -284,12 +290,18 @@ async function enviarInscripcionGuest() {
   }
 }
 
+function abrirMapa(direccion) {
+  if (!direccion) return;
+  selectedAddress.value = direccion;
+  mapModalVisible.value = true;
+}
+
 </script>
 
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Actividades del mes</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Grilla de Cursos, Retiros y Eventos Especiales</h1>
         </template>
         <Toast position="top-right" />
         <div class="py-12">
@@ -417,7 +429,19 @@ async function enviarInscripcionGuest() {
                                                     <p class="text-base text-gray-600 mb-1 flex items-center gap-2">
                                                         <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
                                                         <span class="sr-only">Lugar</span>
-                                                        <span>{{ actividad.entidad?.direccion }}</span>
+                                                        <span class="inline-flex items-center gap-2">
+                                                          <span>{{ actividad.entidad?.direccion }}</span>
+                                                          <button
+                                                            v-if="actividad.entidad?.direccion"
+                                                            type="button"
+                                                            class="inline-flex items-center justify-center p-0 text-sky-700 hover:text-sky-900 shrink-0"
+                                                            title="Ver en mapa"
+                                                            aria-label="Ver en mapa"
+                                                            @click.stop="abrirMapa(actividad.entidad.direccion)"
+                                                          >
+                                                            <i class="pi pi-map"></i>
+                                                          </button>
+                                                        </span>
                                                     </p>
                                                     <p
                                                         v-if="actividad.esquema_precio?.nombre === 'Actividad Gratuita'"
@@ -449,6 +473,34 @@ async function enviarInscripcionGuest() {
                                                             <span v-else class="font-bold text-green-700"> ${{ formatPrice(precioMembresiaUsuario(actividad, userContext)) }}</span>
                                                         </p>
                                                     </template>
+                                                    <p
+                                                      v-if="actividad.hospedajes && actividad.hospedajes.length > 0"
+                                                      class="text-sm text-gray-700 mb-1 flex items-center gap-2"
+                                                    >
+                                                      <i class="pi pi-home text-indigo-600" aria-hidden="true"></i>
+                                                      <span>Ofrece Hospedaje</span>
+                                                    </p>
+                                                    <p
+                                                      v-if="actividad.comidas && actividad.comidas.length > 0"
+                                                      class="text-sm text-gray-700 mb-1 flex items-center gap-2"
+                                                    >
+                                                      <i class="pi pi-shopping-bag text-amber-600" aria-hidden="true"></i>
+                                                      <span>Ofrece Comidas</span>
+                                                    </p>
+                                                    <p
+                                                      v-if="actividad.transportes && actividad.transportes.length > 0"
+                                                      class="text-sm text-gray-700 mb-1 flex items-center gap-2"
+                                                    >
+                                                      <i class="pi pi-car text-sky-600" aria-hidden="true"></i>
+                                                      <span>Ofrece Transporte</span>
+                                                    </p>
+                                                    <p
+                                                      v-if="actividad.grabacion || actividad.grabacion_id"
+                                                      class="text-sm text-gray-700 mb-1 flex items-center gap-2"
+                                                    >
+                                                      <i class="pi pi-video text-violet-600" aria-hidden="true"></i>
+                                                      <span>Ofrece Grabaciones</span>
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
@@ -539,6 +591,23 @@ async function enviarInscripcionGuest() {
                     </button>
                 </div>
             </template>
+        </Dialog>
+
+        <Dialog
+            v-model:visible="mapModalVisible"
+            modal
+            header="Ubicacion"
+            :style="{ width: '800px' }"
+        >
+            <div v-if="selectedAddress" class="space-y-3">
+                <p class="text-sm text-gray-700">{{ selectedAddress }}</p>
+                <iframe
+                    :src="mapEmbedUrl"
+                    class="w-full h-[60vh] rounded border border-gray-200"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                ></iframe>
+            </div>
         </Dialog>
     </AppLayout>
 </template>

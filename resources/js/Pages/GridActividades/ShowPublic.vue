@@ -31,6 +31,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  returnUrl: {
+    type: String,
+    default: null,
+  },
 });
 
 const page = usePage();
@@ -125,6 +129,7 @@ const inscripcionesIds = computed(() => {
 });
 
 const esInscrito = computed(() => inscripcionesIds.value.includes(props.actividad.id));
+const backUrl = computed(() => props.returnUrl || route('grid-actividades.index'));
 
 function resetGuestForm() {
   guestForm.value = {
@@ -345,7 +350,7 @@ onMounted(() => {
 
             <div class="flex flex-col sm:flex-row gap-3">
               <Link
-                :href="route('grid-actividades.index')"
+                :href="backUrl"
                 class="flex-1 px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors text-center font-semibold"
               >
                 Volver
