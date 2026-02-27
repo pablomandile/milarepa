@@ -129,4 +129,9 @@ class Actividad extends Model
         return $this->belongsTo(BotonPago::class, 'botonpago_id');
     }
 
+    public function inscripciones()
+    {
+        return $this->hasMany(Inscripcion::class, 'actividad_id');
+    }
+
 }

@@ -175,6 +175,9 @@ const logout = () => {
                                     <DropdownLink :href="route('inscripciones.index')" :active="route().current('inscripciones.*')">
                                         Mis Inscripciones
                                     </DropdownLink>
+                                    <DropdownLink :href="route('inscripciones.por-actividad')" :active="route().current('inscripciones.por-actividad')">
+                                        Inscripciones por Actividad
+                                    </DropdownLink>
                                     <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
                                         Estado de inscripciones
                                     </DropdownLink>
@@ -528,6 +531,9 @@ const logout = () => {
                         <div class="px-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Inscripciones</div>
                         <ResponsiveNavLink :href="route('inscripciones.index')" :active="route().current('inscripciones.*')">
                             Mis Inscripciones
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('inscripciones.por-actividad')" :active="route().current('inscripciones.por-actividad')">
+                            Inscripciones por Actividad
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
                             Estado de inscripciones

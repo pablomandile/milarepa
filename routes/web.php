@@ -158,6 +158,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/transportes', TransportesController::class);
     Route::resource('/inscripciones', InscripcionesController::class, [
         'parameters' => ['inscripciones' => 'inscripcion'],]);
+    Route::get('/inscripciones-por-actividad', [InscripcionesController::class, 'porActividad'])
+        ->name('inscripciones.por-actividad');
     Route::post('/inscripciones/{inscripcion}/comprobante', [InscripcionesController::class, 'uploadComprobante'])
         ->name('inscripciones.comprobante');
     Route::get('/inscripciones/{inscripcion}/ticket', [InscripcionesController::class, 'ticket'])

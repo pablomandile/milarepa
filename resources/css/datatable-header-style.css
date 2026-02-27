@@ -9,3 +9,10 @@
     color: rgb(255, 255, 255) !important;
     font-weight: 600 !important;
 }
+
+:deep(.p-datatable .p-datatable-thead > tr > th .p-sortable-column-icon),
+:deep(.p-datatable .p-datatable-thead > tr > th .pi-sort-alt),
+:deep(.p-datatable .p-datatable-thead > tr > th .pi-sort-amount-up-alt),
+:deep(.p-datatable .p-datatable-thead > tr > th .pi-sort-amount-down) {
+    color: rgb(255, 255, 255) !important;
+}

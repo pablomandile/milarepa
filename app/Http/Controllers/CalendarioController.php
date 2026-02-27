@@ -85,6 +85,10 @@ class CalendarioController extends Controller
         foreach ($oraciones as $oracion) {
             if ($oracion->periodicidad === 'Mensual') {
                 $dia = (int) ($oracion->dia ?? 0);
+                if ($dia === 29 && $monthStart->daysInMonth === 28) {
+                    $dia = 28;
+                }
+
                 if ($dia < 1 || $dia > $monthStart->daysInMonth) {
                     continue;
                 }
