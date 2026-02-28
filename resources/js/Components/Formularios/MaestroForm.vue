@@ -11,6 +11,7 @@ import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
+import SingleImageUploader from '@/Components/SingleImageUploader.vue';
 
     defineProps({
         form: {
@@ -21,6 +22,10 @@ import TextInput from '../TextInput.vue';
         type: Boolean,
         required: true,
         default: false
+    },
+    imagenPreviewUrl: {
+        type: String,
+        default: ''
     }
     })
 
@@ -55,6 +60,29 @@ import TextInput from '../TextInput.vue';
                 <InputLabel for="telefono" value="Telefono" :required="false"/>
                 <TextInput id="telefono" v-model="form.telefono" type="text" autocomplete="telefono" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.telefono" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6">
+                <InputLabel
+                    for="imagen_id"
+                    class="text-indigo-400 mb-2"
+                    value="Foto del Maestro"
+                    :required="false"
+                />
+                <div class="flex items-start gap-4">
+                    <SingleImageUploader
+                        v-model:imagenId="form.imagen_id"
+                        folder="img/maestros"
+                    />
+                    <div v-if="imagenPreviewUrl" class="flex items-center gap-2">
+                        <img
+                            :src="imagenPreviewUrl"
+                            alt="Imagen actual"
+                            class="h-16 w-16 rounded border border-gray-200 object-cover"
+                        />
+                        <span class="text-xs text-gray-500">Actual</span>
+                    </div>
+                </div>
+                <InputError :message="$page.props.errors.imagen_id" class="mt-2" />
             </div>
 
         </template>

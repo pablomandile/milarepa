@@ -142,6 +142,12 @@ const logout = () => {
                                     <DropdownLink :href="route('oracionescantadas.index')" :active="route().current('oracionescantadas.*')">
                                         Oraciones Cantadas
                                     </DropdownLink>
+                                    <DropdownLink :href="route('clases.index')" :active="route().current('clases.*')">
+                                        Clases
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('ciclos.index')" :active="route().current('ciclos.*')">
+                                        Ciclos
+                                    </DropdownLink>
                                     <DropdownLink :href="route('disponibilidades.index')" :active="route().current('disponibilidades.*')">
                                         Disponibilidades
                                     </DropdownLink>
@@ -509,6 +515,12 @@ const logout = () => {
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('oracionescantadas.index')" :active="route().current('oracionescantadas.*')">
                             Oraciones Cantadas
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('clases.index')" :active="route().current('clases.*')">
+                            Clases
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('ciclos.index')" :active="route().current('ciclos.*')">
+                            Ciclos
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('disponibilidades.index')" :active="route().current('disponibilidades.*')">
                             Disponibilidades

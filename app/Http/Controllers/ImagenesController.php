@@ -70,7 +70,13 @@ class ImagenesController extends Controller
             ]
         );
 
-        $path = $request->file('imagen')->store('img/actividades', 'public');
+        $folder = (string) $request->input('folder', 'img/actividades');
+        $allowedFolders = ['img/actividades', 'img/clases', 'img/maestros', 'img/puyas'];
+        if (!in_array($folder, $allowedFolders, true)) {
+            $folder = 'img/actividades';
+        }
+
+        $path = $request->file('imagen')->store($folder, 'public');
 
         // Crea el registro en BD
         $img = Imagen::create([

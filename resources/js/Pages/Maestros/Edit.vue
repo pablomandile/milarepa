@@ -24,7 +24,8 @@
     const form = useForm({
         nombre: props.maestro.nombre,
         telefono: props.maestro.telefono,
-        email: props.maestro.email
+        email: props.maestro.email,
+        imagen_id: props.maestro.imagen_id || null
     });
 
     const handleSubmit = () => {
@@ -60,6 +61,7 @@
                         <div class="p-6 bg-white border-b border-gray-200">
                             <MaestroForm 
                             :updating="true" 
+                            :imagen-preview-url="props.maestro.imagen ? `/storage/${props.maestro.imagen.ruta}` : ''"
                             :form="form" 
                             @submit="handleSubmit"/>
                         </div>

@@ -47,6 +47,8 @@ use App\Http\Controllers\StreamsController;
 use App\Http\Controllers\ProfileCompletionController;
 use App\Http\Controllers\EmailPreviewController;
 use App\Http\Controllers\ExcencionPagoController;
+use App\Http\Controllers\CiclosController;
+use App\Http\Controllers\ClasesController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -73,6 +75,8 @@ Route::get('/calendario', [CalendarioController::class, 'index'])
     ->name('calendario.index');
 Route::get('/oraciones-cantadas/{oracionCantada}/public', [OracionesCantadasController::class, 'showPublic'])
     ->name('oracionescantadas.show-public');
+Route::get('/clases/{clase}/public', [ClasesController::class, 'showPublic'])
+    ->name('clases.show-public');
 Route::get('/grid-actividades/{actividad}/public', [GridActividadesController::class, 'showPublicActividad'])
     ->name('grid-actividades.show-public');
 Route::post('/grid-actividades/lookup-email', [GridActividadesController::class, 'lookupEmail'])
@@ -188,6 +192,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/programas', ProgramasController::class);
     Route::resource('/oracionescantadas', OracionesCantadasController::class, [
         'parameters' => ['oracionescantadas' => 'oracionCantada'],
+    ]);
+    Route::resource('/ciclos', CiclosController::class, [
+        'parameters' => ['ciclos' => 'ciclo'],
+    ]);
+    Route::resource('/clases', ClasesController::class, [
+        'parameters' => ['clases' => 'clase'],
     ]);
     Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');
 

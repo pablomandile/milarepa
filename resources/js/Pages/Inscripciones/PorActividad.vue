@@ -90,6 +90,7 @@ const formatPercent = (value) => {
                             class="p-datatable-sm"
                         >
                             <Column class="font-semibold" field="nombre" header="Nombre" sortable />
+                            <Column field="maestro" header="Maestro" sortable />
                             <Column field="fecha_formateada" header="Fecha" sortable />
                             <Column header="Dias restantes" sortable sortField="dias_restantes" headerClass="text-center" bodyClass="text-center">
                                 <template #body="{ data }">

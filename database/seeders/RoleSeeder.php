@@ -84,6 +84,16 @@ class RoleSeeder extends Seeder
         $permission_create_actividades = Permission::firstOrCreate(['name' => 'read actividades']);
         $permission_create_actividades = Permission::firstOrCreate(['name' => 'delete actividades']);
 
+        $permission_create_clases = Permission::firstOrCreate(['name' => 'create clases']);
+        $permission_create_clases = Permission::firstOrCreate(['name' => 'update clases']);
+        $permission_create_clases = Permission::firstOrCreate(['name' => 'read clases']);
+        $permission_create_clases = Permission::firstOrCreate(['name' => 'delete clases']);
+
+        $permission_create_ciclos = Permission::firstOrCreate(['name' => 'create ciclos']);
+        $permission_create_ciclos = Permission::firstOrCreate(['name' => 'update ciclos']);
+        $permission_create_ciclos = Permission::firstOrCreate(['name' => 'read ciclos']);
+        $permission_create_ciclos = Permission::firstOrCreate(['name' => 'delete ciclos']);
+
         $permission_create_comidas = Permission::firstOrCreate(['name' => 'create comidas']);
         $permission_create_comidas = Permission::firstOrCreate(['name' => 'update comidas']);
         $permission_create_comidas = Permission::firstOrCreate(['name' => 'read comidas']);
@@ -203,6 +213,14 @@ class RoleSeeder extends Seeder
             'update actividades',
             'read actividades',
             'delete actividades',
+            'create clases',
+            'update clases',
+            'read clases',
+            'delete clases',
+            'create ciclos',
+            'update ciclos',
+            'read ciclos',
+            'delete ciclos',
             'create comidas',
             'update comidas',
             'read comidas',
@@ -308,6 +326,14 @@ class RoleSeeder extends Seeder
             'update actividades',
             'read actividades',
             'delete actividades',
+            'create clases',
+            'update clases',
+            'read clases',
+            'delete clases',
+            'create ciclos',
+            'update ciclos',
+            'read ciclos',
+            'delete ciclos',
             'create comidas',
             'update comidas',
             'read comidas',
@@ -373,5 +399,4 @@ class RoleSeeder extends Seeder
 
     }
 }
-
 

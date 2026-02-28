@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
@@ -16,9 +16,22 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  clases: {
+    type: Array,
+    default: () => [],
+  },
+  clasesEntidades: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const diasSemana = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
+const showActividades = ref(true);
+const showClases = ref(true);
+const showOraciones = ref(true);
+const clasesEntidadFilters = ref({});
+const showClasesEntidadesFilters = ref(false);
 
 function parseYmd(value) {
   const [y, m, d] = String(value).split('-').map(Number);
@@ -68,6 +81,15 @@ const actividadesPorDia = computed(() => {
     });
   }
 
+  for (const clase of props.clases) {
+    if (!clase?.fecha) continue;
+    if (!map[clase.fecha]) map[clase.fecha] = [];
+    map[clase.fecha].push({
+      ...clase,
+      esClase: true,
+    });
+  }
+
   Object.keys(map).forEach((key) => {
     map[key].sort((a, b) => {
       const horaA = a?.hora || a?.hora_inicio || '99:99';
@@ -79,6 +101,38 @@ const actividadesPorDia = computed(() => {
 
   return map;
 });
+
+const clasesEntidades = computed(() => {
+  if (Array.isArray(props.clasesEntidades) && props.clasesEntidades.length > 0) {
+    return props.clasesEntidades;
+  }
+
+  const uniqueMap = new Map();
+  for (const clase of props.clases || []) {
+    const entidadId = clase?.entidad_id;
+    if (!entidadId) continue;
+    if (!uniqueMap.has(entidadId)) {
+      uniqueMap.set(entidadId, {
+        id: entidadId,
+        nombre: clase?.entidad_nombre || `Entidad ${entidadId}`,
+      });
+    }
+  }
+
+  return Array.from(uniqueMap.values()).sort((a, b) => String(a.nombre).localeCompare(String(b.nombre)));
+});
+
+watch(
+  clasesEntidades,
+  (entidades) => {
+    const next = {};
+    for (const entidad of entidades) {
+      next[entidad.id] = clasesEntidadFilters.value[entidad.id] ?? true;
+    }
+    clasesEntidadFilters.value = next;
+  },
+  { immediate: true }
+);
 
 const calendarCells = computed(() => {
   const cells = [];
@@ -96,7 +150,7 @@ const calendarCells = computed(() => {
       day,
       date,
       isToday: date === props.calendar.today,
-      actividades: actividadesPorDia.value[date] || [],
+      actividades: (actividadesPorDia.value[date] || []).filter(isVisibleItem),
     });
   }
 
@@ -116,9 +170,25 @@ function oracionCantadaHref(oracionId) {
   return route('oracionescantadas.show-public', oracionId);
 }
 
+function claseHref(claseId) {
+  const returnUrl = `${route('calendario.index')}?month=${props.calendar.month}`;
+  return `${route('clases.show-public', claseId)}?return_url=${encodeURIComponent(returnUrl)}`;
+}
+
 function itemLabel(item) {
   const hora = item?.hora || item?.hora_inicio;
   return hora ? `${hora} hs. ${item.nombre}` : item.nombre;
+}
+
+function isVisibleItem(item) {
+  if (item.esClase) {
+    if (!showClases.value) return false;
+    const entidadId = item?.entidad_id;
+    if (!entidadId) return true;
+    return clasesEntidadFilters.value[entidadId] ?? true;
+  }
+  if (item.esOracionCantada) return showOraciones.value;
+  return showActividades.value;
 }
 </script>
 
@@ -133,6 +203,56 @@ function itemLabel(item) {
             <div>
               <h1 class="text-2xl font-semibold text-slate-900">Calendario</h1>
               <p class="text-sm text-slate-600">Actividades activas del mes</p>
+              <div class="mt-4 flex flex-wrap items-center gap-6 text-sm">
+                <label class="inline-flex items-center gap-2 px-1 py-1 text-slate-700">
+                  <input
+                    v-model="showActividades"
+                    type="checkbox"
+                    class="calendar-filter-checkbox checkbox-emerald"
+                  />
+                  Cursos y retiros
+                </label>
+                <label class="inline-flex items-center gap-2 px-1 py-1 text-slate-700">
+                  <input
+                    v-model="showClases"
+                    type="checkbox"
+                    class="calendar-filter-checkbox checkbox-amber"
+                  />
+                  Clases
+                </label>
+                <label class="inline-flex items-center gap-2 px-1 py-1 text-slate-700">
+                  <input
+                    v-model="showOraciones"
+                    type="checkbox"
+                    class="calendar-filter-checkbox checkbox-sky"
+                  />
+                  Oraciones Cantadas
+                </label>
+              </div>
+              <div v-if="clasesEntidades.length" class="mt-3">
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-700"
+                  @click="showClasesEntidadesFilters = !showClasesEntidadesFilters"
+                >
+                  <span>Filtrar Clases por lugar</span>
+                  <i :class="showClasesEntidadesFilters ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i>
+                </button>
+                <div v-if="showClasesEntidadesFilters" class="mt-2 flex flex-wrap items-center gap-4 text-sm">
+                  <label
+                    v-for="entidad in clasesEntidades"
+                    :key="entidad.id"
+                    class="inline-flex items-center gap-2 px-1 py-1 text-slate-700"
+                  >
+                    <input
+                      v-model="clasesEntidadFilters[entidad.id]"
+                      type="checkbox"
+                      class="calendar-filter-checkbox checkbox-amber"
+                    />
+                    {{ entidad.nombre }}
+                  </label>
+                </div>
+              </div>
             </div>
             <div class="flex items-center gap-2">
               <Link
@@ -188,8 +308,20 @@ function itemLabel(item) {
 
                   <div class="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
                     <template v-for="actividad in cell.actividades" :key="`${cell.date}-${actividad.tipo || 'actividad'}-${actividad.id}`">
+                      <div
+                        v-if="actividad.esClase"
+                        class="block rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs leading-tight text-amber-900"
+                        :title="itemLabel(actividad)"
+                      >
+                        <Link
+                          :href="claseHref(actividad.id)"
+                          class="hover:underline"
+                        >
+                          {{ itemLabel(actividad) }}
+                        </Link>
+                      </div>
                       <Link
-                        v-if="!actividad.esOracionCantada"
+                        v-else-if="!actividad.esOracionCantada"
                         :href="actividadHref(actividad.id)"
                         class="block rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs leading-tight text-emerald-900 hover:bg-emerald-100"
                         :title="itemLabel(actividad)"
@@ -224,5 +356,33 @@ function itemLabel(item) {
 
 .calendar-cell {
   aspect-ratio: 1 / 1;
+}
+
+.calendar-filter-checkbox {
+  -webkit-appearance: checkbox !important;
+  appearance: auto !important;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  max-width: 16px !important;
+  max-height: 16px !important;
+  flex: 0 0 16px !important;
+  display: inline-block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background-image: none !important;
+}
+
+.checkbox-emerald {
+  accent-color: #059669;
+}
+
+.checkbox-amber {
+  accent-color: #d97706;
+}
+
+.checkbox-sky {
+  accent-color: #0284c7;
 }
 </style>

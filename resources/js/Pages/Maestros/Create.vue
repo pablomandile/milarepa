@@ -13,7 +13,8 @@
     const form = useForm({
         nombre: '',
         telefono: '',
-        email: ''
+        email: '',
+        imagen_id: null
     })
 </script>
 
@@ -37,6 +38,7 @@
                         <div class="p-6 bg-white border-b border-gray-200">
                             <MaestroForm 
                             :updating="false"
+                            :imagen-preview-url="''"
                             :form="form" @submit="form.post(route('maestros.store'))"/>
                         </div>
                     </div>

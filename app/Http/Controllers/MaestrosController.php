@@ -14,7 +14,7 @@ class MaestrosController extends Controller
      */
     public function index()
     {
-        $maestros = Maestro::paginate(15);
+        $maestros = Maestro::with('imagen')->paginate(15);
         return inertia('Maestros/Index', ['maestros' => $maestros]);
     }
 
@@ -50,7 +50,7 @@ class MaestrosController extends Controller
      */
     public function edit($id)
     {
-        $maestro = Maestro::findOrFail($id);
+        $maestro = Maestro::with('imagen')->findOrFail($id);
 
         // Devolver la vista de edición
         return Inertia::render('Maestros/Edit', [

@@ -14,7 +14,12 @@ class Maestro extends Model
     protected $fillable = [
         'nombre', 
         'telefono', 
-        'email'
+        'email',
+        'imagen_id',
     ];
 
+    public function imagen()
+    {
+        return $this->belongsTo(Imagen::class, 'imagen_id');
+    }
 }

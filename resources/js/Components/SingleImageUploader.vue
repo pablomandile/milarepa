@@ -59,11 +59,15 @@
   // v-model:imagenId -> para asignar el ID al padre
   // v-model:imagenId funciona con modelValue + update:modelValue en Vue 3, 
   // pero más simple es un prop/emit manual:
-  const props = defineProps({
+const props = defineProps({
     // Si quieres enlazar la ID con el padre, define:
     imagenId: {
       type: Number,
       default: null
+    },
+    folder: {
+      type: String,
+      default: 'img/actividades'
     }
   });
   const emits = defineEmits(['update:imagenId']);
@@ -149,6 +153,7 @@
     try {
       let data = new FormData();
       data.append('imagen', fileData.value.file);
+      data.append('folder', props.folder);
       const response = await axios.post('/imagenes-json', data);
     
       // Respuesta JSON: { id: 123, path: "storage/img/..." }

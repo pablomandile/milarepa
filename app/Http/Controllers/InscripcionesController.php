@@ -88,6 +88,7 @@ class InscripcionesController extends Controller
         $actividades = Actividad::query()
             ->where('estado', true)
             ->whereHas('inscripciones')
+            ->with(['maestros:id,nombre'])
             ->withCount('inscripciones as total_inscriptos')
             ->withCount([
                 'inscripciones as inscriptos_ultimos_5_dias' => function ($query) use ($ultimosCincoDias) {
@@ -112,6 +113,7 @@ class InscripcionesController extends Controller
                 return [
                     'id' => $actividad->id,
                     'nombre' => $actividad->nombre,
+                    'maestro' => $actividad->maestros->pluck('nombre')->filter()->implode(', '),
                     'fecha' => $fechaInicio ? $fechaInicio->toDateString() : null,
                     'fecha_formateada' => $fechaInicio ? $fechaInicio->translatedFormat('j \\d\\e F') : '-',
                     'dias_restantes' => $fechaInicio ? now()->startOfDay()->diffInDays($fechaInicio->copy()->startOfDay(), false) : null,
@@ -418,4 +420,3 @@ class InscripcionesController extends Controller
         return back()->with('success', 'Comprobante subido correctamente.');
     }
 }
-
