@@ -101,6 +101,8 @@ const userByEmail = ref(null);
 const guestModalVisible = ref(false);
 const guestErrors = ref({});
 const isGuestSubmitting = ref(false);
+const maestroImageDialogVisible = ref(false);
+const selectedMaestroImageUrl = ref('');
 const guestForm = ref({
   name: '',
   email: '',
@@ -130,6 +132,28 @@ const inscripcionesIds = computed(() => {
 
 const esInscrito = computed(() => inscripcionesIds.value.includes(props.actividad.id));
 const backUrl = computed(() => props.returnUrl || route('grid-actividades.index'));
+const maestroConImagen = computed(() => {
+  if (!Array.isArray(props.actividad?.maestros)) return null;
+  return props.actividad.maestros.find((m) =>
+    !!(m?.imagen?.ruta || m?.imagen_ruta || m?.imagen_url || m?.foto)
+  ) || null;
+});
+
+const maestroImagenUrl = computed(() => {
+  const maestro = maestroConImagen.value;
+  if (!maestro) return null;
+  if (maestro?.imagen?.ruta) return `/storage/${maestro.imagen.ruta}`;
+  if (maestro?.imagen_ruta) return `/storage/${maestro.imagen_ruta}`;
+  if (maestro?.imagen_url) return maestro.imagen_url;
+  if (maestro?.foto) return maestro.foto;
+  return null;
+});
+
+function abrirImagenMaestro(url) {
+  if (!url) return;
+  selectedMaestroImageUrl.value = url;
+  maestroImageDialogVisible.value = true;
+}
 
 function resetGuestForm() {
   guestForm.value = {
@@ -236,7 +260,7 @@ onMounted(() => {
 
     <div class="py-12">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8" style="background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
           <div class="p-8">
             <div class="w-full max-w-md mx-auto mb-6 rounded-lg overflow-hidden bg-transparent">
               <img
@@ -273,7 +297,7 @@ onMounted(() => {
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              <div class="bg-white rounded-lg shadow-md p-5 flex items-start gap-3">
+              <div class="rounded-lg border border-indigo-100 bg-gradient-to-br from-indigo-50 to-white shadow-md p-5 flex items-start gap-3">
                 <i class="pi pi-calendar text-indigo-600 text-2xl"></i>
                 <div>
                   <h3 class="text-sm font-semibold text-gray-800">Fecha y Hora</h3>
@@ -281,7 +305,7 @@ onMounted(() => {
                 </div>
               </div>
 
-              <div class="bg-white rounded-lg shadow-md p-5 flex items-start gap-3">
+              <div class="rounded-lg border border-amber-100 bg-gradient-to-br from-amber-50 to-white shadow-md p-5 flex items-start gap-3">
                 <i class="pi pi-map-marker text-indigo-600 text-2xl"></i>
                 <div>
                   <h3 class="text-sm font-semibold text-gray-800">Lugar</h3>
@@ -289,7 +313,7 @@ onMounted(() => {
                 </div>
               </div>
 
-              <div class="bg-white rounded-lg shadow-md p-5 flex items-start gap-3">
+              <div class="rounded-lg border border-sky-100 bg-gradient-to-br from-sky-50 to-white shadow-md p-5 flex items-start gap-3">
                 <i class="pi pi-video text-indigo-600 text-2xl"></i>
                 <div>
                   <h3 class="text-sm font-semibold text-gray-800">Modalidad</h3>
@@ -297,20 +321,43 @@ onMounted(() => {
                 </div>
               </div>
 
-              <div class="bg-white rounded-lg shadow-md p-5 flex items-start gap-3">
-                <i class="pi pi-user text-indigo-600 text-2xl"></i>
-                <div>
-                  <h3 class="text-sm font-semibold text-gray-800">Maestro</h3>
-                  <p class="text-gray-700 text-base">
-                    <span v-if="actividad.maestros && actividad.maestros.length > 0">
-                      {{ actividad.maestros.map((m) => m.nombre).join(', ') }}
-                    </span>
-                    <span v-else>No especificado</span>
-                  </p>
+              <div class="rounded-lg border border-rose-100 bg-gradient-to-br from-rose-50 to-white shadow-md overflow-hidden">
+                <div class="flex items-stretch">
+                  <div class="flex flex-1 items-start gap-3 p-5">
+                    <i class="pi pi-user text-indigo-600 text-2xl"></i>
+                    <div>
+                      <h3 class="text-sm font-semibold text-gray-800">Maestr@</h3>
+                      <p class="text-gray-700 text-base">
+                        <span v-if="actividad.maestros && actividad.maestros.length > 0">
+                          {{ actividad.maestros.map((m) => m.nombre).join(', ') }}
+                        </span>
+                        <span v-else>No especificado</span>
+                      </p>
+                    </div>
+                  </div>
+                  <div v-if="maestroImagenUrl" class="w-24 shrink-0">
+                    <button
+                      type="button"
+                      class="relative h-full w-full group cursor-zoom-in"
+                      @click="abrirImagenMaestro(maestroImagenUrl)"
+                    >
+                      <img
+                        :src="maestroImagenUrl"
+                        :alt="`Foto de ${maestroConImagen.nombre || 'maestrx'}`"
+                        class="h-full w-full object-cover border-l border-indigo-100"
+                      />
+                      <span class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                        <i class="pi pi-search-plus text-white text-base"></i>
+                      </span>
+                    </button>
+                  </div>
+                  <div v-else class="w-24 shrink-0 border-l border-rose-100 bg-rose-50/60 flex items-center justify-center text-slate-400">
+                    <i class="pi pi-user text-xl"></i>
+                  </div>
                 </div>
               </div>
 
-              <div class="bg-white rounded-lg shadow-md p-5 flex items-start gap-3">
+              <div class="rounded-lg border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white shadow-md p-5 flex items-start gap-3">
                 <i class="pi pi-dollar text-indigo-600 text-2xl"></i>
                 <div>
                   <h3 class="text-sm font-semibold text-gray-800">Valor general</h3>
@@ -325,7 +372,7 @@ onMounted(() => {
                 </div>
               </div>
 
-              <div v-if="mostrarDescuento" class="bg-white rounded-lg shadow-md p-5 flex items-start gap-3">
+              <div v-if="mostrarDescuento" class="rounded-lg border border-violet-100 bg-gradient-to-br from-violet-50 to-white shadow-md p-5 flex items-start gap-3">
                 <i class="pi pi-star-fill text-amber-500 text-2xl"></i>
                 <div>
                   <h3 class="text-sm font-semibold text-gray-800">Membresía</h3>
@@ -369,6 +416,22 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <Dialog
+      v-model:visible="maestroImageDialogVisible"
+      modal
+      header="Foto de Maestrx"
+      :style="{ width: '720px' }"
+    >
+      <div class="w-full">
+        <img
+          v-if="selectedMaestroImageUrl"
+          :src="selectedMaestroImageUrl"
+          alt="Foto de Maestrx"
+          class="w-full max-h-[70vh] object-contain"
+        />
+      </div>
+    </Dialog>
 
     <Dialog
       v-model:visible="guestModalVisible"

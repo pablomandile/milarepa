@@ -470,7 +470,7 @@ class GridActividadesController extends Controller
             'descripcion',
             'modalidad',
             'tipoActividad',
-            'maestros',
+            'maestros.imagen',
             'esquemaPrecio.membresias.membresia',
         ]);
 
@@ -739,4 +739,3 @@ class GridActividadesController extends Controller
         return [$precioGeneral, $precioMembresia, $membresiaNombre];
     }
 }
-
