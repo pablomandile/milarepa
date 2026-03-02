@@ -35,7 +35,7 @@ class GridActividadesController extends Controller
             'disponibilidad',
             'modalidad',
             'esquemaPrecio.membresias.membresia',
-            'esquemaDescuento',
+            'esquemaDescuento.membresias.membresia',
             'stream',
             'grabacion',
             'programa',
@@ -54,17 +54,17 @@ class GridActividadesController extends Controller
 
         // Convertir cada fecha con Carbon a un string amigable:
         $actividades->transform(function ($actividad) {
-        // Si la columna es “fecha_inicio”, haz:
+        // Si la columna es â€œfecha_inicioâ€, haz:
         $date = Carbon::parse($actividad->fecha_inicio);
 
-        // Formato “30 de Enero 00:00 hs.”
-        // “j” = día sin cero, “F” = Mes completo, “H:i” = 24h:mins
+        // Formato â€œ30 de Enero 00:00 hs.â€
+        // â€œjâ€ = dÃ­a sin cero, â€œFâ€ = Mes completo, â€œH:iâ€ = 24h:mins
         $actividad->fecha_inicio_formateada = $date->translatedFormat('j \d\e F H:i') . ' hs.';
 
         return $actividad;
     });
 
-        // Obtener IDs de actividades donde el usuario actual está inscripto
+        // Obtener IDs de actividades donde el usuario actual estÃ¡ inscripto
         $userInscripcionesActividadIds = [];
         if (auth()->check()) {
             $userInscripcionesActividadIds = auth()->user()->inscripciones()->pluck('actividad_id')->toArray();
@@ -171,7 +171,7 @@ class GridActividadesController extends Controller
     }
 
     /**
-     * Preparar datos de pago e inscripción en sesión.
+     * Preparar datos de pago e inscripciÃ³n en sesiÃ³n.
      */
     public function preparePago(Request $request)
     {
@@ -220,6 +220,7 @@ class GridActividadesController extends Controller
         $actividad->load([
             'metodosPago',
             'esquemaPrecio.membresias.membresia',
+            'esquemaDescuento.membresias.membresia',
             'botonPago',
             'grabacion.botonPago',
             'comidas.botonPago',
@@ -228,7 +229,7 @@ class GridActividadesController extends Controller
             'hospedajes.lugarHospedaje',
         ]);
         $saldo = 0;
-        $membresiaNombre = 'Sin membresía';
+        $membresiaNombre = 'Sin membresÃ­a';
         if (!empty($pago['user_id'])) {
             $user = User::with('membresia')->find($pago['user_id']);
             if ($user) {
@@ -249,7 +250,7 @@ class GridActividadesController extends Controller
     }
 
     /**
-     * Subir comprobante y guardar path en sesión.
+     * Subir comprobante y guardar path en sesiÃ³n.
      */
     public function uploadComprobante(Request $request)
     {
@@ -257,7 +258,7 @@ class GridActividadesController extends Controller
             'comprobante' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
             'descripcion' => ['nullable', 'string', 'max:255'],
         ], [
-            'comprobante.max' => 'El comprobante supera el tamaño máximo permitido (4 MB).',
+            'comprobante.max' => 'El comprobante supera el tamaÃ±o mÃ¡ximo permitido (4 MB).',
             'comprobante.mimes' => 'El comprobante debe ser PDF, JPG o PNG.',
         ]);
 
@@ -276,12 +277,13 @@ class GridActividadesController extends Controller
     }
 
     /**
-     * Finalizar inscripción y enviar mail.
+     * Finalizar inscripciÃ³n y enviar mail.
      */
     public function finalizarPago(Request $request)
     {
         $data = $request->validate([
             'pago_metodo' => ['required', 'in:efectivo,comprobante,transferencia,getnet'],
+            'incluye_grabacion' => ['nullable', 'boolean'],
             'comidas_ids' => ['nullable', 'array'],
             'comidas_ids.*' => ['integer', 'exists:comidas,id'],
             'transportes_ids' => ['nullable', 'array'],
@@ -299,6 +301,12 @@ class GridActividadesController extends Controller
             'modalidad',
             'esquemaPrecio.membresias',
             'esquemaPrecio.membresias.membresia',
+            'esquemaDescuento.membresias',
+            'esquemaDescuento.membresias.membresia',
+            'grabacion',
+            'comidas',
+            'transportes',
+            'hospedajes',
         ])->findOrFail($pago['actividad_id']);
 
         $user = null;
@@ -364,31 +372,58 @@ class GridActividadesController extends Controller
         }
         $yaInscripto = $yaInscriptoQuery->exists();
         if ($yaInscripto) {
-            return response()->json(['ok' => false, 'message' => 'Ya estás inscripto a esta actividad.'], 422);
+            return response()->json(['ok' => false, 'message' => 'Ya estÃ¡s inscripto a esta actividad.'], 422);
         }
 
         [$precioGeneral, $precioMembresia, $membresiaNombre] = $this->calcularPrecios($actividad, $registrado ? $user : null);
-        $estadoPago = $data['pago_metodo'] === 'comprobante' ? 'Saldado' : 'Pendiente';
-        $montoApagar = ($user && $user->membresia_id) ? $precioMembresia : $precioGeneral;
+        $estadoPago = 'Pendiente';
+        $montoActividad = (float) (($user && $user->membresia_id) ? $precioMembresia : $precioGeneral);
         $online = ($actividad->modalidad?->nombre === 'Online')
             || ($user && $user->membresia_id && $user->membresia_online);
-        $envioLinkStream = $actividad->stream_id ? 'pendiente' : 'No aplica';
-        $envioGrabacion = $actividad->grabacion_id ? 'pendiente' : 'No aplica';
-        $comidaId = $data['comidas_ids'][0] ?? null;
-        $transporteId = $data['transportes_ids'][0] ?? null;
-        $hospedajeId = $data['hospedajes_ids'][0] ?? null;
+        $incluyeGrabacion = (bool) ($data['incluye_grabacion'] ?? false);
+        $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
+        $envioGrabacion = ($incluyeGrabacion && $actividad->grabacion_id) ? 'Pendiente' : 'No aplica';
+        $comidasIds = $data['comidas_ids'] ?? [];
+        $transportesIds = $data['transportes_ids'] ?? [];
+        $hospedajesIds = $data['hospedajes_ids'] ?? [];
+        $comidaId = $comidasIds[0] ?? null;
+        $transporteId = $transportesIds[0] ?? null;
+        $hospedajeId = $hospedajesIds[0] ?? null;
+
+        $montoGrabacion = $incluyeGrabacion && $actividad->grabacion_id
+            ? (float) ($actividad->grabacion?->valor ?? 0)
+            : null;
+        $montoComidas = !empty($comidasIds)
+            ? (float) $actividad->comidas()->whereIn('comidas.id', $comidasIds)->sum('comidas.precio')
+            : null;
+        $montoTransporte = !empty($transportesIds)
+            ? (float) $actividad->transportes()->whereIn('transportes.id', $transportesIds)->sum('transportes.precio')
+            : null;
+        $montoHospedaje = !empty($hospedajesIds)
+            ? (float) $actividad->hospedajes()->whereIn('hospedajes.id', $hospedajesIds)->sum('hospedajes.precio')
+            : 0.0;
+
+        $montoApagar = $montoActividad
+            + (float) ($montoGrabacion ?? 0)
+            + (float) ($montoComidas ?? 0)
+            + (float) ($montoTransporte ?? 0)
+            + $montoHospedaje;
         $inscripcion = Inscripcion::create([
             'actividad_id' => $actividad->id,
             'user_id' => $user->id,
             'guest_user_id' => $guestUser?->id,
             'membresia' => $membresiaNombre,
             'precioGeneral' => $precioGeneral,
+            'montoActividad' => $montoActividad,
+            'montoGrabacion' => $montoGrabacion,
+            'montoTransporte' => $montoTransporte,
+            'montoComidas' => $montoComidas,
             'montoapagar' => $montoApagar,
             'pago' => $estadoPago,
             'estado_id' => 1,
             'envioLinkStream' => $envioLinkStream,
-            'envioGrabación' => $envioGrabacion,
-            'asistencia' => 'ausente',
+            'envioGrabaciÃ³n' => $envioGrabacion,
+            'asistencia' => 'Pendiente',
             'online' => $online,
             'hospedaje_id' => $hospedajeId,
             'comida_id' => $comidaId,
@@ -428,7 +463,7 @@ class GridActividadesController extends Controller
     }
 
     /**
-     * Landing público de inscripción.
+     * Landing pÃºblico de inscripciÃ³n.
      */
     public function showPublic(Inscripcion $inscripcion)
     {
@@ -460,7 +495,7 @@ class GridActividadesController extends Controller
     }
 
     /**
-     * Show pública de una actividad (sin login).
+     * Show pÃºblica de una actividad (sin login).
      */
     public function showPublicActividad(Request $request, Actividad $actividad)
     {
@@ -468,10 +503,12 @@ class GridActividadesController extends Controller
             'imagen',
             'entidad',
             'descripcion',
+            'programa',
             'modalidad',
             'tipoActividad',
             'maestros.imagen',
             'esquemaPrecio.membresias.membresia',
+            'esquemaDescuento.membresias.membresia',
         ]);
 
         $paises = Pais::all();
@@ -519,6 +556,8 @@ class GridActividadesController extends Controller
             'modalidad',
             'esquemaPrecio.membresias',
             'esquemaPrecio.membresias.membresia',
+            'esquemaDescuento.membresias',
+            'esquemaDescuento.membresias.membresia',
         ])->findOrFail($data['actividad_id']);
 
         $user = User::with('membresia')->findOrFail($data['user_id']);
@@ -529,7 +568,7 @@ class GridActividadesController extends Controller
         if ($yaInscripto) {
             return response()->json([
                 'ok' => false,
-                'message' => 'Ya estás inscripto a esta actividad.',
+                'message' => 'Ya estÃ¡s inscripto a esta actividad.',
             ], 422);
         }
 
@@ -538,19 +577,23 @@ class GridActividadesController extends Controller
 
         $online = ($actividad->modalidad?->nombre === 'Online')
             || ($user && $user->membresia_id && $user->membresia_online);
-        $envioLinkStream = $actividad->stream_id ? 'pendiente' : 'No aplica';
-        $envioGrabacion = $actividad->grabacion_id ? 'pendiente' : 'No aplica';
+        $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
+        $envioGrabacion = 'No aplica';
         $inscripcion = Inscripcion::create([
             'actividad_id' => $actividad->id,
             'user_id' => $user->id,
             'membresia' => $membresiaNombre,
             'precioGeneral' => $precioGeneral,
+            'montoActividad' => $montoApagar,
+            'montoGrabacion' => null,
+            'montoTransporte' => null,
+            'montoComidas' => null,
             'montoapagar' => $montoApagar,
             'pago' => 'Pendiente',
             'estado_id' => 1,
             'envioLinkStream' => $envioLinkStream,
-            'envioGrabación' => $envioGrabacion,
-            'asistencia' => 'ausente',
+            'envioGrabaciÃ³n' => $envioGrabacion,
+            'asistencia' => 'Pendiente',
             'online' => $online,
             'hospedaje_id' => null,
             'comida_id' => null,
@@ -590,6 +633,8 @@ class GridActividadesController extends Controller
             'modalidad',
             'esquemaPrecio.membresias',
             'esquemaPrecio.membresias.membresia',
+            'esquemaDescuento.membresias',
+            'esquemaDescuento.membresias.membresia',
         ])->findOrFail($data['actividad_id']);
 
         $registrarDatos = (bool) ($data['registrar_datos'] ?? false);
@@ -622,7 +667,7 @@ class GridActividadesController extends Controller
             if ($yaInscripto) {
                 return response()->json([
                     'ok' => false,
-                    'message' => 'Ya estás inscripto a esta actividad.',
+                    'message' => 'Ya estÃ¡s inscripto a esta actividad.',
                 ], 422);
             }
 
@@ -631,19 +676,23 @@ class GridActividadesController extends Controller
             $montoApagar = $user->membresia_id ? $precioMembresia : $precioGeneral;
             $online = ($actividad->modalidad?->nombre === 'Online')
                 || ($user && $user->membresia_id && $user->membresia_online);
-            $envioLinkStream = $actividad->stream_id ? 'pendiente' : 'No aplica';
-            $envioGrabacion = $actividad->grabacion_id ? 'pendiente' : 'No aplica';
+            $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
+            $envioGrabacion = 'No aplica';
             $inscripcion = Inscripcion::create([
                 'actividad_id' => $actividad->id,
                 'user_id' => $user->id,
                 'membresia' => $membresiaNombre,
                 'precioGeneral' => $precioGeneral,
+                'montoActividad' => $montoApagar,
+                'montoGrabacion' => null,
+                'montoTransporte' => null,
+                'montoComidas' => null,
                 'montoapagar' => $montoApagar,
                 'pago' => 'Pendiente',
                 'estado_id' => 1,
                 'envioLinkStream' => $envioLinkStream,
-                'envioGrabación' => $envioGrabacion,
-                'asistencia' => 'ausente',
+                'envioGrabaciÃ³n' => $envioGrabacion,
+                'asistencia' => 'Pendiente',
                 'online' => $online,
                 'hospedaje_id' => null,
                 'comida_id' => null,
@@ -677,20 +726,24 @@ class GridActividadesController extends Controller
         [$precioGeneral, $precioMembresia, $membresiaNombre] = $this->calcularPrecios($actividad, null);
 
         $montoApagar = $precioGeneral;
-        $envioLinkStream = $actividad->stream_id ? 'pendiente' : 'No aplica';
-        $envioGrabacion = $actividad->grabacion_id ? 'pendiente' : 'No aplica';
+        $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
+        $envioGrabacion = 'No aplica';
         $inscripcion = Inscripcion::create([
             'actividad_id' => $actividad->id,
             'user_id' => $guestOwner->id,
             'guest_user_id' => $guestUser->id,
             'membresia' => $membresiaNombre,
             'precioGeneral' => $precioGeneral,
+            'montoActividad' => $montoApagar,
+            'montoGrabacion' => null,
+            'montoTransporte' => null,
+            'montoComidas' => null,
             'montoapagar' => $montoApagar,
             'pago' => 'Pendiente',
             'estado_id' => 1,
             'envioLinkStream' => $envioLinkStream,
-            'envioGrabación' => $envioGrabacion,
-            'asistencia' => 'ausente',
+            'envioGrabaciÃ³n' => $envioGrabacion,
+            'asistencia' => 'Pendiente',
             'online' => $actividad->modalidad?->nombre === 'Online',
             'hospedaje_id' => null,
             'comida_id' => null,
@@ -719,23 +772,67 @@ class GridActividadesController extends Controller
 
     private function calcularPrecios(Actividad $actividad, ?User $user): array
     {
+        $actividad->loadMissing([
+            'esquemaPrecio.membresias.membresia',
+            'esquemaDescuento.membresias.membresia',
+        ]);
+
         $precioGeneral = 0;
         $precioMembresia = 0;
         $membresiaNombre = 'Sin membresía';
+        $esquemaVigente = $this->obtenerEsquemaPrecioVigente($actividad);
 
-        if ($actividad->esquemaPrecio?->membresias) {
-            $general = $actividad->esquemaPrecio->membresias
-                ->firstWhere('membresia.nombre', 'Sin membresía');
+        if ($esquemaVigente?->membresias) {
+            $general = $esquemaVigente->membresias
+                ->first(fn ($linea) => $this->esMembresiaGeneral($linea?->membresia?->nombre));
             $precioGeneral = $general->precio ?? 0;
         }
 
-        if ($user && $user->membresia_id && $actividad->esquemaPrecio?->membresias) {
-            $pivot = $actividad->esquemaPrecio->membresias
+        if ($user && $user->membresia_id && $esquemaVigente?->membresias) {
+            $pivot = $esquemaVigente->membresias
                 ->firstWhere('membresia_id', $user->membresia_id);
             $precioMembresia = $pivot->precio ?? 0;
             $membresiaNombre = $user->membresia?->nombre ?? $membresiaNombre;
         }
 
         return [$precioGeneral, $precioMembresia, $membresiaNombre];
+    }
+
+    private function obtenerEsquemaPrecioVigente(Actividad $actividad)
+    {
+        if ($this->aplicaDescuentoAnticipado($actividad) && $actividad->esquemaDescuento) {
+            return $actividad->esquemaDescuento;
+        }
+
+        return $actividad->esquemaPrecio;
+    }
+
+    private function aplicaDescuentoAnticipado(Actividad $actividad): bool
+    {
+        if (empty($actividad->pagoAmticipado)) {
+            return false;
+        }
+
+        try {
+            $limite = Carbon::parse($actividad->pagoAmticipado);
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        return now()->lte($limite);
+    }
+
+    private function esMembresiaGeneral(?string $nombre): bool
+    {
+        $normalized = mb_strtolower(trim((string) $nombre), 'UTF-8');
+        $normalized = strtr($normalized, [
+            'á' => 'a',
+            'é' => 'e',
+            'í' => 'i',
+            'ó' => 'o',
+            'ú' => 'u',
+        ]);
+
+        return str_contains($normalized, 'sin membres');
     }
 }

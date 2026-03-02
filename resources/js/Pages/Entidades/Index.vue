@@ -20,13 +20,13 @@
     
     const { entidades } = defineProps({
         entidades: {
-            type: Object,
+            type: Array,
             required: true
         }
     });
 
     const verEntidad = (id) => {
-        const entidad = entidades.data.find((ent) => ent.id === id);
+        const entidad = entidades.find((ent) => ent.id === id);
         if (entidad) {
             entidadSeleccionada.value = entidad;
             visible.value = true;
@@ -74,7 +74,7 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="entidades.data" stripedRows removableSort paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                        <DataTable :value="entidades" stripedRows removableSort paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre" sortable></Column>
                             <Column field="direccion" header="Dirección" sortable></Column>
                             <Column field="telefono" header="Teléfono" sortable></Column>

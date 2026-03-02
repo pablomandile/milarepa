@@ -137,9 +137,23 @@ const deleteClase = (id) => {
                                     {{ formatHora(slotProps.data.horario_desde) }} - {{ formatHora(slotProps.data.horario_hasta) }}
                                 </template>
                             </Column>
-                            <Column field="maestro.nombre" header="Maestro" />
+                            <Column header="Maestros">
+                                <template #body="slotProps">
+                                    <span v-if="Array.isArray(slotProps.data.maestros) && slotProps.data.maestros.length > 0">
+                                        {{ slotProps.data.maestros.map((m) => m.nombre).join(', ') }}
+                                    </span>
+                                    <span v-else class="text-gray-500">-</span>
+                                </template>
+                            </Column>
                             <Column field="coordinador.nombre" header="Coordinador" />
                             <Column field="esquema_precio.nombre" header="Esquema de precios" />
+                            <Column header="Activa">
+                                <template #body="slotProps">
+                                    <span :class="slotProps.data.activa ? 'text-green-600 font-semibold' : 'text-gray-500'">
+                                        {{ slotProps.data.activa ? 'Si' : 'No' }}
+                                    </span>
+                                </template>
+                            </Column>
                             <Column header="En calendario">
                                 <template #body="slotProps">
                                     <span :class="slotProps.data.mostrar_en_calendario ? 'text-green-600 font-semibold' : 'text-gray-500'">

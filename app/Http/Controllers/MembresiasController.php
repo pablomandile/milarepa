@@ -49,7 +49,7 @@ class MembresiasController extends Controller
                 $estadosCuenta = EstadoCuentaMembresia::where('user_id', auth()->id())
                     ->where('membresia_id', $userMembresia->id)
                     ->orderBy('mes_pagado', 'desc')
-                    ->get(['id', 'mes_pagado', 'pagado']);
+                    ->get(['id', 'mes_pagado', 'pagado', 'comprobante']);
             }
         }
 

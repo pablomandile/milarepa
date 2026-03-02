@@ -44,10 +44,11 @@ const form = useForm({
     titulos_por_fecha: {},
     horario_desde: '',
     horario_hasta: '',
-    maestro_id: null,
+    maestro_ids: [],
     coordinador_id: null,
     esquema_precio_id: null,
     mostrar_en_calendario: false,
+    activa: true,
 });
 </script>
 

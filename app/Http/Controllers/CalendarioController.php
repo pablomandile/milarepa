@@ -71,6 +71,7 @@ class CalendarioController extends Controller
     {
         return Clase::query()
             ->where('mostrar_en_calendario', true)
+            ->where('activa', true)
             ->where('mes_referencia', $monthStart->format('Y-m'))
             ->whereNotNull('entidad_id')
             ->with(['entidad:id,nombre'])
@@ -102,6 +103,7 @@ class CalendarioController extends Controller
 
         $clases = Clase::query()
             ->where('mostrar_en_calendario', true)
+            ->where('activa', true)
             ->where('mes_referencia', $monthStart->format('Y-m'))
             ->with(['entidad:id,nombre'])
             ->orderBy('horario_desde')

@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, ref } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
@@ -41,6 +41,7 @@ const comprobanteModal = ref(false);
 const comprobanteFile = ref(null);
 const isUploading = ref(false);
 const mesImputar = ref('');
+const pagoEfectivo = ref(false);
 
 const userMembresia = props.user_membresia;
 
@@ -48,10 +49,10 @@ const inscrbirme = (membresia) => {
     const userActive = userMembresia;
 
     if (userActive && userActive.id === membresia.id) {
-        // Si es la misma membresía
-        Swal.fire('Información', 'Ya tienes esta membresía activa', 'info');
+        // Si es la misma membresÃ­a
+        Swal.fire('InformaciÃ³n', 'Ya tienes esta membresÃ­a activa', 'info');
     } else {
-        // Mostrar modal de confirmación con modalidad
+        // Mostrar modal de confirmaciÃ³n con modalidad
         membresiaPendiente.value = membresia;
         modalidad.value = 'PRESENCIAL';
         motivoOnline.value = '';
@@ -67,10 +68,10 @@ const confirmarCambio = () => {
     }, {
         onSuccess: () => {
             showConfirmDialog.value = false;
-            Swal.fire('¡Éxito!', 'Tu membresía ha sido actualizada', 'success');
+            Swal.fire('Â¡Ã‰xito!', 'Tu membresÃ­a ha sido actualizada', 'success');
         },
         onError: () => {
-            Swal.fire('Error', 'Hubo un problema al cambiar la membresía', 'error');
+            Swal.fire('Error', 'Hubo un problema al cambiar la membresÃ­a', 'error');
         }
     });
 };
@@ -107,10 +108,18 @@ const mesesDisponibles = computed(() => {
     const ahora = new Date();
     const year = ahora.getFullYear();
     const startMonth = ahora.getMonth();
+    const mesesConPagoInformado = new Set(
+        (props.estados_cuenta || [])
+            .filter((estado) => Boolean(estado?.pagado) || Boolean(estado?.comprobante))
+            .map((estado) => estado.mes_pagado)
+    );
     const meses = [];
     for (let m = startMonth; m < 12; m += 1) {
         const fecha = new Date(year, m, 1);
         const value = `${year}-${String(m + 1).padStart(2, '0')}`;
+        if (mesesConPagoInformado.has(value)) {
+            continue;
+        }
         const label = fecha.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
         meses.push({ value, label });
     }
@@ -122,27 +131,36 @@ const estadoMesSeleccionado = computed(() => {
     return props.estados_cuenta.find((estado) => estado.mes_pagado === mesImputar.value) || null;
 });
 
-const mesPagado = computed(() => !!estadoMesSeleccionado.value?.pagado);
+const mesInformado = computed(() => {
+    const estado = estadoMesSeleccionado.value;
+    return !!estado && (!!estado.pagado || !!estado.comprobante);
+});
 
 function seleccionarComprobante(event) {
     comprobanteFile.value = event.target.files?.[0] || null;
 }
 
 async function subirComprobante() {
-    if (!comprobanteFile.value) return;
     if (!mesImputar.value) {
         Swal.fire('Mes', 'Seleccioná a qué mes imputar el pago.', 'info');
         return;
     }
-    if (mesPagado.value) {
-        Swal.fire('Información', 'Ya tiene el pago registrado para ese mes.', 'info');
+    if (!comprobanteFile.value && !pagoEfectivo.value) {
+        Swal.fire('Pago', 'Subí un comprobante o marcá que pagaste en efectivo.', 'info');
+        return;
+    }
+    if (mesInformado.value) {
+        Swal.fire('Información', 'Ya tiene un pago informado para ese mes.', 'info');
         return;
     }
     isUploading.value = true;
     try {
         const data = new FormData();
-        data.append('comprobante', comprobanteFile.value);
+        if (comprobanteFile.value) {
+            data.append('comprobante', comprobanteFile.value);
+        }
         data.append('mes_pagado', mesImputar.value);
+        data.append('modo', pagoEfectivo.value ? 'Efectivo' : 'Transferencia');
         if (props.estado_cuenta?.id) {
             data.append('estado_cuenta_id', props.estado_cuenta.id);
         }
@@ -150,7 +168,8 @@ async function subirComprobante() {
         comprobanteModal.value = false;
         comprobanteFile.value = null;
         mesImputar.value = '';
-        Swal.fire('Comprobante', 'Comprobante subido correctamente', 'success');
+        pagoEfectivo.value = false;
+        Swal.fire('Pago', 'Pago informado correctamente', 'success');
     } catch (error) {
         const mensaje = error?.response?.data?.message || error?.response?.data?.errors?.comprobante?.[0] || 'No se pudo subir el comprobante.';
         Swal.fire('Error', mensaje, 'error');
@@ -178,7 +197,7 @@ async function subirComprobante() {
                             <div>
                                 <h2 class="text-2xl font-bold text-900 m-0">Membresías Disponibles</h2>
                                 <p v-if="userMembresia" class="text-base text-600 mt-2">
-                                    <span class="font-semibold">Tu membresía actual: </span>
+                                    <span class="font-semibold">Tu membresí­a actual: </span>
                                     <span class="font-bold text-green-600">
                                         {{ userMembresia.nombre }}
                                         <span v-if="page.props.auth?.user?.membresia_online" class="ml-2 text-xs font-semibold text-indigo-600">ONLINE</span>
@@ -260,7 +279,7 @@ async function subirComprobante() {
                                                             </div>
                                                         </div>
                                                         <p class="p-card-subtitle text-sm text-600 mb-3 flex-1">
-                                                            {{ membresia.descripcion || 'Sin descripción disponible' }}
+                                                            {{ membresia.descripcion || 'Sin descripciÃ³n disponible' }}
                                                         </p>
                                                         <div class="flex align-items-center mb-4">
                                                             <i class="pi pi-building text-400 mr-2"></i>
@@ -280,7 +299,7 @@ async function subirComprobante() {
                                                                 ]"
                                                             >
                                                                 <i class="pi pi-plus-circle"></i>
-                                                                {{ isDisabledButton(membresia) ? 'Mi membresía actual' : 'Inscribirme' }}
+                                                                {{ isDisabledButton(membresia) ? 'Mi membresÃ­a actual' : 'Inscribirme' }}
                                                             </button>
                                                         </div>
                                                     </div>
@@ -317,7 +336,7 @@ async function subirComprobante() {
                                                             </div>
                                                         </div>
                                                         <p class="p-card-subtitle text-sm text-600">
-                                                            {{ membresia.descripcion || 'Sin descripción disponible' }}
+                                                            {{ membresia.descripcion || 'Sin descripciÃ³n disponible' }}
                                                         </p>
                                                     </div>
                                                     <div class="mt-4 md:mt-0 md:ml-4">
@@ -332,7 +351,7 @@ async function subirComprobante() {
                                                             ]"
                                                         >
                                                             <i class="pi pi-plus-circle"></i>
-                                                            {{ isDisabledButton(membresia) ? 'Mi membresía actual' : 'Inscribirme' }}
+                                                            {{ isDisabledButton(membresia) ? 'Mi membresÃ­a actual' : 'Inscribirme' }}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -345,8 +364,8 @@ async function subirComprobante() {
                                     <div class="text-center py-8 px-4">
                                         <div class="bg-gray-50 border-round p-6 border-1 border-dashed border-300">
                                             <i class="pi pi-info-circle text-4xl text-400 mb-4 block"></i>
-                                            <h3 class="text-xl font-medium text-700 mb-2">No hay membresías disponibles</h3>
-                                            <p class="text-600 m-0">En este momento no tenemos membresías activas.</p>
+                                            <h3 class="text-xl font-medium text-700 mb-2">No hay membresÃ­as disponibles</h3>
+                                            <p class="text-600 m-0">En este momento no tenemos membresÃ­as activas.</p>
                                         </div>
                                     </div>
                                 </template>
@@ -358,18 +377,18 @@ async function subirComprobante() {
         </div>
     </AppLayout>
 
-    <!-- Modal de confirmación para cambio de membresía -->
+    <!-- Modal de confirmaciÃ³n para cambio de membresÃ­a -->
         <Dialog 
         v-model:visible="showConfirmDialog" 
         modal 
-        :header="membresiaPendiente ? membresiaPendiente.nombre : 'Membres�a'"
+        :header="membresiaPendiente ? membresiaPendiente.nombre : 'Membresï¿½a'"
         :style="{ width: '34rem' }"
         :breakpoints="{ '1199px': '80vw', '575px': '95vw' }"
     >
         <template v-if="membresiaPendiente">
             <div class="flex flex-col gap-4">
                 <p v-if="userMembresia" class="text-sm text-gray-700">
-                    Ud cambiará de membresía, actual: <strong>{{ userMembresia.nombre }}</strong>
+                    Ud cambiarÃ¡ de membresÃ­a, actual: <strong>{{ userMembresia.nombre }}</strong>
                 </p>
 
                 <div>
@@ -388,7 +407,7 @@ async function subirComprobante() {
 
                 <div v-if="modalidad === 'ONLINE'">
                     <label class="block text-sm font-semibold text-gray-800 mb-2">
-                        ¿Puedes comentarnos el impedimento para concurrir presencialmente?
+                        Â¿Puedes comentarnos el impedimento para concurrir presencialmente?
                     </label>
                     <input
                         v-model="motivoOnline"
@@ -427,19 +446,19 @@ async function subirComprobante() {
         <div class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                    A qué mes imputar el pago
+                    ¿A qué mes imputar el pago?
                 </label>
                 <select
                     v-model="mesImputar"
                     class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                 >
-                    <option value="" disabled>Seleccioná un mes</option>
+                    <option value="" disabled>Selecciona un mes</option>
                     <option v-for="mes in mesesDisponibles" :key="mes.value" :value="mes.value">
                         {{ mes.label }}
                     </option>
                 </select>
-                <p v-if="mesPagado" class="mt-2 text-sm text-amber-700">
-                    Ya tiene una membresía paga en ese mes.
+                <p v-if="mesInformado" class="mt-2 text-sm text-amber-700">
+                    Ya tiene un pago informado en ese mes.
                 </p>
             </div>
 
@@ -449,6 +468,15 @@ async function subirComprobante() {
                 </label>
                 <input type="file" accept=".pdf,.jpg,.jpeg,.png" @change="seleccionarComprobante" />
             </div>
+            <div class="flex items-center gap-2">
+                <input
+                    id="pago_efectivo"
+                    v-model="pagoEfectivo"
+                    type="checkbox"
+                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <label for="pago_efectivo" class="text-sm text-gray-700">Pagué en efectivo</label>
+            </div>
         </div>
         <template #footer>
             <div class="flex justify-end gap-2">
@@ -457,10 +485,10 @@ async function subirComprobante() {
                 </button>
                 <button
                     class="px-4 py-2 bg-indigo-600 text-white rounded disabled:opacity-60"
-                    :disabled="isUploading || !comprobanteFile || mesPagado || !mesImputar"
+                    :disabled="isUploading || (!(comprobanteFile || pagoEfectivo)) || mesInformado || !mesImputar"
                     @click="subirComprobante"
                 >
-                    {{ isUploading ? 'Subiendo...' : 'Subir' }}
+                    {{ isUploading ? 'Informando...' : 'Informar' }}
                 </button>
             </div>
         </template>
@@ -503,6 +531,10 @@ async function subirComprobante() {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 </style>
+
+
+
+
 
 
 

@@ -42,6 +42,14 @@ const pagoMetodo = ref((props.pago?.pago_metodo || '').toString().toLowerCase() 
 const comprobantePath = ref(props.pago?.comprobante_path || null);
 
 const saldoFinal = computed(() => parseFloat(props.saldo || 0));
+const actividadEsGratuita = computed(() => {
+  const nombreEsquema = (props.actividad?.esquema_precio?.nombre || '').toString().toLowerCase();
+  return (
+    props.actividad?.gratuita === true ||
+    props.actividad?.es_gratuita === true ||
+    nombreEsquema.includes('gratuita')
+  );
+});
 const actividadPagoLink = computed(() => props.actividad?.boton_pago?.link || '');
 const grabacionSeleccionada = ref(false);
 const comidasSeleccionadas = ref([]);
@@ -84,8 +92,7 @@ const saldoAPagar = computed(() => {
 const esPagoCero = computed(() => {
   return (
     saldoFinal.value <= 0 ||
-    props.actividad?.gratuita === true ||
-    props.actividad?.es_gratuita === true
+    actividadEsGratuita.value
   );
 });
 
@@ -181,6 +188,7 @@ async function terminar() {
   try {
     const response = await axios.post(route('grid-actividades.pago.finalizar'), {
       pago_metodo: pagoMetodo.value || (esPagoCero.value ? 'gratis' : 'efectivo'),
+      incluye_grabacion: grabacionSeleccionada.value,
       comidas_ids: comidasSeleccionadas.value,
       transportes_ids: transportesSeleccionados.value,
       hospedajes_ids: hospedajesSeleccionados.value,
@@ -238,7 +246,19 @@ async function terminar() {
               />
             </div>
           </div>
-          <p class="text-lg text-gray-600 mt-4">
+          <h2
+            v-if="actividadEsGratuita"
+            class="mt-4 text-2xl font-semibold text-green-600"
+          >
+            ¡Esta actividad es gratuita!
+          </h2>
+          <h2
+            v-else-if="saldoFinal <= 0"
+            class="mt-4 text-2xl font-semibold text-green-600"
+          >
+            Esta actividad está incluída con tu membresía
+          </h2>
+          <p v-else class="text-lg text-gray-600 mt-4">
             Valor de la actividad: <span class="font-semibold text-gray-800">$ {{ saldoFinal.toLocaleString('es-AR') }}</span>
           </p>
 
@@ -253,7 +273,7 @@ async function terminar() {
             </a>
             <span v-else class="text-xs text-gray-400">Sin botón de pago disponible</span>
           </div>
-          <p class="text-lg text-green-600 mt-1">
+          <p v-if="!actividadEsGratuita" class="text-lg text-green-600 mt-1">
             Membresía aplicada: {{ membresia }}
           </p>
 

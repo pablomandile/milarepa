@@ -14,7 +14,7 @@ class EntidadesController extends Controller
      */
     public function index()
     {
-        $entidades = Entidad::paginate(15);
+        $entidades = Entidad::orderBy('nombre')->get();
         return inertia('Entidades/Index', ['entidades' => $entidades]);
     }
 

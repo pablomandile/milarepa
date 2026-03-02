@@ -27,10 +27,12 @@ class ClaseRequest extends FormRequest
             'titulos_por_fecha.*' => ['nullable', 'string', 'max:255'],
             'horario_desde' => ['required', 'date_format:H:i'],
             'horario_hasta' => ['required', 'date_format:H:i', 'after:horario_desde'],
-            'maestro_id' => ['nullable', 'exists:maestros,id'],
+            'maestro_ids' => ['nullable', 'array'],
+            'maestro_ids.*' => ['integer', 'exists:maestros,id'],
             'coordinador_id' => ['nullable', 'exists:coordinadores,id'],
             'esquema_precio_id' => ['nullable', 'exists:esquema_precios,id'],
             'mostrar_en_calendario' => ['required', 'boolean'],
+            'activa' => ['required', 'boolean'],
         ];
     }
 
@@ -50,6 +52,7 @@ class ClaseRequest extends FormRequest
             'horario_hasta.date_format' => __('El horario hasta debe tener formato hh:mm'),
             'horario_hasta.after' => __('El horario hasta debe ser posterior al horario desde'),
             'mostrar_en_calendario.required' => __('Debe indicar si se muestra en el calendario'),
+            'activa.required' => __('Debe indicar si la clase esta activa'),
         ];
     }
 }

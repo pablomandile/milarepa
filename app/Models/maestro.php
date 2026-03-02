@@ -15,6 +15,7 @@ class Maestro extends Model
         'nombre', 
         'telefono', 
         'email',
+        'sobre_maestro',
         'imagen_id',
     ];
 

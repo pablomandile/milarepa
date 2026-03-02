@@ -83,6 +83,15 @@ const estructuraSesionDescripcion = computed(() => {
   return props.descripcionesCards?.estructuraSesion?.descripcion
     || 'Sin descripcion configurada para "Estructura de una sesion".';
 });
+const maestrosTexto = computed(() => {
+  const maestros = Array.isArray(props.clase?.maestros) ? props.clase.maestros : [];
+  if (maestros.length === 0) return '-';
+  return maestros.map((m) => m?.nombre).filter(Boolean).join(', ');
+});
+const maestrosConImagen = computed(() => {
+  const maestros = Array.isArray(props.clase?.maestros) ? props.clase.maestros : [];
+  return maestros.filter((m) => m?.imagen?.ruta);
+});
 const mapModalVisible = ref(false);
 const selectedAddress = ref('');
 const maestroImageDialogVisible = ref(false);
@@ -193,23 +202,25 @@ function abrirImagenMaestro(url) {
                     <div class="flex-1 p-3">
                       <div class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
                         <i class="pi pi-user"></i>
-                        <span>Maestr@</span>
+                        <span>Maestr@s</span>
                       </div>
-                      <div class="mt-1 text-sm text-slate-900">{{ clase.maestro?.nombre || '-' }}</div>
+                      <div class="mt-1 text-sm text-slate-900">{{ maestrosTexto }}</div>
                     </div>
-                    <div v-if="clase.maestro?.imagen" class="w-20 shrink-0">
+                    <div v-if="maestrosConImagen.length > 0" class="h-full shrink-0 border-l border-rose-200 flex items-stretch overflow-x-auto">
                       <button
+                        v-for="maestro in maestrosConImagen"
+                        :key="maestro.id"
                         type="button"
-                        class="relative h-full w-full group cursor-zoom-in"
-                        @click="abrirImagenMaestro(`/storage/${clase.maestro.imagen.ruta}`)"
+                        class="relative h-full w-20 shrink-0 overflow-hidden group cursor-zoom-in border-l border-rose-200 first:border-l-0"
+                        @click="abrirImagenMaestro(`/storage/${maestro.imagen.ruta}`)"
                       >
                         <img
-                          :src="`/storage/${clase.maestro.imagen.ruta}`"
-                          :alt="`Foto de ${clase.maestro.nombre || 'maestrx'}`"
-                          class="h-full w-full object-cover border-l border-rose-200"
+                          :src="`/storage/${maestro.imagen.ruta}`"
+                          :alt="`Foto de ${maestro.nombre || 'maestrx'}`"
+                          class="h-full w-full object-cover"
                         />
                         <span class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                          <i class="pi pi-search-plus text-white text-base"></i>
+                          <i class="pi pi-search-plus text-white text-xs"></i>
                         </span>
                       </button>
                     </div>
@@ -288,7 +299,7 @@ function abrirImagenMaestro(url) {
     <Dialog
       v-model:visible="maestroImageDialogVisible"
       modal
-      header="Foto de Maestrx"
+      header="Foto de Maestr@"
       :style="{ width: '720px' }"
     >
       <div class="w-full">
@@ -310,6 +321,3 @@ function abrirImagenMaestro(url) {
   gap: 1rem;
 }
 </style>
-
-
-

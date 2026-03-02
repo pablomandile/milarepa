@@ -48,10 +48,13 @@ const form = useForm({
     titulos_por_fecha: props.clase.titulos_por_fecha && typeof props.clase.titulos_por_fecha === 'object' ? props.clase.titulos_por_fecha : {},
     horario_desde: props.clase.horario_desde ? String(props.clase.horario_desde).slice(0, 5) : '',
     horario_hasta: props.clase.horario_hasta ? String(props.clase.horario_hasta).slice(0, 5) : '',
-    maestro_id: props.clase.maestro_id,
+    maestro_ids: Array.isArray(props.clase.maestros)
+        ? props.clase.maestros.map((maestro) => maestro.id)
+        : (props.clase.maestro_id ? [props.clase.maestro_id] : []),
     coordinador_id: props.clase.coordinador_id,
     esquema_precio_id: props.clase.esquema_precio_id,
     mostrar_en_calendario: !!props.clase.mostrar_en_calendario,
+    activa: props.clase.activa ?? true,
 });
 
 const handleSubmit = () => {

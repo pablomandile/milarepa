@@ -85,23 +85,34 @@ class EstadoCuentaMembresiasController extends Controller
     public function uploadComprobante(Request $request)
     {
         $request->validate([
-            'comprobante' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
+            'comprobante' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
             'estado_cuenta_id' => ['nullable', 'exists:estado_cuenta_membresias,id'],
             'mes_pagado' => ['nullable', 'date_format:Y-m'],
+            'modo' => ['nullable', 'in:Efectivo,Transferencia'],
         ], [
-            'comprobante.max' => 'El comprobante supera el tamaño máximo permitido (4 MB).',
+            'comprobante.max' => 'El comprobante supera el tamaÃ±o mÃ¡ximo permitido (4 MB).',
             'comprobante.mimes' => 'El comprobante debe ser PDF, JPG o PNG.',
         ]);
 
+
+        $modo = $request->input('modo', 'Transferencia');
+        if (!$request->hasFile('comprobante') && $modo !== 'Efectivo') {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Subi un comprobante o marca que pagaste en efectivo.',
+            ], 422);
+        }
         $userId = $request->user()->id;
         $estadoCuenta = null;
-        if ($request->filled('estado_cuenta_id')) {
-            $estadoCuenta = EstadoCuentaMembresia::where('id', $request->estado_cuenta_id)
-                ->where('user_id', $userId)
-                ->firstOrFail();
-        } elseif ($request->filled('mes_pagado')) {
+        if ($request->filled('mes_pagado')) {
             $user = $request->user();
             $membresiaId = $user->membresia_id;
+            if (!$membresiaId) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'No tiene una membresia activa para imputar el pago.',
+                ], 422);
+            }
             $estadoCuenta = EstadoCuentaMembresia::where('user_id', $userId)
                 ->where('membresia_id', $membresiaId)
                 ->where('mes_pagado', $request->mes_pagado)
@@ -118,14 +129,18 @@ class EstadoCuentaMembresiasController extends Controller
                     'user_id' => $userId,
                     'membresia_id' => $membresiaId,
                     'mes_pagado' => $request->mes_pagado,
-                    'fecha_pago' => null,
+                    'fecha_pago' => Carbon::today()->toDateString(),
                     'importe' => $importe,
                     'pagado' => false,
                     'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
                     'observaciones' => 'Inscripción realizada por ' . ($request->user()->name ?? 'sistema'),
-                    'modo' => 'transferencia',
+                    'modo' => $modo,
                 ]);
             }
+        } elseif ($request->filled('estado_cuenta_id')) {
+            $estadoCuenta = EstadoCuentaMembresia::where('id', $request->estado_cuenta_id)
+                ->where('user_id', $userId)
+                ->firstOrFail();
         } else {
             $estadoCuenta = EstadoCuentaMembresia::where('user_id', $userId)
                 ->orderBy('mes_pagado', 'desc')
@@ -133,8 +148,13 @@ class EstadoCuentaMembresiasController extends Controller
                 ->firstOrFail();
         }
 
-        $path = $request->file('comprobante')->store('comprobantes', 'public');
-        $estadoCuenta->comprobante = $path;
+        $path = null;
+        if ($request->hasFile('comprobante')) {
+            $path = $request->file('comprobante')->store('comprobantes', 'public');
+            $estadoCuenta->comprobante = $path;
+        }
+        $estadoCuenta->modo = $modo;
+        $estadoCuenta->fecha_pago = Carbon::today()->toDateString();
         $estadoCuenta->save();
 
         return response()->json([
@@ -188,3 +208,5 @@ class EstadoCuentaMembresiasController extends Controller
         }
     }
 }
+
+

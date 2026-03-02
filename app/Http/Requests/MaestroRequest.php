@@ -26,6 +26,7 @@ class MaestroRequest extends FormRequest
             'nombre' => ['required', 'string', 'max:50'],
             'email' => ['required','string', 'max:255'],
             'telefono' => ['nullable','string', 'max:50'],
+            'sobre_maestro' => ['nullable', 'string', 'max:5000'],
             'imagen_id' => ['nullable', 'exists:imagenes,id'],
         ];
     }

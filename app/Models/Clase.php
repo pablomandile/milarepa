@@ -22,16 +22,17 @@ class Clase extends Model
         'titulos_por_fecha',
         'horario_desde',
         'horario_hasta',
-        'maestro_id',
         'coordinador_id',
         'esquema_precio_id',
         'mostrar_en_calendario',
+        'activa',
     ];
 
     protected $casts = [
         'dias_semana' => 'array',
         'titulos_por_fecha' => 'array',
         'mostrar_en_calendario' => 'boolean',
+        'activa' => 'boolean',
     ];
 
     public function ciclo()
@@ -44,9 +45,9 @@ class Clase extends Model
         return $this->belongsTo(Entidad::class, 'entidad_id');
     }
 
-    public function maestro()
+    public function maestros()
     {
-        return $this->belongsTo(Maestro::class, 'maestro_id');
+        return $this->belongsToMany(Maestro::class, 'clase_maestro')->withTimestamps();
     }
 
     public function coordinador()

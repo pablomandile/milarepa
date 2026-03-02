@@ -14,6 +14,7 @@
         nombre: '',
         telefono: '',
         email: '',
+        sobre_maestro: '',
         imagen_id: null
     })
 </script>

@@ -12,11 +12,18 @@
     import Column from 'primevue/column';
     import InputSwitch from 'primevue/inputswitch';
     import Tag from 'primevue/tag';
-    import { ref } from 'vue';
+    import { computed, ref } from 'vue';
+    import InputText from 'primevue/inputtext';
+    import IconField from 'primevue/iconfield';
+    import InputIcon from 'primevue/inputicon';
+    import { FilterMatchMode } from 'primevue/api';
     import Dialog from 'primevue/dialog';
     import { usePage } from '@inertiajs/vue3';
+    import Toast from 'primevue/toast';
+    import { useToast } from 'primevue/usetoast';
 
     const page = usePage();
+    const toast = useToast();
     const visible = ref(false);
     const actividadSeleccionada = ref(null);
     const imagenVisible = ref(false);
@@ -25,6 +32,43 @@
     const programaSeleccionado = ref(null);
     const esquemaPrecioVisible = ref(false);
     const esquemaPrecioSeleccionado = ref(null);
+    const filters = ref({
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    });
+    const filtroFechaInicio = ref('mes_actual');
+
+    const actividadesFiltradas = computed(() => {
+        if (filtroFechaInicio.value === 'todo') {
+            return actividades;
+        }
+
+        const ahora = new Date();
+        const inicioHoy = new Date(ahora);
+        inicioHoy.setHours(0, 0, 0, 0);
+
+        const inicioMesActual = new Date(ahora.getFullYear(), ahora.getMonth(), 1, 0, 0, 0, 0);
+
+        let limite = null;
+        if (filtroFechaInicio.value === 'ultimo_mes') {
+            limite = new Date(inicioHoy);
+            limite.setMonth(limite.getMonth() - 1);
+        } else if (filtroFechaInicio.value === 'ultimos_tres_meses') {
+            limite = new Date(inicioHoy);
+            limite.setMonth(limite.getMonth() - 3);
+        }
+
+        return actividades.filter((actividad) => {
+            if (!actividad?.fecha_inicio) return false;
+            const fechaInicio = new Date(actividad.fecha_inicio);
+            if (Number.isNaN(fechaInicio.getTime())) return false;
+
+            if (filtroFechaInicio.value === 'mes_actual') {
+                return fechaInicio >= inicioMesActual;
+            }
+
+            return limite ? fechaInicio >= limite : true;
+        });
+    });
     
     const { actividades } = defineProps({
         actividades: {
@@ -78,7 +122,12 @@
                 Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
             },
             onSuccess: () => {
-                Swal.fire('Éxito', 'Estado actualizado correctamente', 'success');
+                                toast.add({
+                    severity: 'success',
+                    summary: 'Estado actualizado',
+                    detail: nuevoEstado ? 'Actividad activada correctamente.' : 'Actividad desactivada correctamente.',
+                    life: 3000,
+                });
             }
         });
     };
@@ -115,6 +164,7 @@
         <template #header>
             <h1 class="font-semibold text-xl text-gray-800 leading-tight">Cursos, Retiros y Eventos especiales</h1>
         </template>
+        <Toast position="top-right" />
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="p-6 bg-white border-b border-gray-200 max-w-7xl mx-auto">
@@ -125,7 +175,9 @@
                     </div>
                     <div class="mt-4">
                         <DataTable 
-                        :value="actividades" 
+                        :value="actividadesFiltradas" 
+                        v-model:filters="filters"
+                        :globalFilterFields="['nombre', 'tipo_actividad.abreviacion', 'modalidad.nombre', 'entidad.abreviacion']"
                         stripedRows 
                         removableSort 
                         paginator 
@@ -135,6 +187,23 @@
                         :rowsPerPageOptions="[5, 10, 20, 50]" 
                         tableStyle="min-width: 50rem"
                         >
+                            <template #header>
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                                    <select
+                                        v-model="filtroFechaInicio"
+                                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
+                                    >
+                                        <option value="mes_actual">Mes actual en adelante</option>
+                                        <option value="ultimo_mes">Ultimo mes</option>
+                                        <option value="ultimos_tres_meses">Ultimos tres meses</option>
+                                        <option value="todo">Mostrar todo</option>
+                                    </select>
+                                    <IconField>
+                                        <InputIcon class="pi pi-search" />
+                                        <InputText v-model="filters.global.value" placeholder="Buscar..." />
+                                    </IconField>
+                                </div>
+                            </template>
                             <Column expander style="width: 5rem" />
                             <Column header="Imagen">
                                 <template #body="slotProps">
@@ -184,6 +253,14 @@
                             <Column header="Acciones">
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
+                                        <Link
+                                            :href="`${route('grid-actividades.show-public', slotProps.data.id)}?return_url=${encodeURIComponent(route('actividades.index'))}`"
+                                            v-tooltip="'Ver landing publica'"
+                                            class="text-sky-600 hover:text-sky-800"
+                                            style="display: flex; align-items: center;"
+                                        >
+                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </Link>
                                         <Link
                                             :href="route('actividades.edit', { actividad: parseInt(slotProps.data.id) })"
                                             v-if="$page.props.user.permissions.includes('update actividades')"

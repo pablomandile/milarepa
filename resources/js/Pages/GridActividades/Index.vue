@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import DataView from 'primevue/dataview';
 import Dialog from 'primevue/dialog';
@@ -40,9 +40,9 @@ const props = defineProps({
 });
 
 const layout = ref('grid');
-// Para controlar cuáles actividades están "giradas"
+// Para controlar cuÃ¡les actividades estÃ¡n "giradas"
 const flippedCards = ref({}); 
-// Modal de confirmación de inscripción
+// Modal de confirmaciÃ³n de inscripciÃ³n
 const confirmModalVisible = ref(false);
 const actividadAInscribir = ref(null);
 const toast = useToast();
@@ -72,7 +72,7 @@ const guestForm = ref({
   registrar_datos: false,
 });
 
-// Función para formatear precios con punto para miles y coma para decimales
+// FunciÃ³n para formatear precios con punto para miles y coma para decimales
 const formatPrice = (price) => {
   if (!price || isNaN(price)) return '0,00';
   return new Intl.NumberFormat('es-AR', {
@@ -81,19 +81,19 @@ const formatPrice = (price) => {
   }).format(price);
 };
 
-// Mostrar toast cuando cambian los mensajes flash (éxito / error)
+// Mostrar toast cuando cambian los mensajes flash (Ã©xito / error)
 watch(() => $page.props.flash, (flash) => {
     if (flash?.error) {
         toast.add({
             severity: 'warn',
             summary: 'Aviso',
-            detail: flash.error || 'Ya está inscripto a esa actividad!',
+            detail: flash.error || 'Ya estÃ¡ inscripto a esa actividad!',
             life: 10000,
         });
     } else if (flash?.success) {
         toast.add({
             severity: 'success',
-            summary: 'Inscripción',
+            summary: 'InscripciÃ³n',
             detail: flash.success,
             life: 5000,
         });
@@ -119,11 +119,11 @@ const inscripcionesIds = computed(() => {
   return props.userInscripcionesActividadIds || [];
 });
 
-// Función que alterna el estado flipped
+// FunciÃ³n que alterna el estado flipped
 function toggleFlip(id) {
   flippedCards.value[id] = !flippedCards.value[id];
 }
-// Acción al pulsar “Inscribirme”
+// AcciÃ³n al pulsar â€œInscribirmeâ€
 function inscribir(actividad) {
   if (!userContext.value) {
     actividadAInscribir.value = actividad;
@@ -136,21 +136,79 @@ function inscribir(actividad) {
   actividadAInscribir.value = actividad;
   iniciarPagoParaUsuario();
 }
-// Función para confirmar la inscripción después del modal
+// FunciÃ³n para confirmar la inscripciÃ³n despuÃ©s del modal
 function confirmarInscripcion() {
   // Deprecated: flujo ahora va a pantalla de pago
 }
+function getFechaLimiteDescuento(actividad) {
+  if (!actividad?.pagoAmticipado) return null;
+  const fecha = new Date(actividad.pagoAmticipado);
+  return Number.isNaN(fecha.getTime()) ? null : fecha;
+}
+
+function tieneDescuentoAnticipado(actividad) {
+  return !!actividad?.esquema_descuento && !!getFechaLimiteDescuento(actividad);
+}
+
+function descuentoVigente(actividad) {
+  if (!tieneDescuentoAnticipado(actividad)) return false;
+  const limite = getFechaLimiteDescuento(actividad);
+  const ahora = new Date();
+  return limite ? ahora <= limite : false;
+}
+
+function precioDesdeEsquema(esquema, membresiaId = null) {
+  const membresias = esquema?.membresias || [];
+  if (!Array.isArray(membresias) || membresias.length === 0) return null;
+
+  if (membresiaId) {
+    const pivot = membresias.find((epm) => epm.membresia_id === membresiaId);
+    if (pivot?.precio !== undefined && pivot?.precio !== null) return Number(pivot.precio);
+  }
+
+  const normalizar = (value) => String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
+  const general = membresias.find((epm) => {
+    const nombre = normalizar(epm?.membresia?.nombre);
+    return nombre === 'sin membresia' || nombre.includes('sin membres');
+  });
+  if (general?.precio !== undefined && general?.precio !== null) return Number(general.precio);
+
+  return null;
+}
+
+function precioSinMembresiaNormal(actividad) {
+  return precioDesdeEsquema(actividad?.esquema_precio, null) ?? 0;
+}
+
+function precioSinMembresiaVigente(actividad) {
+  if (descuentoVigente(actividad)) {
+    const precioConDescuento = precioDesdeEsquema(actividad?.esquema_descuento, null);
+    if (precioConDescuento !== null) return precioConDescuento;
+  }
+  return precioSinMembresiaNormal(actividad);
+}
+
 function precioMembresiaUsuario(actividad, user) {
-  if (!actividad.esquema_precio?.membresias) return 0;
+  const userMemId = user?.membresia?.id || user?.membresia_id;
+  if (!userMemId) return 0;
 
-  const userMemId = user?.membresia?.id; 
-  // O user.membresia_id si guardas IDs directos en user.
+  if (descuentoVigente(actividad)) {
+    const precioConDescuento = precioDesdeEsquema(actividad?.esquema_descuento, userMemId);
+    if (precioConDescuento !== null) return precioConDescuento;
+  }
 
-  // Buscar en 'membresias' la pivot con 'membresia_id' = userMemId
-  const pivot = actividad.esquema_precio.membresias.find(epm => epm.membresia_id === userMemId);
+  return precioDesdeEsquema(actividad?.esquema_precio, userMemId) ?? 0;
+}
 
-  // Si lo halla, retorna pivot.precio, sino 0 o "N/D"
-  return pivot ? pivot.precio : 0;
+function formatoFechaLimite(actividad) {
+  const limite = getFechaLimiteDescuento(actividad);
+  if (!limite) return '-';
+  return limite.toLocaleDateString('es-AR');
 }
 
 function esInscrito(actividadId) {
@@ -184,7 +242,7 @@ async function buscarPorEmail() {
 
   const email = emailInput.value.trim();
   if (!email) {
-    lookupError.value = 'Ingresá un email válido.';
+    lookupError.value = 'IngresÃ¡ un email vÃ¡lido.';
     return;
   }
 
@@ -198,7 +256,7 @@ async function buscarPorEmail() {
       lookupError.value = 'No encontramos un usuario con ese email.';
     }
   } catch (error) {
-    lookupError.value = 'No se pudo validar el email. Probá de nuevo.';
+    lookupError.value = 'No se pudo validar el email. ProbÃ¡ de nuevo.';
   } finally {
     isLookingUp.value = false;
   }
@@ -215,9 +273,7 @@ onMounted(() => {
 });
 
 function irMasInfo(actividad) {
-  const destino = isAuthenticated.value
-    ? route('actividades.show', actividad.id)
-    : route('grid-actividades.show-public', actividad.id);
+  const destino = route('grid-actividades.show-public', actividad.id);
   router.visit(destino);
 }
 
@@ -278,7 +334,7 @@ async function enviarInscripcionGuest() {
     router.visit(route('grid-actividades.pago', actividadAInscribir.value.id));
   } catch (error) {
     guestErrors.value = error?.response?.data?.errors || {};
-    const mensaje = error?.response?.data?.message || 'No se pudo procesar la inscripción.';
+    const mensaje = error?.response?.data?.message || 'No se pudo procesar la inscripciÃ³n.';
     toast.add({
       severity: 'error',
       summary: 'Error',
@@ -294,6 +350,70 @@ function abrirMapa(direccion) {
   if (!direccion) return;
   selectedAddress.value = direccion;
   mapModalVisible.value = true;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatInlineMarkdown(value) {
+  return value
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+}
+
+function renderMarkdown(value) {
+  const safeText = escapeHtml(value).replace(/\r\n/g, '\n');
+  const lines = safeText.split('\n');
+  const html = [];
+  let inList = false;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+
+    if (!line) {
+      if (inList) {
+        html.push('</ul>');
+        inList = false;
+      }
+      continue;
+    }
+
+    if (line.startsWith('- ')) {
+      if (!inList) {
+        html.push('<ul class="list-disc pl-5 my-2 space-y-1">');
+        inList = true;
+      }
+      html.push(`<li>${formatInlineMarkdown(line.slice(2).trim())}</li>`);
+      continue;
+    }
+
+    if (inList) {
+      html.push('</ul>');
+      inList = false;
+    }
+
+    if (line.startsWith('### ')) {
+      html.push(`<h5 class="text-base font-semibold text-gray-900 mt-3">${formatInlineMarkdown(line.slice(4).trim())}</h5>`);
+    } else if (line.startsWith('## ')) {
+      html.push(`<h4 class="text-lg font-semibold text-gray-900 mt-3">${formatInlineMarkdown(line.slice(3).trim())}</h4>`);
+    } else if (line.startsWith('# ')) {
+      html.push(`<h3 class="text-xl font-bold text-gray-900 mt-3">${formatInlineMarkdown(line.slice(2).trim())}</h3>`);
+    } else {
+      html.push(`<p class="text-sm text-gray-700 leading-relaxed mt-2">${formatInlineMarkdown(line)}</p>`);
+    }
+  }
+
+  if (inList) {
+    html.push('</ul>');
+  }
+
+  return html.join('');
 }
 
 </script>
@@ -312,12 +432,12 @@ function abrirMapa(direccion) {
                                 :href="route('asistant.panel')"
                                 class="inline-flex items-center rounded-md border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-600 hover:text-white transition-colors"
                             >
-                                Volver al menú
+                                Volver al menÃº
                             </Link>
                         </div>
                         <div v-if="!isAuthenticated" class="mb-6 rounded-lg border border-indigo-100 bg-indigo-50/40 p-4">
                             <p class="text-sm text-gray-700">
-                                Si registraste tus datos y querés ver los precios con descuento podés continuar con tu email.
+                                Si registraste tus datos y querÃ©s ver los precios con descuento podÃ©s continuar con tu email.
                             </p>
                         <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                             <input
@@ -342,7 +462,7 @@ function abrirMapa(direccion) {
                             {{ lookupError }}
                         </p>
                         <div class="mt-4 text-sm text-gray-700">
-                            O si prefieres iniciá sesión.
+                            O si prefieres iniciÃ¡ sesiÃ³n.
                         </div>
                             <div class="mt-2">
                                 <a
@@ -351,7 +471,7 @@ function abrirMapa(direccion) {
                                     rel="noopener"
                                     class="inline-flex items-center rounded-md border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-600 hover:text-white transition-colors"
                                 >
-                                    Iniciar sesión
+                                    Iniciar sesiÃ³n
                                 </a>
                             </div>
                         </div>
@@ -378,7 +498,6 @@ function abrirMapa(direccion) {
                                 <div
                                 class="flip-card-container border-round shadow-sm hover:shadow-md transition-shadow"
                                 :class="{ 'flipped': flippedCards[actividad.id] }"
-                                style="background: linear-gradient(135deg, #f3e8ff 0%, #d8b4f8 100%);"
                                 >
                                 <!-- flip-card-inner envuelve front y back -->
                                 <div class="flip-card-inner">
@@ -443,6 +562,11 @@ function abrirMapa(direccion) {
                                                           </button>
                                                         </span>
                                                     </p>
+                                                    <p v-if="actividad.modalidad?.nombre" class="text-base text-gray-600 mb-1 flex items-center gap-2">
+                                                        <i class="fa-solid fa-video" aria-hidden="true"></i>
+                                                        <span class="sr-only">Modalidad</span>
+                                                        <span>{{ actividad.modalidad.nombre }}</span>
+                                                    </p>
                                                     <p
                                                         v-if="actividad.esquema_precio?.nombre === 'Actividad Gratuita'"
                                                         class="text-sm mb-1 flex items-center gap-2 font-bold text-green-700"
@@ -460,17 +584,22 @@ function abrirMapa(direccion) {
                                                         >
                                                             <i class="fa-solid fa-ticket" aria-hidden="true"></i>
                                                             <span class="sr-only">Valor</span>
-                                                            <span v-if="parseInt(actividad.esquema_precio?.membresias?.find(epm => epm.membresia?.nombre === 'Sin membresía')?.precio) === 0" class="font-bold text-gray-700">
-                                                                Incluído
+                                                            <span class="font-bold text-gray-700">
+                                                                ${{ formatPrice(precioSinMembresiaVigente(actividad)) }}
                                                             </span>
-                                                            <span v-else class="font-bold text-gray-700">
-                                                                ${{ formatPrice(actividad.esquema_precio?.membresias?.find(epm => epm.membresia?.nombre === 'Sin membresía')?.precio || 0) }}
-                                                            </span>
+                                                        </p>
+                                                        <p
+                                                          v-if="descuentoVigente(actividad)"
+                                                          class="text-xs text-amber-700 mb-1"
+                                                        >
+                                                          Después de {{ formatoFechaLimite(actividad) }}:
+                                                          <strong>
+                                                            <span> ${{ formatPrice(precioSinMembresiaNormal(actividad)) }}</span>
+                                                          </strong>
                                                         </p>
                                                         <p v-if="userContext?.membresia && userContext.membresia?.nombre !== 'Sin membresía'" class="text-sm text-gray-600 mb-2">
                                                             <strong>Con {{ userContext.membresia?.nombre }}:</strong>
-                                                            <span v-if="parseInt(precioMembresiaUsuario(actividad, userContext)) === 0" class="font-bold text-green-700"> Incluído</span>
-                                                            <span v-else class="font-bold text-green-700"> ${{ formatPrice(precioMembresiaUsuario(actividad, userContext)) }}</span>
+                                                            <span class="font-bold text-green-700"> ${{ formatPrice(precioMembresiaUsuario(actividad, userContext)) }}</span>
                                                         </p>
                                                     </template>
                                                     <p
@@ -498,7 +627,7 @@ function abrirMapa(direccion) {
                                                       v-if="actividad.grabacion || actividad.grabacion_id"
                                                       class="text-sm text-gray-700 mb-1 flex items-center gap-2"
                                                     >
-                                                      <i class="pi pi-video text-violet-600" aria-hidden="true"></i>
+                                                      <i class="pi pi-headphones text-violet-600" aria-hidden="true"></i>
                                                       <span>Ofrece Grabaciones</span>
                                                     </p>
                                                 </div>
@@ -525,13 +654,14 @@ function abrirMapa(direccion) {
                                         </div>
                                     </div>
 
-                                    <!-- BACK: descripción completa -->
+                                    <!-- BACK: descripciÃ³n completa -->
                                     <div class="flip-card-back p-6 flex flex-col h-full" @click="toggleFlip(actividad.id)">
-                                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Descripción</h3>
+                                        <h3 class="text-xl font-semibold mb-4 text-gray-800">DescripciÃ³n</h3>
                                         <div class="flex-1 overflow-y-auto">
-                                            <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                                {{ actividad.descripcion?.descripcion || 'No hay descripción disponible' }}
-                                            </p>
+                                            <div
+                                                class="prose prose-sm max-w-none text-gray-700"
+                                                v-html="renderMarkdown(actividad.descripcion?.descripcion || 'No hay descripciÃ³n disponible')"
+                                            ></div>
                                         </div>
                                         <div class="mt-4 pt-4 border-t border-gray-200">
                                             <button
@@ -556,7 +686,7 @@ function abrirMapa(direccion) {
             </div>
         </div>
 
-        <!-- Modal de inscripción para invitado -->
+        <!-- Modal de inscripciÃ³n para invitado -->
         <Dialog
             v-model:visible="guestModalVisible"
             modal
@@ -620,7 +750,7 @@ function abrirMapa(direccion) {
     border-radius: 8px;
     overflow: hidden;
     position: relative;
-    height: 600px; /* Más alto para que se vea todo el contenido y los botones */
+    height: 600px; /* MÃ¡s alto para que se vea todo el contenido y los botones */
     min-height: 580px;
     height: clamp(580px, 70vh, 620px); /* Responsive: min, fluid, max */
 }
@@ -663,7 +793,7 @@ function abrirMapa(direccion) {
   color: white !important;
 }
 
-/* front y back se apilan, uno rota 0°, el otro 180° */
+/* front y back se apilan, uno rota 0Â°, el otro 180Â° */
 .flip-card-front,
 .flip-card-back {
   position: absolute;
@@ -682,4 +812,3 @@ function abrirMapa(direccion) {
   cursor: pointer;
 }
 </style>
-

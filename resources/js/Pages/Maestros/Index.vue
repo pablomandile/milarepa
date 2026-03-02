@@ -22,6 +22,7 @@
 
     const imageDialogVisible = ref(false);
     const selectedImageUrl = ref('');
+    const expandedRows = ref([]);
 
     const openImageDialog = (imageUrl) => {
         if (!imageUrl) return;
@@ -74,12 +75,15 @@
                     <div class="mt-4">
                         <DataTable 
                             :value="maestros.data" 
+                            v-model:expandedRows="expandedRows"
+                            dataKey="id"
                             stripedRows 
                             paginator 
                             :rows="5" 
                             :rowsPerPageOptions="[5, 10, 20, 50]" 
                             tableStyle="min-width: 58rem"
                         >
+                            <Column expander style="width: 4rem" />
                             <Column header="Foto">
                                 <template #body="slotProps">
                                     <div class="flex items-center justify-center">
@@ -125,6 +129,14 @@
                                     </div>
                                 </template>
                             </Column>
+                            <template #expansion="{ data }">
+                                <div class="p-4 bg-gray-50">
+                                    <div class="text-sm font-semibold text-gray-700 mb-1">Sobre el maestr@</div>
+                                    <p class="text-sm text-gray-700 whitespace-pre-line">
+                                        {{ data.sobre_maestro || 'Sin descripción cargada.' }}
+                                    </p>
+                                </div>
+                            </template>
                         </DataTable>
                     </div>
                 </div>

@@ -16,6 +16,10 @@ class Inscripcion extends Model
         'user_id',
         'membresia',
         'precioGeneral',
+        'montoActividad',
+        'montoGrabacion',
+        'montoTransporte',
+        'montoComidas',
         'montoapagar',
         'pago',
         'estado_id',
@@ -33,6 +37,10 @@ class Inscripcion extends Model
 
     protected $casts = [
         'precioGeneral' => 'decimal:2',
+        'montoActividad' => 'decimal:2',
+        'montoGrabacion' => 'decimal:2',
+        'montoTransporte' => 'decimal:2',
+        'montoComidas' => 'decimal:2',
         'montoapagar' => 'decimal:2',
         'online' => 'boolean',
         'auditoria_fecha' => 'datetime',

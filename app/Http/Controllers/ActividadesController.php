@@ -71,9 +71,9 @@ class ActividadesController extends Controller
             'membresias.moneda',
             'membresias.membresia.entidad'  // <- Eager load de la Entidad
         ])->get();
-        $tiposActividad = TipoActividad::all();
+        $tiposActividad = TipoActividad::orderBy('nombre')->get();
         $maestros = Maestro::all();
-        $coordinadores = Coordinador::orderByDesc('created_at')->get();
+        $coordinadores = Coordinador::orderBy('nombre')->get();
         $descripciones = Descripcion::orderByDesc('created_at')->get();
         $entidades = Entidad::all();
         $disponibilidades = Disponibilidad::all();
@@ -265,9 +265,9 @@ class ActividadesController extends Controller
                 'membresias.moneda',
                 'membresias.membresia.entidad'
             ])->get();
-            $tiposActividad = TipoActividad::all();
+            $tiposActividad = TipoActividad::orderBy('nombre')->get();
             $maestros = Maestro::all();
-            $coordinadores = Coordinador::all();
+            $coordinadores = Coordinador::orderBy('nombre')->get();
             $descripciones = Descripcion::orderByDesc('created_at')->get();
             $entidades = Entidad::all();
             $disponibilidades = Disponibilidad::all();

@@ -16,7 +16,7 @@ class ClasesController extends Controller
 {
     public function index()
     {
-        $clases = Clase::with(['ciclo', 'entidad', 'maestro', 'coordinador', 'esquemaPrecio', 'imagen'])
+        $clases = Clase::with(['ciclo', 'entidad', 'maestros', 'coordinador', 'esquemaPrecio', 'imagen'])
             ->orderByDesc('created_at')
             ->paginate(15);
 
@@ -36,7 +36,12 @@ class ClasesController extends Controller
 
     public function store(ClaseRequest $request)
     {
-        Clase::create($request->validated());
+        $validated = $request->validated();
+        $maestrosIds = $validated['maestro_ids'] ?? [];
+        unset($validated['maestro_ids']);
+
+        $clase = Clase::create($validated);
+        $clase->maestros()->sync($maestrosIds);
 
         return redirect()->route('clases.index');
     }
@@ -48,7 +53,7 @@ class ClasesController extends Controller
 
     public function showPublic(Request $request, Clase $clase)
     {
-        $clase->load(['imagen', 'entidad', 'maestro.imagen', 'coordinador', 'ciclo']);
+        $clase->load(['imagen', 'entidad', 'maestros.imagen', 'coordinador', 'ciclo']);
         $descripciones = Descripcion::query()
             ->where('nombre', 'Clase PG')
             ->orWhere('nombre', 'like', 'Estructura de una sesi%')
@@ -71,7 +76,7 @@ class ClasesController extends Controller
 
     public function edit($id)
     {
-        $clase = Clase::with('imagen')->findOrFail($id);
+        $clase = Clase::with(['imagen', 'maestros'])->findOrFail($id);
 
         return inertia('Clases/Edit', [
             'clase' => $clase,
@@ -85,8 +90,13 @@ class ClasesController extends Controller
 
     public function update(ClaseRequest $request, $id)
     {
+        $validated = $request->validated();
+        $maestrosIds = $validated['maestro_ids'] ?? [];
+        unset($validated['maestro_ids']);
+
         $clase = Clase::findOrFail($id);
-        $clase->update($request->validated());
+        $clase->update($validated);
+        $clase->maestros()->sync($maestrosIds);
 
         return redirect()->route('clases.index');
     }

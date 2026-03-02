@@ -28,7 +28,7 @@ class ActividadRequest extends FormRequest
             'tipo_actividad_id' => ['required', 'exists:tipos_actividad,id'],
             'nombre' => ['required', 'string', 'max:80'],
             'descripcion_id' => ['nullable', 'exists:descripciones,id'],
-            'observaciones' => ['nullable','string', 'max:255'],
+            'observaciones' => ['nullable','string'],
             'imagen_id' => ['nullable', 'exists:imagenes,id'],
             'fecha_inicio' => ['required','date'],
             'fecha_fin' => ['required','date'],

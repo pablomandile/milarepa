@@ -25,6 +25,7 @@
         nombre: props.maestro.nombre,
         telefono: props.maestro.telefono,
         email: props.maestro.email,
+        sobre_maestro: props.maestro.sobre_maestro || '',
         imagen_id: props.maestro.imagen_id || null
     });
 

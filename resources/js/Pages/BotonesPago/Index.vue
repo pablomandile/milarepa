@@ -13,7 +13,7 @@
     
     defineProps({
         botones: {
-            type: Object,
+            type: Array,
             required: true
         }
     })
@@ -60,7 +60,7 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="botones.data" stripedRows paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                        <DataTable :value="botones" stripedRows paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre"></Column>
                             <Column field="descripcion" header="Descripción"></Column>
                             <Column header="Link">

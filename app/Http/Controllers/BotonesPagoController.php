@@ -14,7 +14,9 @@ class BotonesPagoController extends Controller
      */
     public function index()
     {
-        $botones = BotonPago::with('metodoPago')->paginate(15);
+        $botones = BotonPago::with('metodoPago')
+            ->orderByDesc('created_at')
+            ->get();
         return inertia('BotonesPago/Index', ['botones' => $botones]);
     }
 

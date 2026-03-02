@@ -23,7 +23,7 @@ class EntidadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => ['required', 'string', 'max:80', 
+            'nombre' => ['required', 'string', 'max:200', 
             Rule::unique('entidades', 'nombre')->ignore($this->route('entidad')),],
             'descripcion' => ['required','string'],
             'abreviacion' => ['nullable','string', 'max:15'],

@@ -16,6 +16,7 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
 import Textarea from 'primevue/textarea';
 import Dropdown from 'primevue/dropdown';
 import InputSwitch from 'primevue/inputswitch';
+import MultiSelect from 'primevue/multiselect';
 
 const props = defineProps({
     form: {
@@ -353,18 +354,20 @@ watch(
                 </div>
 
                 <div class="col-span-6 sm:col-span-6">
-                    <InputLabel for="maestro_id" class="text-indigo-400" value="Maestro" />
-                    <Dropdown
-                        id="maestro_id"
-                        v-model="form.maestro_id"
+                    <InputLabel for="maestro_ids" class="text-indigo-400" value="Maestros" />
+                    <MultiSelect
+                        id="maestro_ids"
+                        v-model="form.maestro_ids"
                         :options="maestros"
                         optionLabel="nombre"
                         optionValue="id"
-                        placeholder="Seleccione un maestro"
+                        placeholder="Seleccione uno o mas maestros"
                         class="w-full mt-1 border border-gray-300"
-                        showClear
+                        :filter="true"
+                        display="chip"
+                        :maxSelectedLabels="3"
                     />
-                    <InputError :message="$page.props.errors.maestro_id" class="mt-2" />
+                    <InputError :message="$page.props.errors.maestro_ids" class="mt-2" />
                 </div>
 
                 <div class="col-span-6 sm:col-span-6">
@@ -405,6 +408,16 @@ watch(
                         </label>
                     </div>
                     <InputError :message="$page.props.errors.mostrar_en_calendario" class="mt-2" />
+                </div>
+
+                <div class="col-span-6 sm:col-span-6 mt-2">
+                    <div class="flex items-center">
+                        <InputSwitch v-model="form.activa" class="mr-3" />
+                        <label for="activa" class="block text-sm text-indigo-400">
+                            Activa
+                        </label>
+                    </div>
+                    <InputError :message="$page.props.errors.activa" class="mt-2" />
                 </div>
             </div>
         </template>

@@ -127,6 +127,35 @@ const props = defineProps({
   },
 });
 
+const maestrosOrdenados = computed(() => {
+  return [...(props.maestros || [])].sort((a, b) =>
+    String(a?.nombre || '').localeCompare(String(b?.nombre || ''), 'es', { sensitivity: 'base' })
+  );
+});
+
+const tiposActividadOrdenados = computed(() => {
+  return [...(props.tiposActividad || [])].sort((a, b) =>
+    String(a?.nombre || '').localeCompare(String(b?.nombre || ''), 'es', { sensitivity: 'base' })
+  );
+});
+
+const coordinadoresOrdenados = computed(() => {
+  return [...(props.coordinadores || [])].sort((a, b) =>
+    String(a?.nombre || '').localeCompare(String(b?.nombre || ''), 'es', { sensitivity: 'base' })
+  );
+});
+
+const entidadesParaSelect = computed(() => {
+  return (props.entidades || []).map((entidad) => {
+    const nombre = String(entidad?.nombre || '');
+    const nombreCorto = nombre.length > 36 ? `${nombre.slice(0, 36)}...` : nombre;
+    return {
+      ...entidad,
+      nombre_corto: nombreCorto,
+    };
+  });
+});
+
 
 // Manejo del dialog genÃ©rico
 const dialogVisible = ref(false);
@@ -349,7 +378,7 @@ watch(
             <Dropdown
               id="tipo_actividad_id"
               v-model="form.tipo_actividad_id"
-              :options="tiposActividad"
+              :options="tiposActividadOrdenados"
               optionLabel="nombre"      
               optionValue="id"
               placeholder="Seleccione tipo"
@@ -462,7 +491,7 @@ watch(
           <MultiSelect
             id="maestros"
             v-model="form.maestros_ids"
-            :options="maestros"
+            :options="maestrosOrdenados"
             optionLabel="nombre"
             optionValue="id"
             class="w-full mt-1 border border-gray-300"
@@ -481,7 +510,7 @@ watch(
           <MultiSelect
             id="coordinadores"
             v-model="form.coordinadores_ids"
-            :options="coordinadores"
+            :options="coordinadoresOrdenados"
             optionLabel="nombre"
             optionValue="id"
             class="w-full mt-1 border border-gray-300"
@@ -550,8 +579,8 @@ watch(
             <Dropdown
               id="entidad_id"
               v-model="form.entidad_id"
-              :options="entidades"
-              optionLabel="nombre"
+              :options="entidadesParaSelect"
+              optionLabel="nombre_corto"
               optionValue="id"
               placeholder="Seleccione Entidad"
               class="w-full mt-1 border border-gray-300"
@@ -584,6 +613,7 @@ watch(
           <InputLabel
             for="modalidad_id"
             class="text-indigo-400"
+            :required="true"
             value="Modalidad"
           />
           <Dropdown

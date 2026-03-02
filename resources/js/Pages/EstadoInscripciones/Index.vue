@@ -78,7 +78,7 @@
                                             class="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
                                         />
                                         <span v-else class="text-sm">
-                                            ${{ formatearMonto(data.montoapagar) }}
+                                            <span class="text-blue-700 font-medium">${{ formatearMonto(data.montoapagar) }}</span>
                                         </span>
                                     </template>
                                 </Column>
@@ -131,7 +131,7 @@
                                             >
                                                 +{{ comprobantesExtras(data) }}
                                             </span>
-                                            <span v-else class="text-xs text-gray-400">Sin comprobante</span>
+                                            <span v-else-if="!urlComprobante(data)" class="text-xs text-gray-400">Sin comprobante</span>
                                         </template>
                                     </template>
                                 </Column>
@@ -210,6 +210,22 @@
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Inscripto</p>
                                                 <p class="text-sm text-gray-800">{{ formatearFecha(data.created_at) }}</p>
+                                            </div>
+                                            <div v-if="data.montoActividad !== null && data.montoActividad !== undefined">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Monto Actividad</p>
+                                                <p class="text-sm text-blue-700 font-medium">${{ formatearMonto(data.montoActividad) }}</p>
+                                            </div>
+                                            <div v-if="data.montoTransporte !== null && data.montoTransporte !== undefined">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Monto Transporte</p>
+                                                <p class="text-sm text-blue-700 font-medium">${{ formatearMonto(data.montoTransporte) }}</p>
+                                            </div>
+                                            <div v-if="data.montoComidas !== null && data.montoComidas !== undefined">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Monto Comidas</p>
+                                                <p class="text-sm text-blue-700 font-medium">${{ formatearMonto(data.montoComidas) }}</p>
+                                            </div>
+                                            <div v-if="data.montoGrabacion !== null && data.montoGrabacion !== undefined">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Monto Grabación</p>
+                                                <p class="text-sm text-blue-700 font-medium">${{ formatearMonto(data.montoGrabacion) }}</p>
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Auditor</p>
@@ -527,8 +543,11 @@ const formatearFecha = (fecha) => {
 
 const formatearMonto = (monto) => {
     const valor = Number(monto);
-    if (Number.isNaN(valor)) return '0.00';
-    return valor.toFixed(2);
+    if (Number.isNaN(valor)) return '0,00';
+    return new Intl.NumberFormat('es-AR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(valor);
 };
 
 const badgePagoClass = (pago) => {
