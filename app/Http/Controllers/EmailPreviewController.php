@@ -17,18 +17,45 @@ class EmailPreviewController extends Controller
     }
 
     /**
+     * Vista previa del email de inscripción registrada
+     */
+    public function inscripcionRegistrada($id = null)
+    {
+        $inscripcion = $this->obtenerInscripcionParaPreview($id);
+
+        return response()->view('emails.inscripcion_registrada', [
+            'inscripcion' => $inscripcion,
+            'actividad' => $inscripcion->actividad,
+            'usuario' => $inscripcion->user,
+        ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+    }
+
+    /**
      * Vista previa del email de inscripción confirmada
      */
     public function inscripcionConfirmada($id = null)
     {
+        $inscripcion = $this->obtenerInscripcionParaPreview($id);
+        $inscripcion->estado = 'Confirmada';
+        $inscripcion->pago = 'Saldado';
+
+        return response()->view('emails.inscripcion_confirmada', [
+            'inscripcion' => $inscripcion,
+            'actividad' => $inscripcion->actividad,
+            'usuario' => $inscripcion->user,
+        ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+    }
+
+    private function obtenerInscripcionParaPreview($id = null)
+    {
         if ($id) {
-            // Cargar una inscripción real
             $inscripcion = Inscripcion::with([
                 'actividad.entidad',
+                'actividad.imagen',
                 'actividad.descripcion',
                 'actividad.modalidad',
+                'actividad.stream.links',
                 'user',
-                'estado',
                 'hospedaje',
                 'comida',
                 'transporte'
@@ -37,17 +64,11 @@ class EmailPreviewController extends Controller
             if (!$inscripcion) {
                 abort(404, 'Inscripción no encontrada');
             }
-        } else {
-            // Crear datos de prueba
-            $inscripcion = $this->crearInscripcionPrueba();
+
+            return $inscripcion;
         }
 
-        // Renderizar la vista del email directamente (sin Inertia)
-        return response()->view('emails.inscripcion_confirmada', [
-            'inscripcion' => $inscripcion,
-            'actividad' => $inscripcion->actividad,
-            'usuario' => $inscripcion->user,
-        ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+        return $this->crearInscripcionPrueba();
     }
 
     /**
@@ -85,8 +106,18 @@ class EmailPreviewController extends Controller
             'nombre' => 'Transporte incluido desde Buenos Aires',
         ];
 
-        $estado = (object) [
-            'nombre' => 'Confirmada',
+        $stream = (object) [
+            'nombre' => 'Streaming principal',
+            'links' => [
+                (object) [
+                    'nombre' => 'YouTube Live',
+                    'link' => 'https://www.youtube.com/watch?v=demo123',
+                ],
+                (object) [
+                    'nombre' => 'Zoom',
+                    'link' => 'https://zoom.us/j/1234567890',
+                ],
+            ],
         ];
 
         $actividad = (object) [
@@ -95,17 +126,20 @@ class EmailPreviewController extends Controller
             'entidad' => $entidad,
             'descripcion' => $descripcion,
             'modalidad' => $modalidad,
+            'stream' => $stream,
         ];
 
         $inscripcion = (object) [
             'id' => 999,
+            'online' => false,
             'membresia' => 'Miembro Activo',
             'precioGeneral' => 5000.00,
             'montoapagar' => 3500.00,
+            'montoGrabacion' => null,
             'pago' => 'Parcial',
+            'estado' => 'Registrada',
             'actividad' => $actividad,
             'user' => $usuario,
-            'estado' => $estado,
             'hospedaje' => $hospedaje,
             'comida' => $comida,
             'transporte' => $transporte,

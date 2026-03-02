@@ -82,7 +82,7 @@ const inscribir = () => {
     precioGeneral,
     montoapagar: precioMembresia,
     pago: 'Pendiente',
-    estado_id: 1,
+    estado: 'Registrada',
     envioLinkStream: 'pendiente',
     envioGrabación: 'pendiente',
     comprobante: null,

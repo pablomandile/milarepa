@@ -138,7 +138,7 @@
 
                                 <Column header="Estado">
                                     <template #body="{ data }">
-                                        <span class="text-sm">{{ data.estado?.estado || '-' }}</span>
+                                        <span class="text-sm">{{ data.estado || '-' }}</span>
                                     </template>
                                 </Column>
 
@@ -210,6 +210,10 @@
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Inscripto</p>
                                                 <p class="text-sm text-gray-800">{{ formatearFecha(data.created_at) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Modalidad</p>
+                                                <p class="text-sm text-gray-800">{{ modalidadInscripcion(data) }}</p>
                                             </div>
                                             <div v-if="data.montoActividad !== null && data.montoActividad !== undefined">
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Monto Actividad</p>
@@ -539,6 +543,12 @@ const formatearFecha = (fecha) => {
         month: 'long',
         day: 'numeric'
     });
+};
+
+const modalidadInscripcion = (inscripcion) => {
+    if (inscripcion?.online === true) return 'Online';
+    if (inscripcion?.online === false) return 'Presencial';
+    return '-';
 };
 
 const formatearMonto = (monto) => {

@@ -459,9 +459,9 @@ onMounted(() => {
     </template>
 
     <div class="py-12">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="w-full max-w-none sm:max-w-5xl mx-auto px-0 sm:px-6 lg:px-8">
         <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-          <div class="p-8">
+          <div class="p-4 sm:p-8">
             <div class="w-full mb-6 rounded-lg overflow-hidden bg-transparent">
               <img
                 v-if="actividad?.imagen"
@@ -535,7 +535,7 @@ onMounted(() => {
               </div>
 
               <div class="rounded-lg border border-rose-100 bg-gradient-to-br from-rose-50 to-white shadow-md min-h-[88px] overflow-hidden">
-                <div class="flex h-full items-stretch">
+                <div class="flex h-full flex-col md:flex-row md:items-stretch">
                   <div class="flex flex-1 items-start gap-3 p-5">
                     <i class="pi pi-user text-indigo-600 text-2xl"></i>
                     <div>
@@ -548,12 +548,15 @@ onMounted(() => {
                       </p>
                     </div>
                   </div>
-                  <div v-if="maestrosConImagen.length > 0" class="shrink-0 self-stretch border-l border-rose-100 flex items-stretch overflow-x-auto">
+                  <div
+                    v-if="maestrosConImagen.length > 0"
+                    class="shrink-0 border-t border-rose-100 md:border-t-0 md:border-l flex items-stretch overflow-x-auto"
+                  >
                     <button
                       v-for="maestro in maestrosConImagen"
                       :key="maestro.id"
                       type="button"
-                      class="relative w-24 shrink-0 self-stretch overflow-hidden group cursor-zoom-in border-l border-rose-200 first:border-l-0"
+                      class="relative h-28 w-28 md:h-auto md:w-24 shrink-0 overflow-hidden group cursor-zoom-in border-l border-rose-200 first:border-l-0"
                       @click="abrirImagenMaestro(maestro.url)"
                     >
                       <img
@@ -566,7 +569,7 @@ onMounted(() => {
                       </span>
                     </button>
                   </div>
-                  <div v-else class="w-24 shrink-0 border-l border-rose-100 bg-rose-50/60 flex items-center justify-center text-slate-400">
+                  <div v-else class="h-24 md:h-auto md:w-24 shrink-0 border-t border-rose-100 md:border-t-0 md:border-l bg-rose-50/60 flex items-center justify-center text-slate-400">
                     <i class="pi pi-user text-xl"></i>
                   </div>
                 </div>

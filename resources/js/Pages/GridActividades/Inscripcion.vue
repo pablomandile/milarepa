@@ -35,7 +35,7 @@ const props = defineProps({
             <div class="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-indigo-100 p-5 shadow-sm">
               <p class="text-xs uppercase tracking-wide text-indigo-500">Estado</p>
               <p class="mt-3 text-base font-semibold text-indigo-900">
-                {{ inscripcion.estado?.estado || 'Pendiente' }}
+                {{ inscripcion.estado || 'Registrada' }}
               </p>
             </div>
             <div class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-emerald-100 p-5 shadow-sm">

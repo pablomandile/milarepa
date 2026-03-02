@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\InscripcionConfirmada;
+use Illuminate\Support\Arr;
 
 
 class GridActividadesController extends Controller
@@ -219,6 +220,7 @@ class GridActividadesController extends Controller
 
         $actividad->load([
             'metodosPago',
+            'modalidad',
             'esquemaPrecio.membresias.membresia',
             'esquemaDescuento.membresias.membresia',
             'botonPago',
@@ -230,9 +232,11 @@ class GridActividadesController extends Controller
         ]);
         $saldo = 0;
         $membresiaNombre = 'Sin membresÃ­a';
+        $userContext = null;
         if (!empty($pago['user_id'])) {
             $user = User::with('membresia')->find($pago['user_id']);
             if ($user) {
+                $userContext = $user;
                 [$precioGeneral, $precioMembresia, $membresiaNombre] = $this->calcularPrecios($actividad, $user);
                 $saldo = $user->membresia_id ? $precioMembresia : $precioGeneral;
             }
@@ -241,11 +245,14 @@ class GridActividadesController extends Controller
             $saldo = $precioGeneral;
         }
 
+        $mostrarSelectorModalidad = $this->mostrarSelectorModalidadEnPago($actividad, $userContext);
+
         return inertia('GridActividades/Pago', [
             'actividad' => $actividad,
             'pago' => $pago,
             'saldo' => $saldo,
             'membresia' => $membresiaNombre,
+            'mostrarSelectorModalidad' => $mostrarSelectorModalidad,
         ]);
     }
 
@@ -284,6 +291,7 @@ class GridActividadesController extends Controller
         $data = $request->validate([
             'pago_metodo' => ['required', 'in:efectivo,comprobante,transferencia,getnet'],
             'incluye_grabacion' => ['nullable', 'boolean'],
+            'modalidad_cursada' => ['nullable', 'in:presencial,online'],
             'comidas_ids' => ['nullable', 'array'],
             'comidas_ids.*' => ['integer', 'exists:comidas,id'],
             'transportes_ids' => ['nullable', 'array'],
@@ -376,10 +384,8 @@ class GridActividadesController extends Controller
         }
 
         [$precioGeneral, $precioMembresia, $membresiaNombre] = $this->calcularPrecios($actividad, $registrado ? $user : null);
-        $estadoPago = 'Pendiente';
         $montoActividad = (float) (($user && $user->membresia_id) ? $precioMembresia : $precioGeneral);
-        $online = ($actividad->modalidad?->nombre === 'Online')
-            || ($user && $user->membresia_id && $user->membresia_online);
+        $online = $this->resolverModalidadOnline($actividad, $user, $registrado, Arr::get($data, 'modalidad_cursada'));
         $incluyeGrabacion = (bool) ($data['incluye_grabacion'] ?? false);
         $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
         $envioGrabacion = ($incluyeGrabacion && $actividad->grabacion_id) ? 'Pendiente' : 'No aplica';
@@ -408,6 +414,7 @@ class GridActividadesController extends Controller
             + (float) ($montoComidas ?? 0)
             + (float) ($montoTransporte ?? 0)
             + $montoHospedaje;
+        [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
         $inscripcion = Inscripcion::create([
             'actividad_id' => $actividad->id,
             'user_id' => $user->id,
@@ -420,7 +427,7 @@ class GridActividadesController extends Controller
             'montoComidas' => $montoComidas,
             'montoapagar' => $montoApagar,
             'pago' => $estadoPago,
-            'estado_id' => 1,
+            'estado' => $estadoInscripcion,
             'envioLinkStream' => $envioLinkStream,
             'envioGrabaciÃ³n' => $envioGrabacion,
             'asistencia' => 'Pendiente',
@@ -441,10 +448,11 @@ class GridActividadesController extends Controller
         if ($registrado) {
             $inscripcion->load([
                 'actividad.entidad',
+                'actividad.imagen',
                 'actividad.descripcion',
                 'actividad.modalidad',
+                'actividad.stream.links',
                 'user',
-                'estado',
             ]);
             try {
                 Mail::to($user->email)->send(new InscripcionConfirmada($inscripcion));
@@ -473,7 +481,6 @@ class GridActividadesController extends Controller
             'actividad.imagen',
             'actividad.modalidad',
             'actividad.tipoActividad',
-            'estado',
             'hospedaje',
             'comida',
             'transporte',
@@ -579,6 +586,7 @@ class GridActividadesController extends Controller
             || ($user && $user->membresia_id && $user->membresia_online);
         $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
         $envioGrabacion = 'No aplica';
+        [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
         $inscripcion = Inscripcion::create([
             'actividad_id' => $actividad->id,
             'user_id' => $user->id,
@@ -589,8 +597,8 @@ class GridActividadesController extends Controller
             'montoTransporte' => null,
             'montoComidas' => null,
             'montoapagar' => $montoApagar,
-            'pago' => 'Pendiente',
-            'estado_id' => 1,
+            'pago' => $estadoPago,
+            'estado' => $estadoInscripcion,
             'envioLinkStream' => $envioLinkStream,
             'envioGrabaciÃ³n' => $envioGrabacion,
             'asistencia' => 'Pendiente',
@@ -678,6 +686,7 @@ class GridActividadesController extends Controller
                 || ($user && $user->membresia_id && $user->membresia_online);
             $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
             $envioGrabacion = 'No aplica';
+            [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
             $inscripcion = Inscripcion::create([
                 'actividad_id' => $actividad->id,
                 'user_id' => $user->id,
@@ -688,8 +697,8 @@ class GridActividadesController extends Controller
                 'montoTransporte' => null,
                 'montoComidas' => null,
                 'montoapagar' => $montoApagar,
-                'pago' => 'Pendiente',
-                'estado_id' => 1,
+                'pago' => $estadoPago,
+                'estado' => $estadoInscripcion,
                 'envioLinkStream' => $envioLinkStream,
                 'envioGrabaciÃ³n' => $envioGrabacion,
                 'asistencia' => 'Pendiente',
@@ -728,6 +737,7 @@ class GridActividadesController extends Controller
         $montoApagar = $precioGeneral;
         $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
         $envioGrabacion = 'No aplica';
+        [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
         $inscripcion = Inscripcion::create([
             'actividad_id' => $actividad->id,
             'user_id' => $guestOwner->id,
@@ -739,8 +749,8 @@ class GridActividadesController extends Controller
             'montoTransporte' => null,
             'montoComidas' => null,
             'montoapagar' => $montoApagar,
-            'pago' => 'Pendiente',
-            'estado_id' => 1,
+            'pago' => $estadoPago,
+            'estado' => $estadoInscripcion,
             'envioLinkStream' => $envioLinkStream,
             'envioGrabaciÃ³n' => $envioGrabacion,
             'asistencia' => 'Pendiente',
@@ -834,5 +844,66 @@ class GridActividadesController extends Controller
         ]);
 
         return str_contains($normalized, 'sin membres');
+    }
+
+    private function mostrarSelectorModalidadEnPago(Actividad $actividad, ?User $user): bool
+    {
+        $modalidad = $this->normalizarTextoModalidad($actividad->modalidad?->nombre);
+
+        if ($modalidad === 'presencial y online abierta') {
+            return true;
+        }
+
+        if ($modalidad === 'presencial y online') {
+            return (bool) ($user?->membresia_online ?? false);
+        }
+
+        return false;
+    }
+
+    private function resolverModalidadOnline(Actividad $actividad, ?User $user, bool $registrado, ?string $modalidadCursada): bool
+    {
+        $modalidad = $this->normalizarTextoModalidad($actividad->modalidad?->nombre);
+
+        if ($modalidad === 'online') {
+            return true;
+        }
+
+        $seleccion = strtolower((string) ($modalidadCursada ?? 'presencial'));
+        if (!in_array($seleccion, ['presencial', 'online'], true)) {
+            $seleccion = 'presencial';
+        }
+
+        if ($modalidad === 'presencial y online abierta') {
+            return $seleccion === 'online';
+        }
+
+        if ($modalidad === 'presencial y online') {
+            $puedeElegirOnline = $registrado && (bool) ($user?->membresia_online ?? false);
+            return $puedeElegirOnline && $seleccion === 'online';
+        }
+
+        return false;
+    }
+
+    private function normalizarTextoModalidad(?string $texto): string
+    {
+        $normalized = mb_strtolower(trim((string) $texto), 'UTF-8');
+        return strtr($normalized, [
+            'á' => 'a',
+            'é' => 'e',
+            'í' => 'i',
+            'ó' => 'o',
+            'ú' => 'u',
+        ]);
+    }
+
+    private function resolverEstadoSegunMonto(float $montoApagar): array
+    {
+        if ($montoApagar <= 0.0) {
+            return ['Saldado', 'Confirmada'];
+        }
+
+        return ['Pendiente', 'Registrada'];
     }
 }

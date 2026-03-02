@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inscripcion;
-use App\Models\EstadoActividad;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -14,12 +13,9 @@ class EstadoInscripcionesController extends Controller
      */
     public function index()
     {
-        $estadoIds = EstadoActividad::whereIn('estado', ['Activa', 'Activo'])->pluck('id');
-
         $inscripciones = Inscripcion::with([
                 'actividad',
                 'actividad.entidad',
-                'estado',
                 'user',
                 'user.pais',
                 'user.provincia',
@@ -33,9 +29,6 @@ class EstadoInscripcionesController extends Controller
                 'auditorUser',
             'comprobantes',
             ])
-            ->when($estadoIds->count() > 0, function ($query) use ($estadoIds) {
-                $query->whereIn('estado_id', $estadoIds);
-            })
             ->orderBy('created_at', 'desc')
             ->paginate(15)
             ->withQueryString();

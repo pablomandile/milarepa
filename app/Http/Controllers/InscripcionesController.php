@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Actividad;
 use App\Models\Inscripcion;
 use App\Models\InscripcionComprobante;
-use App\Models\EstadoActividad;
 use App\Mail\InscripcionConfirmada;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -24,7 +23,6 @@ class InscripcionesController extends Controller
                 'actividad',
                 'actividad.imagen',
                 'actividad.entidad',
-                'estado',
                 'hospedaje',
             'comida',
             'transporte',
@@ -159,8 +157,8 @@ class InscripcionesController extends Controller
             'membresia' => 'required|string',
             'precioGeneral' => 'required|numeric',
             'montoapagar' => 'required|numeric',
-            'pago' => 'required|in:Saldado,Parcial,Pendiente',
-            'estado_id' => 'required|exists:estados_actividad,id',
+            'pago' => 'nullable|in:Saldado,Parcial,Pendiente',
+            'estado' => 'nullable|in:Registrada,Confirmada',
             'envioLinkStream' => 'required|in:enviado,pendiente',
             'envioGrabación' => 'required|in:enviada,pendiente',
             'asistencia' => 'required|in:presente,ausente',
@@ -187,16 +185,20 @@ class InscripcionesController extends Controller
         // Crear Inscripci�n usando el usuario autenticado
         $data = $request->all();
         $data['user_id'] = $userId;
+        [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto((float) $data['montoapagar']);
+        $data['pago'] = $estadoPago;
+        $data['estado'] = $estadoInscripcion;
 
         $inscripcion = Inscripcion::create($data);
 
         // Cargar relaciones para el email
         $inscripcion->load([
             'actividad.entidad',
+            'actividad.imagen',
             'actividad.descripcion',
             'actividad.modalidad',
+            'actividad.stream.links',
             'user',
-            'estado',
             'comprobantes'
         ]);
 
@@ -244,7 +246,6 @@ class InscripcionesController extends Controller
             'actividad.modalidad',
             'actividad.tipoActividad',
             'user',
-            'estado',
             'hospedaje',
             'comida',
             'transporte',
@@ -418,5 +419,14 @@ class InscripcionesController extends Controller
         ]);
 
         return back()->with('success', 'Comprobante subido correctamente.');
+    }
+
+    private function resolverEstadoSegunMonto(float $montoApagar): array
+    {
+        if ($montoApagar <= 0.0) {
+            return ['Saldado', 'Confirmada'];
+        }
+
+        return ['Pendiente', 'Registrada'];
     }
 }

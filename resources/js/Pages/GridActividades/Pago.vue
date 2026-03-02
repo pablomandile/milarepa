@@ -23,6 +23,10 @@ const props = defineProps({
     type: String,
     default: 'Sin membresía',
   },
+  mostrarSelectorModalidad: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const toast = useToast();
@@ -31,6 +35,7 @@ const comprobanteFile = ref(null);
 const comprobanteDescripcion = ref('');
 const isUploading = ref(false);
 const isFinalizing = ref(false);
+const modalidadCursada = ref('presencial');
 const metodosPago = computed(() =>
   (props.actividad?.metodos_pago || []).map((metodo) => ({
     id: metodo.id,
@@ -189,6 +194,7 @@ async function terminar() {
     const response = await axios.post(route('grid-actividades.pago.finalizar'), {
       pago_metodo: pagoMetodo.value || (esPagoCero.value ? 'gratis' : 'efectivo'),
       incluye_grabacion: grabacionSeleccionada.value,
+      modalidad_cursada: props.mostrarSelectorModalidad ? modalidadCursada.value : null,
       comidas_ids: comidasSeleccionadas.value,
       transportes_ids: transportesSeleccionados.value,
       hospedajes_ids: hospedajesSeleccionados.value,
@@ -277,6 +283,20 @@ async function terminar() {
             Membresía aplicada: {{ membresia }}
           </p>
 
+          <div v-if="mostrarSelectorModalidad" class="mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="modalidad_cursada_select">
+              Modalidad de cursada
+            </label>
+            <select
+              id="modalidad_cursada_select"
+              v-model="modalidadCursada"
+              class="w-full appearance-none rounded border border-sky-400 bg-blue-400 px-3 py-2 pr-10 text-sm text-white shadow-sm focus:border-sky-600 focus:ring focus:ring-sky-200"
+            >
+              <option value="presencial">Presencial</option>
+              <option value="online">Online</option>
+            </select>
+          </div>
+
           <div v-if="!esPagoCero && metodosPago.length" class="mt-4">
             <label class="block text-sm font-medium text-gray-700 mb-2" for="pago_metodo_select">
               Selecciona el Medio de pago
@@ -284,7 +304,7 @@ async function terminar() {
             <select
               id="pago_metodo_select"
               v-model="pagoMetodo"
-              class="w-full appearance-none rounded border border-sky-400 bg-sky-500 px-3 py-2 pr-10 text-sm text-white shadow-sm focus:border-sky-600 focus:ring focus:ring-sky-200"
+              class="w-full appearance-none rounded border border-sky-400 bg-blue-400 px-3 py-2 pr-10 text-sm text-white shadow-sm focus:border-sky-600 focus:ring focus:ring-sky-200"
             >
               <option v-for="metodo in metodosPago" :key="metodo.id" :value="metodo.value">
                 {{ metodo.nombre }}
@@ -577,13 +597,30 @@ async function terminar() {
 }
 
 #pago_metodo_select option {
-  background-color: #0ea5e9;
+  background-color: #83c6e6;
   color: #ffffff;
 }
 
 #pago_metodo_select option:hover,
 #pago_metodo_select option:focus {
-  background-color: #0b4f6c;
+  background-color: #61b1d3;
+}
+
+#modalidad_cursada_select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.85rem;
+}
+
+#modalidad_cursada_select option {
+  background-color: #83c6e6;
+  color: #ffffff;
+}
+
+#modalidad_cursada_select option:hover,
+#modalidad_cursada_select option:focus {
+  background-color: #61b1d3;
 }
 </style>
 

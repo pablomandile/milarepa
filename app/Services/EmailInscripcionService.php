@@ -22,10 +22,11 @@ class EmailInscripcionService
             if (!$inscripcion->relationLoaded('actividad')) {
                 $inscripcion->load([
                     'actividad.entidad',
+                    'actividad.imagen',
                     'actividad.descripcion',
                     'actividad.modalidad',
+                    'actividad.stream.links',
                     'user',
-                    'estado'
                 ]);
             }
 

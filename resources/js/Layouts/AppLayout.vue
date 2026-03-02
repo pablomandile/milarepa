@@ -185,10 +185,7 @@ const logout = () => {
                                         Inscripciones por Actividad
                                     </DropdownLink>
                                     <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
-                                        Estado de inscripciones
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
-                                        Histórico
+                                        Estado de Inscripciones
                                     </DropdownLink>
                                 </template>
                             </Dropdown>

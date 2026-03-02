@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Models\Inscripcion;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -18,7 +17,8 @@ class InscripcionConfirmada extends Mailable
      * Create a new message instance.
      */
     public function __construct(
-        public Inscripcion $inscripcion
+        public Inscripcion $inscripcion,
+        public ?string $plantilla = null
     ) {
         //
     }
@@ -28,8 +28,13 @@ class InscripcionConfirmada extends Mailable
      */
     public function envelope(): Envelope
     {
+        $plantilla = $this->resolverPlantilla();
+        $subject = $plantilla === 'emails.inscripcion_registrada'
+            ? 'Inscripción registrada'
+            : 'Inscripción confirmada';
+
         return new Envelope(
-            subject: 'Inscripción Confirmada - ' . $this->inscripcion->actividad->nombre,
+            subject: $subject . ' - ' . $this->inscripcion->actividad->nombre,
         );
     }
 
@@ -39,7 +44,7 @@ class InscripcionConfirmada extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.inscripcion_confirmada',
+            view: $this->resolverPlantilla(),
             with: [
                 'inscripcion' => $this->inscripcion,
                 'actividad' => $this->inscripcion->actividad,
@@ -56,5 +61,16 @@ class InscripcionConfirmada extends Mailable
     public function attachments(): array
     {
         return [];
+    }
+
+    private function resolverPlantilla(): string
+    {
+        if (in_array($this->plantilla, ['emails.inscripcion_confirmada', 'emails.inscripcion_registrada'], true)) {
+            return $this->plantilla;
+        }
+
+        return $this->inscripcion->estado === 'Confirmada'
+            ? 'emails.inscripcion_confirmada'
+            : 'emails.inscripcion_registrada';
     }
 }

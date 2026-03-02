@@ -352,6 +352,20 @@ function abrirMapa(direccion) {
   mapModalVisible.value = true;
 }
 
+function cardConMuchoTexto(actividad) {
+  let items = 0;
+  if (actividad?.modalidad?.nombre) items++;
+  if (descuentoVigente(actividad)) items++;
+  if (userContext.value?.membresia && userContext.value.membresia?.nombre !== 'Sin membresía') items++;
+  if (actividad?.hospedajes?.length) items++;
+  if (actividad?.comidas?.length) items++;
+  if (actividad?.transportes?.length) items++;
+  if (actividad?.grabacion || actividad?.grabacion_id) items++;
+
+  const direccionLarga = String(actividad?.entidad?.direccion || '').length > 50;
+  return items >= 5 || direccionLarga;
+}
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -425,8 +439,8 @@ function renderMarkdown(value) {
         </template>
         <Toast position="top-right" />
         <div class="py-12">
-            <div class="px-4 sm:px-6 lg:px-8">
-                    <div class="p-6 bg-white border-b border-gray-200">
+            <div class="px-0 sm:px-6 lg:px-8">
+                    <div class="p-3 sm:p-6 bg-white border-b border-gray-200">
                         <div v-if="isAsistant" class="mb-4">
                             <Link
                                 :href="route('asistant.panel')"
@@ -437,7 +451,7 @@ function renderMarkdown(value) {
                         </div>
                         <div v-if="!isAuthenticated" class="mb-6 rounded-lg border border-indigo-100 bg-indigo-50/40 p-4">
                             <p class="text-sm text-gray-700">
-                                Si registraste tus datos y querÃ©s ver los precios con descuento podÃ©s continuar con tu email.
+                                Si registraste tus datos y querés ver los precios con descuento podés continuar con tu email.
                             </p>
                         <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                             <input
@@ -462,7 +476,7 @@ function renderMarkdown(value) {
                             {{ lookupError }}
                         </p>
                         <div class="mt-4 text-sm text-gray-700">
-                            O si prefieres iniciÃ¡ sesiÃ³n.
+                            O si prefieres iniciar sesión.
                         </div>
                             <div class="mt-2">
                                 <a
@@ -471,7 +485,7 @@ function renderMarkdown(value) {
                                     rel="noopener"
                                     class="inline-flex items-center rounded-md border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-600 hover:text-white transition-colors"
                                 >
-                                    Iniciar sesiÃ³n
+                                    Iniciar sesión
                                 </a>
                             </div>
                         </div>
@@ -492,12 +506,15 @@ function renderMarkdown(value) {
                             <div
                                 v-for="(actividad, index) in slotProps.items"
                                 :key="actividad.id"
-                                class="col-12 md:col-6 xl:col-6 p-2 mb-4"
+                                class="col-12 md:col-6 xl:col-6 px-0 md:px-2 mb-4"
                             >
                                 <!-- Contenedor flip-card -->
                                 <div
                                 class="flip-card-container border-round shadow-sm hover:shadow-md transition-shadow"
-                                :class="{ 'flipped': flippedCards[actividad.id] }"
+                                :class="{
+                                  'flipped': flippedCards[actividad.id],
+                                  'card-mobile-tall': cardConMuchoTexto(actividad),
+                                }"
                                 >
                                 <!-- flip-card-inner envuelve front y back -->
                                 <div class="flip-card-inner">
@@ -514,14 +531,24 @@ function renderMarkdown(value) {
                                     >
                                         <!-- Header a lo ancho -->
                                         <div class="flip-card-header w-full mb-3">
-                                            <h3 class="text-lg font-semibold leading-tight flex items-center gap-2">
+                                            <h3 class="text-base md:text-lg font-semibold leading-tight flex items-start gap-2">
                                                 <i class="fa-solid fa-dharmachakra" aria-hidden="true"></i>
-                                                <span v-if="actividad.tipo_actividad?.abreviacion">{{ actividad.tipo_actividad.abreviacion }} - </span>{{ actividad.nombre }}
+                                                <span class="flex flex-col">
+                                                    <span
+                                                        v-if="actividad.tipo_actividad?.abreviacion"
+                                                        class="text-xs md:text-sm text-indigo-700 font-semibold uppercase tracking-wide"
+                                                    >
+                                                        {{ actividad.tipo_actividad.abreviacion }}
+                                                    </span>
+                                                    <span class="text-sm md:text-lg font-semibold text-gray-800">
+                                                        {{ actividad.nombre }}
+                                                    </span>
+                                                </span>
                                             </h3>
                                         </div>
-                                        <div class="flex flex-row flex-1">
+                                        <div class="flex flex-col md:flex-row flex-1">
                                             <!-- Imagen a la izquierda -->
-                                            <div class="w-1/2 pr-3 flex items-center justify-center bg-transparent cursor-pointer rounded h-full" @click="toggleFlip(actividad.id)">
+                                            <div class="w-full md:w-1/2 md:pr-3 mb-3 md:mb-0 flex items-center justify-center bg-transparent cursor-pointer rounded h-56 md:h-full" @click="toggleFlip(actividad.id)">
                                                 <img
                                                     class="w-full h-full object-contain rounded"
                                                     :src="actividad.imagen?.ruta
@@ -531,21 +558,21 @@ function renderMarkdown(value) {
                                                 />
                                             </div>
                                             <!-- Texto a la derecha -->
-                                            <div class="w-1/2 flex flex-col justify-between pl-2">
+                                            <div class="w-full md:w-1/2 flex flex-col justify-between md:pl-2">
                                                 <div class="flex-1">
-                                                    <p class="text-base text-gray-600 mb-1 flex items-center gap-2">
+                                                    <p class="text-sm md:text-base text-gray-600 mb-0.5 md:mb-1 leading-tight flex items-center gap-2">
                                                         <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
                                                         <span class="sr-only">Fecha</span>
                                                         <span>
                                                             {{ formatFechaLarga(actividad.fecha_inicio) }}
                                                         </span>
                                                     </p>
-                                                    <p v-if="actividad.fecha_inicio" class="text-base text-gray-600 mb-1 flex items-center gap-2">
+                                                    <p v-if="actividad.fecha_inicio" class="text-sm md:text-base text-gray-600 mb-0.5 md:mb-1 leading-tight flex items-center gap-2">
                                                         <i class="fa-solid fa-clock" aria-hidden="true"></i>
                                                         <span class="sr-only">Hora</span>
                                                         <span>{{ new Date(actividad.fecha_inicio).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }) }} hs.</span>
                                                     </p>
-                                                    <p class="text-base text-gray-600 mb-1 flex items-center gap-2">
+                                                    <p class="text-sm md:text-base text-gray-600 mb-0.5 md:mb-1 leading-tight flex items-center gap-2">
                                                         <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
                                                         <span class="sr-only">Lugar</span>
                                                         <span class="inline-flex items-center gap-2">
@@ -562,7 +589,7 @@ function renderMarkdown(value) {
                                                           </button>
                                                         </span>
                                                     </p>
-                                                    <p v-if="actividad.modalidad?.nombre" class="text-base text-gray-600 mb-1 flex items-center gap-2">
+                                                    <p v-if="actividad.modalidad?.nombre" class="text-sm md:text-base text-gray-600 mb-0.5 md:mb-1 leading-tight flex items-center gap-2">
                                                         <i class="fa-solid fa-video" aria-hidden="true"></i>
                                                         <span class="sr-only">Modalidad</span>
                                                         <span>{{ actividad.modalidad.nombre }}</span>
@@ -576,7 +603,7 @@ function renderMarkdown(value) {
                                                     </p>
                                                     <template v-else>
                                                         <p
-                                                            class="text-sm mb-1 flex items-center gap-2"
+                                                            class="text-xs md:text-sm mb-0.5 md:mb-1 leading-tight flex items-center gap-2"
                                                             :class="{
                                                                 'font-bold': !userContext?.membresia || userContext?.membresia?.nombre === 'Sin membresía',
                                                                 'text-gray-800 line-through': userContext?.membresia && userContext?.membresia?.nombre !== 'Sin membresía'
@@ -590,42 +617,42 @@ function renderMarkdown(value) {
                                                         </p>
                                                         <p
                                                           v-if="descuentoVigente(actividad)"
-                                                          class="text-xs text-amber-700 mb-1"
+                                                          class="text-[11px] md:text-xs text-amber-700 mb-0.5 md:mb-1 leading-tight"
                                                         >
                                                           Después de {{ formatoFechaLimite(actividad) }}:
                                                           <strong>
                                                             <span> ${{ formatPrice(precioSinMembresiaNormal(actividad)) }}</span>
                                                           </strong>
                                                         </p>
-                                                        <p v-if="userContext?.membresia && userContext.membresia?.nombre !== 'Sin membresía'" class="text-sm text-gray-600 mb-2">
+                                                        <p v-if="userContext?.membresia && userContext.membresia?.nombre !== 'Sin membresía'" class="text-xs md:text-sm text-gray-600 mb-1 md:mb-2 leading-tight">
                                                             <strong>Con {{ userContext.membresia?.nombre }}:</strong>
                                                             <span class="font-bold text-green-700"> ${{ formatPrice(precioMembresiaUsuario(actividad, userContext)) }}</span>
                                                         </p>
                                                     </template>
                                                     <p
                                                       v-if="actividad.hospedajes && actividad.hospedajes.length > 0"
-                                                      class="text-sm text-gray-700 mb-1 flex items-center gap-2"
+                                                      class="text-xs md:text-sm text-gray-700 mb-0.5 md:mb-1 leading-tight flex items-center gap-2"
                                                     >
                                                       <i class="pi pi-home text-indigo-600" aria-hidden="true"></i>
                                                       <span>Ofrece Hospedaje</span>
                                                     </p>
                                                     <p
                                                       v-if="actividad.comidas && actividad.comidas.length > 0"
-                                                      class="text-sm text-gray-700 mb-1 flex items-center gap-2"
+                                                      class="text-xs md:text-sm text-gray-700 mb-0.5 md:mb-1 leading-tight flex items-center gap-2"
                                                     >
                                                       <i class="pi pi-shopping-bag text-amber-600" aria-hidden="true"></i>
                                                       <span>Ofrece Comidas</span>
                                                     </p>
                                                     <p
                                                       v-if="actividad.transportes && actividad.transportes.length > 0"
-                                                      class="text-sm text-gray-700 mb-1 flex items-center gap-2"
+                                                      class="text-xs md:text-sm text-gray-700 mb-0.5 md:mb-1 leading-tight flex items-center gap-2"
                                                     >
                                                       <i class="pi pi-car text-sky-600" aria-hidden="true"></i>
                                                       <span>Ofrece Transporte</span>
                                                     </p>
                                                     <p
                                                       v-if="actividad.grabacion || actividad.grabacion_id"
-                                                      class="text-sm text-gray-700 mb-1 flex items-center gap-2"
+                                                      class="text-xs md:text-sm text-gray-700 mb-0.5 md:mb-1 leading-tight flex items-center gap-2"
                                                     >
                                                       <i class="pi pi-headphones text-violet-600" aria-hidden="true"></i>
                                                       <span>Ofrece Grabaciones</span>
@@ -655,11 +682,11 @@ function renderMarkdown(value) {
                                     </div>
 
                                     <!-- BACK: descripciÃ³n completa -->
-                                    <div class="flip-card-back p-6 flex flex-col h-full" @click="toggleFlip(actividad.id)">
-                                        <h3 class="text-xl font-semibold mb-4 text-gray-800">DescripciÃ³n</h3>
+                                    <div class="flip-card-back p-4 md:p-6 flex flex-col h-full" @click="toggleFlip(actividad.id)">
+                                        <h3 class="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-gray-800">DescripciÃ³n</h3>
                                         <div class="flex-1 overflow-y-auto">
                                             <div
-                                                class="prose prose-sm max-w-none text-gray-700"
+                                                class="prose prose-xs md:prose-sm max-w-none text-gray-700"
                                                 v-html="renderMarkdown(actividad.descripcion?.descripcion || 'No hay descripciÃ³n disponible')"
                                             ></div>
                                         </div>
@@ -750,9 +777,22 @@ function renderMarkdown(value) {
     border-radius: 8px;
     overflow: hidden;
     position: relative;
-    height: 600px; /* MÃ¡s alto para que se vea todo el contenido y los botones */
+    min-height: 620px;
+    height: clamp(620px, 96vh, 760px);
+}
+
+@media (min-width: 768px) {
+  .flip-card-container {
     min-height: 580px;
-    height: clamp(580px, 70vh, 620px); /* Responsive: min, fluid, max */
+    height: clamp(580px, 70vh, 620px);
+  }
+}
+
+@media (max-width: 767px) {
+  .flip-card-container.card-mobile-tall {
+    min-height: 700px;
+    height: clamp(700px, 100vh, 840px);
+  }
 }
 
 .flip-card-inner {

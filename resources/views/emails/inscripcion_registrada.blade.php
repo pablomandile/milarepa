@@ -248,9 +248,9 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>¡Inscripción Confirmada!</h1>
-            <p>Tu inscripción a la actividad ha sido confirmada exitosamente</p>
-            <div class="success-badge">✔ Confirmado</div>
+            <h1>¡Inscripción Registrada!</h1>
+            <p>Tu registro a la actividad ha sido procesado exitosamente</p>
+            <div class="success-badge">✔ Registrado</div>
         </div>
 
         <!-- Content -->
@@ -259,7 +259,7 @@
             <div class="greeting">
                 <h2>Hola {{ $usuario->name }},</h2>
                 <p>
-                    Nos complace confirmar que tu inscripción a la siguiente actividad ha sido confirmada correctamente en nuestro sistema.
+                    Nos complace confirmar que tu inscripción a la siguiente actividad ha sido registrada correctamente en nuestro sistema.
                 </p>
             </div>
 
@@ -318,26 +318,6 @@
                         <span class="badge">{{ $inscripcionOnline ? 'Online' : 'Presencial' }}</span>
                     </div>
                 </div>
-                @if(data_get($actividad, 'stream') && count(data_get($actividad, 'stream.links', [])) > 0)
-                <div class="activity-detail">
-                    <div class="label">Links Stream:</div>
-                    <div class="value">
-                        @foreach(data_get($actividad, 'stream.links', []) as $streamLink)
-                            @php
-                                $linkUrl = data_get($streamLink, 'link');
-                                $linkNombre = data_get($streamLink, 'nombre') ?: $linkUrl;
-                            @endphp
-                            @if($linkUrl)
-                            <div style="margin-bottom: 6px;">
-                                <a href="{{ $linkUrl }}" target="_blank" rel="noopener noreferrer">
-                                    {{ $linkNombre }}
-                                </a>
-                            </div>
-                            @endif
-                        @endforeach
-                    </div>
-                </div>
-                @endif
 
 
             </div>
@@ -357,9 +337,23 @@
                 <div class="info-row">
                     <strong>Estado:</strong> 
                     <span class="badge" style="background-color: #28a745; margin-left: 5px;">
-                        {{ data_get($inscripcion, 'estado', 'Confirmada') }}
+                        {{ data_get($inscripcion, 'estado', 'Registrada') }}
                     </span>
                 </div>
+
+                @if($inscripcion->precioGeneral)
+                <div class="price-box">
+                    <div class="price-label">Precio General</div>
+                    <div class="price-value">${{ number_format($inscripcion->precioGeneral, 2, ',', '.') }}</div>
+                </div>
+                @endif
+
+                @if($inscripcion->montoapagar)
+                <div class="price-box">
+                    <div class="price-label">Monto a Pagar</div>
+                    <div class="price-value">${{ number_format($inscripcion->montoapagar, 2, ',', '.') }}</div>
+                </div>
+                @endif
 
                 <div class="info-row">
                     <strong>Estado de Pago:</strong> 
@@ -400,7 +394,7 @@
 
             <!-- Important Note -->
             <div class="important-note">
-                <strong>⚠️ Importante:</strong> Conserva este email como comprobante del registro de tu inscripción. Ya puedes descargar o imprimir tu Ticket de ingreso al evento.
+                <strong>⚠️ Importante:</strong> Conserva este email como comprobante del registro de tu inscripción. Recibirás información adicional próximamente.
             </div>
 
             <!-- CTA Button -->

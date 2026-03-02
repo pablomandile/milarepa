@@ -18,7 +18,7 @@ const verInscripcion = () => {
 
 const verPago = () => {
     if (pagoId.value) {
-        window.location.href = `/email-preview/pago/${pagoId.value}`;
+        window.location.href = `/email-preview/inscripcion-confirmada/${pagoId.value}`;
     }
 };
 
@@ -104,7 +104,7 @@ const verEmail6 = () => {
 
                         <div class="p-6 space-y-4">
                             <Link
-                                href="/email-preview/inscripcion"
+                                href="/email-preview/inscripcion-confirmada"
                                 class="block w-full px-4 py-2 text-center bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-sm"
                             >
                                 Ver con Datos de Prueba

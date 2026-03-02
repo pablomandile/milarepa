@@ -16,8 +16,4 @@ class EstadoActividad extends Model
         'descripcion',
     ];
 
-    public function inscripciones()
-    {
-        return $this->hasMany(Inscripcion::class, 'estado_id');
-    }
 }

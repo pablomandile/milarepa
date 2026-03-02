@@ -63,10 +63,14 @@ Route::get('/welcome', function () {
 
 // Rutas públicas para preview de emails
 Route::get('/email-preview', [EmailPreviewController::class, 'landing'])->name('email.preview.landing');
-Route::get('/email-preview/inscripcion', [EmailPreviewController::class, 'inscripcionConfirmada'])
+Route::get('/email-preview/inscripcion', [EmailPreviewController::class, 'inscripcionRegistrada'])
     ->name('preview.email.inscripcion');
-Route::get('/email-preview/inscripcion/{id}', [EmailPreviewController::class, 'inscripcionConfirmada'])
+Route::get('/email-preview/inscripcion/{id}', [EmailPreviewController::class, 'inscripcionRegistrada'])
     ->name('preview.email.inscripcion.id');
+Route::get('/email-preview/inscripcion-confirmada', [EmailPreviewController::class, 'inscripcionConfirmada'])
+    ->name('preview.email.inscripcion-confirmada');
+Route::get('/email-preview/inscripcion-confirmada/{id}', [EmailPreviewController::class, 'inscripcionConfirmada'])
+    ->name('preview.email.inscripcion-confirmada.id');
 
 // Grid de actividades pÃºblico (solo index + lookup por email)
 Route::get('/grid-actividades', [GridActividadesController::class, 'index'])

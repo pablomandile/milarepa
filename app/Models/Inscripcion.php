@@ -15,6 +15,7 @@ class Inscripcion extends Model
         'actividad_id',
         'user_id',
         'membresia',
+        'estado',
         'precioGeneral',
         'montoActividad',
         'montoGrabacion',
@@ -22,7 +23,6 @@ class Inscripcion extends Model
         'montoComidas',
         'montoapagar',
         'pago',
-        'estado_id',
         'envioLinkStream',
         'envioGrabación',
         'asistencia',
@@ -36,6 +36,7 @@ class Inscripcion extends Model
     ];
 
     protected $casts = [
+        'estado' => 'string',
         'precioGeneral' => 'decimal:2',
         'montoActividad' => 'decimal:2',
         'montoGrabacion' => 'decimal:2',
@@ -54,11 +55,6 @@ class Inscripcion extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function estado()
-    {
-        return $this->belongsTo(EstadoActividad::class, 'estado_id');
     }
 
     public function hospedaje()
