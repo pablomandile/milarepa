@@ -99,6 +99,10 @@ Route::post('/grid-actividades/pago/finalizar', [GridActividadesController::clas
     ->name('grid-actividades.pago.finalizar');
 Route::get('/grid-actividades/inscripcion/{inscripcion}', [GridActividadesController::class, 'showPublic'])
     ->name('grid-actividades.inscripcion');
+Route::get('/membresias/public', [MembresiasController::class, 'publicIndex'])
+    ->name('membresias.public.index');
+Route::post('/membresias/public/subscribe', [MembresiasController::class, 'subscribePublic'])
+    ->name('membresias.public.subscribe');
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/complete-profile', [ProfileCompletionController::class, 'create'])

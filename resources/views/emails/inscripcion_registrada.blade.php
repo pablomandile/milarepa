@@ -270,8 +270,11 @@
                     $rutaImagen = data_get($actividad, 'imagen.ruta');
                     $rutaFallback = 'img/actividades/imagen-no-disponible.jpg';
                     $baseUrl = rtrim((string) config('app.url'), '/');
+                    $forzarImagenPrueba = isset($esPreviewPrueba) && $esPreviewPrueba === true;
 
-                    if ($rutaImagen && preg_match('/^https?:\/\//i', $rutaImagen)) {
+                    if ($forzarImagenPrueba) {
+                        $imagenUrl = '/storage/' . $rutaFallback;
+                    } elseif ($rutaImagen && preg_match('/^https?:\/\//i', $rutaImagen)) {
                         $imagenUrl = $rutaImagen;
                     } elseif ($rutaImagen) {
                         $imagenUrl = $baseUrl . '/storage/' . ltrim($rutaImagen, '/');
@@ -283,7 +286,7 @@
                         ? storage_path('app/public/' . ltrim($rutaImagen, '/'))
                         : storage_path('app/public/' . $rutaFallback);
 
-                    if (isset($message) && is_object($message) && file_exists($rutaLocal)) {
+                    if (!$forzarImagenPrueba && isset($message) && is_object($message) && file_exists($rutaLocal)) {
                         try {
                             $imagenUrl = $message->embed($rutaLocal);
                         } catch (\Throwable $e) {
@@ -314,7 +317,9 @@
                 <div class="activity-detail">
                     <div class="label">Modalidad:</div>
                     <div class="value">
-                        @php($inscripcionOnline = data_get($inscripcion, 'online', false))
+                        @php
+                            $inscripcionOnline = data_get($inscripcion, 'online', false);
+                        @endphp
                         <span class="badge">{{ $inscripcionOnline ? 'Online' : 'Presencial' }}</span>
                     </div>
                 </div>
@@ -343,15 +348,180 @@
 
                 @if($inscripcion->precioGeneral)
                 <div class="price-box">
-                    <div class="price-label">Precio General</div>
+                    <div class="price-label">Precio General Actividad</div>
                     <div class="price-value">${{ number_format($inscripcion->precioGeneral, 2, ',', '.') }}</div>
                 </div>
                 @endif
 
                 @if($inscripcion->montoapagar)
                 <div class="price-box">
-                    <div class="price-label">Monto a Pagar</div>
+                    <div class="price-label">Monto a Pagar Total</div>
                     <div class="price-value">${{ number_format($inscripcion->montoapagar, 2, ',', '.') }}</div>
+                </div>
+                @endif
+
+                @php
+                    $tieneEfectivoTarjetas = false;
+                    $metodoTransferencia = null;
+                    $montoActividad = (float) data_get($inscripcion, 'montoActividad', 0);
+                    $montoGrabacion = data_get($inscripcion, 'montoGrabacion');
+                    $montoHospedaje = data_get($inscripcion, 'montoHospedaje');
+                    $montoComidas = data_get($inscripcion, 'montoComidas');
+                    $montoTransporte = data_get($inscripcion, 'montoTransporte');
+                    $actividadGetnetLink = data_get($actividad, 'botonPago.link');
+
+                    if (is_object($actividad) && method_exists($actividad, 'loadMissing')) {
+                        $actividad->loadMissing([
+                            'metodosPago',
+                            'botonPago',
+                            'esquemaPrecio.membresias.membresia',
+                            'esquemaPrecio.membresias.botonPago',
+                            'esquemaDescuento.membresias.membresia',
+                            'esquemaDescuento.membresias.botonPago',
+                            'grabacion.botonPago',
+                        ]);
+                    }
+
+                    if (is_object($inscripcion) && method_exists($inscripcion, 'loadMissing')) {
+                        $inscripcion->loadMissing([
+                            'hospedaje.botonPago',
+                            'comida.botonPago',
+                            'transporte.botonPago',
+                            'user.membresia',
+                        ]);
+                    }
+
+                    $metodosPago = collect($actividad->metodosPago ?? []);
+                    $normalizar = function ($texto) {
+                        $valor = mb_strtolower(trim((string) $texto), 'UTF-8');
+                        return strtr($valor, [
+                            'á' => 'a',
+                            'é' => 'e',
+                            'í' => 'i',
+                            'ó' => 'o',
+                            'ú' => 'u',
+                        ]);
+                    };
+
+                    $metodosNormalizados = $metodosPago->map(function ($metodo) use ($normalizar) {
+                        return $normalizar(data_get($metodo, 'nombre'));
+                    });
+
+                    $tieneEfectivoTarjetas = $metodosNormalizados->contains(fn ($nombre) =>
+                        in_array($nombre, ['efectivo', 'tarjeta de credito', 'tarjeta de debito'], true)
+                    );
+                    $metodoTransferencia = $metodosPago->first(function ($metodo) use ($normalizar) {
+                        return $normalizar(data_get($metodo, 'nombre')) === 'transferencia';
+                    });
+
+                    if (empty($actividadGetnetLink)) {
+                        $lineasEsquema = collect();
+                        if (data_get($actividad, 'esquemaDescuento.membresias')) {
+                            $lineasEsquema = $lineasEsquema->concat($actividad->esquemaDescuento->membresias);
+                        }
+                        if (data_get($actividad, 'esquemaPrecio.membresias')) {
+                            $lineasEsquema = $lineasEsquema->concat($actividad->esquemaPrecio->membresias);
+                        }
+
+                        $membresiaUserId = data_get($inscripcion, 'user.membresia_id');
+                        $lineaBotonActividad = $lineasEsquema->first(function ($linea) use ($membresiaUserId, $montoActividad) {
+                            return (int) data_get($linea, 'membresia_id') === (int) $membresiaUserId
+                                && abs(((float) data_get($linea, 'precio', 0)) - $montoActividad) < 0.01
+                                && !empty(data_get($linea, 'botonPago.link'));
+                        });
+
+                        if (!$lineaBotonActividad) {
+                            $lineaBotonActividad = $lineasEsquema->first(function ($linea) use ($montoActividad) {
+                                return abs(((float) data_get($linea, 'precio', 0)) - $montoActividad) < 0.01
+                                    && !empty(data_get($linea, 'botonPago.link'));
+                            });
+                        }
+
+                        if ($lineaBotonActividad) {
+                            $actividadGetnetLink = data_get($lineaBotonActividad, 'botonPago.link');
+                        }
+                    }
+                @endphp
+
+                @if(($tieneEfectivoTarjetas ?? false) || ($metodoTransferencia ?? null))
+                <div class="info-row" style="margin-top: 14px;">
+                    <strong>Métodos de pago:</strong>
+                </div>
+                @endif
+
+                @if($tieneEfectivoTarjetas ?? false)
+                <div class="info-row">
+                    Podes pagar en efectivo, tarjeta de crédito y tarjeta de débito en el lugar antes de comenzar. Tu inscripción quedará en estado pendiente para aprobación.
+                </div>
+                @endif
+
+                @if($metodoTransferencia ?? null)
+                <div class="info-row">
+                    <strong>Transferencia:</strong>
+                    {{ data_get($metodoTransferencia, 'descripcion') ?: 'Subí un comprobante (PDF o imagen) para registrar el pago.' }}
+                </div>
+                @endif
+
+                <div class="info-row" style="margin-top: 12px;">
+                    <strong>Actividad:</strong>
+                    ${{ number_format((float) ($montoActividad ?? 0), 2, ',', '.') }}
+                    @if($actividadGetnetLink ?? null)
+                        <a href="{{ $actividadGetnetLink }}" target="_blank" style="margin-left:8px;display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:4px 10px;border-radius:4px;font-size:12px;">Pagar con Getnet</a>
+                    @endif
+                </div>
+
+                @if(!is_null($montoGrabacion ?? null))
+                <div class="info-row">
+                    <strong>Grabación:</strong>
+                    ${{ number_format((float) ($montoGrabacion ?? 0), 2, ',', '.') }}
+                    @if(data_get($actividad, 'grabacion.botonPago.link'))
+                        <a href="{{ data_get($actividad, 'grabacion.botonPago.link') }}" target="_blank" style="margin-left:8px;display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:4px 10px;border-radius:4px;font-size:12px;">Pagar con Getnet</a>
+                    @endif
+                </div>
+                @endif
+
+                @if($inscripcion->hospedaje || !is_null($montoHospedaje ?? null))
+                <div class="info-row">
+                    <strong>Hospedaje:</strong>
+                    @if($inscripcion->hospedaje)
+                        {{ $inscripcion->hospedaje->nombre ?? 'Incluido' }}
+                    @endif
+                    @if(!is_null($montoHospedaje ?? null))
+                        ( ${{ number_format((float) ($montoHospedaje ?? 0), 2, ',', '.') }} )
+                    @endif
+                    @if(data_get($inscripcion, 'hospedaje.botonPago.link'))
+                        <a href="{{ data_get($inscripcion, 'hospedaje.botonPago.link') }}" target="_blank" style="margin-left:8px;display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:4px 10px;border-radius:4px;font-size:12px;">Pagar con Getnet</a>
+                    @endif
+                </div>
+                @endif
+
+                @if($inscripcion->comida || !is_null($montoComidas ?? null))
+                <div class="info-row">
+                    <strong>Comida:</strong>
+                    @if($inscripcion->comida)
+                        {{ $inscripcion->comida->nombre ?? 'Incluida' }}
+                    @endif
+                    @if(!is_null($montoComidas ?? null))
+                        ( ${{ number_format((float) ($montoComidas ?? 0), 2, ',', '.') }} )
+                    @endif
+                    @if(data_get($inscripcion, 'comida.botonPago.link'))
+                        <a href="{{ data_get($inscripcion, 'comida.botonPago.link') }}" target="_blank" style="margin-left:8px;display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:4px 10px;border-radius:4px;font-size:12px;">Pagar con Getnet</a>
+                    @endif
+                </div>
+                @endif
+
+                @if($inscripcion->transporte || !is_null($montoTransporte ?? null))
+                <div class="info-row">
+                    <strong>Transporte:</strong>
+                    @if($inscripcion->transporte)
+                        {{ $inscripcion->transporte->nombre ?? $inscripcion->transporte->descripcion ?? 'Incluido' }}
+                    @endif
+                    @if(!is_null($montoTransporte ?? null))
+                        ( ${{ number_format((float) ($montoTransporte ?? 0), 2, ',', '.') }} )
+                    @endif
+                    @if(data_get($inscripcion, 'transporte.botonPago.link'))
+                        <a href="{{ data_get($inscripcion, 'transporte.botonPago.link') }}" target="_blank" style="margin-left:8px;display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:4px 10px;border-radius:4px;font-size:12px;">Pagar con Getnet</a>
+                    @endif
                 </div>
                 @endif
 
@@ -363,33 +533,6 @@
                     </span>
                 </div>
 
-                @if($inscripcion->hospedaje)
-                <div class="info-row">
-                    <strong>Hospedaje:</strong> {{ $inscripcion->hospedaje->nombre ?? 'Incluido' }}
-                </div>
-                @endif
-
-                @if($inscripcion->comida)
-                <div class="info-row">
-                    <strong>Comida:</strong> {{ $inscripcion->comida->nombre ?? 'Incluida' }}
-                </div>
-                @endif
-
-                @if($inscripcion->transporte)
-                <div class="info-row">
-                    <strong>Transporte:</strong> {{ $inscripcion->transporte->nombre ?? 'Incluido' }}
-                </div>
-                @endif
-
-                @php($montoGrabacion = data_get($inscripcion, 'montoGrabacion'))
-                @if(!is_null($montoGrabacion))
-                <div class="info-row">
-                    <strong>Grabación:</strong> Incluida
-                    @if((float) $montoGrabacion > 0)
-                        ( ${{ number_format((float) $montoGrabacion, 2, ',', '.') }} )
-                    @endif
-                </div>
-                @endif
             </div>
 
             <!-- Important Note -->

@@ -128,6 +128,13 @@
                                         </template>
                                     </Column>
 
+                                    <!-- Columna Boton de Pago -->
+                                    <Column header="Boton de Pago">
+                                        <template #body="{ data: mem }">
+                                            {{ mem.boton_pago ? mem.boton_pago.nombre : '—' }}
+                                        </template>
+                                    </Column>
+
                                 </DataTable>
                             </template>
                         </DataTable>

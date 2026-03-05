@@ -86,7 +86,7 @@ watch(() => $page.props.flash, (flash) => {
             <div class="flex flex-col md:flex-row md:items-start gap-6">
               <div class="flex-1">
                 <p class="text-sm font-semibold text-indigo-600 uppercase tracking-wide">Inscripción registrada</p>
-                <h2 class="text-3xl font-bold text-gray-900 mt-1">¡Inscripción Exitosa!</h2>
+                <h2 class="text-3xl font-bold text-gray-900 mt-1">¡Inscripción Registrada!</h2>
                 <p class="text-gray-600 mt-3">Tu inscripción fue confirmada. Revisa los detalles y guarda esta información.</p>
               </div>
               <div class="w-48 shrink-0 self-start">

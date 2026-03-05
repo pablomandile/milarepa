@@ -24,12 +24,17 @@ const props = defineProps({
     monedas: {
         type: Array,
         default: () => []
+    },
+    botonesPago: {
+        type: Array,
+        default: () => []
     }
 });
 
 // Este form se usará para “Agregar Membresía”
 const formMembresia = useForm({
     membresia_id: null,
+    botonpago_id: null,
     precio: null,
     moneda_id: null
 });
@@ -38,6 +43,7 @@ const formMembresia = useForm({
 function handleAddMembresia() {
   router.post(route('esquemadescuentos.storeMembresia', props.esquemaDescuento.id), {
     membresia_id: formMembresia.membresia_id,
+    botonpago_id: formMembresia.botonpago_id,
     precio: formMembresia.precio,
     moneda_id: formMembresia.moneda_id,
   }, {
@@ -74,6 +80,11 @@ function getMembresiaLabel(membresiaId) {
 // Mostrar el nombre de la moneda (fuera de edición)
 function getMonedaLabel(monedaId) {
   const found = props.monedas.find(m => m.id === monedaId);
+  return found ? found.nombre : '—';
+}
+
+function getBotonPagoLabel(botonPagoId) {
+  const found = props.botonesPago.find((b) => b.id === botonPagoId);
   return found ? found.nombre : '—';
 }
 
@@ -115,6 +126,7 @@ function onRowEditCancel(event) {
                         :form="formMembresia"
                         :membresias="membresias"
                         :monedas="monedas"
+                        :botonesPago="botonesPago"
                         @submit="handleAddMembresia"
                     />
                 </div>
@@ -166,6 +178,25 @@ function onRowEditCancel(event) {
                             optionValue="id"
                             placeholder="Elige moneda"
                             class="w-full mt-1 border border-gray-300"
+                          />
+                        </template>
+                      </Column>
+
+                      <!-- Columna Boton de Pago -->
+                      <Column field="botonpago_id" header="Boton de Pago">
+                        <template #body="{ data }">
+                          {{ getBotonPagoLabel(data.botonpago_id) }}
+                        </template>
+
+                        <template #editor="{ data }">
+                          <Dropdown
+                            v-model="data.botonpago_id"
+                            :options="botonesPago"
+                            optionLabel="nombre"
+                            optionValue="id"
+                            placeholder="Elige boton de pago"
+                            class="w-full mt-1 border border-gray-300"
+                            showClear
                           />
                         </template>
                       </Column>

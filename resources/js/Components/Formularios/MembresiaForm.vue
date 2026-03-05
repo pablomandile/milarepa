@@ -55,12 +55,12 @@ import Dropdown from 'primevue/dropdown';
                 <TextInput id="nombre" v-model="form.nombre" type="text" autocomplete="nombre" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.nombre" class="mt-2" />
             </div>
-            <div class="col-span-6 sm:col-span-6">
+            <div class="col-span-6 sm:col-span-6 mt-3">
                 <InputLabel for="descripcion" value="Descripción" :required="false"/>
                 <TextInput id="descripcion" v-model="form.descripcion" type="text" autocomplete="descripcion" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />
             </div>
-            <div class="col-span-6 sm:col-span-6">
+            <div class="col-span-6 sm:col-span-6 mt-3">
                 <InputLabel for="entidad_id" value="Entidad" :required="true"/>
                 <Dropdown
                     id="entidad_id"
@@ -73,7 +73,7 @@ import Dropdown from 'primevue/dropdown';
                 />
                 <InputError :message="$page.props.errors.lugar_hospedaje_id" class="mt-2" />
             </div>
-            <div class="col-span-6 sm:col-span-6">
+            <div class="col-span-6 sm:col-span-6 mt-3">
                 <InputLabel for="botonpago_id" value="Botón de Pago" :required="false"/>
                 <Dropdown
                     id="botonpago_id"
@@ -87,7 +87,7 @@ import Dropdown from 'primevue/dropdown';
                 />
                 <InputError :message="$page.props.errors.botonpago_id" class="mt-2" />
             </div>
-            <div class="col-span-6 sm:col-span-6">
+            <div class="col-span-6 sm:col-span-6 mt-3">
                 <InputLabel for="valor" value="Valor (ARS)" :required="true"/>
                 <div class="mt-1 flex rounded-md shadow-sm">
                     <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">$</span>

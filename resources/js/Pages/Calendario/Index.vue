@@ -167,7 +167,8 @@ function actividadHref(actividadId) {
 }
 
 function oracionCantadaHref(oracionId) {
-  return route('oracionescantadas.show-public', oracionId);
+  const returnUrl = `${route('calendario.index')}?month=${props.calendar.month}`;
+  return `${route('oracionescantadas.show-public', oracionId)}?return_url=${encodeURIComponent(returnUrl)}`;
 }
 
 function claseHref(claseId) {

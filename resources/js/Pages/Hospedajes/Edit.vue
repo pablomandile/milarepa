@@ -52,9 +52,9 @@
 </script>
 
 <template>
-    <AppLayout title="Editar Acomodación">
+    <AppLayout title="Editar Acomodación de Hospedaje">
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Editar Acomodación</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Editar Acomodación de Hospedaje</h1>
         </template>
 
         <div class="py-12">

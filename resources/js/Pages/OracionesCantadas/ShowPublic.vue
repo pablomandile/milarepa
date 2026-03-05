@@ -8,6 +8,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  returnUrl: {
+    type: String,
+    default: null,
+  },
 });
 
 const dayLabels = {
@@ -36,6 +40,8 @@ const horaTexto = computed(() => {
   if (!props.oracionCantada?.hora) return '-';
   return `${String(props.oracionCantada.hora).slice(0, 5)} hs.`;
 });
+
+const volverHref = computed(() => props.returnUrl || route('calendario.index'));
 </script>
 
 <template>
@@ -46,10 +52,10 @@ const horaTexto = computed(() => {
       <div class="mx-auto w-full max-w-4xl px-4 sm:px-6">
         <div class="mb-4">
           <Link
-            :href="route('calendario.index')"
+            :href="volverHref"
             class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
           >
-            Volver al calendario
+            Volver
           </Link>
         </div>
 
@@ -88,17 +94,12 @@ const horaTexto = computed(() => {
                     {{ oracionCantada.periodicidad === 'Mensual' ? (oracionCantada.dia ?? '-') : diasSemanaTexto }}
                   </div>
                 </div>
-                <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                  <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Visible en calendario</div>
-                  <div class="mt-1 text-sm" :class="oracionCantada.mostrar_en_calendario ? 'text-emerald-700' : 'text-slate-900'">
-                    {{ oracionCantada.mostrar_en_calendario ? 'Si' : 'No' }}
-                  </div>
-                </div>
+                
               </div>
 
               <div class="mt-5">
-                <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Descripcion</h2>
-                <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">
+                <!-- <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Descripcion</h2> -->
+                <p class="mt-2 whitespace-pre-line text-lg leading-6 text-slate-700">
                   {{ oracionCantada.descripcion }}
                 </p>
               </div>

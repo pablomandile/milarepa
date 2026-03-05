@@ -46,10 +46,10 @@ import Dropdown from 'primevue/dropdown';
         <template #title>
             <SectionTitle>
                 <template #title>
-                    {{ updating ? 'Actualizar Hospedaje' : 'Nuevo Hospedaje' }}
+                    {{ updating ? 'Actualizar Acomodación de Hospedaje' : 'Nueva Acomodación de Hospedaje' }}
                 </template>
                 <template #description>
-                    {{ updating ? 'Actualizando el Hospedaje seleccionada' : 'Agregando un nuevo Hospedaje.' }}
+                    {{ updating ? 'Actualizando la Acomodación de Hospedaje seleccionada' : 'Agregando una nueva Acomodación de Hospedaje.' }}
                 </template>
             </SectionTitle>
         </template>
@@ -60,19 +60,19 @@ import Dropdown from 'primevue/dropdown';
                 <InputError :message="$page.props.errors.nombre" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6 mb-2">
-                <InputLabel for="descripcion" value="DescripciÃ³n" :required="false"/>
+                <InputLabel for="descripcion" value="Descripción" :required="false"/>
                 <TextInput id="descripcion" v-model="form.descripcion" type="text" autocomplete="descripcion" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6 mb-2">
-                <InputLabel for="botonpago_id" value="Boton de Pago" :required="false"/>
+                <InputLabel for="botonpago_id" value="Botón de Pago" :required="false"/>
                 <Dropdown
                     id="botonpago_id"
                     v-model="form.botonpago_id"
                     :options="botonesPago"
                     optionLabel="nombre"
                     optionValue="id"
-                    placeholder="Seleccione un boton de pago"
+                    placeholder="Seleccione un botón de pago"
                     class="w-full mt-1 md:w-14rem border border-gray-300"
                     showClear
                 />

@@ -52,8 +52,9 @@ const props = defineProps({
             </div>
           </div>
 
-          <div class="mt-6 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-600">
-            Gracias por inscribirte. Te contactaremos cuando el pago sea verificado.
+          <div class="mt-6 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-xl text-gray-800">
+            Gracias por inscribirte. Recibirás un <strong>correo de confirmación</strong> con los detalles de tu inscripción.
+            Te contactaremos cuando el pago sea verificado.
           </div>
         </div>
       </div>

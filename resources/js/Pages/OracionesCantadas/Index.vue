@@ -144,6 +144,14 @@ const openImageDialog = (imageUrl) => {
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
                                         <Link
+                                            :href="`${route('oracionescantadas.show-public', parseInt(slotProps.data.id))}?return_url=${encodeURIComponent(route('oracionescantadas.index'))}`"
+                                            v-tooltip="'Ver landing publica'"
+                                            target="_blank"
+                                            style="display: flex; align-items: center;"
+                                        >
+                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1; color: rgb(59, 130, 246);"></i>
+                                        </Link>
+                                        <Link
                                             :href="route('oracionescantadas.edit', parseInt(slotProps.data.id))"
                                             v-tooltip="'Editar oracion cantada'"
                                             style="display: flex; align-items: center;"

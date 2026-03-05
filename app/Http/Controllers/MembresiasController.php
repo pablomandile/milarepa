@@ -10,7 +10,11 @@ use App\Models\Entidad;
 use Carbon\Carbon;
 use App\Models\EstadoCuentaMembresia;
 use App\Models\BotonPago;
-
+use App\Models\Pais;
+use App\Models\Provincia;
+use App\Models\Municipio;
+use App\Models\Barrio;
+use App\Models\User;
 
 class MembresiasController extends Controller
 {
@@ -19,22 +23,19 @@ class MembresiasController extends Controller
      */
     public function index()
     {
-        // Obtener la entidad principal
         $entidadPrincipal = Entidad::where('entidad_principal', true)->first();
 
         if ($entidadPrincipal) {
             $membresias = Membresia::with(['entidad', 'botonPago'])
                 ->where('entidad_id', $entidadPrincipal->id)
-                ->where('nombre', '!=', 'Sin membresía')
+                ->where('nombre', '!=', 'Sin membresia')
                 ->paginate(10);
         } else {
-            // Si no hay entidad principal, mostrar todas las membresías excepto "Sin membresía"
             $membresias = Membresia::with(['entidad', 'botonPago'])
-                ->where('nombre', '!=', 'Sin membresía')
+                ->where('nombre', '!=', 'Sin membresia')
                 ->paginate(10);
         }
 
-        // Obtener membresía actual del usuario
         $userMembresia = null;
         $estadoCuenta = null;
         $estadosCuenta = [];
@@ -62,28 +63,71 @@ class MembresiasController extends Controller
     }
 
     /**
+     * Listing publico de membresias.
+     */
+    public function publicIndex()
+    {
+        $entidadPrincipal = Entidad::where('entidad_principal', true)->first();
+
+        if ($entidadPrincipal) {
+            $membresias = Membresia::with(['entidad', 'botonPago'])
+                ->where('entidad_id', $entidadPrincipal->id)
+                ->where('nombre', '!=', 'Sin membresia')
+                ->paginate(10);
+        } else {
+            $membresias = Membresia::with(['entidad', 'botonPago'])
+                ->where('nombre', '!=', 'Sin membresia')
+                ->paginate(10);
+        }
+
+        $userMembresia = null;
+        $selectedUserId = null;
+
+        if (auth()->check()) {
+            $selectedUserId = auth()->id();
+        } elseif (request()->filled('user_id')) {
+            $selectedUserId = (int) request()->query('user_id');
+        }
+
+        if ($selectedUserId) {
+            $selectedUser = User::with('membresia.botonPago')->find($selectedUserId);
+            if ($selectedUser?->membresia_id) {
+                $userMembresia = $selectedUser->membresia;
+            }
+        }
+
+        return inertia('Membresias/PublicIndex', [
+            'membresias' => $membresias,
+            'user_membresia' => $userMembresia,
+            'selected_user_id' => $selectedUserId,
+            'paises' => Pais::all(),
+            'provincias' => Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get(),
+            'municipios' => Municipio::all(),
+            'barrios' => Barrio::all(),
+        ]);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()
-{
-    $entidades = Entidad::select('id','nombre')->get();
-    $botonesPago = BotonPago::select('id', 'nombre')->get();
+    {
+        $entidades = Entidad::select('id', 'nombre')->get();
+        $botonesPago = BotonPago::select('id', 'nombre')->get();
 
-    return inertia('Membresias/Create', [
-        'entidades' => $entidades,
-        'botonesPago' => $botonesPago
-    ]);
-}
+        return inertia('Membresias/Create', [
+            'entidades' => $entidades,
+            'botonesPago' => $botonesPago,
+        ]);
+    }
 
-       /**
+    /**
      * Store a newly created resource in storage.
-     * @param App\Http\Requests\MembresiaRequest
-     * @param \Illuminate\Http\Response
      */
     public function store(MembresiaRequest $request)
     {
         Membresia::create($request->validated());
-        return redirect()->route('membresias.gestion')->with('success', 'Membresía creada con éxito.');
+        return redirect()->route('membresias.gestion')->with('success', 'Membresia creada con exito.');
     }
 
     /**
@@ -94,21 +138,20 @@ class MembresiasController extends Controller
         //
     }
 
-     /**
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Membresia $membresia)
-{
-    $entidades = Entidad::select('id','nombre')->get();
-    $botonesPago = BotonPago::select('id', 'nombre')->get();
+    {
+        $entidades = Entidad::select('id', 'nombre')->get();
+        $botonesPago = BotonPago::select('id', 'nombre')->get();
 
-    // Devolver la vista de edición
-    return Inertia::render('Membresias/Edit', [
-        'membresia' => $membresia,
-        'entidades' => $entidades,
-        'botonesPago' => $botonesPago
-    ]);
-}
+        return Inertia::render('Membresias/Edit', [
+            'membresia' => $membresia,
+            'entidades' => $entidades,
+            'botonesPago' => $botonesPago,
+        ]);
+    }
 
     /**
      * Update the specified resource in storage.
@@ -116,10 +159,9 @@ class MembresiasController extends Controller
     public function update(MembresiaRequest $request, $id)
     {
         $membresia = Membresia::findOrFail($id);
-
         $membresia->update($request->validated());
 
-        return redirect()->route('membresias.gestion')->with('success', 'Membresía actualizada con éxito.');
+        return redirect()->route('membresias.gestion')->with('success', 'Membresia actualizada con exito.');
     }
 
     /**
@@ -128,11 +170,11 @@ class MembresiasController extends Controller
     public function destroy($id)
     {
         try {
-            $membresia = Membresia::findorfail($id);
+            $membresia = Membresia::findOrFail($id);
             $membresia->delete();
-            return redirect()->route('membresias.index')->with('success', 'Membresía eliminada con éxito.');
+            return redirect()->route('membresias.index')->with('success', 'Membresia eliminada con exito.');
         } catch (\Exception $e) {
-            return redirect()->route('membresias.index')->with('error', 'Error al eliminar la Membresía: ' . $e->getMessage());
+            return redirect()->route('membresias.index')->with('error', 'Error al eliminar la Membresia: ' . $e->getMessage());
         }
     }
 
@@ -140,14 +182,14 @@ class MembresiasController extends Controller
      * Display a listing of the resource for admin management.
      */
     public function gestion()
-{
-    $membresias = Membresia::with(['entidad', 'botonPago'])->paginate(10);
+    {
+        $membresias = Membresia::with(['entidad', 'botonPago'])->paginate(10);
 
-    return inertia('Membresias/Gestion', ['membresias' => $membresias]);
-}
+        return inertia('Membresias/Gestion', ['membresias' => $membresias]);
+    }
 
     /**
-     * Subscribe a user to a membership
+     * Subscribe authenticated user.
      */
     public function subscribe(Request $request)
     {
@@ -158,39 +200,117 @@ class MembresiasController extends Controller
         ]);
 
         $user = auth()->user();
-        $membresiaOnline = $request->modalidad === 'ONLINE';
+        $this->asignarMembresiaAUsuario(
+            $user,
+            (int) $request->membresia_id,
+            (string) $request->modalidad,
+            $request->motivo_online
+        );
+
+        return redirect()->route('membresias.index')->with('success', 'Te has inscrito correctamente a la membresia');
+    }
+
+    /**
+     * Subscribe public user (logged or guest with form).
+     */
+    public function subscribePublic(Request $request)
+    {
+        $validated = $request->validate([
+            'membresia_id' => ['required', 'exists:membresias,id'],
+            'modalidad' => ['required', 'in:PRESENCIAL,ONLINE'],
+            'motivo_online' => ['nullable', 'string', 'max:255'],
+            'user_id' => ['nullable', 'exists:users,id'],
+            'guest' => ['nullable', 'array'],
+            'guest.name' => ['required_without:user_id', 'string', 'max:255'],
+            'guest.email' => ['required_without:user_id', 'email', 'max:255'],
+            'guest.telefono' => ['nullable', 'string', 'max:50'],
+            'guest.whatsapp' => ['nullable', 'string', 'max:50'],
+            'guest.pais_id' => ['required_without:user_id', 'exists:paises,id'],
+            'guest.provincia_id' => ['required_without:user_id', 'exists:provincias,id'],
+            'guest.municipio_id' => ['nullable', 'exists:municipios,id'],
+            'guest.barrio_id' => ['nullable', 'exists:barrios,id'],
+            'guest.direccion' => ['nullable', 'string', 'max:255'],
+            'guest.msgxmail' => ['nullable', 'boolean'],
+            'guest.msgxwapp' => ['nullable', 'boolean'],
+            'guest.accesibilidad' => ['nullable', 'boolean'],
+            'guest.accesibilidad_desc' => ['nullable', 'string', 'max:255'],
+            'guest.registrar_datos' => ['nullable', 'boolean'],
+        ]);
+
+        $user = null;
+        if (auth()->check()) {
+            $user = auth()->user();
+        } elseif (!empty($validated['user_id'])) {
+            $user = User::findOrFail($validated['user_id']);
+        } else {
+            $guest = $validated['guest'] ?? [];
+            $user = User::firstOrCreate(
+                ['email' => $guest['email']],
+                [
+                    'name' => $guest['name'],
+                    'password' => null,
+                ]
+            );
+
+            $user->update([
+                'name' => $guest['name'],
+                'telefono' => $guest['telefono'] ?? null,
+                'whatsapp' => $guest['whatsapp'] ?? null,
+                'pais_id' => $guest['pais_id'] ?? null,
+                'provincia_id' => $guest['provincia_id'] ?? null,
+                'municipio_id' => $guest['municipio_id'] ?? null,
+                'barrio_id' => $guest['barrio_id'] ?? null,
+                'direccion' => $guest['direccion'] ?? null,
+                'msgxmail' => (bool) ($guest['msgxmail'] ?? false),
+                'msgxwapp' => (bool) ($guest['msgxwapp'] ?? false),
+                'accesibilidad' => (bool) ($guest['accesibilidad'] ?? false),
+                'accesibilidad_desc' => $guest['accesibilidad_desc'] ?? null,
+            ]);
+        }
+
+        $this->asignarMembresiaAUsuario(
+            $user,
+            (int) $validated['membresia_id'],
+            (string) $validated['modalidad'],
+            $validated['motivo_online'] ?? null
+        );
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Te has inscrito correctamente a la membresia.',
+            'user_id' => $user->id,
+        ]);
+    }
+
+    private function asignarMembresiaAUsuario(User $user, int $membresiaId, string $modalidad, ?string $motivoOnline = null): void
+    {
+        $membresiaOnline = $modalidad === 'ONLINE';
         $user->update([
-            'membresia_id' => $request->membresia_id,
+            'membresia_id' => $membresiaId,
             'membresia_online' => $membresiaOnline,
-            'membresia_online_motivo' => $membresiaOnline ? $request->motivo_online : null,
+            'membresia_online_motivo' => $membresiaOnline ? $motivoOnline : null,
         ]);
 
         $mesPagado = Carbon::now()->format('Y-m');
         $existe = EstadoCuentaMembresia::where('user_id', $user->id)
-            ->where('membresia_id', $request->membresia_id)
+            ->where('membresia_id', $membresiaId)
             ->where('mes_pagado', $mesPagado)
             ->exists();
 
-        if (!$existe) {
-            $importe = optional($user->membresia)->valor ?? 0;
-            EstadoCuentaMembresia::create([
-                'user_id' => $user->id,
-                'membresia_id' => $request->membresia_id,
-                'mes_pagado' => $mesPagado,
-                'fecha_pago' => null,
-                'importe' => $importe,
-                'pagado' => false,
-                'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
-                'observaciones' => 'Inscripción realizada por ' . ($user->name ?? 'sistema'),
-            ]);
+        if ($existe) {
+            return;
         }
 
-        return redirect()->route('membresias.index')->with('success', 'Te has inscrito correctamente a la membresía');
+        $importe = optional($user->membresia)->valor ?? 0;
+        EstadoCuentaMembresia::create([
+            'user_id' => $user->id,
+            'membresia_id' => $membresiaId,
+            'mes_pagado' => $mesPagado,
+            'fecha_pago' => null,
+            'importe' => $importe,
+            'pagado' => false,
+            'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
+            'observaciones' => 'Inscripcion realizada por ' . ($user->name ?? 'sistema'),
+        ]);
     }
 }
-
-
-
-
-
-

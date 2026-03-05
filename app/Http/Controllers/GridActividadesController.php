@@ -222,7 +222,9 @@ class GridActividadesController extends Controller
             'metodosPago',
             'modalidad',
             'esquemaPrecio.membresias.membresia',
+            'esquemaPrecio.membresias.botonPago',
             'esquemaDescuento.membresias.membresia',
+            'esquemaDescuento.membresias.botonPago',
             'botonPago',
             'grabacion.botonPago',
             'comidas.botonPago',
@@ -243,6 +245,11 @@ class GridActividadesController extends Controller
         } else {
             [$precioGeneral] = $this->calcularPrecios($actividad, null);
             $saldo = $precioGeneral;
+        }
+
+        $botonPagoActividad = $this->obtenerBotonPagoActividad($actividad, $userContext);
+        if ($botonPagoActividad) {
+            $actividad->setRelation('botonPago', $botonPagoActividad);
         }
 
         $mostrarSelectorModalidad = $this->mostrarSelectorModalidadEnPago($actividad, $userContext);
@@ -467,6 +474,7 @@ class GridActividadesController extends Controller
             'ok' => true,
             'inscripcion_id' => $inscripcion->id,
             'registered' => $registrado,
+            'can_view_private' => auth()->check(),
         ]);
     }
 
@@ -815,6 +823,34 @@ class GridActividadesController extends Controller
         }
 
         return $actividad->esquemaPrecio;
+    }
+
+    private function obtenerBotonPagoActividad(Actividad $actividad, ?User $user)
+    {
+        $actividad->loadMissing([
+            'esquemaPrecio.membresias.membresia',
+            'esquemaPrecio.membresias.botonPago',
+            'esquemaDescuento.membresias.membresia',
+            'esquemaDescuento.membresias.botonPago',
+            'botonPago',
+        ]);
+
+        $esquemaVigente = $this->obtenerEsquemaPrecioVigente($actividad);
+        if (!$esquemaVigente?->membresias) {
+            return $actividad->botonPago;
+        }
+
+        $linea = null;
+        if ($user && $user->membresia_id) {
+            $linea = $esquemaVigente->membresias->firstWhere('membresia_id', $user->membresia_id);
+        }
+
+        if (!$linea) {
+            $linea = $esquemaVigente->membresias
+                ->first(fn ($item) => $this->esMembresiaGeneral($item?->membresia?->nombre));
+        }
+
+        return $linea?->botonPago ?: $actividad->botonPago;
     }
 
     private function aplicaDescuentoAnticipado(Actividad $actividad): bool

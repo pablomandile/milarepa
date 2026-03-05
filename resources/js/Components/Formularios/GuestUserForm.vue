@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import TextInput from '../TextInput.vue';
@@ -38,6 +38,14 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    mostrarRegistrarDatos: {
+        type: Boolean,
+        default: true,
+    },
+    forzarRegistrarDatos: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const provinciasFiltradas = computed(() => {
@@ -56,6 +64,16 @@ const barriosFiltrados = computed(() => {
     if (provId !== 24) return [];
     return props.barrios.filter((b) => parseInt(b.provincia_id) === 24);
 });
+
+watch(
+    () => props.forzarRegistrarDatos,
+    (force) => {
+        if (force) {
+            props.form.registrar_datos = true;
+        }
+    },
+    { immediate: true }
+);
 </script>
 
 <template>
@@ -189,7 +207,7 @@ const barriosFiltrados = computed(() => {
             <InputError :message="errors.accesibilidad_desc?.[0]" class="mt-2" />
         </div>
 
-        <div class="col-span-3">
+        <div v-if="mostrarRegistrarDatos" class="col-span-3">
             <div class="flex items-center">
                 <InputSwitch v-model="form.registrar_datos" class="mr-3" />
                 <label class="block text-sm text-indigo-400">

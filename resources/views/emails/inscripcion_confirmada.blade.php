@@ -270,8 +270,11 @@
                     $rutaImagen = data_get($actividad, 'imagen.ruta');
                     $rutaFallback = 'img/actividades/imagen-no-disponible.jpg';
                     $baseUrl = rtrim((string) config('app.url'), '/');
+                    $forzarImagenPrueba = isset($esPreviewPrueba) && $esPreviewPrueba === true;
 
-                    if ($rutaImagen && preg_match('/^https?:\/\//i', $rutaImagen)) {
+                    if ($forzarImagenPrueba) {
+                        $imagenUrl = '/storage/' . $rutaFallback;
+                    } elseif ($rutaImagen && preg_match('/^https?:\/\//i', $rutaImagen)) {
                         $imagenUrl = $rutaImagen;
                     } elseif ($rutaImagen) {
                         $imagenUrl = $baseUrl . '/storage/' . ltrim($rutaImagen, '/');
@@ -283,7 +286,7 @@
                         ? storage_path('app/public/' . ltrim($rutaImagen, '/'))
                         : storage_path('app/public/' . $rutaFallback);
 
-                    if (isset($message) && is_object($message) && file_exists($rutaLocal)) {
+                    if (!$forzarImagenPrueba && isset($message) && is_object($message) && file_exists($rutaLocal)) {
                         try {
                             $imagenUrl = $message->embed($rutaLocal);
                         } catch (\Throwable $e) {
@@ -323,10 +326,8 @@
                     <div class="label">Links Stream:</div>
                     <div class="value">
                         @foreach(data_get($actividad, 'stream.links', []) as $streamLink)
-                            @php
-                                $linkUrl = data_get($streamLink, 'link');
-                                $linkNombre = data_get($streamLink, 'nombre') ?: $linkUrl;
-                            @endphp
+                            @php($linkUrl = data_get($streamLink, 'link'))
+                            @php($linkNombre = data_get($streamLink, 'nombre') ?: $linkUrl)
                             @if($linkUrl)
                             <div style="margin-bottom: 6px;">
                                 <a href="{{ $linkUrl }}" target="_blank" rel="noopener noreferrer">

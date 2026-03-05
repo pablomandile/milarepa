@@ -25,7 +25,7 @@ class NovedadRequest extends FormRequest
     {
         return [
             'nombre' => ['required', 'string', 'max:100'],
-            'descripcion' => ['string', 'max:255'],
+            'descripcion' => ['string'],
             'fecha' => ['required', 'date']      
         ];
     }

@@ -43,7 +43,7 @@ const metodosPago = computed(() =>
     value: (metodo.nombre || '').toString().toLowerCase(),
   }))
 );
-const pagoMetodo = ref((props.pago?.pago_metodo || '').toString().toLowerCase() || null);
+const pagoMetodo = ref(null);
 const comprobantePath = ref(props.pago?.comprobante_path || null);
 
 const saldoFinal = computed(() => parseFloat(props.saldo || 0));
@@ -101,9 +101,31 @@ const esPagoCero = computed(() => {
   );
 });
 
+const normalizarMetodoPago = (valor) => {
+  return (valor || '')
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+};
+
+const esMetodoTipoEfectivo = computed(() => {
+  const metodo = normalizarMetodoPago(metodoSeleccionado.value);
+  return ['efectivo', 'tarjeta de credito', 'tarjeta de debito'].includes(metodo);
+});
+const tipoMetodoEfectivo = computed(() => {
+  const metodo = normalizarMetodoPago(metodoSeleccionado.value);
+  if (metodo === 'tarjeta de credito') return 'credito';
+  if (metodo === 'tarjeta de debito') return 'debito';
+  return 'efectivo';
+});
+
 const puedeFinalizar = computed(() => {
   if (esPagoCero.value) return true;
-  return ['efectivo', 'transferencia', 'getnet'].includes(pagoMetodo.value) || !!comprobantePath.value;
+  if (!pagoMetodo.value) return false;
+  if (esMetodoTipoEfectivo.value) return true;
+  return ['transferencia', 'getnet'].includes(pagoMetodo.value) || !!comprobantePath.value;
 });
 
 const metodoSeleccionado = computed(() => (pagoMetodo.value || '').toString().toLowerCase());
@@ -112,10 +134,10 @@ const esTransferenciaSeleccionado = computed(() => metodoSeleccionado.value === 
 const esGetnetSeleccionado = computed(() => metodoSeleccionado.value === 'getnet');
 const mostrarBotonesPago = computed(() => {
   if (esPagoCero.value) return false;
-  if (esEfectivoSeleccionado.value || esTransferenciaSeleccionado.value) return false;
+  if (esMetodoTipoEfectivo.value || esTransferenciaSeleccionado.value) return false;
   return true;
 });
-const mostrarInfoEfectivo = computed(() => !esPagoCero.value && esEfectivoSeleccionado.value);
+const mostrarInfoEfectivo = computed(() => !esPagoCero.value && esMetodoTipoEfectivo.value);
 const mostrarInfoTransferencia = computed(() => !esPagoCero.value && esTransferenciaSeleccionado.value);
 const mostrarInfoGetnet = computed(() => !esPagoCero.value && esGetnetSeleccionado.value);
 
@@ -126,6 +148,21 @@ const descripcionEfectivo = computed(() => {
   return metodo?.descripcion || 'Registrá el pago en efectivo. La inscripción quedará en estado pendiente para aprobación.';
 });
 
+const tituloMetodoTipoEfectivo = computed(() => {
+  if (tipoMetodoEfectivo.value === 'credito') return 'Pago con Tarjeta de crédito';
+  if (tipoMetodoEfectivo.value === 'debito') return 'Pago con Tarjeta de débito';
+  return 'Pago en efectivo';
+});
+const descripcionMetodoTipoEfectivo = computed(() => {
+  if (tipoMetodoEfectivo.value === 'credito') {
+    return 'Podes pagar con tarjeta de crédito en el lugar antes de comenzar. Tu inscripción quedará en estado pendiente para aprobación.';
+  }
+  if (tipoMetodoEfectivo.value === 'debito') {
+    return 'Podes pagar con tarjeta de débito en el lugar antes de comenzar. Tu inscripción quedará en estado pendiente para aprobación.';
+  }
+  return `${descripcionEfectivo.value} Tu inscripción quedará en estado pendiente para aprobación.`;
+});
+
 const descripcionTransferencia = computed(() => {
   const metodo = props.actividad.metodos_pago?.find(
     (m) => m.nombre?.toLowerCase() === 'transferencia'
@@ -133,21 +170,8 @@ const descripcionTransferencia = computed(() => {
   return metodo?.descripcion || 'Subí un comprobante (PDF o imagen) para registrar el pago.';
 });
 
-const tieneEfectivo = computed(() =>
-  props.actividad.metodos_pago?.some((m) => m.nombre?.toLowerCase() === 'efectivo')
-);
 const tieneTransferencia = computed(() =>
   props.actividad.metodos_pago?.some((m) => m.nombre?.toLowerCase() === 'transferencia')
-);
-
-watch(
-  () => metodosPago.value[0]?.value || null,
-  (value) => {
-    if (!pagoMetodo.value && value) {
-      pagoMetodo.value = value;
-    }
-  },
-  { immediate: true }
 );
 
 function seleccionarComprobante(event) {
@@ -201,8 +225,9 @@ async function terminar() {
     });
     const inscripcionId = response.data?.inscripcion_id;
     const registrado = response.data?.registered;
+    const canViewPrivate = !!response.data?.can_view_private;
     if (inscripcionId) {
-      if (registrado) {
+      if (registrado && canViewPrivate) {
         window.location.href = route('inscripciones.show', { inscripcion: inscripcionId });
       } else {
         window.location.href = route('grid-actividades.inscripcion', { inscripcion: inscripcionId });
@@ -267,18 +292,6 @@ async function terminar() {
           <p v-else class="text-lg text-gray-600 mt-4">
             Valor de la actividad: <span class="font-semibold text-gray-800">$ {{ saldoFinal.toLocaleString('es-AR') }}</span>
           </p>
-
-          <div v-if="mostrarBotonesPago" class="mt-2 flex flex-wrap items-center gap-2">
-            <a
-              v-if="actividadPagoLink"
-              :href="actividadPagoLink"
-              target="_blank"
-              class="inline-flex items-center px-3 py-1 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
-            >
-              Pagar Actividad
-            </a>
-            <span v-else class="text-xs text-gray-400">Sin botón de pago disponible</span>
-          </div>
           <p v-if="!actividadEsGratuita" class="text-lg text-green-600 mt-1">
             Membresía aplicada: {{ membresia }}
           </p>
@@ -306,14 +319,74 @@ async function terminar() {
               v-model="pagoMetodo"
               class="w-full appearance-none rounded border border-sky-400 bg-blue-400 px-3 py-2 pr-10 text-sm text-white shadow-sm focus:border-sky-600 focus:ring focus:ring-sky-200"
             >
+              <option :value="null" disabled>
+                Selecciona un método de pago
+              </option>
               <option v-for="metodo in metodosPago" :key="metodo.id" :value="metodo.value">
                 {{ metodo.nombre }}
               </option>
             </select>
           </div>
 
+          <div v-if="!esPagoCero" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div v-if="mostrarInfoEfectivo" class="border rounded-lg p-4">
+              <h3 class="text-sm font-semibold text-gray-700">{{ tituloMetodoTipoEfectivo }}</h3>
+              <p class="text-sm text-green-600 mt-1">
+                {{ descripcionMetodoTipoEfectivo }}
+              </p>
+            </div>
+            <div v-if="mostrarInfoTransferencia && tieneTransferencia" class="border rounded-lg p-4">
+              <h3 class="text-sm font-semibold text-gray-700">Pagar por transferencia</h3>
+              <p class="text-sm text-green-600 mt-1">
+                {{ descripcionTransferencia }}
+              </p>
+              <div class="mt-4 flex flex-wrap gap-2">
+                <h3 class="text-sm font-semibold text-gray-900">Recuerda subir el comprobante si pagaste por transferencia o Getnet</h3>
+                <button
+                  class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                  @click="comprobanteModal = true"
+                >
+                  Subir comprobante
+                </button>
+
+              </div>
+            </div>
+            <div v-if="mostrarInfoGetnet" class="border rounded-lg p-4">
+              <h3 class="text-sm font-semibold text-gray-700">Pago con Getnet</h3>
+              <p class="text-sm text-green-600 mt-1">
+                Subí el comprobante del pago realizado por Getnet. Puede ser más de uno.
+              </p>
+              <div class="mt-4 flex flex-wrap gap-2">
+                <button
+                  class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                  @click="comprobanteModal = true"
+                >
+                  Subir comprobante
+                </button>
+              </div>
+            </div>
+          </div>
 
           <div class="mt-6 space-y-4">
+            <div v-if="!esPagoCero" class="border rounded-lg p-4">
+              <p class="text-sm font-semibold text-gray-700">Actividad</p>
+              <div class="mt-2 text-sm text-gray-700">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span>Monto a pagar de la actividad:</span>
+                  <span class="font-semibold">$ {{ actividadPrecio.toLocaleString('es-AR') }}</span>
+                  <a
+                    v-if="esGetnetSeleccionado && actividadPagoLink"
+                    :href="actividadPagoLink"
+                    target="_blank"
+                    class="inline-flex items-center px-3 py-1 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700"
+                  >
+                    Pagar actividad
+                  </a>
+                  <span v-else-if="esGetnetSeleccionado" class="text-xs text-gray-400">Sin boton de pago</span>
+                </div>
+              </div>
+            </div>
+
             <div v-if="grabacionDisponible" class="border rounded-lg p-4">
               <div class="flex items-center gap-2">
                 <Checkbox
@@ -471,55 +544,11 @@ async function terminar() {
 
           
 
-          <div v-if="!esPagoCero" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div v-if="mostrarInfoEfectivo && tieneEfectivo" class="border rounded-lg p-4">
-              <h3 class="text-sm font-semibold text-gray-700">Pago en efectivo</h3>
-              <p class="text-sm text-green-600 mt-1">
-                {{ descripcionEfectivo }} Tu inscripción quedará en estado pendiente para aprobación.
-              </p>
-              <!-- <button
-                class="mt-3 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                @click="pagoMetodo = 'efectivo'"
-              >
-                Pagaré en efectivo más tarde
-              </button> -->
-            </div>
-            <div v-if="mostrarInfoTransferencia && tieneTransferencia" class="border rounded-lg p-4">
-              <h3 class="text-sm font-semibold text-gray-700">Pagar por transferencia</h3>
-              <p class="text-sm text-green-600 mt-1">
-                {{ descripcionTransferencia }}
-              </p>
-              <div class="mt-4 flex flex-wrap gap-2">
-                <h3 class="text-sm font-semibold text-gray-900">Recuerda subir el comprobante si pagaste por transferencia o Getnet</h3>
-                <button
-                  class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                  @click="comprobanteModal = true"
-                >
-                  Subir comprobante
-                </button>
-
-              </div>
-            </div>
-            <div v-if="mostrarInfoGetnet" class="border rounded-lg p-4">
-              <h3 class="text-sm font-semibold text-gray-700">Pago con Getnet</h3>
-              <p class="text-sm text-green-600 mt-1">
-                Subí el comprobante del pago realizado por Getnet. Puede ser más de uno.
-              </p>
-              <div class="mt-4 flex flex-wrap gap-2">
-                <button
-                  class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                  @click="comprobanteModal = true"
-                >
-                  Subir comprobante
-                </button>
-              </div>
-            </div>
-          </div>
-
           <div class="mt-6 flex justify-end">
             <button
-              class="px-5 py-2 rounded text-white bg-green-600 hover:bg-green-700 disabled:opacity-60"
-              :disabled="isFinalizing"
+              class="px-5 py-2 rounded text-white disabled:cursor-not-allowed"
+              :class="(isFinalizing || !puedeFinalizar) ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'"
+              :disabled="isFinalizing || !puedeFinalizar"
               @click="terminar"
             >
               {{ isFinalizing ? 'Finalizando...' : 'Terminar inscripción' }}
@@ -623,6 +652,8 @@ async function terminar() {
   background-color: #61b1d3;
 }
 </style>
+
+
 
 
 

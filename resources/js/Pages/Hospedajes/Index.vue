@@ -62,7 +62,7 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Acomodación</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Acomodaciones de Hospedaje</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">

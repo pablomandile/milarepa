@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\OracionCantadaRequest;
 use App\Models\OracionCantada;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class OracionesCantadasController extends Controller
@@ -37,10 +38,11 @@ class OracionesCantadasController extends Controller
         //
     }
 
-    public function showPublic(OracionCantada $oracionCantada)
+    public function showPublic(Request $request, OracionCantada $oracionCantada)
     {
         return Inertia::render('OracionesCantadas/ShowPublic', [
             'oracionCantada' => $oracionCantada,
+            'returnUrl' => $request->query('return_url'),
         ]);
     }
 
