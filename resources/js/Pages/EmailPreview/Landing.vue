@@ -143,7 +143,7 @@ const verEmail6 = () => {
 
                         <div class="p-6 space-y-4">
                             <Link
-                                href="/email-preview/inscripcion"
+                                href="/email-preview/grabacion"
                                 class="block w-full px-4 py-2 text-center bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold text-sm"
                             >
                                 Ver con Datos de Prueba

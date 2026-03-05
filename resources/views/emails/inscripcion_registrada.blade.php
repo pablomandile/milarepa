@@ -542,7 +542,7 @@
 
             <!-- CTA Button -->
             <center>
-                <a href="http://www.milarepa.com.ar/inscripciones/{{ $inscripcion->id }}" class="cta-button">Ver Detalles de mi Inscripción</a>
+                <a href="{{ url('/welcome') }}" class="cta-button">Ver Detalles de mi Inscripción</a>
             </center>
 
             <hr class="divider">

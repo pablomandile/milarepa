@@ -29,9 +29,11 @@ class InscripcionConfirmada extends Mailable
     public function envelope(): Envelope
     {
         $plantilla = $this->resolverPlantilla();
-        $subject = $plantilla === 'emails.inscripcion_registrada'
-            ? 'Inscripción registrada'
-            : 'Inscripción confirmada';
+        $subject = match ($plantilla) {
+            'emails.inscripcion_registrada' => 'Inscripcion registrada',
+            'emails.envio_grabacion' => 'Grabacion disponible',
+            default => 'Inscripcion confirmada',
+        };
 
         return new Envelope(
             subject: $subject . ' - ' . $this->inscripcion->actividad->nombre,
@@ -65,7 +67,11 @@ class InscripcionConfirmada extends Mailable
 
     private function resolverPlantilla(): string
     {
-        if (in_array($this->plantilla, ['emails.inscripcion_confirmada', 'emails.inscripcion_registrada'], true)) {
+        if (in_array($this->plantilla, [
+            'emails.inscripcion_confirmada',
+            'emails.inscripcion_registrada',
+            'emails.envio_grabacion',
+        ], true)) {
             return $this->plantilla;
         }
 
@@ -74,3 +80,4 @@ class InscripcionConfirmada extends Mailable
             : 'emails.inscripcion_registrada';
     }
 }
+

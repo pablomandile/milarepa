@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inscripcion;
+use App\Services\EmailInscripcionService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -92,6 +93,149 @@ class EstadoInscripcionesController extends Controller
         $inscripcion->save();
 
         return response()->json(['ok' => true]);
+    }
+
+    public function countConfirmacionesPendientes(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || !$user->hasRole(['Admin', 'Editor', 'admin', 'editor'])) {
+            abort(403);
+        }
+
+        $total = $this->queryConfirmacionesPendientes()->count();
+
+        return response()->json([
+            'ok' => true,
+            'total' => $total,
+        ]);
+    }
+
+    public function enviarConfirmacionesPendientes(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || !$user->hasRole(['Admin', 'Editor', 'admin', 'editor'])) {
+            abort(403);
+        }
+
+        $query = $this->queryConfirmacionesPendientes()->with([
+            'actividad.entidad',
+            'actividad.imagen',
+            'actividad.descripcion',
+            'actividad.modalidad',
+            'actividad.stream.links',
+            'user',
+            'guestUser',
+        ]);
+
+        $enviadas = 0;
+        $errores = 0;
+        $sinDestino = 0;
+
+        $query->chunkById(100, function ($inscripciones) use (&$enviadas, &$errores, &$sinDestino) {
+            foreach ($inscripciones as $inscripcion) {
+                $destinatario = $inscripcion->guestUser?->email ?: $inscripcion->user?->email;
+                if (empty($destinatario)) {
+                    $sinDestino++;
+                    continue;
+                }
+
+                if (EmailInscripcionService::enviarPlantillaConfirmacion($inscripcion)) {
+                    $enviadas++;
+                } else {
+                    $errores++;
+                }
+            }
+        }, 'id');
+
+        return response()->json([
+            'ok' => true,
+            'enviadas' => $enviadas,
+            'errores' => $errores,
+            'sin_destino' => $sinDestino,
+        ]);
+    }
+
+    public function countGrabacionesPendientes(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || !$user->hasRole(['Admin', 'Editor', 'admin', 'editor'])) {
+            abort(403);
+        }
+
+        $total = $this->queryGrabacionesPendientes()->count();
+
+        return response()->json([
+            'ok' => true,
+            'total' => $total,
+        ]);
+    }
+
+    public function enviarGrabacionesPendientes(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || !$user->hasRole(['Admin', 'Editor', 'admin', 'editor'])) {
+            abort(403);
+        }
+
+        $query = $this->queryGrabacionesPendientes()->with([
+            'actividad.entidad',
+            'actividad.imagen',
+            'actividad.descripcion',
+            'actividad.modalidad',
+            'actividad.grabacion.linksgrabacion',
+            'user',
+            'guestUser',
+        ]);
+
+        $enviadas = 0;
+        $errores = 0;
+        $sinDestino = 0;
+
+        $query->chunkById(100, function ($inscripciones) use (&$enviadas, &$errores, &$sinDestino) {
+            foreach ($inscripciones as $inscripcion) {
+                $destinatario = $inscripcion->guestUser?->email ?: $inscripcion->user?->email;
+                if (empty($destinatario)) {
+                    $sinDestino++;
+                    continue;
+                }
+
+                if (EmailInscripcionService::enviarPlantillaGrabacion($inscripcion)) {
+                    $enviadas++;
+                } else {
+                    $errores++;
+                }
+            }
+        }, 'id');
+
+        return response()->json([
+            'ok' => true,
+            'enviadas' => $enviadas,
+            'errores' => $errores,
+            'sin_destino' => $sinDestino,
+        ]);
+    }
+
+    private function queryConfirmacionesPendientes()
+    {
+        return Inscripcion::query()
+            ->where('montoapagar', 0)
+            ->where('pago', 'Saldado')
+            ->where('envioConfirmacion', 'Pendiente')
+            ->whereHas('actividad', function ($actividadQuery) {
+                $actividadQuery->where(function ($inner) {
+                    $inner->whereNull('stream_id')
+                        ->orWhereHas('stream.links');
+                });
+            });
+    }
+
+    private function queryGrabacionesPendientes()
+    {
+        return Inscripcion::query()
+            ->where('pago', 'Saldado')
+            ->where('envioConfirmacion', 'Enviada')
+            ->where('envioGrabacion', 'Pendiente')
+            ->whereHas('actividad.grabacion.linksgrabacion');
     }
 
     /**

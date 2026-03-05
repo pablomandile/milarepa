@@ -24,7 +24,9 @@ class Inscripcion extends Model
         'montoapagar',
         'pago',
         'envioLinkStream',
-        'envioGrabación',
+        'envioRegistro',
+        'envioConfirmacion',
+        'envioGrabacion',
         'asistencia',
         'online',
         'hospedaje_id',
@@ -87,3 +89,4 @@ class Inscripcion extends Model
         return $this->hasMany(InscripcionComprobante::class)->latest();
     }
 }
+

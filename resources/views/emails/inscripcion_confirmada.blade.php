@@ -197,6 +197,31 @@
             font-weight: 600;
             margin: 5px 5px 5px 0;
         }
+        .video-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff !important;
+            padding: 8px 14px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 5px 8px 0 0;
+        }
+        .video-icon-btn {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            vertical-align: middle;
+        }
         @media only screen and (max-width: 600px) {
             .container {
                 border-radius: 0;
@@ -314,28 +339,43 @@
                 </div>
                 @endif
 
+                @php
+                    $inscripcionOnline = (bool) data_get($inscripcion, 'online', false);
+                    $linksActividad = collect(data_get($actividad, 'stream.links', []))
+                        ->filter(fn ($streamLink) => !empty(data_get($streamLink, 'link')))
+                        ->values();
+                @endphp
                 <div class="activity-detail">
                     <div class="label">Modalidad:</div>
                     <div class="value">
-                        @php($inscripcionOnline = data_get($inscripcion, 'online', false))
                         <span class="badge">{{ $inscripcionOnline ? 'Online' : 'Presencial' }}</span>
                     </div>
                 </div>
-                @if(data_get($actividad, 'stream') && count(data_get($actividad, 'stream.links', [])) > 0)
-                <div class="activity-detail">
-                    <div class="label">Links Stream:</div>
+
+                @if($inscripcionOnline && !empty(data_get($actividad, 'stream_id')) && $linksActividad->isNotEmpty())
+                <div class="activity-detail" style="display:block;">
+                    <div class="label" style="display:block; margin-bottom:8px;">Links de la actividad:</div>
                     <div class="value">
-                        @foreach(data_get($actividad, 'stream.links', []) as $streamLink)
-                            @php($linkUrl = data_get($streamLink, 'link'))
-                            @php($linkNombre = data_get($streamLink, 'nombre') ?: $linkUrl)
-                            @if($linkUrl)
-                            <div style="margin-bottom: 6px;">
-                                <a href="{{ $linkUrl }}" target="_blank" rel="noopener noreferrer">
-                                    {{ $linkNombre }}
-                                </a>
-                            </div>
-                            @endif
-                        @endforeach
+                        @if(isset($esPreviewPrueba) && $esPreviewPrueba === true)
+                            @foreach($linksActividad as $index => $streamLink)
+                                @php($linkUrl = data_get($streamLink, 'link'))
+                                <div style="margin-bottom: 8px;">
+                                    <strong>Sesion {{ $index + 1 }}:</strong>
+                                    <a href="{{ $linkUrl }}" target="_blank" rel="noopener noreferrer" class="video-icon-btn" style="margin-left:8px;">&#9654;</a>
+                                </div>
+                            @endforeach
+                        @else
+                            @foreach($linksActividad as $streamLink)
+                                @php($linkUrl = data_get($streamLink, 'link'))
+                                @php($linkDescripcion = data_get($streamLink, 'nombre') ?: 'Sin descripcion')
+                                <div style="margin-bottom: 8px;">
+                                    <strong>{{ $linkDescripcion }}:</strong>
+                                    <a href="{{ $linkUrl }}" target="_blank" rel="noopener noreferrer" class="video-icon-btn" style="margin-left:8px;">
+                                        ▶️
+                                    </a>
+                                </div>
+                            @endforeach
+                        @endif
                     </div>
                 </div>
                 @endif
@@ -401,12 +441,12 @@
 
             <!-- Important Note -->
             <div class="important-note">
-                <strong>⚠️ Importante:</strong> Conserva este email como comprobante del registro de tu inscripción. Ya puedes descargar o imprimir tu Ticket de ingreso al evento.
+                <strong>⚠️ Importante:</strong> Conserva este email como comprobante del pago de tu inscripción. Ya puedes descargar o imprimir tu Ticket de ingreso al evento.
             </div>
 
             <!-- CTA Button -->
             <center>
-                <a href="http://www.milarepa.com.ar/inscripciones/{{ $inscripcion->id }}" class="cta-button">Ver Detalles de mi Inscripción</a>
+                <a href="{{ url('/welcome') }}" class="cta-button">Ver Detalles de mi Inscripción</a>
             </center>
 
             <hr class="divider">

@@ -84,7 +84,7 @@ const inscribir = () => {
     pago: 'Pendiente',
     estado: 'Registrada',
     envioLinkStream: 'pendiente',
-    envioGrabación: 'pendiente',
+    envioGrabacion: 'pendiente',
     comprobante: null,
     asistencia: 'ausente',
     online: actividad.modalidad?.nombre === 'Online',

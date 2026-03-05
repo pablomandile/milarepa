@@ -25,7 +25,13 @@ defineProps({
         
         <!-- Sección de botones -->
         <div v-if="canLogin" class="flex justify-center p-8 z-10">
-            <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Dashboard</Link>
+            <Link
+                v-if="$page.props.auth.user"
+                :href="route('dashboard')"
+                class="inline-flex items-center justify-center rounded-lg bg-white px-6 py-3 text-lg font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50 focus:outline focus:outline-2 focus:rounded-lg focus:outline-indigo-500"
+            >
+                Dashboard
+            </Link>
 
             <template v-else>
                 <Link :href="route('login')" class="inline-flex items-center justify-center px-5 py-2 rounded-full bg-white text-indigo-700 font-semibold shadow-sm hover:bg-indigo-50 hover:text-indigo-800 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-indigo-500 transition">

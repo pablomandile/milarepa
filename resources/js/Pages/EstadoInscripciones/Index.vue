@@ -1,5 +1,6 @@
 <template>
     <AppLayout title="Estado de Inscripciones">
+        <Toast position="top-right" />
         <template #header>
             <div class="flex justify-between items-center">
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -22,6 +23,24 @@
                                 <option value="last1">Último mes</option>
                                 <option value="all">Mostrar todo</option>
                             </select>
+                            <button
+                                v-if="canEdit"
+                                type="button"
+                                class="inline-flex items-center rounded bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+                                :disabled="isSendingConfirmaciones"
+                                @click="abrirDialogoEnvioConfirmaciones"
+                            >
+                                Envío de Confirmación
+                            </button>
+                            <button
+                                v-if="canEdit"
+                                type="button"
+                                class="inline-flex items-center rounded bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700 disabled:opacity-60"
+                                :disabled="isSendingGrabaciones"
+                                @click="abrirDialogoEnvioGrabaciones"
+                            >
+                                Envío de Grabaciones
+                            </button>
                         </div>
 
                         <div v-if="filtradas.length > 0" class="overflow-x-auto">
@@ -139,6 +158,39 @@
                                 <Column header="Estado">
                                     <template #body="{ data }">
                                         <span class="text-sm">{{ data.estado || '-' }}</span>
+                                    </template>
+                                </Column>
+
+                                <Column header="Envío Registro">
+                                    <template #body="{ data }">
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                            :class="badgeEnvioClass(envioEstado(data, 'envioRegistro'))"
+                                        >
+                                            {{ envioEstado(data, 'envioRegistro') }}
+                                        </span>
+                                    </template>
+                                </Column>
+
+                                <Column header="Envío Confirmación">
+                                    <template #body="{ data }">
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                            :class="badgeEnvioClass(envioEstado(data, 'envioConfirmacion'))"
+                                        >
+                                            {{ envioEstado(data, 'envioConfirmacion') }}
+                                        </span>
+                                    </template>
+                                </Column>
+
+                                <Column header="Envío Grabación">
+                                    <template #body="{ data }">
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                            :class="badgeEnvioClass(envioEstado(data, 'envioGrabacion'))"
+                                        >
+                                            {{ envioEstado(data, 'envioGrabacion') }}
+                                        </span>
                                     </template>
                                 </Column>
 
@@ -365,12 +417,75 @@
                 </div>
             </template>
         </Dialog>
+
+        <Dialog
+            v-model:visible="confirmEnviosVisible"
+            modal
+            header="Confirmar envío"
+            :style="{ width: '520px' }"
+        >
+            <p class="text-sm text-gray-700">
+                Se enviarán {{ totalConfirmacionesPendientes }} confirmaciones de inscripción por correo electrónico.
+            </p>
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <button
+                        type="button"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        :disabled="isSendingConfirmaciones"
+                        @click="confirmEnviosVisible = false"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-60"
+                        :disabled="isSendingConfirmaciones || totalConfirmacionesPendientes <= 0"
+                        @click="enviarConfirmaciones"
+                    >
+                        Confirmar envío
+                    </button>
+                </div>
+            </template>
+        </Dialog>
+
+        <Dialog
+            v-model:visible="confirmEnviosGrabacionesVisible"
+            modal
+            header="Confirmar envío"
+            :style="{ width: '520px' }"
+        >
+            <p class="text-sm text-gray-700">
+                Se enviarán {{ totalGrabacionesPendientes }} notificaciones de grabación por correo electrónico.
+            </p>
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <button
+                        type="button"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        :disabled="isSendingGrabaciones"
+                        @click="confirmEnviosGrabacionesVisible = false"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        class="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-60"
+                        :disabled="isSendingGrabaciones || totalGrabacionesPendientes <= 0"
+                        @click="enviarGrabaciones"
+                    >
+                        Confirmar envío
+                    </button>
+                </div>
+            </template>
+        </Dialog>
     </AppLayout>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
+import { useToast } from 'primevue/usetoast';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -380,6 +495,7 @@ const props = defineProps({
     inscripciones: Object
 });
 
+const toast = useToast();
 const page = usePage();
 const filtroPeriodo = ref('last1');
 const expandedRows = ref([]);
@@ -567,6 +683,21 @@ const badgePagoClass = (pago) => {
     return 'bg-gray-100 text-gray-700';
 };
 
+const envioEstado = (inscripcion, campo) => {
+    if (!inscripcion) return '-';
+    if (campo === 'envioGrabacion') {
+        return inscripcion.envioGrabacion || '-';
+    }
+    return inscripcion[campo] || '-';
+};
+
+const badgeEnvioClass = (estado) => {
+    if (estado === 'Enviada') return 'bg-green-100 text-green-800';
+    if (estado === 'Pendiente') return 'bg-yellow-100 text-yellow-800';
+    if (estado === 'No aplica') return 'bg-gray-100 text-gray-700';
+    return 'bg-slate-100 text-slate-700';
+};
+
 const urlComprobante = (inscripcion) => {
     const raw = inscripcion?.comprobantes?.[0]?.ruta || inscripcion?.comprobante_url || inscripcion?.comprobante;
     if (!raw) return null;
@@ -584,6 +715,12 @@ const comprobanteModal = ref(false);
 const comprobantesParaVer = ref([]);
 const confirmSaldadoVisible = ref(false);
 const inscripcionParaSaldar = ref(null);
+const confirmEnviosVisible = ref(false);
+const totalConfirmacionesPendientes = ref(0);
+const isSendingConfirmaciones = ref(false);
+const confirmEnviosGrabacionesVisible = ref(false);
+const totalGrabacionesPendientes = ref(0);
+const isSendingGrabaciones = ref(false);
 
 const normalizarComprobante = (ruta, descripcion) => {
     if (!ruta) return null;
@@ -611,6 +748,112 @@ const abrirComprobante = (inscripcion) => {
     if (!items.length) return;
     comprobantesParaVer.value = items;
     comprobanteModal.value = true;
+};
+
+const abrirDialogoEnvioConfirmaciones = async () => {
+    if (!canEdit.value || isSendingConfirmaciones.value) return;
+    try {
+        const { data } = await axios.get(route('estadoinscripciones.confirmaciones.count'));
+        totalConfirmacionesPendientes.value = Number(data?.total || 0);
+        if (totalConfirmacionesPendientes.value <= 0) {
+            toast.add({
+                severity: 'info',
+                summary: 'Envío de confirmación',
+                detail: 'No hay inscripciones pendientes de confirmación para enviar.',
+                life: 4500,
+            });
+            return;
+        }
+        confirmEnviosVisible.value = true;
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Envío de confirmación',
+            detail: 'No se pudo calcular el total de confirmaciones.',
+            life: 5000,
+        });
+    }
+};
+
+const enviarConfirmaciones = async () => {
+    if (!canEdit.value || isSendingConfirmaciones.value) return;
+    isSendingConfirmaciones.value = true;
+    try {
+        const { data } = await axios.post(route('estadoinscripciones.confirmaciones.enviar'));
+        confirmEnviosVisible.value = false;
+        const enviadas = Number(data?.enviadas || 0);
+        const errores = Number(data?.errores || 0);
+        const sinDestino = Number(data?.sin_destino || 0);
+        toast.add({
+            severity: errores > 0 ? 'warn' : 'success',
+            summary: 'Envío de confirmación',
+            detail: `Envío finalizado. Enviadas: ${enviadas}. Errores: ${errores}. Sin destino: ${sinDestino}.`,
+            life: 6500,
+        });
+        router.reload({ only: ['inscripciones'] });
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Envío de confirmación',
+            detail: 'Ocurrió un error al enviar las confirmaciones.',
+            life: 5000,
+        });
+    } finally {
+        isSendingConfirmaciones.value = false;
+    }
+};
+
+const abrirDialogoEnvioGrabaciones = async () => {
+    if (!canEdit.value || isSendingGrabaciones.value) return;
+    try {
+        const { data } = await axios.get(route('estadoinscripciones.grabaciones.count'));
+        totalGrabacionesPendientes.value = Number(data?.total || 0);
+        if (totalGrabacionesPendientes.value <= 0) {
+            toast.add({
+                severity: 'info',
+                summary: 'Envío de grabaciones',
+                detail: 'No hay inscripciones pendientes de envío de grabaciones.',
+                life: 4500,
+            });
+            return;
+        }
+        confirmEnviosGrabacionesVisible.value = true;
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Envío de grabaciones',
+            detail: 'No se pudo calcular el total de envíos de grabaciones.',
+            life: 5000,
+        });
+    }
+};
+
+const enviarGrabaciones = async () => {
+    if (!canEdit.value || isSendingGrabaciones.value) return;
+    isSendingGrabaciones.value = true;
+    try {
+        const { data } = await axios.post(route('estadoinscripciones.grabaciones.enviar'));
+        confirmEnviosGrabacionesVisible.value = false;
+        const enviadas = Number(data?.enviadas || 0);
+        const errores = Number(data?.errores || 0);
+        const sinDestino = Number(data?.sin_destino || 0);
+        toast.add({
+            severity: errores > 0 ? 'warn' : 'success',
+            summary: 'Envío de grabaciones',
+            detail: `Envío finalizado. Enviadas: ${enviadas}. Errores: ${errores}. Sin destino: ${sinDestino}.`,
+            life: 6500,
+        });
+        router.reload({ only: ['inscripciones'] });
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Envío de grabaciones',
+            detail: 'Ocurrió un error al enviar las grabaciones.',
+            life: 5000,
+        });
+    } finally {
+        isSendingGrabaciones.value = false;
+    }
 };
 
 const filtradas = computed(() => {

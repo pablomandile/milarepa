@@ -146,7 +146,7 @@ watch(() => $page.props.flash, (flash) => {
                 </h3>
                 <p class="text-gray-800"><strong>Estado inscripción:</strong> {{ inscripcion.estado || 'Registrada' }}</p>
                 <p class="text-gray-700 mt-1"><strong>Envío Link Stream:</strong> {{ inscripcion.envioLinkStream }}</p>
-                <p class="text-gray-700 mt-1"><strong>Envío Grabación:</strong> {{ inscripcion.envioGrabación }}</p>
+                <p class="text-gray-700 mt-1"><strong>Envío Grabación:</strong> {{ inscripcion.envioGrabacion }}</p>
                 <p class="text-gray-700 mt-1"><strong>Online:</strong> {{ inscripcion.online ? 'Sí' : 'No' }}</p>
               </div>
             </div>

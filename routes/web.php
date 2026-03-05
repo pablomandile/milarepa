@@ -71,6 +71,10 @@ Route::get('/email-preview/inscripcion-confirmada', [EmailPreviewController::cla
     ->name('preview.email.inscripcion-confirmada');
 Route::get('/email-preview/inscripcion-confirmada/{id}', [EmailPreviewController::class, 'inscripcionConfirmada'])
     ->name('preview.email.inscripcion-confirmada.id');
+Route::get('/email-preview/grabacion', [EmailPreviewController::class, 'grabacionDisponible'])
+    ->name('preview.email.grabacion');
+Route::get('/email-preview/grabacion/{id}', [EmailPreviewController::class, 'grabacionDisponible'])
+    ->name('preview.email.grabacion.id');
 
 // Grid de actividades pÃºblico (solo index + lookup por email)
 Route::get('/grid-actividades', [GridActividadesController::class, 'index'])
@@ -182,6 +186,14 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         ->name('inscripciones.ticketQr');
     Route::resource('/estadoinscripciones', EstadoInscripcionesController::class, [
         'parameters' => ['estadoinscripciones' => 'estadoinscripcion'],]);
+    Route::get('/estadoinscripciones/confirmaciones/count', [EstadoInscripcionesController::class, 'countConfirmacionesPendientes'])
+        ->name('estadoinscripciones.confirmaciones.count');
+    Route::post('/estadoinscripciones/confirmaciones/enviar', [EstadoInscripcionesController::class, 'enviarConfirmacionesPendientes'])
+        ->name('estadoinscripciones.confirmaciones.enviar');
+    Route::get('/estadoinscripciones/grabaciones/count', [EstadoInscripcionesController::class, 'countGrabacionesPendientes'])
+        ->name('estadoinscripciones.grabaciones.count');
+    Route::post('/estadoinscripciones/grabaciones/enviar', [EstadoInscripcionesController::class, 'enviarGrabacionesPendientes'])
+        ->name('estadoinscripciones.grabaciones.enviar');
     Route::resource('/lugareshospedaje', LugaresHospedajeController::class, [
         'parameters' => ['lugareshospedaje' => 'lugarhospedaje'],]);
     Route::resource('/modalidades', ModalidadesController::class, [

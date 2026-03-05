@@ -394,7 +394,7 @@ watch(() => $page.props.flash, (flash) => {
                                         </div>
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Grabación</p>
-                                            <p class="text-sm text-gray-800">{{ data.envioGrabación || '-' }}</p>
+                                            <p class="text-sm text-gray-800">{{ data.envioGrabacion || '-' }}</p>
                                         </div>
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Transporte</p>

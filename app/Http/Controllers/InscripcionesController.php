@@ -160,7 +160,7 @@ class InscripcionesController extends Controller
             'pago' => 'nullable|in:Saldado,Parcial,Pendiente',
             'estado' => 'nullable|in:Registrada,Confirmada',
             'envioLinkStream' => 'required|in:enviado,pendiente',
-            'envioGrabación' => 'required|in:enviada,pendiente',
+            'envioGrabacion' => 'nullable|in:Enviada,Pendiente,No aplica',
             'asistencia' => 'required|in:presente,ausente',
             'online' => 'required|boolean',
             'hospedaje_id' => 'nullable|exists:hospedajes,id',
@@ -188,6 +188,9 @@ class InscripcionesController extends Controller
         [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto((float) $data['montoapagar']);
         $data['pago'] = $estadoPago;
         $data['estado'] = $estadoInscripcion;
+        $data['envioRegistro'] = 'Pendiente';
+        $data['envioConfirmacion'] = 'Pendiente';
+        $data['envioGrabacion'] = 'Pendiente';
 
         $inscripcion = Inscripcion::create($data);
 
@@ -209,6 +212,11 @@ class InscripcionesController extends Controller
         try {
             Mail::to($inscripcion->user->email)->send(new InscripcionConfirmada($inscripcion));
             $emailEnviado = true;
+            $inscripcion->envioRegistro = 'Enviada';
+            if ($inscripcion->estado === 'Confirmada') {
+                $inscripcion->envioConfirmacion = 'Enviada';
+            }
+            $inscripcion->save();
             $mensajeEmail = 'Email de confirmación enviado correctamente a ' . $inscripcion->user->email;
             Log::info('Email de Inscripci�n enviado correctamente', [
                 'inscripcion_id' => $inscripcion->id,
@@ -430,3 +438,4 @@ class InscripcionesController extends Controller
         return ['Pendiente', 'Registrada'];
     }
 }
+

@@ -49,6 +49,22 @@ class EmailPreviewController extends Controller
         ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
     }
 
+    /**
+     * Vista previa del email de grabacion disponible
+     */
+    public function grabacionDisponible($id = null)
+    {
+        $inscripcion = $this->obtenerInscripcionParaPreview($id);
+        $esPreviewPrueba = is_null($id);
+
+        return response()->view('emails.envio_grabacion', [
+            'inscripcion' => $inscripcion,
+            'actividad' => $inscripcion->actividad,
+            'usuario' => $inscripcion->user,
+            'esPreviewPrueba' => $esPreviewPrueba,
+        ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+    }
+
     private function obtenerInscripcionParaPreview($id = null)
     {
         if ($id) {
@@ -61,6 +77,7 @@ class EmailPreviewController extends Controller
                 'actividad.metodosPago',
                 'actividad.botonPago',
                 'actividad.grabacion.botonPago',
+                'actividad.grabacion.linksgrabacion',
                 'user',
                 'hospedaje.botonPago',
                 'comida.botonPago',
@@ -118,7 +135,7 @@ class EmailPreviewController extends Controller
         ];
 
         $modalidad = (object) [
-            'nombre' => 'Presencial',
+            'nombre' => 'Online',
         ];
 
         $hospedaje = (object) [
@@ -140,6 +157,24 @@ class EmailPreviewController extends Controller
         $grabacion = (object) [
             'nombre' => 'Grabacion HD',
             'botonPago' => $botonGrabacion,
+            'linksgrabacion' => [
+                (object) [
+                    'nombre' => 'Sesion 1',
+                    'link' => 'https://videos.example.com/grabacion/sesion-1',
+                ],
+                (object) [
+                    'nombre' => 'Sesion 2',
+                    'link' => 'https://videos.example.com/grabacion/sesion-2',
+                ],
+                (object) [
+                    'nombre' => 'Sesion 3',
+                    'link' => 'https://videos.example.com/grabacion/sesion-3',
+                ],
+                (object) [
+                    'nombre' => 'Sesion 4',
+                    'link' => 'https://videos.example.com/grabacion/sesion-4',
+                ],
+            ],
         ];
 
         $stream = (object) [
@@ -152,6 +187,14 @@ class EmailPreviewController extends Controller
                 (object) [
                     'nombre' => 'Zoom',
                     'link' => 'https://zoom.us/j/1234567890',
+                ],
+                (object) [
+                    'nombre' => 'Meet',
+                    'link' => 'https://meet.google.com/demo-link-001',
+                ],
+                (object) [
+                    'nombre' => 'Canal alternativo',
+                    'link' => 'https://stream.example.com/evento/demo-2026',
                 ],
             ],
         ];
@@ -190,6 +233,7 @@ class EmailPreviewController extends Controller
 
         $actividad->nombre = 'Retiro de Meditacion - Fin de Semana';
         $actividad->fecha_inicio = now()->addDays(10)->setHour(14)->setMinute(30);
+        $actividad->stream_id = 1;
         $actividad->entidad = $entidad;
         $actividad->descripcion = $descripcion;
         $actividad->modalidad = $modalidad;
@@ -208,7 +252,7 @@ class EmailPreviewController extends Controller
         };
 
         $inscripcion->id = 999;
-        $inscripcion->online = false;
+        $inscripcion->online = true;
         $inscripcion->membresia = 'Miembro Activo';
         $inscripcion->precioGeneral = 5000.00;
         $inscripcion->montoActividad = 3500.00;

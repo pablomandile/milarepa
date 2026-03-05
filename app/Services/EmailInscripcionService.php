@@ -33,6 +33,11 @@ class EmailInscripcionService
             // Enviar email
             Mail::to($inscripcion->user->email)
                 ->send(new InscripcionConfirmada($inscripcion));
+            $inscripcion->envioRegistro = 'Enviada';
+            if ($inscripcion->estado === 'Confirmada') {
+                $inscripcion->envioConfirmacion = 'Enviada';
+            }
+            $inscripcion->save();
 
             Log::info('Email de inscripción enviado correctamente', [
                 'inscripcion_id' => $inscripcion->id,
@@ -46,6 +51,83 @@ class EmailInscripcionService
                 'error' => $e->getMessage()
             ]);
 
+            return false;
+        }
+    }
+
+    /**
+     * Enviar plantilla de confirmacion (estado de inscripciones masivo).
+     */
+    public static function enviarPlantillaConfirmacion(Inscripcion $inscripcion): bool
+    {
+        try {
+            $inscripcion->loadMissing([
+                'actividad.entidad',
+                'actividad.imagen',
+                'actividad.descripcion',
+                'actividad.modalidad',
+                'actividad.stream.links',
+                'user',
+                'guestUser',
+            ]);
+
+            $destinatario = self::resolverDestinatario($inscripcion);
+            if (!$destinatario) {
+                return false;
+            }
+
+            Mail::to($destinatario)->send(
+                new InscripcionConfirmada($inscripcion, 'emails.inscripcion_confirmada')
+            );
+
+            $inscripcion->envioRegistro = 'Enviada';
+            $inscripcion->envioConfirmacion = 'Enviada';
+            $inscripcion->save();
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('Error al enviar plantilla de confirmacion', [
+                'inscripcion_id' => $inscripcion->id,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Enviar plantilla de grabacion disponible.
+     */
+    public static function enviarPlantillaGrabacion(Inscripcion $inscripcion): bool
+    {
+        try {
+            $inscripcion->loadMissing([
+                'actividad.entidad',
+                'actividad.imagen',
+                'actividad.descripcion',
+                'actividad.modalidad',
+                'actividad.grabacion.linksgrabacion',
+                'user',
+                'guestUser',
+            ]);
+
+            $destinatario = self::resolverDestinatario($inscripcion);
+            if (!$destinatario) {
+                return false;
+            }
+
+            Mail::to($destinatario)->send(
+                new InscripcionConfirmada($inscripcion, 'emails.envio_grabacion')
+            );
+
+            $inscripcion->envioGrabacion = 'Enviada';
+            $inscripcion->save();
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('Error al enviar plantilla de grabacion', [
+                'inscripcion_id' => $inscripcion->id,
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
     }
@@ -74,5 +156,11 @@ class EmailInscripcionService
         }
 
         return $resultados;
+    }
+
+    private static function resolverDestinatario(Inscripcion $inscripcion): ?string
+    {
+        $email = $inscripcion->guestUser?->email ?: $inscripcion->user?->email;
+        return $email ? (string) $email : null;
     }
 }

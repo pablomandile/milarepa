@@ -65,7 +65,7 @@ class GridActividadesController extends Controller
         return $actividad;
     });
 
-        // Obtener IDs de actividades donde el usuario actual estÃ¡ inscripto
+        // Obtener IDs de actividades donde el usuario actual está inscripto
         $userInscripcionesActividadIds = [];
         if (auth()->check()) {
             $userInscripcionesActividadIds = auth()->user()->inscripciones()->pluck('actividad_id')->toArray();
@@ -172,7 +172,7 @@ class GridActividadesController extends Controller
     }
 
     /**
-     * Preparar datos de pago e inscripciÃ³n en sesiÃ³n.
+     * Preparar datos de pago e inscripcion en sesion.
      */
     public function preparePago(Request $request)
     {
@@ -233,7 +233,7 @@ class GridActividadesController extends Controller
             'hospedajes.lugarHospedaje',
         ]);
         $saldo = 0;
-        $membresiaNombre = 'Sin membresÃ­a';
+        $membresiaNombre = 'Sin membresía';
         $userContext = null;
         if (!empty($pago['user_id'])) {
             $user = User::with('membresia')->find($pago['user_id']);
@@ -264,7 +264,7 @@ class GridActividadesController extends Controller
     }
 
     /**
-     * Subir comprobante y guardar path en sesiÃ³n.
+     * Subir comprobante y guardar path en sesion.
      */
     public function uploadComprobante(Request $request)
     {
@@ -272,7 +272,7 @@ class GridActividadesController extends Controller
             'comprobante' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
             'descripcion' => ['nullable', 'string', 'max:255'],
         ], [
-            'comprobante.max' => 'El comprobante supera el tamaÃ±o mÃ¡ximo permitido (4 MB).',
+            'comprobante.max' => 'El comprobante supera el tamaño máximo permitido (4 MB).',
             'comprobante.mimes' => 'El comprobante debe ser PDF, JPG o PNG.',
         ]);
 
@@ -291,7 +291,7 @@ class GridActividadesController extends Controller
     }
 
     /**
-     * Finalizar inscripciÃ³n y enviar mail.
+     * Finalizar inscripcion y enviar mail.
      */
     public function finalizarPago(Request $request)
     {
@@ -387,7 +387,7 @@ class GridActividadesController extends Controller
         }
         $yaInscripto = $yaInscriptoQuery->exists();
         if ($yaInscripto) {
-            return response()->json(['ok' => false, 'message' => 'Ya estÃ¡s inscripto a esta actividad.'], 422);
+            return response()->json(['ok' => false, 'message' => 'Ya estás inscripto a esta actividad.'], 422);
         }
 
         [$precioGeneral, $precioMembresia, $membresiaNombre] = $this->calcularPrecios($actividad, $registrado ? $user : null);
@@ -395,7 +395,7 @@ class GridActividadesController extends Controller
         $online = $this->resolverModalidadOnline($actividad, $user, $registrado, Arr::get($data, 'modalidad_cursada'));
         $incluyeGrabacion = (bool) ($data['incluye_grabacion'] ?? false);
         $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
-        $envioGrabacion = ($incluyeGrabacion && $actividad->grabacion_id) ? 'Pendiente' : 'No aplica';
+        $envioGrabacion = 'Pendiente';
         $comidasIds = $data['comidas_ids'] ?? [];
         $transportesIds = $data['transportes_ids'] ?? [];
         $hospedajesIds = $data['hospedajes_ids'] ?? [];
@@ -436,7 +436,9 @@ class GridActividadesController extends Controller
             'pago' => $estadoPago,
             'estado' => $estadoInscripcion,
             'envioLinkStream' => $envioLinkStream,
-            'envioGrabaciÃ³n' => $envioGrabacion,
+                'envioRegistro' => 'Pendiente',
+                'envioConfirmacion' => 'Pendiente',
+            'envioGrabacion' => $envioGrabacion,
             'asistencia' => 'Pendiente',
             'online' => $online,
             'hospedaje_id' => $hospedajeId,
@@ -463,6 +465,11 @@ class GridActividadesController extends Controller
             ]);
             try {
                 Mail::to($user->email)->send(new InscripcionConfirmada($inscripcion));
+                $inscripcion->envioRegistro = 'Enviada';
+                if ($inscripcion->estado === 'Confirmada') {
+                    $inscripcion->envioConfirmacion = 'Enviada';
+                }
+                $inscripcion->save();
             } catch (\Exception $e) {
                 // Ignorar error de mail
             }
@@ -479,7 +486,7 @@ class GridActividadesController extends Controller
     }
 
     /**
-     * Landing pÃºblico de inscripciÃ³n.
+     * Landing pÃºblico de inscripcion.
      */
     public function showPublic(Inscripcion $inscripcion)
     {
@@ -583,7 +590,7 @@ class GridActividadesController extends Controller
         if ($yaInscripto) {
             return response()->json([
                 'ok' => false,
-                'message' => 'Ya estÃ¡s inscripto a esta actividad.',
+                'message' => 'Ya estás inscripto a esta actividad.',
             ], 422);
         }
 
@@ -593,7 +600,7 @@ class GridActividadesController extends Controller
         $online = ($actividad->modalidad?->nombre === 'Online')
             || ($user && $user->membresia_id && $user->membresia_online);
         $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
-        $envioGrabacion = 'No aplica';
+        $envioGrabacion = 'Pendiente';
         [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
         $inscripcion = Inscripcion::create([
             'actividad_id' => $actividad->id,
@@ -608,7 +615,9 @@ class GridActividadesController extends Controller
             'pago' => $estadoPago,
             'estado' => $estadoInscripcion,
             'envioLinkStream' => $envioLinkStream,
-            'envioGrabaciÃ³n' => $envioGrabacion,
+                'envioRegistro' => 'Pendiente',
+                'envioConfirmacion' => 'Pendiente',
+            'envioGrabacion' => $envioGrabacion,
             'asistencia' => 'Pendiente',
             'online' => $online,
             'hospedaje_id' => null,
@@ -683,7 +692,7 @@ class GridActividadesController extends Controller
             if ($yaInscripto) {
                 return response()->json([
                     'ok' => false,
-                    'message' => 'Ya estÃ¡s inscripto a esta actividad.',
+                    'message' => 'Ya estás inscripto a esta actividad.',
                 ], 422);
             }
 
@@ -693,7 +702,7 @@ class GridActividadesController extends Controller
             $online = ($actividad->modalidad?->nombre === 'Online')
                 || ($user && $user->membresia_id && $user->membresia_online);
             $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
-            $envioGrabacion = 'No aplica';
+            $envioGrabacion = 'Pendiente';
             [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
             $inscripcion = Inscripcion::create([
                 'actividad_id' => $actividad->id,
@@ -708,7 +717,9 @@ class GridActividadesController extends Controller
                 'pago' => $estadoPago,
                 'estado' => $estadoInscripcion,
                 'envioLinkStream' => $envioLinkStream,
-                'envioGrabaciÃ³n' => $envioGrabacion,
+                'envioRegistro' => 'Pendiente',
+                'envioConfirmacion' => 'Pendiente',
+                'envioGrabacion' => $envioGrabacion,
                 'asistencia' => 'Pendiente',
                 'online' => $online,
                 'hospedaje_id' => null,
@@ -744,7 +755,7 @@ class GridActividadesController extends Controller
 
         $montoApagar = $precioGeneral;
         $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
-        $envioGrabacion = 'No aplica';
+        $envioGrabacion = 'Pendiente';
         [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
         $inscripcion = Inscripcion::create([
             'actividad_id' => $actividad->id,
@@ -760,7 +771,9 @@ class GridActividadesController extends Controller
             'pago' => $estadoPago,
             'estado' => $estadoInscripcion,
             'envioLinkStream' => $envioLinkStream,
-            'envioGrabaciÃ³n' => $envioGrabacion,
+                'envioRegistro' => 'Pendiente',
+                'envioConfirmacion' => 'Pendiente',
+            'envioGrabacion' => $envioGrabacion,
             'asistencia' => 'Pendiente',
             'online' => $actividad->modalidad?->nombre === 'Online',
             'hospedaje_id' => null,
@@ -943,3 +956,4 @@ class GridActividadesController extends Controller
         return ['Pendiente', 'Registrada'];
     }
 }
+
