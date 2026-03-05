@@ -63,11 +63,20 @@
                         <DataTable :value="botones" stripedRows paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre"></Column>
                             <Column field="descripcion" header="Descripción"></Column>
-                            <Column header="Link">
+                            <Column header="Links">
                                 <template #body="{ data }">
-                                    <span v-if="data.link">
-                                        {{ data.link.length > 30 ? data.link.slice(0, 30) + '...' : data.link }}
-                                    </span>
+                                    <a
+                                        v-if="data.link"
+                                        :href="data.link"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200"
+                                        :title="data.link"
+                                        :aria-label="data.link"
+                                    >
+                                        <i class="fas fa-link"></i>
+                                        <span class="sr-only">{{ data.link }}</span>
+                                    </a>
                                     <span v-else class="text-gray-400">-</span>
                                 </template>
                             </Column>
