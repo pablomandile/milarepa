@@ -32,6 +32,7 @@ class InscripcionConfirmada extends Mailable
         $subject = match ($plantilla) {
             'emails.inscripcion_registrada' => 'Inscripcion registrada',
             'emails.envio_grabacion' => 'Grabacion disponible',
+            'emails.informacion_membresias' => 'Informacion solicitada sobre Tarjetas Kadampa',
             default => 'Inscripcion confirmada',
         };
 
@@ -50,7 +51,7 @@ class InscripcionConfirmada extends Mailable
             with: [
                 'inscripcion' => $this->inscripcion,
                 'actividad' => $this->inscripcion->actividad,
-                'usuario' => $this->inscripcion->user,
+                'usuario' => $this->inscripcion->guestUser ?: $this->inscripcion->user,
             ],
         );
     }
@@ -71,6 +72,7 @@ class InscripcionConfirmada extends Mailable
             'emails.inscripcion_confirmada',
             'emails.inscripcion_registrada',
             'emails.envio_grabacion',
+            'emails.informacion_membresias',
         ], true)) {
             return $this->plantilla;
         }
@@ -80,4 +82,3 @@ class InscripcionConfirmada extends Mailable
             : 'emails.inscripcion_registrada';
     }
 }
-

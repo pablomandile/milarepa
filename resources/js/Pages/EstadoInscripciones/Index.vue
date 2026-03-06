@@ -654,10 +654,12 @@ const municipioBarrioUsuario = (inscripcion) => {
 
 const formatearFecha = (fecha) => {
     if (!fecha) return '-';
-    return new Date(fecha).toLocaleDateString('es-ES', {
+    return new Date(fecha).toLocaleString('es-AR', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
     });
 };
 

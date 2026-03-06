@@ -153,6 +153,10 @@
             }
         });
     };
+
+    const direccionActividad = (actividad) => {
+        return actividad?.lugar?.direccion || actividad?.entidad?.direccion || '';
+    };
 </script>
 
 <style scoped>
@@ -286,9 +290,9 @@
                                         <!-- Lugar -->
                                         <div v-if="data.entidad">
                                             <span class="font-semibold text-gray-700">Lugar:</span>
-                                            <span class="ml-2">{{ data.entidad.abreviacion }}</span>
-                                            <div v-if="data.entidad.direccion" class="text-sm text-gray-600 ml-2">
-                                                {{ data.entidad.direccion }}
+                                            <span class="ml-2">{{ data.lugar?.nombre || data.entidad.abreviacion }}</span>
+                                            <div v-if="direccionActividad(data)" class="text-sm text-gray-600 ml-2">
+                                                {{ direccionActividad(data) }}
                                             </div>
                                         </div>
 
@@ -484,13 +488,13 @@
             
         </div>
 
-        <p class="mb-3" v-if="actividadSeleccionada.entidad.direccion && actividadSeleccionada.entidad.direccion.trim() !== ''">
-            {{ actividadSeleccionada.entidad.direccion }}
+        <p class="mb-3" v-if="direccionActividad(actividadSeleccionada) && direccionActividad(actividadSeleccionada).trim() !== ''">
+            {{ direccionActividad(actividadSeleccionada) }}
         </p>
 
         
-        <p class="mb-3" v-if="actividadSeleccionada.entidad.direccion && actividadSeleccionada.entidad.direccion.trim() !== ''">
-            {{ actividadSeleccionada.entidad.direccion }}
+        <p class="mb-3" v-if="direccionActividad(actividadSeleccionada) && direccionActividad(actividadSeleccionada).trim() !== ''">
+            {{ direccionActividad(actividadSeleccionada) }}
         </p>
         
         <p class="mb-3" v-if="actividadSeleccionada.descripcion && actividadSeleccionada.descripcion.descripcion.trim() !== ''">

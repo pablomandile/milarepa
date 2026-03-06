@@ -52,6 +52,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  lugares: {
+    type: Array,
+    default: () => [],
+  },
   descripciones: {
     type: Array,
     default: () => [],
@@ -262,6 +266,16 @@ watch(
   (value) => {
     if (!value) {
       props.form.botonpago_id = null;
+    }
+  }
+);
+
+watch(
+  () => conDescuentoAnticipado.value,
+  (value) => {
+    if (!value) {
+      props.form.pagoAmticipado = null;
+      props.form.esquema_descuento_id = null;
     }
   }
 );
@@ -606,6 +620,45 @@ watch(
             </Link>
           </div>
           <InputError :message="$page.props.errors.entidad_id" class="mt-2" />
+        </div>
+
+        <!-- Lugar (Dropdown, opcional) -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="lugar_id"
+            class="text-indigo-400"
+            value="Lugar"
+          />
+          <div class="flex gap-2 items-center mt-1">
+            <Dropdown
+              id="lugar_id"
+              v-model="form.lugar_id"
+              :options="lugares"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Seleccione Lugar (opcional)"
+              showClear
+              class="w-full mt-1 border border-gray-300"
+            />
+            <button
+              type="button"
+              @click="verDetalle('lugares', form.lugar_id, 'Lugar')"
+              :disabled="!form.lugar_id"
+              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+              v-tooltip="'Ver el Lugar'"
+            >
+              <i class="pi pi-eye"></i>
+            </button>
+
+            <Link
+              :href="route('lugares.create')"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              v-tooltip="'Crear nuevo Lugar'"
+            >
+              <i class="pi pi-file-plus"></i>
+            </Link>
+          </div>
+          <InputError :message="$page.props.errors.lugar_id" class="mt-2" />
         </div>
 
         <!-- Modalidad (Dropdown) -->

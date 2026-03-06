@@ -99,6 +99,10 @@ const inscribir = () => {
 const esInscrito = computed(() => {
   return props.userInscripcionesActividadIds.includes(props.actividad.id)
 })
+
+const direccionActividad = computed(() => {
+  return props.actividad?.lugar?.direccion || props.actividad?.entidad?.direccion || 'No especificado';
+});
 </script>
 
 <template>
@@ -163,7 +167,7 @@ const esInscrito = computed(() => {
                 <i class="pi pi-map-marker text-indigo-600 text-2xl"></i>
                 <div>
                   <h3 class="text-sm font-semibold text-gray-800">Lugar</h3>
-                  <p class="text-gray-700 text-base">{{ actividad.entidad?.direccion || 'No especificado' }}</p>
+                  <p class="text-gray-700 text-base">{{ direccionActividad }}</p>
                 </div>
               </div>
 

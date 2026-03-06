@@ -30,7 +30,7 @@ const verGrabacion = () => {
 
 const verEmail4 = () => {
     if (email4Id.value) {
-        window.location.href = `/email-preview/email4/${email4Id.value}`;
+        window.location.href = `/email-preview/informacion-membresias/${email4Id.value}`;
     }
 };
 
@@ -182,13 +182,13 @@ const verEmail6 = () => {
                     <!-- Card 4 -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-blue-600 to-cyan-700 text-white text-center">
-                            <h2 class="text-xl font-bold mb-2">✉️ Email 4</h2>
-                            <p class="opacity-90 text-sm">Plantilla de email personalizada</p>
+                            <h2 class="text-xl font-bold mb-2">Tarjetas Kadampa</h2>
+                            <p class="opacity-90 text-sm">Informacion de membresias</p>
                         </div>
 
                         <div class="p-6 space-y-4">
                             <Link
-                                href="/email-preview/inscripcion"
+                                href="/email-preview/informacion-membresias"
                                 class="block w-full px-4 py-2 text-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm"
                             >
                                 Ver con Datos de Prueba

@@ -23,6 +23,7 @@ class InscripcionesController extends Controller
                 'actividad',
                 'actividad.imagen',
                 'actividad.entidad',
+                'actividad.lugar',
                 'hospedaje',
             'comida',
             'transporte',
@@ -197,6 +198,7 @@ class InscripcionesController extends Controller
         // Cargar relaciones para el email
         $inscripcion->load([
             'actividad.entidad',
+            'actividad.lugar',
             'actividad.imagen',
             'actividad.descripcion',
             'actividad.modalidad',
@@ -249,6 +251,7 @@ class InscripcionesController extends Controller
     {
         $inscripcion = Inscripcion::with([
             'actividad.entidad',
+            'actividad.lugar',
             'actividad.descripcion',
             'actividad.imagen',
             'actividad.modalidad',
@@ -289,6 +292,7 @@ class InscripcionesController extends Controller
         $inscripcion = Inscripcion::with([
             'actividad.imagen',
             'actividad.entidad',
+            'actividad.lugar',
             'actividad.programa',
         ])->findOrFail($id);
 

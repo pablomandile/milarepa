@@ -15,6 +15,7 @@ use App\Models\EsquemaDescuento;
 use App\Models\EsquemaPrecio;
 use App\Models\Grabacion;
 use App\Models\Hospedaje;
+use App\Models\Lugar;
 use App\Models\LugarHospedaje;
 use App\Models\Maestro;
 use App\Models\MetodoPago;
@@ -38,6 +39,7 @@ class ActividadesController extends Controller
             'descripcion',
             'imagen',
             'entidad',
+            'lugar',
             'disponibilidad',
             'modalidad',
             'esquemaPrecio.membresias.moneda',
@@ -76,6 +78,7 @@ class ActividadesController extends Controller
         $coordinadores = Coordinador::orderBy('nombre')->get();
         $descripciones = Descripcion::orderByDesc('created_at')->get();
         $entidades = Entidad::all();
+        $lugares = Lugar::orderBy('nombre')->get();
         $disponibilidades = Disponibilidad::all();
         $modalidades = Modalidad::all();
         $streams = Stream::with([
@@ -96,6 +99,7 @@ class ActividadesController extends Controller
             'tiposActividad' => $tiposActividad, 
             'descripciones' => $descripciones, 
             'entidades' => $entidades, 
+            'lugares' => $lugares,
             'maestros' => $maestros, 
             'coordinadores' => $coordinadores, 
             'disponibilidades' => $disponibilidades, 
@@ -196,6 +200,7 @@ class ActividadesController extends Controller
             'descripcion',
             'imagen',
             'entidad',
+            'lugar',
             'disponibilidad',
             'modalidad',
             'esquemaPrecio.membresias.membresia',
@@ -241,6 +246,7 @@ class ActividadesController extends Controller
                 'descripcion',
                 'imagen',
                 'entidad',
+                'lugar',
                 'disponibilidad',
                 'modalidad',
                 'esquemaPrecio',
@@ -270,6 +276,7 @@ class ActividadesController extends Controller
             $coordinadores = Coordinador::orderBy('nombre')->get();
             $descripciones = Descripcion::orderByDesc('created_at')->get();
             $entidades = Entidad::all();
+            $lugares = Lugar::orderBy('nombre')->get();
             $disponibilidades = Disponibilidad::all();
             $modalidades = Modalidad::all();
             $streams = Stream::with(['links'])->get();
@@ -287,6 +294,7 @@ class ActividadesController extends Controller
                 'tiposActividad' => $tiposActividad,
                 'descripciones' => $descripciones,
                 'entidades' => $entidades,
+                'lugares' => $lugares,
                 'disponibilidades' => $disponibilidades,
                 'modalidades' => $modalidades,
                 'esquema_precios' => $esquema_precios->toArray(),

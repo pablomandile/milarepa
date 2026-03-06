@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use App\Mail\InscripcionConfirmada;
 use Illuminate\Support\Arr;
 
@@ -33,6 +34,7 @@ class GridActividadesController extends Controller
             'descripcion',
             'imagen',
             'entidad',
+            'lugar',
             'disponibilidad',
             'modalidad',
             'esquemaPrecio.membresias.membresia',
@@ -193,6 +195,7 @@ class GridActividadesController extends Controller
             'guest.msgxwapp' => ['nullable', 'boolean'],
             'guest.accesibilidad' => ['nullable', 'boolean'],
             'guest.accesibilidad_desc' => ['nullable', 'string', 'max:255'],
+            'guest.info_tarjetas_kadampa' => ['nullable', 'boolean'],
             'guest.registrar_datos' => ['nullable', 'boolean'],
         ]);
 
@@ -296,7 +299,7 @@ class GridActividadesController extends Controller
     public function finalizarPago(Request $request)
     {
         $data = $request->validate([
-            'pago_metodo' => ['required', 'in:efectivo,comprobante,transferencia,getnet'],
+            'pago_metodo' => ['required', 'string'],
             'incluye_grabacion' => ['nullable', 'boolean'],
             'modalidad_cursada' => ['nullable', 'in:presencial,online'],
             'comidas_ids' => ['nullable', 'array'],
@@ -306,6 +309,14 @@ class GridActividadesController extends Controller
             'hospedajes_ids' => ['nullable', 'array'],
             'hospedajes_ids.*' => ['integer', 'exists:hospedajes,id'],
         ]);
+
+        $data['pago_metodo'] = $this->normalizarMetodoPagoFinal((string) ($data['pago_metodo'] ?? ''));
+        if (!in_array($data['pago_metodo'], ['efectivo', 'comprobante', 'transferencia', 'getnet'], true)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'The selected pago metodo is invalid.',
+            ], 422);
+        }
 
         $pago = $request->session()->get('grid_pago');
         if (!$pago) {
@@ -351,6 +362,7 @@ class GridActividadesController extends Controller
                         'msgxwapp' => (bool) ($guest['msgxwapp'] ?? false),
                         'accesibilidad' => (bool) ($guest['accesibilidad'] ?? false),
                         'accesibilidad_desc' => $guest['accesibilidad_desc'] ?? null,
+                        'info_tarjetas_kadampa' => (bool) ($guest['info_tarjetas_kadampa'] ?? false),
                     ]
                 );
                 $user->syncRoles(['asistant']);
@@ -370,6 +382,7 @@ class GridActividadesController extends Controller
                     'msgxwapp' => (bool) ($guest['msgxwapp'] ?? false),
                     'accesibilidad' => (bool) ($guest['accesibilidad'] ?? false),
                     'accesibilidad_desc' => $guest['accesibilidad_desc'] ?? null,
+                    'info_tarjetas_kadampa' => (bool) ($guest['info_tarjetas_kadampa'] ?? false),
                 ]);
                 $user = $this->ensureGuestOwner();
             }
@@ -454,24 +467,59 @@ class GridActividadesController extends Controller
             ]);
         }
 
-        if ($registrado) {
-            $inscripcion->load([
-                'actividad.entidad',
-                'actividad.imagen',
-                'actividad.descripcion',
-                'actividad.modalidad',
-                'actividad.stream.links',
-                'user',
-            ]);
+        $inscripcion->load([
+            'actividad.entidad',
+            'actividad.lugar',
+            'actividad.imagen',
+            'actividad.descripcion',
+            'actividad.modalidad',
+            'actividad.stream.links',
+            'user',
+            'guestUser',
+        ]);
+
+        $destinatarioRegistro = $inscripcion->guestUser?->email ?: $inscripcion->user?->email;
+        if (!empty($destinatarioRegistro)) {
             try {
-                Mail::to($user->email)->send(new InscripcionConfirmada($inscripcion));
+                Mail::to($destinatarioRegistro)->send(new InscripcionConfirmada($inscripcion));
                 $inscripcion->envioRegistro = 'Enviada';
                 if ($inscripcion->estado === 'Confirmada') {
                     $inscripcion->envioConfirmacion = 'Enviada';
                 }
                 $inscripcion->save();
             } catch (\Exception $e) {
-                // Ignorar error de mail
+                Log::error('Error al enviar mail de inscripcion en finalizarPago', [
+                    'inscripcion_id' => $inscripcion->id,
+                    'destinatario' => $destinatarioRegistro,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $solicitaInfoTk = (bool) Arr::get($pago, 'guest.info_tarjetas_kadampa', false);
+        if (!$solicitaInfoTk && $registrado) {
+            $solicitaInfoTk = (bool) ($user->info_tarjetas_kadampa ?? false);
+        }
+
+        if ($solicitaInfoTk) {
+            $destinatarioInfoTk = $guestUser?->email ?: $user?->email;
+            if ($destinatarioInfoTk) {
+                try {
+                    Mail::to($destinatarioInfoTk)->send(
+                        new InscripcionConfirmada($inscripcion, 'emails.informacion_membresias')
+                    );
+
+                    $fechaEnvio = now();
+                    if ($guestUser) {
+                        $guestUser->envioInfoTk = $fechaEnvio;
+                        $guestUser->save();
+                    } elseif ($user) {
+                        $user->envioInfoTk = $fechaEnvio;
+                        $user->save();
+                    }
+                } catch (\Exception $e) {
+                    // Ignorar error de mail de info TK
+                }
             }
         }
 
@@ -492,6 +540,7 @@ class GridActividadesController extends Controller
     {
         $inscripcion->load([
             'actividad.entidad',
+            'actividad.lugar',
             'actividad.descripcion',
             'actividad.imagen',
             'actividad.modalidad',
@@ -524,6 +573,7 @@ class GridActividadesController extends Controller
         $actividad->load([
             'imagen',
             'entidad',
+            'lugar',
             'descripcion',
             'programa',
             'modalidad',
@@ -651,6 +701,7 @@ class GridActividadesController extends Controller
             'msgxwapp' => ['nullable', 'boolean'],
             'accesibilidad' => ['nullable', 'boolean'],
             'accesibilidad_desc' => ['nullable', 'string', 'max:255'],
+            'info_tarjetas_kadampa' => ['nullable', 'boolean'],
             'registrar_datos' => ['nullable', 'boolean'],
         ]);
 
@@ -681,6 +732,7 @@ class GridActividadesController extends Controller
                     'msgxwapp' => (bool) ($data['msgxwapp'] ?? false),
                     'accesibilidad' => (bool) ($data['accesibilidad'] ?? false),
                     'accesibilidad_desc' => $data['accesibilidad_desc'] ?? null,
+                    'info_tarjetas_kadampa' => (bool) ($data['info_tarjetas_kadampa'] ?? false),
                 ]
             );
 
@@ -748,6 +800,7 @@ class GridActividadesController extends Controller
             'msgxwapp' => (bool) ($data['msgxwapp'] ?? false),
             'accesibilidad' => (bool) ($data['accesibilidad'] ?? false),
             'accesibilidad_desc' => $data['accesibilidad_desc'] ?? null,
+            'info_tarjetas_kadampa' => (bool) ($data['info_tarjetas_kadampa'] ?? false),
         ]);
 
         $guestOwner = $this->ensureGuestOwner();
@@ -945,6 +998,33 @@ class GridActividadesController extends Controller
             'ó' => 'o',
             'ú' => 'u',
         ]);
+    }
+
+    private function normalizarMetodoPagoFinal(string $metodo): string
+    {
+        $normalizado = mb_strtolower(trim($metodo), 'UTF-8');
+        $normalizado = strtr($normalizado, [
+            'á' => 'a',
+            'é' => 'e',
+            'í' => 'i',
+            'ó' => 'o',
+            'ú' => 'u',
+            'Ã¡' => 'a',
+            'Ã©' => 'e',
+            'Ã­' => 'i',
+            'Ã³' => 'o',
+            'Ãº' => 'u',
+        ]);
+
+        if (in_array($normalizado, ['tarjeta de credito', 'tarjeta de debito', 'credito', 'debito'], true)) {
+            return 'efectivo';
+        }
+
+        if ($normalizado === 'gratis') {
+            return 'efectivo';
+        }
+
+        return $normalizado;
     }
 
     private function resolverEstadoSegunMonto(float $montoApagar): array

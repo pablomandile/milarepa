@@ -34,6 +34,7 @@ class ActividadRequest extends FormRequest
             'fecha_fin' => ['required','date'],
             'pagoAmticipado' => ['nullable','date'],
             'entidad_id' => ['required', 'exists:entidades,id'],
+            'lugar_id' => ['nullable', 'exists:lugares,id'],
             'disponibilidad_id' => ['nullable','exists:disponibilidades,id'],
             'modalidad_id' => ['required', 'exists:modalidades,id'],
             'esquema_precio_id' => ['required', 'exists:esquema_precios,id'],

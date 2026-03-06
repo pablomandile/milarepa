@@ -234,6 +234,7 @@ class MembresiasController extends Controller
             'guest.msgxwapp' => ['nullable', 'boolean'],
             'guest.accesibilidad' => ['nullable', 'boolean'],
             'guest.accesibilidad_desc' => ['nullable', 'string', 'max:255'],
+            'guest.info_tarjetas_kadampa' => ['nullable', 'boolean'],
             'guest.registrar_datos' => ['nullable', 'boolean'],
         ]);
 
@@ -265,6 +266,7 @@ class MembresiasController extends Controller
                 'msgxwapp' => (bool) ($guest['msgxwapp'] ?? false),
                 'accesibilidad' => (bool) ($guest['accesibilidad'] ?? false),
                 'accesibilidad_desc' => $guest['accesibilidad_desc'] ?? null,
+                'info_tarjetas_kadampa' => (bool) ($guest['info_tarjetas_kadampa'] ?? false),
             ]);
         }
 

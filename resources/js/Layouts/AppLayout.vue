@@ -88,6 +88,9 @@ const logout = () => {
                                         <DropdownLink :href="route('entidades.index')" :active="route().current('entidades.*')">
                                             Entidades
                                         </DropdownLink>
+                                        <DropdownLink :href="route('lugares.index')" :active="route().current('lugares.*')">
+                                            Lugares
+                                        </DropdownLink>
                                         <DropdownLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
                                             Membresías
                                         </DropdownLink>
@@ -469,6 +472,9 @@ const logout = () => {
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('entidades.index')" :active="route().current('entidades.*')">
                             Entidades
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('lugares.index')" :active="route().current('lugares.*')">
+                            Lugares
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
                             Membresías

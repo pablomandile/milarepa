@@ -207,6 +207,18 @@ watch(
             <InputError :message="errors.accesibilidad_desc?.[0]" class="mt-2" />
         </div>
 
+        <div class="col-span-3">
+            <div class="rounded-lg border border-indigo-200 bg-indigo-50/60 px-4 py-3">
+                <div class="flex items-center">
+                    <InputSwitch v-model="form.info_tarjetas_kadampa" class="mr-3" />
+                    <label class="block text-sm font-semibold text-indigo-700">
+                        Quiero recibir informacion sobre las Tarjetas Kadampa
+                    </label>
+                </div>
+            </div>
+            <InputError :message="errors.info_tarjetas_kadampa?.[0]" class="mt-2" />
+        </div>
+
         <div v-if="mostrarRegistrarDatos" class="col-span-3">
             <div class="flex items-center">
                 <InputSwitch v-model="form.registrar_datos" class="mr-3" />

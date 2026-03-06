@@ -113,7 +113,7 @@ watch(() => $page.props.flash, (flash) => {
                 </h3>
                 <p class="text-gray-800"><strong>Nombre:</strong> {{ inscripcion.actividad.nombre }}</p>
                 <p class="text-gray-700 mt-1"><strong>Fecha:</strong> {{ inscripcion.actividad.fecha_inicio_formateada }}</p>
-                <p class="text-gray-700 mt-1"><strong>Lugar:</strong> {{ inscripcion.actividad.entidad?.direccion || 'No especificado' }}</p>
+                <p class="text-gray-700 mt-1"><strong>Lugar:</strong> {{ inscripcion.actividad.lugar?.direccion || inscripcion.actividad.entidad?.direccion || 'No especificado' }}</p>
                 <p class="text-gray-700 mt-1"><strong>Modalidad:</strong> {{ inscripcion.actividad.modalidad?.nombre || 'No especificado' }}</p>
               </div>
 

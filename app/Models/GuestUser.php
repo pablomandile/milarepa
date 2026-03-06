@@ -25,6 +25,8 @@ class GuestUser extends Model
         'msgxwapp',
         'accesibilidad',
         'accesibilidad_desc',
+        'info_tarjetas_kadampa',
+        'envioInfoTk',
     ];
 
     public function inscripciones()

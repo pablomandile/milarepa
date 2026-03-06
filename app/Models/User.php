@@ -58,7 +58,9 @@ class User extends Authenticatable
         'es_coordinador',
         'perfil_completo',
         'msgxmail',
-        'msgxwapp'
+        'msgxwapp',
+        'info_tarjetas_kadampa',
+        'envioInfoTk',
     ];
 
     /**

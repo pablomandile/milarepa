@@ -31,6 +31,10 @@
             type: Array,
             default: () => [],
         },
+        lugares: {
+            type: Array,
+            default: () => [],
+        },
         descripciones: {
             type: Array,
             default: () => [],
@@ -108,6 +112,7 @@
         fecha_fin: null,
         pagoAmticipado: null,
         entidad_id: null,
+        lugar_id: null,
         disponibilidad_id: null,
         maestros_ids: [],
         coordinadores_ids: [],
@@ -207,6 +212,7 @@
                               :tiposActividad="tiposActividad"
                               :descripciones="descripciones"
                               :entidades="entidades"
+                              :lugares="lugares"
                               :disponibilidades="disponibilidades"
                               :modalidades="modalidades"
                               :esquema_precios="esquema_precios"

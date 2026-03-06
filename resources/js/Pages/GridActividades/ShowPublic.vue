@@ -204,6 +204,7 @@ const guestForm = ref({
   msgxwapp: false,
   accesibilidad: false,
   accesibilidad_desc: '',
+  info_tarjetas_kadampa: false,
   registrar_datos: false,
 });
 
@@ -355,6 +356,10 @@ function abrirMapa(direccion) {
   mapModalVisible.value = true;
 }
 
+function direccionActividad() {
+  return props.actividad?.lugar?.direccion || props.actividad?.entidad?.direccion || '';
+}
+
 function resetGuestForm() {
   guestForm.value = {
     name: '',
@@ -370,6 +375,7 @@ function resetGuestForm() {
     msgxwapp: false,
     accesibilidad: false,
     accesibilidad_desc: '',
+    info_tarjetas_kadampa: false,
     registrar_datos: false,
   };
   guestErrors.value = {};
@@ -511,14 +517,14 @@ onMounted(() => {
                 <div>
                   <h3 class="text-sm font-semibold text-gray-800">Lugar</h3>
                   <div class="inline-flex items-center gap-2 text-gray-700 text-base">
-                    <span>{{ actividad.entidad?.direccion || 'No especificado' }}</span>
+                    <span>{{ direccionActividad() || 'No especificado' }}</span>
                     <button
-                      v-if="actividad.entidad?.direccion"
+                      v-if="direccionActividad()"
                       type="button"
                       class="inline-flex items-center justify-center p-0 text-sky-700 hover:text-sky-900"
                       title="Ver en mapa"
                       aria-label="Ver en mapa"
-                      @click="abrirMapa(actividad.entidad.direccion)"
+                      @click="abrirMapa(direccionActividad())"
                     >
                       <i class="pi pi-map"></i>
                     </button>

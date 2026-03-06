@@ -69,6 +69,7 @@ const guestForm = ref({
   msgxwapp: false,
   accesibilidad: false,
   accesibilidad_desc: '',
+  info_tarjetas_kadampa: false,
   registrar_datos: false,
 });
 
@@ -311,6 +312,7 @@ function resetGuestForm() {
     msgxwapp: false,
     accesibilidad: false,
     accesibilidad_desc: '',
+    info_tarjetas_kadampa: false,
     registrar_datos: false,
   };
   guestErrors.value = {};
@@ -352,6 +354,10 @@ function abrirMapa(direccion) {
   mapModalVisible.value = true;
 }
 
+function direccionActividad(actividad) {
+  return actividad?.lugar?.direccion || actividad?.entidad?.direccion || '';
+}
+
 function cardConMuchoTexto(actividad) {
   let items = 0;
   if (actividad?.modalidad?.nombre) items++;
@@ -362,7 +368,7 @@ function cardConMuchoTexto(actividad) {
   if (actividad?.transportes?.length) items++;
   if (actividad?.grabacion || actividad?.grabacion_id) items++;
 
-  const direccionLarga = String(actividad?.entidad?.direccion || '').length > 50;
+  const direccionLarga = String(direccionActividad(actividad) || '').length > 50;
   return items >= 5 || direccionLarga;
 }
 
@@ -576,14 +582,14 @@ function renderMarkdown(value) {
                                                         <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
                                                         <span class="sr-only">Lugar</span>
                                                         <span class="inline-flex items-center gap-2">
-                                                          <span>{{ actividad.entidad?.direccion }}</span>
+                                                          <span>{{ direccionActividad(actividad) }}</span>
                                                           <button
-                                                            v-if="actividad.entidad?.direccion"
+                                                            v-if="direccionActividad(actividad)"
                                                             type="button"
                                                             class="inline-flex items-center justify-center p-0 text-sky-700 hover:text-sky-900 shrink-0"
                                                             title="Ver en mapa"
                                                             aria-label="Ver en mapa"
-                                                            @click.stop="abrirMapa(actividad.entidad.direccion)"
+                                                            @click.stop="abrirMapa(direccionActividad(actividad))"
                                                           >
                                                             <i class="pi pi-map"></i>
                                                           </button>

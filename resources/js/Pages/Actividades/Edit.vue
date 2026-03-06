@@ -33,6 +33,10 @@
             type: Array,
             default: () => [],
         },
+        lugares: {
+            type: Array,
+            default: () => [],
+        },
         descripciones: {
             type: Array,
             default: () => [],
@@ -120,6 +124,7 @@
         fecha_fin: parseDateTime(props.actividad.fecha_fin),
         pagoAmticipado: parseDateTime(props.actividad.pagoAmticipado),
         entidad_id: props.actividad.entidad_id,
+        lugar_id: props.actividad.lugar_id,
         disponibilidad_id: props.actividad.disponibilidad_id,
         modalidad_id: props.actividad.modalidad_id,
         esquema_precio_id: props.actividad.esquema_precio_id,
@@ -215,6 +220,7 @@
                               :tiposActividad="tiposActividad"
                               :descripciones="descripciones"
                               :entidades="entidades"
+                              :lugares="lugares"
                               :disponibilidades="disponibilidades"
                               :modalidades="modalidades"
                               :esquema_precios="esquema_precios"

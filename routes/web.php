@@ -49,6 +49,7 @@ use App\Http\Controllers\EmailPreviewController;
 use App\Http\Controllers\ExcencionPagoController;
 use App\Http\Controllers\CiclosController;
 use App\Http\Controllers\ClasesController;
+use App\Http\Controllers\LugaresController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -75,6 +76,10 @@ Route::get('/email-preview/grabacion', [EmailPreviewController::class, 'grabacio
     ->name('preview.email.grabacion');
 Route::get('/email-preview/grabacion/{id}', [EmailPreviewController::class, 'grabacionDisponible'])
     ->name('preview.email.grabacion.id');
+Route::get('/email-preview/informacion-membresias', [EmailPreviewController::class, 'informacionMembresias'])
+    ->name('preview.email.informacion-membresias');
+Route::get('/email-preview/informacion-membresias/{id}', [EmailPreviewController::class, 'informacionMembresias'])
+    ->name('preview.email.informacion-membresias.id');
 
 // Grid de actividades pÃºblico (solo index + lookup por email)
 Route::get('/grid-actividades', [GridActividadesController::class, 'index'])
@@ -140,6 +145,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::resource('entidades', EntidadesController::class, [
         'parameters' => ['entidades' => 'entidad'], ]); // Renombrar el parámetro a 'entidad' por singular español
+    Route::resource('lugares', LugaresController::class, [
+        'parameters' => ['lugares' => 'lugar'],
+    ]);
     Route::resource('/tiposactividad', TiposActividadController::class, [
         'parameters' => ['tiposactividad' => 'tipoactividad'],]);
     Route::resource('/disponibilidades', DisponibilidadesController::class, [

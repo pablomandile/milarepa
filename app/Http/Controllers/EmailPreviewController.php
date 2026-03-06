@@ -65,6 +65,21 @@ class EmailPreviewController extends Controller
         ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
     }
 
+    /**
+     * Vista previa del email de informacion de membresias
+     */
+    public function informacionMembresias($id = null)
+    {
+        $inscripcion = $this->obtenerInscripcionParaPreview($id);
+        $esPreviewPrueba = is_null($id);
+
+        return response()->view('emails.informacion_membresias', [
+            'inscripcion' => $inscripcion,
+            'usuario' => $inscripcion->user,
+            'esPreviewPrueba' => $esPreviewPrueba,
+        ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+    }
+
     private function obtenerInscripcionParaPreview($id = null)
     {
         if ($id) {

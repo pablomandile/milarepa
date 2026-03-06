@@ -66,6 +66,7 @@ const guestForm = ref({
   msgxwapp: false,
   accesibilidad: false,
   accesibilidad_desc: '',
+  info_tarjetas_kadampa: false,
   registrar_datos: true,
 });
 

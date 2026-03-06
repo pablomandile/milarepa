@@ -160,6 +160,10 @@ const abrirMapa = (direccion) => {
     mapModalVisible.value = true;
 };
 
+const direccionActividad = (inscripcion) => {
+    return inscripcion?.actividad?.lugar?.direccion || inscripcion?.actividad?.entidad?.direccion || '';
+};
+
 // Mostrar toasts basados en mensajes flash compartidos
 watch(() => $page.props.flash, (flash) => {
     if (flash?.success) {
@@ -258,14 +262,14 @@ watch(() => $page.props.flash, (flash) => {
                             <Column header="Lugar">
                                 <template #body="{ data }">
                                     <div class="flex items-center gap-2">
-                                        <span class="text-sm break-words">{{ data.actividad?.entidad?.direccion || '-' }}
+                                        <span class="text-sm break-words">{{ direccionActividad(data) || '-' }}
                                         <button
-                                            v-if="data.actividad?.entidad?.direccion"
+                                            v-if="direccionActividad(data)"
                                             type="button"
                                             class="inline-flex items-center justify-center p-0 text-sky-700 hover:text-sky-900 shrink-0"
                                             title="Ver en mapa"
                                             aria-label="Ver en mapa"
-                                            @click="abrirMapa(data.actividad.entidad.direccion)"
+                                            @click="abrirMapa(direccionActividad(data))"
                                         >
                                             <i class="pi pi-map"></i>
                                         </button></span>

@@ -21,6 +21,7 @@ class Actividad extends Model
         'fecha_fin', 
         'pagoAmticipado', 
         'entidad_id', 
+        'lugar_id',
         'disponibilidad_id', 
         'modalidad_id', 
         'esquema_precio_id', 
@@ -87,6 +88,11 @@ class Actividad extends Model
     public function entidad()
     {
         return $this->belongsTo(Entidad::class, 'entidad_id');
+    }
+
+    public function lugar()
+    {
+        return $this->belongsTo(Lugar::class, 'lugar_id');
     }
     
     public function disponibilidad()
