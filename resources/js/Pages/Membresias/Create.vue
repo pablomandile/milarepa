@@ -26,6 +26,7 @@
         descripcion: '',
         entidad_id: '',
         botonpago_id: null,
+        imagen_id: null,
         valor: ''
     })
 </script>
@@ -52,6 +53,7 @@
                             :updating="false"
                             :entidades="entidades"
                             :botonesPago="botonesPago"
+                            :imagenPreviewUrl="''"
                             :form="form" @submit="form.post(route('membresias.store'))"/>
                         </div>
                     </div>

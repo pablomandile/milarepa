@@ -42,6 +42,7 @@ const comprobanteFile = ref(null);
 const isUploading = ref(false);
 const mesImputar = ref('');
 const pagoEfectivo = ref(false);
+const fallbackMembresiaImage = '/storage/img/actividades/imagen-no-disponible.jpg';
 
 const userMembresia = props.user_membresia;
 
@@ -135,6 +136,13 @@ const mesInformado = computed(() => {
     const estado = estadoMesSeleccionado.value;
     return !!estado && (!!estado.pagado || !!estado.comprobante);
 });
+
+const imagenMembresia = (membresia) => {
+    if (membresia?.imagen?.ruta) {
+        return `/storage/${membresia.imagen.ruta}`;
+    }
+    return fallbackMembresiaImage;
+};
 
 function seleccionarComprobante(event) {
     comprobanteFile.value = event.target.files?.[0] || null;
@@ -268,6 +276,13 @@ async function subirComprobante() {
                                             <div class="p-card bg-white border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300">
                                                 <div class="p-card-body p-4">
                                                     <div class="flex flex-col h-full">
+                                                        <div class="mb-3 overflow-hidden rounded border border-gray-200 bg-gray-50">
+                                                            <img
+                                                                :src="imagenMembresia(membresia)"
+                                                                :alt="`Imagen de ${membresia.nombre}`"
+                                                                class="h-auto w-full object-contain"
+                                                            />
+                                                        </div>
                                                         <div class="flex align-items-center mb-3">
                                                             <div class="bg-primary-100 border-circle w-3rem h-3rem flex align-items-center justify-content-center mr-3">
                                                                 <i class="pi pi-heart text-primary text-xl"></i>
@@ -319,6 +334,13 @@ async function subirComprobante() {
                                             <div class="p-card-body p-4">
                                                 <div class="flex flex-col md:flex-row md:align-items-center md:justify-between">
                                                     <div class="flex-1">
+                                                        <div class="mb-3 overflow-hidden rounded border border-gray-200 bg-gray-50">
+                                                            <img
+                                                                :src="imagenMembresia(membresia)"
+                                                                :alt="`Imagen de ${membresia.nombre}`"
+                                                                class="h-auto w-full object-contain"
+                                                            />
+                                                        </div>
                                                         <div class="flex align-items-center mb-3">
                                                             <div class="bg-primary-100 border-circle w-3rem h-3rem flex align-items-center justify-content-center mr-3">
                                                                 <i class="pi pi-heart text-primary text-xl"></i>

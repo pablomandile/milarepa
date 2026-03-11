@@ -15,6 +15,7 @@ class Membresia extends Model
         'descripcion',
         'entidad_id',
         'botonpago_id',
+        'imagen_id',
         'valor'
     ];
 
@@ -30,6 +31,11 @@ class Membresia extends Model
     public function botonPago()
     {
         return $this->belongsTo(BotonPago::class, 'botonpago_id');
+    }
+
+    public function imagen()
+    {
+        return $this->belongsTo(Imagen::class, 'imagen_id');
     }
 
     public function estadoCuenta()

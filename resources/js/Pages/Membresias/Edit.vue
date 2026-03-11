@@ -35,6 +35,7 @@
         descripcion: props.membresia.descripcion,
         entidad_id: props.membresia.entidad_id,
         botonpago_id: props.membresia.botonpago_id || null,
+        imagen_id: props.membresia.imagen_id || null,
         valor: props.membresia.valor
     });
 
@@ -74,6 +75,7 @@
                             :form="form" 
                             :entidades="entidades"
                             :botonesPago="botonesPago"
+                            :imagenPreviewUrl="props.membresia?.imagen?.ruta ? `/storage/${props.membresia.imagen.ruta}` : ''"
                             @submit="handleSubmit"/>
                         </div>
                     </div>

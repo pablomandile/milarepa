@@ -26,6 +26,14 @@ const props = defineProps({
 });
 
 const fallbackImage = '/storage/img/actividades/imagen-no-disponible.jpg';
+const weekdayOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+const normalizeWeekday = (value) =>
+    String(value || '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
 
 const parseLocalDate = (value) => {
     if (!value) return null;
@@ -41,8 +49,9 @@ const parseLocalDate = (value) => {
 const sections = computed(() => [
     { key: 'oraciones', title: 'Oraciones Online', items: props.oraciones },
     { key: 'clases', title: 'Clases Online', items: props.clases },
-    { key: 'cursos', title: 'Cursos Online', items: props.cursos },
+    { key: 'cursos', title: 'Cursos y Retiros Online', items: props.cursos },
 ]);
+const hasCursos = computed(() => (props.cursos || []).length > 0);
 
 const oracionesAgrupadas = computed(() => {
     const map = new Map();
@@ -210,6 +219,71 @@ const groupFechasByWeekday = (fechas) => {
     }));
 };
 
+const getWeekdayGroupAnchorId = (sectionKey, itemId, weekday) =>
+    `${sectionKey}-${normalizeWeekday(weekday)}-${itemId}`;
+
+const weekdayNavigation = computed(() => {
+    const firstBySectionAndWeekday = {
+        oraciones: {},
+        clases: {},
+    };
+
+    for (const item of oracionesAgrupadas.value) {
+        for (const group of groupFechasByWeekday(item.fechas)) {
+            if (!firstBySectionAndWeekday.oraciones[group.weekday]) {
+                firstBySectionAndWeekday.oraciones[group.weekday] = getWeekdayGroupAnchorId('oraciones', item.id, group.weekday);
+            }
+        }
+    }
+
+    for (const item of clasesAgrupadas.value) {
+        for (const group of groupFechasByWeekday(item.fechas)) {
+            if (!firstBySectionAndWeekday.clases[group.weekday]) {
+                firstBySectionAndWeekday.clases[group.weekday] = getWeekdayGroupAnchorId('clases', item.id, group.weekday);
+            }
+        }
+    }
+
+    const weekdays = new Set([
+        ...Object.keys(firstBySectionAndWeekday.oraciones),
+        ...Object.keys(firstBySectionAndWeekday.clases),
+    ]);
+
+    const rows = Array.from(weekdays)
+        .sort((a, b) => weekdayOrder.indexOf(a) - weekdayOrder.indexOf(b))
+        .map((weekday) => {
+            const buttons = [];
+            if (firstBySectionAndWeekday.oraciones[weekday]) {
+                buttons.push({
+                    label: 'Oraciones',
+                    href: `#${firstBySectionAndWeekday.oraciones[weekday]}`,
+                });
+            }
+            if (firstBySectionAndWeekday.clases[weekday]) {
+                buttons.push({
+                    label: 'Clases',
+                    href: `#${firstBySectionAndWeekday.clases[weekday]}`,
+                });
+            }
+            return { weekday, buttons };
+        })
+        .filter((row) => row.buttons.length > 0);
+
+    if (hasCursos.value) {
+        rows.push({
+            weekday: 'Fin de semana',
+            buttons: [
+                {
+                    label: 'Actividades',
+                    href: '#cursos-online',
+                },
+            ],
+        });
+    }
+
+    return rows;
+});
+
 const expandedClaseRows = ref({});
 
 const getClaseRowKey = (claseId, fh) => `${claseId}|${fh?.fecha || ''}|${fh?.hora || ''}`;
@@ -246,34 +320,64 @@ const isClaseRowExpanded = (claseId, fh) => {
                         />
                     </div>
 
+                    <div v-if="weekdayNavigation.length > 0" class="px-6 pt-5">
+                        <div class="overflow-x-auto rounded-lg border border-slate-200">
+                            <table class="w-full min-w-[700px]">
+                                <tbody>
+                                    <tr class="bg-slate-50">
+                                        <td
+                                            v-for="(dayRow, idx) in weekdayNavigation"
+                                            :key="`weekday-nav-${idx}`"
+                                            class="align-top border-r border-slate-200 px-3 py-3 last:border-r-0"
+                                        >
+                                            <div class="mb-2 font-semibold text-slate-700">{{ dayRow.weekday }}</div>
+                                            <div class="flex flex-col gap-2">
+                                                <a
+                                                    v-for="(btn, bIdx) in dayRow.buttons"
+                                                    :key="`weekday-nav-${idx}-btn-${bIdx}`"
+                                                    :href="btn.href"
+                                                    class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                                                >
+                                                    {{ btn.label }}
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <div class="px-6 pb-6 pt-5 space-y-8">
-                        <section v-for="section in visibleSections" :key="section.key">
+                        <section
+                            v-for="section in visibleSections"
+                            :key="section.key"
+                            :id="section.key === 'cursos' ? 'cursos-online' : null"
+                            class="mt-8 mb-10 scroll-mt-28"
+                        >
                             <h3 class="text-2xl font-semibold text-indigo-700 mb-3">{{ section.title }}</h3>
                             <div v-if="section.key === 'oraciones'" class="space-y-3">
-                                <article
-                                    v-for="item in oracionesAgrupadas"
-                                    :key="`oracion-${item.id}`"
-                                    class="grid grid-cols-1 md:grid-cols-12 gap-4 rounded-lg border border-gray-200 p-3"
-                                >
-                                    <div class="order-1 md:order-none md:col-span-3">
-                                        <img
-                                            :src="item.image_url || fallbackImage"
-                                            :alt="item.nombre"
-                                            class="w-full h-auto rounded object-contain border border-gray-200"
-                                        />
-                                    </div>
-                                    <div class="order-2 md:order-none md:col-span-9">
+                                <template v-for="item in oracionesAgrupadas" :key="`oracion-item-${item.id}`">
+                                    <article
+                                        v-for="(weekdayGroup, gIdx) in groupFechasByWeekday(item.fechas)"
+                                        :key="`oracion-${item.id}-weekday-card-${gIdx}`"
+                                        :id="getWeekdayGroupAnchorId('oraciones', item.id, weekdayGroup.weekday)"
+                                        class="activity-card scroll-mt-28 mt-8 mb-10 first:mt-0 last:mb-0 rounded-lg border border-gray-200 p-3"
+                                    >
+                                        <div class="activity-image-col">
+                                            <img
+                                                :src="item.image_url || fallbackImage"
+                                                :alt="item.nombre"
+                                                class="activity-card-image h-auto rounded object-contain border border-gray-200"
+                                            />
+                                        </div>
+                                        <div class="activity-right-col">
                                         <h4
-                                            class="text-2xl font-semibold text-gray-800 mb-5 mt-2 leading-tight whitespace-pre-line break-words"
+                                            class="text-2xl font-semibold text-gray-800 mb-5 mt-2 leading-tight whitespace-pre-line break-words [overflow-wrap:anywhere]"
                                         >
                                             {{ item.nombre }}
                                         </h4>
-                                        <div class="space-y-3">
-                                            <div
-                                                v-for="(weekdayGroup, gIdx) in groupFechasByWeekday(item.fechas)"
-                                                :key="`oracion-${item.id}-weekday-${gIdx}`"
-                                                class="overflow-hidden rounded-lg border border-slate-200"
-                                            >
+                                            <div class="overflow-hidden rounded-lg border border-slate-200">
                                                 <div class="bg-slate-100 px-3 py-2 text-left font-semibold text-slate-700">
                                                     {{ weekdayGroup.weekday }}
                                                 </div>
@@ -307,26 +411,26 @@ const isClaseRowExpanded = (claseId, fh) => {
                                                 </table>
                                             </div>
                                         </div>
-                                    </div>
-                                </article>
+                                    </article>
+                                </template>
                             </div>
 
                             <div v-else-if="section.key === 'clases'" class="space-y-3">
                                 <article
                                     v-for="item in clasesAgrupadas"
                                     :key="`clase-${item.id}`"
-                                    class="grid grid-cols-1 md:grid-cols-12 gap-4 rounded-lg border border-gray-200 p-3"
+                                    class="activity-card mt-8 mb-10 first:mt-0 last:mb-0 rounded-lg border border-gray-200 p-3"
                                 >
-                                    <div class="order-1 md:order-none md:col-span-3">
+                                    <div class="activity-image-col">
                                         <img
                                             :src="item.image_url || fallbackImage"
                                             :alt="item.nombre"
-                                            class="w-full h-auto rounded object-contain border border-gray-200"
+                                            class="activity-card-image h-auto rounded object-contain border border-gray-200"
                                         />
                                     </div>
-                                    <div class="order-2 md:order-none md:col-span-9">
+                                    <div class="activity-right-col">
                                         <h4
-                                            class="text-2xl font-semibold text-gray-800 mb-8 mt-2 leading-tight whitespace-pre-line break-words"
+                                            class="text-2xl font-semibold text-gray-800 mb-8 mt-2 leading-tight whitespace-pre-line break-words [overflow-wrap:anywhere]"
                                         >
                                             {{ item.nombre }}
                                         </h4>
@@ -334,7 +438,8 @@ const isClaseRowExpanded = (claseId, fh) => {
                                             <div
                                                 v-for="(weekdayGroup, gIdx) in groupFechasByWeekday(item.fechas)"
                                                 :key="`clase-${item.id}-weekday-${gIdx}`"
-                                                class="overflow-hidden rounded-lg border border-slate-200"
+                                                :id="getWeekdayGroupAnchorId('clases', item.id, weekdayGroup.weekday)"
+                                                class="scroll-mt-28 mt-8 mb-10 first:mt-0 last:mb-0 overflow-hidden rounded-lg border border-slate-200"
                                             >
                                                 <div class="bg-slate-100 px-3 py-2 text-left text-lg font-semibold text-slate-700">
                                                     {{ weekdayGroup.weekday }} de {{ monthLabel }}
@@ -390,17 +495,17 @@ const isClaseRowExpanded = (claseId, fh) => {
                                 <article
                                     v-for="item in section.items"
                                     :key="`${section.key}-${item.id}-${item.fecha || item.fecha_inicio || ''}`"
-                                    class="grid grid-cols-1 md:grid-cols-12 gap-4 rounded-lg border border-gray-200 p-3"
+                                    class="activity-card mt-8 mb-10 first:mt-0 last:mb-0 rounded-lg border border-gray-200 p-3"
                                 >
-                                    <div class="order-1 md:order-none md:col-span-3">
+                                    <div class="activity-image-col">
                                         <img
                                             :src="item.image_url || fallbackImage"
                                             :alt="item.nombre"
-                                            class="w-full h-auto rounded object-contain border border-gray-200"
+                                            class="activity-card-image h-auto rounded object-contain border border-gray-200"
                                         />
                                     </div>
-                                    <div class="order-2 md:order-none md:col-span-9">
-                                        <h4 class="text-2xl font-semibold text-gray-800 mb-5 mt-2 leading-tight whitespace-pre-line break-words">
+                                    <div class="activity-right-col">
+                                        <h4 class="text-2xl font-semibold text-gray-800 mb-5 mt-2 leading-tight whitespace-pre-line break-words [overflow-wrap:anywhere]">
                                             {{ item.nombre }}
                                         </h4>
                                         <div class="overflow-hidden rounded-lg border border-slate-200">
@@ -470,3 +575,46 @@ const isClaseRowExpanded = (claseId, fh) => {
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+.activity-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.activity-image-col {
+    width: 100%;
+}
+
+.activity-right-col {
+    width: 100%;
+    min-width: 0;
+}
+
+.activity-card-image {
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .activity-card {
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .activity-image-col {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 0;
+    }
+
+    .activity-right-col {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .activity-card-image {
+        width: 100%;
+    }
+}
+</style>

@@ -26,12 +26,12 @@ class MembresiasController extends Controller
         $entidadPrincipal = Entidad::where('entidad_principal', true)->first();
 
         if ($entidadPrincipal) {
-            $membresias = Membresia::with(['entidad', 'botonPago'])
+            $membresias = Membresia::with(['entidad', 'botonPago', 'imagen'])
                 ->where('entidad_id', $entidadPrincipal->id)
                 ->where('nombre', '!=', 'Sin membresia')
                 ->paginate(10);
         } else {
-            $membresias = Membresia::with(['entidad', 'botonPago'])
+            $membresias = Membresia::with(['entidad', 'botonPago', 'imagen'])
                 ->where('nombre', '!=', 'Sin membresia')
                 ->paginate(10);
         }
@@ -70,12 +70,12 @@ class MembresiasController extends Controller
         $entidadPrincipal = Entidad::where('entidad_principal', true)->first();
 
         if ($entidadPrincipal) {
-            $membresias = Membresia::with(['entidad', 'botonPago'])
+            $membresias = Membresia::with(['entidad', 'botonPago', 'imagen'])
                 ->where('entidad_id', $entidadPrincipal->id)
                 ->where('nombre', '!=', 'Sin membresia')
                 ->paginate(10);
         } else {
-            $membresias = Membresia::with(['entidad', 'botonPago'])
+            $membresias = Membresia::with(['entidad', 'botonPago', 'imagen'])
                 ->where('nombre', '!=', 'Sin membresia')
                 ->paginate(10);
         }
@@ -143,6 +143,7 @@ class MembresiasController extends Controller
      */
     public function edit(Membresia $membresia)
     {
+        $membresia->load('imagen');
         $entidades = Entidad::select('id', 'nombre')->get();
         $botonesPago = BotonPago::select('id', 'nombre')->get();
 
@@ -183,7 +184,7 @@ class MembresiasController extends Controller
      */
     public function gestion()
     {
-        $membresias = Membresia::with(['entidad', 'botonPago'])->paginate(10);
+        $membresias = Membresia::with(['entidad', 'botonPago', 'imagen'])->paginate(10);
 
         return inertia('Membresias/Gestion', ['membresias' => $membresias]);
     }

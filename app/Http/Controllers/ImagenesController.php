@@ -71,7 +71,7 @@ class ImagenesController extends Controller
         );
 
         $folder = (string) $request->input('folder', 'img/actividades');
-        $allowedFolders = ['img/actividades', 'img/clases', 'img/maestros', 'img/mpago', 'img/puyas'];
+        $allowedFolders = ['img/actividades', 'img/clases', 'img/maestros', 'img/mpago', 'img/puyas', 'img/membresias'];
         if (!in_array($folder, $allowedFolders, true)) {
             $folder = 'img/actividades';
         }

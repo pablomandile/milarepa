@@ -12,6 +12,7 @@ import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
 import Dropdown from 'primevue/dropdown';
+import SingleImageUploader from '@/Components/SingleImageUploader.vue';
 
     defineProps({
         form: {
@@ -30,6 +31,10 @@ import Dropdown from 'primevue/dropdown';
         botonesPago: {
         type: Array,
         default: () => []
+    },
+        imagenPreviewUrl: {
+        type: String,
+        default: ''
     }
     })
 
@@ -101,6 +106,24 @@ import Dropdown from 'primevue/dropdown';
                     />
                 </div>
                 <InputError :message="$page.props.errors.valor" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6 mt-3">
+                <InputLabel for="imagen_id" value="Imagen" :required="false"/>
+                <div class="flex items-start gap-4">
+                    <SingleImageUploader
+                        v-model:imagenId="form.imagen_id"
+                        folder="img/membresias"
+                    />
+                    <div v-if="imagenPreviewUrl" class="flex items-center gap-2">
+                        <img
+                            :src="imagenPreviewUrl"
+                            alt="Imagen actual"
+                            class="h-16 w-16 rounded border border-gray-200 object-cover"
+                        />
+                        <span class="text-sm text-gray-500">Actual</span>
+                    </div>
+                </div>
+                <InputError :message="$page.props.errors.imagen_id" class="mt-2" />
             </div>
         </template>
         <template #actions>
