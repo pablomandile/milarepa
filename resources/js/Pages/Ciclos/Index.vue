@@ -29,6 +29,15 @@ const deleteCiclo = (id) => {
         }
     });
 };
+
+const nombreMes = (mes) => {
+    const meses = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    const idx = Number(mes) - 1;
+    return meses[idx] || '-';
+};
 </script>
 
 <style scoped>
@@ -51,6 +60,11 @@ const deleteCiclo = (id) => {
                     <div class="mt-4">
                         <DataTable :value="ciclos.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre"></Column>
+                            <Column field="mes" header="Mes">
+                                <template #body="slotProps">
+                                    {{ nombreMes(slotProps.data.mes) }}
+                                </template>
+                            </Column>
                             <Column header="Acciones">
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
@@ -80,4 +94,3 @@ const deleteCiclo = (id) => {
         </div>
     </AppLayout>
 </template>
-

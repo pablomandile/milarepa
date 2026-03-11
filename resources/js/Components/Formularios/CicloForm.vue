@@ -25,6 +25,21 @@ defineProps({
 });
 
 defineEmits(['submit']);
+
+const meses = [
+    { label: 'Enero', value: 1 },
+    { label: 'Febrero', value: 2 },
+    { label: 'Marzo', value: 3 },
+    { label: 'Abril', value: 4 },
+    { label: 'Mayo', value: 5 },
+    { label: 'Junio', value: 6 },
+    { label: 'Julio', value: 7 },
+    { label: 'Agosto', value: 8 },
+    { label: 'Septiembre', value: 9 },
+    { label: 'Octubre', value: 10 },
+    { label: 'Noviembre', value: 11 },
+    { label: 'Diciembre', value: 12 },
+];
 </script>
 
 <template>
@@ -46,6 +61,21 @@ defineEmits(['submit']);
                 <TextInput id="nombre" v-model="form.nombre" type="text" autocomplete="off" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.nombre" class="mt-2" />
             </div>
+            <div class="col-span-6 sm:col-span-6 mt-3">
+                <InputLabel for="mes" value="Mes" :required="true" />
+                <select
+                    id="mes"
+                    v-model.number="form.mes"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    required
+                >
+                    <option :value="null" disabled>Seleccionar mes</option>
+                    <option v-for="mes in meses" :key="mes.value" :value="mes.value">
+                        {{ mes.label }}
+                    </option>
+                </select>
+                <InputError :message="$page.props.errors.mes" class="mt-2" />
+            </div>
         </template>
 
         <template #actions>
@@ -55,4 +85,3 @@ defineEmits(['submit']);
         </template>
     </FormSection>
 </template>
-

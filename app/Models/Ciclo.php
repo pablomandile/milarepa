@@ -13,6 +13,11 @@ class Ciclo extends Model
 
     protected $fillable = [
         'nombre',
+        'mes',
+    ];
+
+    protected $casts = [
+        'mes' => 'integer',
     ];
 
     public function clases()
@@ -20,4 +25,3 @@ class Ciclo extends Model
         return $this->hasMany(Clase::class, 'ciclo_id');
     }
 }
-

@@ -7,6 +7,10 @@ const props = defineProps({
         type: String,
         required: true
     },
+    cycleName: {
+        type: String,
+        default: null
+    },
     headerImageUrl: {
         type: String,
         default: null
@@ -308,33 +312,55 @@ const isClaseRowExpanded = (claseId, fh) => {
         <div class="py-10">
             <div class="w-full sm:px-6 lg:px-8">
                 <div class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
-                    <!-- <div class="px-6 py-5 border-b border-gray-200">
-                        <h2 class="text-2xl font-semibold text-gray-800">{{ monthLabel }}</h2>
-                    </div> -->
-
-                    <div v-if="headerImageUrl" class="px-6 pt-5">
+                    <div v-if="headerImageUrl" class="px-0 sm:px-6 pt-5 mb-5">
                         <img
                             :src="headerImageUrl"
                             alt="Encabezado Actividades Online"
                             class="w-full h-auto rounded-lg border border-gray-200 object-contain"
                         />
                     </div>
-
-                    <div v-if="weekdayNavigation.length > 0" class="px-6 pt-5">
-                        <div class="overflow-x-auto rounded-lg border border-slate-200">
+                    <div v-if="weekdayNavigation.length > 0" class="px-0 sm:px-6 pt-5">
+                        <div class="mb-6 px-2 text-center">
+                            <p class="text-2xl font-semibold text-indigo-800">
+                                {{ `📚 Tema de ${monthLabel.toLowerCase()}: "${cycleName || 'Ciclo del mes'}"` }}
+                            </p>
+                            <p class="mt-2 text-2xl text-indigo-700">
+                                Clases semanales: Enseñanzas + meditaciones para cultivar más paz interior
+                            </p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 sm:hidden">
+                            <div
+                                v-for="(dayRow, idx) in weekdayNavigation"
+                                :key="`weekday-nav-mobile-${idx}`"
+                                class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3"
+                            >
+                                <div class="mb-2 font-semibold text-slate-700">{{ dayRow.weekday }}</div>
+                                <div class="flex flex-col gap-2">
+                                    <a
+                                        v-for="(btn, bIdx) in dayRow.buttons"
+                                        :key="`weekday-nav-mobile-${idx}-btn-${bIdx}`"
+                                        :href="btn.href"
+                                        class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                                    >
+                                        {{ btn.label }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hidden sm:block overflow-x-auto rounded-lg border border-slate-200">
                             <table class="w-full min-w-[700px]">
                                 <tbody>
                                     <tr class="bg-slate-50">
                                         <td
                                             v-for="(dayRow, idx) in weekdayNavigation"
-                                            :key="`weekday-nav-${idx}`"
+                                            :key="`weekday-nav-desktop-${idx}`"
                                             class="align-top border-r border-slate-200 px-3 py-3 last:border-r-0"
                                         >
                                             <div class="mb-2 font-semibold text-slate-700">{{ dayRow.weekday }}</div>
                                             <div class="flex flex-col gap-2">
                                                 <a
                                                     v-for="(btn, bIdx) in dayRow.buttons"
-                                                    :key="`weekday-nav-${idx}-btn-${bIdx}`"
+                                                    :key="`weekday-nav-desktop-${idx}-btn-${bIdx}`"
                                                     :href="btn.href"
                                                     class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
                                                 >
@@ -347,8 +373,7 @@ const isClaseRowExpanded = (claseId, fh) => {
                             </table>
                         </div>
                     </div>
-
-                    <div class="px-6 pb-6 pt-5 space-y-8">
+                    <div class="px-0 sm:px-6 pb-6 pt-5 space-y-8">
                         <section
                             v-for="section in visibleSections"
                             :key="section.key"
@@ -414,7 +439,6 @@ const isClaseRowExpanded = (claseId, fh) => {
                                     </article>
                                 </template>
                             </div>
-
                             <div v-else-if="section.key === 'clases'" class="space-y-3">
                                 <article
                                     v-for="item in clasesAgrupadas"
@@ -611,6 +635,16 @@ const isClaseRowExpanded = (claseId, fh) => {
     .activity-right-col {
         flex: 1 1 auto;
         min-width: 0;
+    }
+
+    .activity-card-image {
+        width: 100%;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1366px) {
+    .activity-image-col {
+        width: 50%;
     }
 
     .activity-card-image {

@@ -11,7 +11,8 @@ import CicloForm from '@/Components/Formularios/CicloForm.vue';
 import { Link } from '@inertiajs/vue3';
 
 const form = useForm({
-    nombre: ''
+    nombre: '',
+    mes: null,
 });
 </script>
 
@@ -38,4 +39,3 @@ const form = useForm({
         </div>
     </AppLayout>
 </template>
-

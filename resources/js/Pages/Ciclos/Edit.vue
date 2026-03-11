@@ -18,7 +18,8 @@ const props = defineProps({
 });
 
 const form = useForm({
-    nombre: props.ciclo.nombre
+    nombre: props.ciclo.nombre,
+    mes: props.ciclo.mes ?? null,
 });
 
 const handleSubmit = () => {
@@ -50,4 +51,3 @@ const handleSubmit = () => {
         </div>
     </AppLayout>
 </template>
-

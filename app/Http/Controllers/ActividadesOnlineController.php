@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Actividad;
 use App\Models\Clase;
+use App\Models\Ciclo;
 use App\Models\OracionCantada;
 use App\Models\PaginaActividadOnline;
 use Carbon\Carbon;
@@ -25,6 +26,7 @@ class ActividadesOnlineController extends Controller
 
         return inertia('Paginas/ActividadesOnline', [
             'monthLabel' => ucfirst($monthStart->locale('es')->translatedFormat('F')),
+            'cycleName' => $this->resolveCycleName($monthStart),
             'headerImageUrl' => $pagina?->imagen ? '/storage/' . $pagina->imagen->ruta : null,
             'oraciones' => $this->buildOracionesOnline($monthStart, $monthEnd)->values(),
             'clases' => $this->buildClasesOnline($monthStart, $monthEnd)->values(),
@@ -306,5 +308,17 @@ class ActividadesOnlineController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    private function resolveCycleName(Carbon $monthStart): ?string
+    {
+        $mesActual = (int) $monthStart->format('n');
+
+        $ciclo = Ciclo::query()
+            ->where('mes', $mesActual)
+            ->orderBy('id')
+            ->first(['id', 'nombre']);
+
+        return $ciclo?->nombre;
     }
 }

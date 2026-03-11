@@ -21,6 +21,7 @@ class CicloRequest extends FormRequest
                 'max:100',
                 Rule::unique('ciclos', 'nombre')->ignore(request('ciclo'), 'id'),
             ],
+            'mes' => ['required', 'integer', 'between:1,12'],
         ];
     }
 
@@ -29,7 +30,8 @@ class CicloRequest extends FormRequest
         return [
             'nombre.required' => __('El nombre no puede quedar vacio'),
             'nombre.unique' => __('El ciclo ya existe'),
+            'mes.required' => __('Debes seleccionar un mes'),
+            'mes.between' => __('El mes seleccionado no es valido'),
         ];
     }
 }
-
