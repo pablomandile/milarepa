@@ -25,14 +25,18 @@ class MetodoPagoRequest extends FormRequest
         return [
             'nombre' => ['required', 'string', 'max:30'],
             'descripcion' => ['required', 'string', 'max:100'],
+            'tipo_de_pago' => ['required', Rule::in(['Online', 'Presencial'])],
+            'imagen_id' => ['nullable', 'exists:imagenes,id'],
         ];
     }
 
-    public function messages():array {
+    public function messages(): array
+    {
         return [
-            'nombre.required' => __('El nombre no puede quedar vacío'),
-            'descripcion.required' => __('La descripción no puede quedar vacío'),
-
+            'nombre.required' => __('El nombre no puede quedar vacio'),
+            'descripcion.required' => __('La descripcion no puede quedar vacio'),
+            'tipo_de_pago.required' => __('Debe seleccionar un tipo de pago'),
+            'tipo_de_pago.in' => __('El tipo de pago seleccionado no es valido'),
         ];
     }
 }

@@ -183,8 +183,15 @@ const lookupError = ref('');
 const isLookingUp = ref(false);
 const userByEmail = ref(null);
 const guestModalVisible = ref(false);
+const inscripcionMode = ref(null); // null | 'nuevo' | 'registrado' | 'login'
 const guestErrors = ref({});
 const isGuestSubmitting = ref(false);
+const loginError = ref('');
+const isLoggingIn = ref(false);
+const loginForm = ref({
+  email: '',
+  password: '',
+});
 const maestroImageDialogVisible = ref(false);
 const selectedMaestroImageUrl = ref('');
 const maestroSobreExpandido = ref({});
@@ -209,7 +216,6 @@ const guestForm = ref({
 });
 
 const isAuthenticated = computed(() => !!page.props?.auth?.user);
-const userContext = computed(() => userByEmail.value || page.props?.auth?.user || null);
 
 const inscripcionesIds = computed(() => {
   if (userByEmail.value?.inscripciones_actividad_ids) {
@@ -387,42 +393,113 @@ async function buscarPorEmail() {
   const email = emailInput.value.trim();
   if (!email) {
     lookupError.value = 'Ingresá un email válido.';
-    return;
+    return null;
   }
   isLookingUp.value = true;
   try {
     const response = await axios.post(route('grid-actividades.lookup-email'), { email });
     if (response.data?.found) {
       userByEmail.value = response.data.user;
+      return response.data.user;
     } else {
       lookupError.value = 'No encontramos un usuario con ese email.';
+      return null;
     }
   } catch (error) {
     lookupError.value = 'No se pudo validar el email. Probá de nuevo.';
+    return null;
   } finally {
     isLookingUp.value = false;
   }
 }
 
 
-async function iniciarPagoParaUsuario() {
-  if (!userContext.value) return;
-  await axios.post(route('grid-actividades.pago.prepare'), {
-    actividad_id: props.actividad.id,
-    user_id: userContext.value.id,
-  });
-  router.visit(route('grid-actividades.pago', props.actividad.id));
+function abrirDialogoInscripcion() {
+  guestModalVisible.value = true;
+  inscripcionMode.value = null;
+  lookupError.value = '';
+  loginError.value = '';
+  emailInput.value = userByEmail.value?.email || page.props?.auth?.user?.email || '';
+  loginForm.value = {
+    email: page.props?.auth?.user?.email || emailInput.value || '',
+    password: '',
+  };
 }
 
-function inscribir() {
-  if (!userContext.value) {
+function seleccionarModoInscripcion(mode) {
+  inscripcionMode.value = mode;
+  lookupError.value = '';
+  loginError.value = '';
+
+  if (mode === 'nuevo') {
     if (emailInput.value && !guestForm.value.email) {
       guestForm.value.email = emailInput.value.trim();
     }
-    guestModalVisible.value = true;
     return;
   }
-  iniciarPagoParaUsuario();
+
+  if (mode === 'registrado') {
+    emailInput.value = page.props?.auth?.user?.email || emailInput.value || '';
+    return;
+  }
+
+  if (mode === 'login') {
+    loginForm.value.email = page.props?.auth?.user?.email || emailInput.value || '';
+    loginForm.value.password = '';
+  }
+}
+
+async function continuarUsuarioRegistrado() {
+  lookupError.value = '';
+  const user = await buscarPorEmail();
+  if (!user) return;
+
+  await axios.post(route('grid-actividades.pago.prepare'), {
+    actividad_id: props.actividad.id,
+    user_id: user.id,
+  });
+
+  guestModalVisible.value = false;
+  router.visit(route('grid-actividades.pago', props.actividad.id));
+}
+
+async function iniciarSesionYContinuar() {
+  loginError.value = '';
+  const email = loginForm.value.email.trim();
+  const password = loginForm.value.password;
+
+  if (!email) {
+    loginError.value = 'Ingresá tu email.';
+    return;
+  }
+
+  if (!password) {
+    loginError.value = 'Ingresá tu contraseña.';
+    return;
+  }
+
+  isLoggingIn.value = true;
+  try {
+    await axios.post('/login', {
+      email,
+      password,
+      remember: false,
+    });
+
+    guestModalVisible.value = false;
+    router.visit(route('grid-actividades.pago', props.actividad.id));
+  } catch (error) {
+    const status = error?.response?.status;
+    loginError.value = status === 422
+      ? 'Email o contraseña inválidos.'
+      : 'No se pudo iniciar sesión. Intentá nuevamente.';
+  } finally {
+    isLoggingIn.value = false;
+  }
+}
+
+function inscribir() {
+  abrirDialogoInscripcion();
 }
 
 async function enviarInscripcionGuest() {
@@ -732,19 +809,92 @@ onMounted(() => {
     <Dialog
       v-model:visible="guestModalVisible"
       modal
-      header="Completa tus datos para inscribirte"
+      header=""
       :style="{ width: '900px' }"
       :breakpoints="{ '1199px': '90vw', '575px': '95vw' }"
     >
-      <div class="max-h-[70vh] overflow-y-auto pr-2">
-        <GuestUserForm
-          :form="guestForm"
-          :errors="guestErrors"
-          :paises="paises"
-          :provincias="provincias"
-          :municipios="municipios"
-          :barrios="barrios"
-        />
+      <div class="space-y-4">
+        <h2 class="text-xl font-semibold text-gray-900">Elige la forma de Inscribirte</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <button
+            type="button"
+            class="px-3 py-2 rounded-md font-medium transition-colors"
+            :class="inscripcionMode === 'nuevo' || !inscripcionMode
+              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+            @click="seleccionarModoInscripcion('nuevo')"
+          >
+            Soy nuevo
+          </button>
+          <button
+            type="button"
+            class="px-3 py-2 rounded-md font-medium transition-colors"
+            :class="inscripcionMode === 'registrado' || !inscripcionMode
+              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+            @click="seleccionarModoInscripcion('registrado')"
+          >
+            Ya estoy Registrado
+          </button>
+          <button
+            type="button"
+            class="px-3 py-2 rounded-md font-medium transition-colors"
+            :class="inscripcionMode === 'login' || !inscripcionMode
+              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+            @click="seleccionarModoInscripcion('login')"
+          >
+            Iniciar sesión
+          </button>
+        </div>
+
+        <div v-if="inscripcionMode === 'nuevo'" class="max-h-[70vh] overflow-y-auto pr-2">
+          <GuestUserForm
+            :form="guestForm"
+            :errors="guestErrors"
+            :paises="paises"
+            :provincias="provincias"
+            :municipios="municipios"
+            :barrios="barrios"
+          />
+        </div>
+
+        <div v-else-if="inscripcionMode === 'registrado'" class="space-y-2">
+          <label class="text-sm font-medium text-gray-700" for="email-registrado">Email</label>
+          <input
+            id="email-registrado"
+            v-model="emailInput"
+            type="email"
+            class="w-full max-w-md rounded-md border border-gray-300 px-3 py-2"
+            placeholder="tu@email.com"
+          />
+          <p v-if="lookupError" class="text-sm text-red-600">{{ lookupError }}</p>
+        </div>
+
+        <div v-else-if="inscripcionMode === 'login'" class="space-y-2">
+          <div class="space-y-1">
+            <label class="block text-sm font-medium text-gray-700" for="login-email">Email</label>
+            <input
+              id="login-email"
+              v-model="loginForm.email"
+              type="email"
+              class="block w-full max-w-md rounded-md border border-gray-300 px-3 py-2"
+              placeholder="tu@email.com"
+            />
+          </div>
+          <div class="space-y-1">
+            <label class="block text-sm font-medium text-gray-700" for="login-password">Contraseña</label>
+            <input
+              id="login-password"
+              v-model="loginForm.password"
+              type="password"
+              class="block w-full max-w-md rounded-md border border-gray-300 px-3 py-2"
+              placeholder="••••••••"
+            />
+          </div>
+          <p v-if="loginError" class="text-sm text-red-600">{{ loginError }}</p>
+        </div>
       </div>
       <template #footer>
         <div class="flex justify-end gap-2">
@@ -755,11 +905,28 @@ onMounted(() => {
             Cancelar
           </button>
           <button
+            v-if="inscripcionMode === 'nuevo'"
             @click="enviarInscripcionGuest"
             :disabled="isGuestSubmitting"
             class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-60"
           >
             {{ isGuestSubmitting ? 'Enviando...' : 'Guardar e Inscribirme' }}
+          </button>
+          <button
+            v-else-if="inscripcionMode === 'registrado'"
+            @click="continuarUsuarioRegistrado"
+            :disabled="isLookingUp"
+            class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors disabled:opacity-60"
+          >
+            {{ isLookingUp ? 'Validando...' : 'Continuar' }}
+          </button>
+          <button
+            v-else-if="inscripcionMode === 'login'"
+            @click="iniciarSesionYContinuar"
+            :disabled="isLoggingIn"
+            class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors disabled:opacity-60"
+          >
+            {{ isLoggingIn ? 'Iniciando...' : 'Iniciar Sesión y Continuar' }}
           </button>
         </div>
       </template>

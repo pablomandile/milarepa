@@ -12,7 +12,7 @@ class LinkRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => ['string', 'max:50'],
+            'nombre' => ['string', 'max:150'],
             'link' => ['required', 'string', 'max:255']
         ];
     }

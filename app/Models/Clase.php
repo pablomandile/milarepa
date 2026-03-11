@@ -24,6 +24,8 @@ class Clase extends Model
         'horario_hasta',
         'coordinador_id',
         'esquema_precio_id',
+        'modalidad_id',
+        'stream_id',
         'mostrar_en_calendario',
         'activa',
     ];
@@ -58,6 +60,16 @@ class Clase extends Model
     public function esquemaPrecio()
     {
         return $this->belongsTo(EsquemaPrecio::class, 'esquema_precio_id');
+    }
+
+    public function modalidad()
+    {
+        return $this->belongsTo(Modalidad::class, 'modalidad_id');
+    }
+
+    public function stream()
+    {
+        return $this->belongsTo(Stream::class, 'stream_id');
     }
 
     public function imagen()

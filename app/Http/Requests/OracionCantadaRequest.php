@@ -26,6 +26,8 @@ class OracionCantadaRequest extends FormRequest
             'dias_semana.*' => ['string', Rule::in(['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'])],
             'hora' => ['required', 'date_format:H:i'],
             'periodicidad' => ['required', Rule::in(['Diaria', 'Mensual'])],
+            'modalidad_id' => ['nullable', 'exists:modalidades,id'],
+            'stream_id' => ['nullable', 'exists:streams,id'],
             'imagen' => ['nullable', 'string', 'max:2048'],
             'mostrar_en_calendario' => ['required', 'boolean'],
         ];

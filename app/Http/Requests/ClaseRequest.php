@@ -31,6 +31,8 @@ class ClaseRequest extends FormRequest
             'maestro_ids.*' => ['integer', 'exists:maestros,id'],
             'coordinador_id' => ['nullable', 'exists:coordinadores,id'],
             'esquema_precio_id' => ['nullable', 'exists:esquema_precios,id'],
+            'modalidad_id' => ['nullable', 'exists:modalidades,id'],
+            'stream_id' => ['nullable', 'exists:streams,id'],
             'mostrar_en_calendario' => ['required', 'boolean'],
             'activa' => ['required', 'boolean'],
         ];

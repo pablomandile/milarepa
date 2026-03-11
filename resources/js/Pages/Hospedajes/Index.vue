@@ -33,17 +33,17 @@
 
     const deleteHospedaje = (id) => {
     Swal.fire({
-        title: "Â¿EstÃ¡s seguro?",
-        text: "Esta acciÃ³n no se puede deshacer.",
+        title: "¿Estás seguro?",
+        text: "Esta acción no se puede deshacer.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "SÃ­, eliminar",
+        confirmButtonText: "Sí, eliminar",
         cancelButtonText: "Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
         router.delete(route('hospedajes.destroy', id), {
                 onSuccess: () => {
-                Swal.fire("Â¡Eliminado!", "El Hospedaje ha sido eliminada.", "success");
+                Swal.fire("¡Eliminado!", "El Hospedaje ha sido eliminada.", "success");
                 },
                 onError: () => {
                 Swal.fire("Error", "Hubo un problema al eliminar el Hospedaje.", "error");

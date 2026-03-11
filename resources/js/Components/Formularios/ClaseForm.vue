@@ -48,6 +48,14 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
+    modalidades: {
+        type: Array,
+        default: () => []
+    },
+    streams: {
+        type: Array,
+        default: () => []
+    },
     hideHeader: {
         type: Boolean,
         default: false
@@ -140,6 +148,16 @@ const mesReferenciaLabel = computed(() => {
     return monthFormatter.format(new Date(year, month - 1, 1));
 });
 
+const modalidadSeleccionada = computed(() => {
+    const selectedId = props.form.modalidad_id;
+    return (props.modalidades || []).find((item) => String(item?.id) === String(selectedId)) || null;
+});
+
+const esModalidadPresencial = computed(() => {
+    const nombre = modalidadSeleccionada.value?.nombre;
+    return typeof nombre === 'string' && nombre.trim().toLowerCase() === 'presencial';
+});
+
 watch(
     generatedSessionDates,
     (dates) => {
@@ -159,6 +177,16 @@ watch(
                 props.form.titulos_por_fecha[item.key] = '';
             }
         });
+    },
+    { immediate: true }
+);
+
+watch(
+    esModalidadPresencial,
+    (isPresencial) => {
+        if (isPresencial) {
+            props.form.stream_id = null;
+        }
     },
     { immediate: true }
 );
@@ -304,29 +332,31 @@ watch(
                     <InputError :message="$page.props.errors.dias_semana" class="mt-2" />
                 </div>
 
-                <div v-if="generatedSessionDates.length > 0" class="col-span-6 sm:col-span-6">
-                    <InputLabel class="text-indigo-400" value="Titulos por fecha" :required="true" />
-                    <p class="mt-1 text-xs text-gray-500">
-                        Se detectaron {{ generatedSessionDates.length }} clase(s) en el mes seleccionado.
-                    </p>
-                    <div class="mt-2 space-y-2">
-                        <div
-                            v-for="sessionDate in generatedSessionDates"
-                            :key="sessionDate.key"
-                            class="grid grid-cols-1 gap-2 sm:grid-cols-3 items-center rounded border border-gray-200 p-2"
-                        >
-                            <span class="text-sm text-gray-700 sm:col-span-1">{{ sessionDate.label }}</span>
-                            <div class="sm:col-span-2">
-                                <TextInput
-                                    v-model="form.titulos_por_fecha[sessionDate.key]"
-                                    type="text"
-                                    class="block w-full"
-                                    :placeholder="`Titulo para ${sessionDate.date}`"
-                                />
+                <div v-if="generatedSessionDates.length > 0" class="col-span-1 md:col-span-3">
+                    <div class="rounded-lg border border-indigo-200 bg-indigo-50/40 p-4">
+                        <InputLabel class="text-indigo-500" value="Titulos por fecha" :required="true" />
+                        <p class="mt-1 text-xs text-gray-600">
+                            Se detectaron {{ generatedSessionDates.length }} clase(s) en el mes seleccionado.
+                        </p>
+                        <div class="mt-3 space-y-2">
+                            <div
+                                v-for="sessionDate in generatedSessionDates"
+                                :key="sessionDate.key"
+                                class="grid grid-cols-1 gap-2 sm:grid-cols-3 items-center rounded border border-gray-200 bg-white p-2"
+                            >
+                                <span class="text-sm text-gray-700 sm:col-span-1">{{ sessionDate.label }}</span>
+                                <div class="sm:col-span-2">
+                                    <TextInput
+                                        v-model="form.titulos_por_fecha[sessionDate.key]"
+                                        type="text"
+                                        class="block w-full"
+                                        :placeholder="`Titulo para ${sessionDate.date}`"
+                                    />
+                                </div>
                             </div>
                         </div>
+                        <InputError :message="$page.props.errors.titulos_por_fecha" class="mt-2" />
                     </div>
-                    <InputError :message="$page.props.errors.titulos_por_fecha" class="mt-2" />
                 </div>
 
                 <div class="col-span-6 sm:col-span-3">
@@ -398,6 +428,36 @@ watch(
                         showClear
                     />
                     <InputError :message="$page.props.errors.esquema_precio_id" class="mt-2" />
+                </div>
+
+                <div class="col-span-6 sm:col-span-6">
+                    <InputLabel for="modalidad_id" class="text-indigo-400" value="Modalidad" />
+                    <Dropdown
+                        id="modalidad_id"
+                        v-model="form.modalidad_id"
+                        :options="modalidades"
+                        optionLabel="nombre"
+                        optionValue="id"
+                        placeholder="Seleccione una modalidad"
+                        class="w-full mt-1 border border-gray-300"
+                        showClear
+                    />
+                    <InputError :message="$page.props.errors.modalidad_id" class="mt-2" />
+                </div>
+
+                <div v-if="!esModalidadPresencial" class="col-span-6 sm:col-span-6">
+                    <InputLabel for="stream_id" class="text-indigo-400" value="Stream" />
+                    <Dropdown
+                        id="stream_id"
+                        v-model="form.stream_id"
+                        :options="streams"
+                        optionLabel="nombre"
+                        optionValue="id"
+                        placeholder="Seleccione un stream"
+                        class="w-full mt-1 border border-gray-300"
+                        showClear
+                    />
+                    <InputError :message="$page.props.errors.stream_id" class="mt-2" />
                 </div>
 
                 <div class="col-span-6 sm:col-span-6 mt-2">

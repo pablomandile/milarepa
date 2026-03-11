@@ -5,16 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MetodoPago extends Model
+class PaginaActividadOnline extends Model
 {
     use HasFactory;
 
-    protected $table = 'metodos_pago';
+    protected $table = 'paginas_actividades_online';
 
     protected $fillable = [
-        'nombre', 
-        'descripcion',
-        'tipo_de_pago',
+        'mes_referencia',
         'imagen_id',
     ];
 
@@ -22,9 +20,5 @@ class MetodoPago extends Model
     {
         return $this->belongsTo(Imagen::class, 'imagen_id');
     }
-
-    public function botonesPago()
-    {
-        return $this->hasMany(BotonPago::class, 'metodo_pago_id');
-    }
 }
+

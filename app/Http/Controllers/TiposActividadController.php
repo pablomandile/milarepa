@@ -14,7 +14,7 @@ class TiposActividadController extends Controller
      */
     public function index()
     {
-        $tiposActividad = TipoActividad::paginate(15);
+        $tiposActividad = TipoActividad::orderBy('nombre')->get();
         return inertia('TiposActividad/Index', ['tiposActividad'=> $tiposActividad]);
     }
 

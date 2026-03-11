@@ -50,6 +50,8 @@ use App\Http\Controllers\ExcencionPagoController;
 use App\Http\Controllers\CiclosController;
 use App\Http\Controllers\ClasesController;
 use App\Http\Controllers\LugaresController;
+use App\Http\Controllers\PaginasActividadesOnlineController;
+use App\Http\Controllers\ActividadesOnlineController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -90,6 +92,8 @@ Route::get('/oraciones-cantadas/{oracionCantada}/public', [OracionesCantadasCont
     ->name('oracionescantadas.show-public');
 Route::get('/clases/{clase}/public', [ClasesController::class, 'showPublic'])
     ->name('clases.show-public');
+Route::get('/actividades-online', [ActividadesOnlineController::class, 'index'])
+    ->name('paginas.actividades-online');
 Route::get('/grid-actividades/{actividad}/public', [GridActividadesController::class, 'showPublicActividad'])
     ->name('grid-actividades.show-public');
 Route::post('/grid-actividades/lookup-email', [GridActividadesController::class, 'lookupEmail'])
@@ -221,12 +225,17 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/oracionescantadas', OracionesCantadasController::class, [
         'parameters' => ['oracionescantadas' => 'oracionCantada'],
     ]);
+    Route::resource('/paginas-actividades-online', PaginasActividadesOnlineController::class, [
+        'parameters' => ['paginas-actividades-online' => 'paginas_actividades_online'],
+    ]);
     Route::resource('/ciclos', CiclosController::class, [
         'parameters' => ['ciclos' => 'ciclo'],
     ]);
     Route::resource('/clases', ClasesController::class, [
         'parameters' => ['clases' => 'clase'],
     ]);
+    Route::patch('/clases/{clase}/estado', [ClasesController::class, 'updateEstado'])
+        ->name('clases.updateEstado');
     Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');
 
     Route::resource('/esquemaprecios', EsquemaPreciosController::class);

@@ -16,7 +16,7 @@ class MetodosPagoController extends Controller
      */
     public function index()
     {
-        $metodosPago = MetodoPago::paginate(15);
+        $metodosPago = MetodoPago::with('imagen')->paginate(15);
         return inertia('MetodosPago/Index', ['metodosPago' => $metodosPago]);
     }
 
@@ -51,6 +51,8 @@ class MetodosPagoController extends Controller
      */
     public function edit(MetodoPago $metodopago)
     {
+        $metodopago->load('imagen');
+
         return Inertia::render('MetodosPago/Edit', [
             'metodoPago' => $metodopago,
         ]);

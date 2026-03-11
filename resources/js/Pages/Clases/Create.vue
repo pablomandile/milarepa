@@ -31,6 +31,14 @@ defineProps({
         type: Array,
         default: () => []
     },
+    modalidades: {
+        type: Array,
+        default: () => []
+    },
+    streams: {
+        type: Array,
+        default: () => []
+    },
 });
 
 const form = useForm({
@@ -47,6 +55,8 @@ const form = useForm({
     maestro_ids: [],
     coordinador_id: null,
     esquema_precio_id: null,
+    modalidad_id: null,
+    stream_id: null,
     mostrar_en_calendario: false,
     activa: true,
 });
@@ -80,6 +90,8 @@ const form = useForm({
                                 :maestros="maestros"
                                 :coordinadores="coordinadores"
                                 :esquema-precios="esquemaPrecios"
+                                :modalidades="modalidades"
+                                :streams="streams"
                                 :imagen-preview-url="''"
                                 :hide-header="true"
                                 @submit="form.post(route('clases.store'))"

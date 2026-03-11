@@ -43,6 +43,14 @@
             }
         });
     };
+
+    const resolveLinkUrl = (link) => {
+        if (!link) return '';
+        const raw = String(link).trim();
+        if (!raw) return '';
+        if (/^https?:\/\//i.test(raw)) return raw;
+        return `https://${raw}`;
+    };
     
 </script>
 
@@ -106,6 +114,21 @@
                                 >
                                     <Column field="nombre" header="Nombre"></Column>
                                     <Column field="link" header="Link"></Column>
+                                    <Column header="Test">
+                                        <template #body="slotProps">
+                                            <a
+                                                v-if="resolveLinkUrl(slotProps.data.link)"
+                                                :href="resolveLinkUrl(slotProps.data.link)"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="text-indigo-500"
+                                                v-tooltip="'Abrir link'"
+                                            >
+                                                <i class="pi pi-link"></i>
+                                            </a>
+                                            <span v-else class="text-gray-400">-</span>
+                                        </template>
+                                    </Column>
                                 </DataTable>
                             </template>
                         </DataTable>

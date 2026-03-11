@@ -12,7 +12,9 @@
 
     const form = useForm({
         nombre: '',
-        descripcion: ''
+        descripcion: '',
+        tipo_de_pago: '',
+        imagen_id: null
     })
 </script>
 
@@ -36,6 +38,7 @@
                         <div class="p-6 bg-white border-b border-gray-200">
                             <MetodoPagoForm 
                             :updating="false"
+                            :imagen-preview-url="''"
                             :form="form" @submit="form.post(route('metodospago.store'))"/>
                         </div>
                     </div>

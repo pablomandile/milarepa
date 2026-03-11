@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\OracionCantadaRequest;
+use App\Models\Modalidad;
 use App\Models\OracionCantada;
+use App\Models\Stream;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -11,7 +13,8 @@ class OracionesCantadasController extends Controller
 {
     public function index()
     {
-        $oracionesCantadas = OracionCantada::orderBy('periodicidad')
+        $oracionesCantadas = OracionCantada::with(['stream', 'modalidad'])
+            ->orderBy('periodicidad')
             ->orderBy('dia')
             ->orderBy('nombre')
             ->paginate(15);
@@ -23,7 +26,10 @@ class OracionesCantadasController extends Controller
 
     public function create()
     {
-        return Inertia::render('OracionesCantadas/Create');
+        return Inertia::render('OracionesCantadas/Create', [
+            'streams' => Stream::orderBy('nombre')->get(),
+            'modalidades' => Modalidad::orderBy('nombre')->get(),
+        ]);
     }
 
     public function store(OracionCantadaRequest $request)
@@ -40,6 +46,8 @@ class OracionesCantadasController extends Controller
 
     public function showPublic(Request $request, OracionCantada $oracionCantada)
     {
+        $oracionCantada->load(['stream', 'modalidad']);
+
         return Inertia::render('OracionesCantadas/ShowPublic', [
             'oracionCantada' => $oracionCantada,
             'returnUrl' => $request->query('return_url'),
@@ -48,8 +56,12 @@ class OracionesCantadasController extends Controller
 
     public function edit(OracionCantada $oracionCantada)
     {
+        $oracionCantada->load(['stream', 'modalidad']);
+
         return Inertia::render('OracionesCantadas/Edit', [
             'oracionCantada' => $oracionCantada,
+            'streams' => Stream::orderBy('nombre')->get(),
+            'modalidades' => Modalidad::orderBy('nombre')->get(),
         ]);
     }
 

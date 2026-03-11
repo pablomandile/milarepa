@@ -11,12 +11,14 @@ use App\Models\Descripcion;
 use App\Models\Entidad;
 use App\Models\EsquemaPrecio;
 use App\Models\Maestro;
+use App\Models\Modalidad;
+use App\Models\Stream;
 
 class ClasesController extends Controller
 {
     public function index()
     {
-        $clases = Clase::with(['ciclo', 'entidad', 'maestros', 'coordinador', 'esquemaPrecio', 'imagen'])
+        $clases = Clase::with(['ciclo', 'entidad', 'maestros', 'coordinador', 'esquemaPrecio', 'modalidad', 'stream', 'imagen'])
             ->orderByDesc('created_at')
             ->paginate(15);
 
@@ -31,6 +33,8 @@ class ClasesController extends Controller
             'maestros' => Maestro::orderBy('nombre')->get(),
             'coordinadores' => Coordinador::orderBy('nombre')->get(),
             'esquemaPrecios' => EsquemaPrecio::orderBy('nombre')->get(),
+            'modalidades' => Modalidad::orderBy('nombre')->get(),
+            'streams' => Stream::orderBy('nombre')->get(),
         ]);
     }
 
@@ -85,6 +89,8 @@ class ClasesController extends Controller
             'maestros' => Maestro::orderBy('nombre')->get(),
             'coordinadores' => Coordinador::orderBy('nombre')->get(),
             'esquemaPrecios' => EsquemaPrecio::orderBy('nombre')->get(),
+            'modalidades' => Modalidad::orderBy('nombre')->get(),
+            'streams' => Stream::orderBy('nombre')->get(),
         ]);
     }
 
@@ -111,6 +117,18 @@ class ClasesController extends Controller
         } catch (\Throwable $e) {
             return redirect()->route('clases.index')->with('error', 'Error al eliminar la clase: ' . $e->getMessage());
         }
+    }
+
+    public function updateEstado(Request $request, Clase $clase)
+    {
+        $validated = $request->validate([
+            'activa' => ['required', 'boolean'],
+        ]);
+
+        $clase->activa = (bool) $validated['activa'];
+        $clase->save();
+
+        return back()->with('success', 'Estado de la clase actualizado.');
     }
 }
 

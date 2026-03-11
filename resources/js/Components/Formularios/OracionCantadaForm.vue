@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup>
-import { computed, onUnmounted, ref } from 'vue';
+import { computed, onUnmounted, ref, watch } from 'vue';
 import FormSection from '@/Components/FormSection.vue'
 import SectionTitle from '@/Components/SectionTitle.vue'
 import InputError from '../InputError.vue';
@@ -25,7 +25,15 @@ const props = defineProps({
         type: Boolean,
         required: true,
         default: false
-    }
+    },
+    streams: {
+        type: Array,
+        default: () => []
+    },
+    modalidades: {
+        type: Array,
+        default: () => []
+    },
 })
 
 defineEmits(['submit'])
@@ -47,6 +55,14 @@ const diasSemanaOptions = [
 
 const allDaysValues = diasSemanaOptions.map(item => item.value);
 const isDiaria = computed(() => props.form.periodicidad === 'Diaria');
+const modalidadSeleccionada = computed(() => {
+    const selectedId = props.form.modalidad_id;
+    return (props.modalidades || []).find((item) => String(item?.id) === String(selectedId)) || null;
+});
+const isModalidadPresencial = computed(() => {
+    const nombre = modalidadSeleccionada.value?.nombre;
+    return typeof nombre === 'string' && nombre.trim().toLowerCase() === 'presencial';
+});
 
 const allDaysChecked = computed({
     get() {
@@ -123,6 +139,16 @@ onUnmounted(() => {
         URL.revokeObjectURL(selectedImagePreview.value);
     }
 });
+
+watch(
+    isModalidadPresencial,
+    (isPresencial) => {
+        if (isPresencial) {
+            props.form.stream_id = null;
+        }
+    },
+    { immediate: true }
+);
 </script>
 
 <template>
@@ -187,6 +213,36 @@ onUnmounted(() => {
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 />
                 <InputError :message="$page.props.errors.hora" class="mt-2" />
+            </div>
+
+            <div class="col-span-6 sm:col-span-3 mt-3">
+                <InputLabel for="modalidad_id" value="Modalidad" />
+                <Dropdown
+                    id="modalidad_id"
+                    v-model="form.modalidad_id"
+                    :options="modalidades"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccione una modalidad"
+                    class="mt-1 w-full border border-gray-300"
+                    showClear
+                />
+                <InputError :message="$page.props.errors.modalidad_id" class="mt-2" />
+            </div>
+
+            <div v-if="!isModalidadPresencial" class="col-span-6 sm:col-span-3 mt-3">
+                <InputLabel for="stream_id" value="Stream" />
+                <Dropdown
+                    id="stream_id"
+                    v-model="form.stream_id"
+                    :options="streams"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccione un stream"
+                    class="mt-1 w-full border border-gray-300"
+                    showClear
+                />
+                <InputError :message="$page.props.errors.stream_id" class="mt-2" />
             </div>
 
             <div v-if="isDiaria" class="col-span-6 sm:col-span-6 mt-3">

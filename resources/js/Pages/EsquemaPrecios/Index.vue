@@ -19,22 +19,22 @@
         }
     })
 
-    // Controla quÃ© filas de la tabla principal estÃ¡n expandidas
+    // Controla quÃ© filas de la tabla principal están expandidas
     const expandedRows = ref([]);
 
     const deleteEsquemaPrecio = (id) => {
     Swal.fire({
-        title: "Â¿EstÃ¡s seguro?",
-        text: "Esta acciÃ³n no se puede deshacer.",
+        title: "¿Estás seguro?",
+        text: "Esta acción no se puede deshacer.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "SÃ­, eliminar",
+        confirmButtonText: "Sí, eliminar",
         cancelButtonText: "Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
         router.delete(route('esquemaprecios.destroy', id), {
                 onSuccess: () => {
-                Swal.fire("Â¡Eliminado!", "El EsquemaPrecio ha sido eliminada.", "success");
+                Swal.fire("¡Eliminado!", "El EsquemaPrecio ha sido eliminada.", "success");
                 },
                 onError: () => {
                 Swal.fire("Error", "Hubo un problema al eliminar el EsquemaPrecio.", "error");

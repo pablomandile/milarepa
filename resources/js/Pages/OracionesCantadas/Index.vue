@@ -132,6 +132,13 @@ const openImageDialog = (imageUrl) => {
                                     <span>{{ formatDias(slotProps.data) }}</span>
                                 </template>
                             </Column>
+                            <Column header="ONL">
+                                <template #body="slotProps">
+                                    <span :class="(slotProps.data.stream_id || slotProps.data.stream?.id) ? 'text-green-600 font-semibold' : 'text-gray-500'">
+                                        {{ (slotProps.data.stream_id || slotProps.data.stream?.id) ? 'Si' : 'No' }}
+                                    </span>
+                                </template>
+                            </Column>
                             <Column header="En calendario">
                                 <template #body="slotProps">
                                     <span :class="slotProps.data.mostrar_en_calendario ? 'text-green-600 font-semibold' : 'text-gray-500'">

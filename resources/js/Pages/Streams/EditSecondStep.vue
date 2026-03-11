@@ -54,6 +54,13 @@ function deleteLine(line) {
   router.delete(route('streams.destroyLink', line.id));
 }
 
+function resolveLinkUrl(link) {
+  if (!link) return '';
+  const raw = String(link).trim();
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return `https://${raw}`;
+}
 
 </script>
 
@@ -132,6 +139,22 @@ function deleteLine(line) {
                             type="text"
                             class="w-full mt-1 border border-gray-300"
                           />
+                        </template>
+                      </Column>
+
+                      <Column header="Probar" headerStyle="width:6rem; text-align:center" bodyStyle="text-align:center">
+                        <template #body="{ data }">
+                          <a
+                            v-if="resolveLinkUrl(data.link)"
+                            :href="resolveLinkUrl(data.link)"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-indigo-500"
+                            v-tooltip="'Abrir link'"
+                          >
+                            <i class="pi pi-link"></i>
+                          </a>
+                          <span v-else class="text-gray-400">-</span>
                         </template>
                       </Column>
 

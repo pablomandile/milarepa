@@ -14,6 +14,14 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    streams: {
+        type: Array,
+        default: () => [],
+    },
+    modalidades: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const form = useForm({
@@ -23,6 +31,8 @@ const form = useForm({
     dias_semana: Array.isArray(props.oracionCantada.dias_semana) ? props.oracionCantada.dias_semana : [],
     hora: props.oracionCantada.hora ? String(props.oracionCantada.hora).slice(0, 5) : '08:00',
     periodicidad: props.oracionCantada.periodicidad ?? 'Mensual',
+    modalidad_id: props.oracionCantada.modalidad_id ?? null,
+    stream_id: props.oracionCantada.stream_id ?? null,
     imagen: props.oracionCantada.imagen ?? '',
     mostrar_en_calendario: !!props.oracionCantada.mostrar_en_calendario,
 });
@@ -39,7 +49,7 @@ const handleSubmit = () => {
         </template>
 
         <div class="py-12">
-            <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
                     <div class="flex justify-end mr-5 mb-6 mt-3">
                         <Link :href="route('oracionescantadas.index')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
@@ -51,6 +61,8 @@ const handleSubmit = () => {
                         <OracionCantadaForm
                             :updating="true"
                             :form="form"
+                            :streams="props.streams"
+                            :modalidades="props.modalidades"
                             @submit="handleSubmit"
                         />
                     </div>

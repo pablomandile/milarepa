@@ -23,7 +23,9 @@
     console.log(props.metodoPago.nombre);
     const form = useForm({
         nombre: props.metodoPago.nombre,
-        descripcion: props.metodoPago.descripcion
+        descripcion: props.metodoPago.descripcion,
+        tipo_de_pago: props.metodoPago.tipo_de_pago || 'Presencial',
+        imagen_id: props.metodoPago.imagen_id || null
     });
 
     const handleSubmit = () => {
@@ -59,6 +61,7 @@
                         <div class="p-6 bg-white border-b border-gray-200">
                             <MetodoPagoForm 
                             :updating="true" 
+                            :imagen-preview-url="props.metodoPago.imagen ? `/storage/${props.metodoPago.imagen.ruta}` : ''"
                             :form="form" 
                             @submit="handleSubmit"/>
                         </div>

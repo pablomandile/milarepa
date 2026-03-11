@@ -1,0 +1,153 @@
+<script>
+export default {
+    name: 'PaginasActividadesOnlineIndex'
+}
+</script>
+
+<script setup>
+import AppLayout from '@/Layouts/AppLayout.vue';
+import { Link, router } from '@inertiajs/vue3';
+import Swal from 'sweetalert2';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Dialog from 'primevue/dialog';
+import { ref } from 'vue';
+
+const { paginas } = defineProps({
+    paginas: {
+        type: Object,
+        required: true
+    }
+});
+
+const imageDialogVisible = ref(false);
+const selectedImageUrl = ref('');
+
+const openImageDialog = (imageUrl) => {
+    if (!imageUrl) return;
+    selectedImageUrl.value = imageUrl;
+    imageDialogVisible.value = true;
+};
+
+const deletePagina = (id) => {
+    Swal.fire({
+        title: 'Estas seguro?',
+        text: 'Esta accion no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Si, eliminar',
+        cancelButtonText: 'Cancelar',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.delete(route('paginas-actividades-online.destroy', id), {
+                onSuccess: () => Swal.fire('Eliminado!', 'El registro ha sido eliminado.', 'success'),
+                onError: () => Swal.fire('Error', 'Hubo un problema al eliminar el registro.', 'error'),
+            });
+        }
+    });
+};
+
+const formatMes = (mesReferencia) => {
+    if (!mesReferencia || !/^\d{4}-(0[1-9]|1[0-2])$/.test(mesReferencia)) return '-';
+    const [year, month] = mesReferencia.split('-').map(Number);
+    return new Date(year, month - 1, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+};
+</script>
+
+<style scoped>
+@import '../../../css/datatable-header-style.css';
+</style>
+
+<template>
+    <AppLayout>
+        <template #header>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Configuración Página Actividades Online</h1>
+        </template>
+
+        <div class="py-12">
+            <div class="max-w-[96rem] mx-auto sm:px-6 lg:px-8">
+                <div class="p-6 bg-white border-b border-gray-200 max-w-[92rem] mx-auto">
+                    <div class="flex justify-between">
+                        <Link :href="route('paginas-actividades-online.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
+                            NUEVA CONFIGURACIÓN
+                        </Link>
+                    </div>
+
+                    <div class="mt-4">
+                        <DataTable
+                            :value="paginas.data"
+                            stripedRows
+                            paginator
+                            :rows="10"
+                            :rowsPerPageOptions="[5, 10, 20, 50]"
+                            tableStyle="min-width: 60rem"
+                        >
+                            <Column header="Imagen encabezado">
+                                <template #body="slotProps">
+                                    <div class="flex items-center justify-center">
+                                        <button
+                                            v-if="slotProps.data.imagen"
+                                            type="button"
+                                            class="inline-flex"
+                                            v-tooltip="'Ver imagen'"
+                                            @click="openImageDialog('/storage/' + slotProps.data.imagen.ruta)"
+                                        >
+                                            <img
+                                                :src="'/storage/' + slotProps.data.imagen.ruta"
+                                                alt="Imagen encabezado"
+                                                class="h-12 w-12 rounded object-cover border border-gray-200"
+                                            />
+                                        </button>
+                                        <span v-else class="text-sm text-gray-400">Sin imagen</span>
+                                    </div>
+                                </template>
+                            </Column>
+                            <Column header="Mes">
+                                <template #body="slotProps">
+                                    {{ formatMes(slotProps.data.mes_referencia) }}
+                                </template>
+                            </Column>
+                            <Column header="Acciones">
+                                <template #body="slotProps">
+                                    <div class="flex justify-center items-center space-x-4">
+                                        <Link
+                                            :href="route('paginas-actividades-online.edit', parseInt(slotProps.data.id))"
+                                            v-tooltip="'Editar'"
+                                            style="display: flex; align-items: center;"
+                                        >
+                                            <i class="fas fa-pen-to-square" style="font-size: 18px !important; line-height: 1; color: rgb(99, 102, 241);"></i>
+                                        </Link>
+                                        <button
+                                            @click="deletePagina(parseInt(slotProps.data.id))"
+                                            v-tooltip="'Borrar'"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;"
+                                        >
+                                            <i class="fas fa-trash" style="font-size: 18px !important; line-height: 1; color: rgb(239, 68, 68);"></i>
+                                        </button>
+                                    </div>
+                                </template>
+                            </Column>
+                        </DataTable>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <Dialog
+            v-model:visible="imageDialogVisible"
+            modal
+            header="Imagen Encabezado"
+            :style="{ width: '720px' }"
+        >
+            <div class="w-full">
+                <img
+                    v-if="selectedImageUrl"
+                    :src="selectedImageUrl"
+                    alt="Imagen Encabezado"
+                    class="w-full max-h-[70vh] object-contain"
+                />
+            </div>
+        </Dialog>
+    </AppLayout>
+</template>
+

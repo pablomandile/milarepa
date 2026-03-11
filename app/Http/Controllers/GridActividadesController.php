@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use App\Mail\InscripcionConfirmada;
 use Illuminate\Support\Arr;
 
@@ -29,12 +30,11 @@ class GridActividadesController extends Controller
      */
     public function index()
     {
-        $actividades = Actividad::with([
+        $with = [
             'tipoActividad',
             'descripcion',
             'imagen',
             'entidad',
-            'lugar',
             'disponibilidad',
             'modalidad',
             'esquemaPrecio.membresias.membresia',
@@ -48,7 +48,12 @@ class GridActividadesController extends Controller
             'transportes',
             'maestros',
             'coordinadores'
-        ])->get();
+        ];
+        if ($this->canUseLugarRelation()) {
+            $with[] = 'lugar';
+        }
+
+        $actividades = Actividad::with($with)->get();
 
         $paises = Pais::all();
         $provincias = Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get();
@@ -199,9 +204,14 @@ class GridActividadesController extends Controller
             'guest.registrar_datos' => ['nullable', 'boolean'],
         ]);
 
+        $resolvedUserId = $data['user_id'] ?? null;
+        if (empty($resolvedUserId) && empty($data['guest']) && auth()->check()) {
+            $resolvedUserId = auth()->id();
+        }
+
         $request->session()->put('grid_pago', [
             'actividad_id' => $data['actividad_id'],
-            'user_id' => $data['user_id'] ?? null,
+            'user_id' => $resolvedUserId,
             'guest' => $data['guest'] ?? null,
             'comprobante_path' => null,
             'pago_metodo' => null,
@@ -217,8 +227,19 @@ class GridActividadesController extends Controller
     {
         $pago = $request->session()->get('grid_pago');
         if (!$pago || (int) $pago['actividad_id'] !== (int) $actividad->id) {
-            return redirect()->route('grid-actividades.index')
-                ->with('error', 'No hay datos de pago para esta actividad.');
+            if (auth()->check()) {
+                $request->session()->put('grid_pago', [
+                    'actividad_id' => $actividad->id,
+                    'user_id' => auth()->id(),
+                    'guest' => null,
+                    'comprobante_path' => null,
+                    'pago_metodo' => null,
+                ]);
+                $pago = $request->session()->get('grid_pago');
+            } else {
+                return redirect()->route('grid-actividades.index')
+                    ->with('error', 'No hay datos de pago para esta actividad.');
+            }
         }
 
         $actividad->load([
@@ -467,16 +488,19 @@ class GridActividadesController extends Controller
             ]);
         }
 
-        $inscripcion->load([
+        $inscripcionRelations = [
             'actividad.entidad',
-            'actividad.lugar',
             'actividad.imagen',
             'actividad.descripcion',
             'actividad.modalidad',
             'actividad.stream.links',
             'user',
             'guestUser',
-        ]);
+        ];
+        if ($this->canUseLugarRelation()) {
+            $inscripcionRelations[] = 'actividad.lugar';
+        }
+        $inscripcion->load($inscripcionRelations);
 
         $destinatarioRegistro = $inscripcion->guestUser?->email ?: $inscripcion->user?->email;
         if (!empty($destinatarioRegistro)) {
@@ -538,9 +562,8 @@ class GridActividadesController extends Controller
      */
     public function showPublic(Inscripcion $inscripcion)
     {
-        $inscripcion->load([
+        $inscripcionLoad = [
             'actividad.entidad',
-            'actividad.lugar',
             'actividad.descripcion',
             'actividad.imagen',
             'actividad.modalidad',
@@ -549,7 +572,11 @@ class GridActividadesController extends Controller
             'comida',
             'transporte',
             'comprobantes',
-        ]);
+        ];
+        if ($this->canUseLugarRelation()) {
+            $inscripcionLoad[] = 'actividad.lugar';
+        }
+        $inscripcion->load($inscripcionLoad);
 
         if (!empty($inscripcion->actividad) && !empty($inscripcion->actividad->fecha_inicio)) {
             try {
@@ -570,10 +597,9 @@ class GridActividadesController extends Controller
      */
     public function showPublicActividad(Request $request, Actividad $actividad)
     {
-        $actividad->load([
+        $showPublicLoad = [
             'imagen',
             'entidad',
-            'lugar',
             'descripcion',
             'programa',
             'modalidad',
@@ -581,7 +607,11 @@ class GridActividadesController extends Controller
             'maestros.imagen',
             'esquemaPrecio.membresias.membresia',
             'esquemaDescuento.membresias.membresia',
-        ]);
+        ];
+        if ($this->canUseLugarRelation()) {
+            $showPublicLoad[] = 'lugar';
+        }
+        $actividad->load($showPublicLoad);
 
         $paises = Pais::all();
         $provincias = Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get();
@@ -1034,6 +1064,11 @@ class GridActividadesController extends Controller
         }
 
         return ['Pendiente', 'Registrada'];
+    }
+
+    private function canUseLugarRelation(): bool
+    {
+        return Schema::hasTable('lugares') && Schema::hasColumn('actividades', 'lugar_id');
     }
 }
 

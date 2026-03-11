@@ -127,13 +127,11 @@ const logout = () => {
                                     <DropdownLink :href="route('actividades.index')" :active="route().current('actividades.*')">
                                         Todas los Cursos y Retiros 
                                     </DropdownLink>
-                                    <DropdownLink :href="route('grid-actividades.index')" :active="route().current('gridactividades.*')">
-                                        Grilla de Cursos y Retiros Activos
-                                    </DropdownLink>
+                           
                                     <DropdownLink :href="route('calendario.index')" :active="route().current('calendario.index')">
                                         Calendario
                                     </DropdownLink>
-                                    <DropdownLink :href="route('tiposactividad.index')" :active="route().current('tipoactividad.*')">
+                                    <DropdownLink :href="route('tiposactividad.index')" :active="route().current('tiposactividad.*')">
                                         Tipos de Actividad
                                     </DropdownLink>
                                     <DropdownLink :href="route('descripciones.index')" :active="route().current('descripciones.*')">
@@ -187,7 +185,7 @@ const logout = () => {
                                     <DropdownLink :href="route('inscripciones.por-actividad')" :active="route().current('inscripciones.por-actividad')">
                                         Inscripciones por Actividad
                                     </DropdownLink>
-                                    <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
+                                    <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estadoinscripciones.*')">
                                         Estado de Inscripciones
                                     </DropdownLink>
                                 </template>
@@ -232,13 +230,13 @@ const logout = () => {
                                     <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
                                         Monedas
                                     </DropdownLink>
-                                    <DropdownLink :href="route('metodospago.index')" :active="route().current('metodos-pago.*')">
+                                    <DropdownLink :href="route('metodospago.index')" :active="route().current('metodospago.*')">
                                         Métodos de Pago
                                     </DropdownLink>
-                                    <DropdownLink :href="route('esquemaprecios.index')" :active="route().current('esquema-precios.*')">
+                                    <DropdownLink :href="route('esquemaprecios.index')" :active="route().current('esquemaprecios.*')">
                                         Esquema de Precios
                                     </DropdownLink>
-                                    <DropdownLink :href="route('esquemadescuentos.index')" :active="route().current('esquema-descuentos.*')">
+                                    <DropdownLink :href="route('esquemadescuentos.index')" :active="route().current('esquemadescuentos.*')">
                                         Esquema de Descuentos
                                     </DropdownLink>
                                     <DropdownLink :href="route('botonespago.index')" :active="route().current('botonespago.*')">
@@ -271,6 +269,33 @@ const logout = () => {
                                     </DropdownLink>
                                     <DropdownLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
                                         Permisos
+                                    </DropdownLink>
+                                </template>
+                            </Dropdown>
+                        </div>
+                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                            <Dropdown>
+                                <template #trigger>
+                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                        Páginas
+                                        <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                    </template>
+
+                                <template #content>
+                                    <DropdownLink :href="route('paginas.actividades-online')" :active="route().current('paginas.actividades-online')">
+                                        Actividades Online
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('paginas-actividades-online.index')" :active="route().current('paginas-actividades-online.*')">
+                                        Configuración Página Actividades Online
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('grid-actividades.index')" :active="route().current('grid-actividades.*')">
+                                        Grilla de Cursos y Retiros Activos
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('membresias.public.index')" :active="route().current('membresias.public.index')">
+                                        Membresías pública
                                     </DropdownLink>
                                 </template>
                             </Dropdown>
@@ -402,7 +427,7 @@ const logout = () => {
                                     <DropdownLink :href="route('profile.show')">
                                         Mi Perfil
                                     </DropdownLink>
-                                    <DropdownLink :href="route('membresias.index')" :active="route().current('monedas.*')">
+                                    <DropdownLink :href="route('membresias.index')" :active="route().current('membresias.*')">
                                         Mi Membresía
                                     </DropdownLink>
                                     <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
@@ -501,13 +526,13 @@ const logout = () => {
                         <ResponsiveNavLink :href="route('actividades.index')" :active="route().current('actividades.*')">
                             Todas las Actividades
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('grid-actividades.index')" :active="route().current('gridactividades.*')">
+                        <ResponsiveNavLink :href="route('grid-actividades.index')" :active="route().current('grid-actividades.*')">
                             Actividades del mes
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('calendario.index')" :active="route().current('calendario.index')">
                             Calendario
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('tiposactividad.index')" :active="route().current('tipoactividad.*')">
+                        <ResponsiveNavLink :href="route('tiposactividad.index')" :active="route().current('tiposactividad.*')">
                             Tipos de Actividad
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('descripciones.index')" :active="route().current('descripciones.*')">
@@ -550,11 +575,8 @@ const logout = () => {
                         <ResponsiveNavLink :href="route('inscripciones.por-actividad')" :active="route().current('inscripciones.por-actividad')">
                             Inscripciones por Actividad
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
+                        <ResponsiveNavLink :href="route('estadoinscripciones.index')" :active="route().current('estadoinscripciones.*')">
                             Estado de inscripciones
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('estadoinscripciones.index')" :active="route().current('estado-inscripciones.*')">
-                            Histórico
                         </ResponsiveNavLink>
                     </div>
 
@@ -576,13 +598,13 @@ const logout = () => {
                         <ResponsiveNavLink :href="route('monedas.index')" :active="route().current('monedas.*')">
                             Monedas
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('metodospago.index')" :active="route().current('metodos-pago.*')">
+                        <ResponsiveNavLink :href="route('metodospago.index')" :active="route().current('metodospago.*')">
                             Métodos de Pago
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('esquemaprecios.index')" :active="route().current('esquema-precios.*')">
+                        <ResponsiveNavLink :href="route('esquemaprecios.index')" :active="route().current('esquemaprecios.*')">
                             Esquema de Precios
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('esquemadescuentos.index')" :active="route().current('esquema-descuentos.*')">
+                        <ResponsiveNavLink :href="route('esquemadescuentos.index')" :active="route().current('esquemadescuentos.*')">
                             Esquema de Descuentos
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('botonespago.index')" :active="route().current('botonespago.*')">
@@ -603,6 +625,19 @@ const logout = () => {
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
                             Permisos
+                        </ResponsiveNavLink>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="px-4 text-xs font-semibold uppercase tracking-wide text-gray-500">Páginas</div>
+                        <ResponsiveNavLink :href="route('paginas.actividades-online')" :active="route().current('paginas.actividades-online')">
+                            Actividades Online
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('paginas-actividades-online.index')" :active="route().current('paginas-actividades-online.*')">
+                            Pagina Actividades Online
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('membresias.public.index')" :active="route().current('membresias.public.index')">
+                            Membresías pública
                         </ResponsiveNavLink>
                     </div>
 

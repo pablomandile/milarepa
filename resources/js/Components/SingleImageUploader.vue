@@ -125,29 +125,6 @@ const props = defineProps({
     isUploading.value = true;
     form.imagen = fileData.value.file;
   
-    // // Realiza la petición a tu ruta de subida
-    // // Ejemplo 1: usando form.post con Inertia
-    // form.post(route('imagenes.store'), {
-    //   onSuccess: (page) => {
-    //     isUploading.value = false;
-    //     // Asumiendo que el servidor responde con un redirect => 
-    //     // no queremos redireccionar en la UI -> pasamos preserveState/preserveScroll
-    //     // o preferimos un response JSON. 
-    //     //
-    //     // O si el server redirige, Inertia recargará la página. 
-    //     // MEJOR: Hacer un endpoint que devuelva JSON sin redirigir. 
-    //     //
-    //     // SOLUCIÓN SUGERIDA: Mejor usar un request manual con axios o fetch 
-    //     // si no deseas redirecciones. Ver ejemplo 2 más abajo.
-    //   },
-    //   onError: () => {
-    //     isUploading.value = false;
-    //     // Manejo de error
-    //     alert('Error al subir la imagen');
-    //   },
-    //   preserveState: true, 
-    //   preserveScroll: true
-    // });
   
     // Ejemplo 2 (más recomendado): Usar Axios o fetch
     try {

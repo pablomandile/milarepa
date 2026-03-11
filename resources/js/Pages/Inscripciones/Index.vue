@@ -30,6 +30,54 @@ const comprobanteModalVisible = ref(false);
 const inscripcionParaComprobante = ref(null);
 const comprobanteFile = ref(null);
 const comprobanteDescripcion = ref('');
+const pagoModalVisible = ref(false);
+const inscripcionParaPago = ref(null);
+const metodoPagoSeleccionado = ref('');
+const pagoComprobanteFile = ref(null);
+const pagoComprobanteDescripcion = ref('');
+const metodosPagoActividad = computed(() =>
+    (inscripcionParaPago.value?.actividad?.metodos_pago || []).filter(
+        (metodo) => String(metodo?.tipo_de_pago || '').toLowerCase() === 'online'
+    )
+);
+const metodoPagoSeleccionadoData = computed(() =>
+    metodosPagoActividad.value.find((item) => String(item.id) === String(metodoPagoSeleccionado.value)) || null
+);
+const descripcionMetodoSeleccionado = computed(() => metodoPagoSeleccionadoData.value?.descripcion || '');
+const normalizarTexto = (valor) => String(valor || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+
+const esMembresiaGeneral = (nombre) => normalizarTexto(nombre).includes('sin membres');
+
+const botonesPagoMetodoSeleccionado = computed(() => {
+    const inscripcion = inscripcionParaPago.value;
+    const lineasEsquema = inscripcion?.actividad?.esquema_precio?.membresias || [];
+    const membresiaInscripcion = normalizarTexto(inscripcion?.membresia);
+    const metodoSeleccionadoId = metodoPagoSeleccionadoData.value?.id;
+
+    if (!lineasEsquema.length || !metodoSeleccionadoId) return [];
+
+    let linea = lineasEsquema.find((item) =>
+        normalizarTexto(item?.membresia?.nombre) === membresiaInscripcion
+    );
+
+    if (!linea) {
+        linea = lineasEsquema.find((item) => esMembresiaGeneral(item?.membresia?.nombre));
+    }
+
+    const boton = linea?.boton_pago;
+    if (!boton) return [];
+    if (String(boton.metodo_pago_id) !== String(metodoSeleccionadoId)) return [];
+
+    return [boton];
+});
+const imagenMetodoSeleccionadoUrl = computed(() => {
+    const ruta = metodoPagoSeleccionadoData.value?.imagen?.ruta;
+    return ruta ? `/storage/${ruta}` : '';
+});
 
 const confirmDelete = (id) => {
     inscripcionToDelete.value = id;
@@ -63,9 +111,22 @@ const openComprobanteModal = (inscripcion) => {
     comprobanteModalVisible.value = true;
 };
 
+const openPagarModal = (inscripcion) => {
+    inscripcionParaPago.value = inscripcion;
+    metodoPagoSeleccionado.value = '';
+    pagoComprobanteFile.value = null;
+    pagoComprobanteDescripcion.value = '';
+    pagoModalVisible.value = true;
+};
+
 const onComprobanteChange = (event) => {
     const files = event.target.files;
     comprobanteFile.value = files && files[0] ? files[0] : null;
+};
+
+const onPagoComprobanteChange = (event) => {
+    const files = event.target.files;
+    pagoComprobanteFile.value = files && files[0] ? files[0] : null;
 };
 
 const subirComprobante = () => {
@@ -87,6 +148,38 @@ const subirComprobante = () => {
                 inscripcionParaComprobante.value = null;
                 comprobanteFile.value = null;
                 comprobanteDescripcion.value = '';
+            },
+        }
+    );
+};
+
+const subirComprobantePago = () => {
+    if (!inscripcionParaPago.value || !pagoComprobanteFile.value || !metodoPagoSeleccionado.value) return;
+
+    const metodo = metodoPagoSeleccionadoData.value;
+    const formData = new FormData();
+    formData.append('comprobante', pagoComprobanteFile.value);
+
+    const descripcionBase = pagoComprobanteDescripcion.value?.trim();
+    const descripcion = metodo?.nombre
+        ? `Metodo de pago: ${metodo.nombre}${descripcionBase ? ` | ${descripcionBase}` : ''}`
+        : descripcionBase;
+
+    if (descripcion) {
+        formData.append('descripcion', descripcion);
+    }
+
+    router.post(
+        route('inscripciones.comprobante', { inscripcion: inscripcionParaPago.value.id }),
+        formData,
+        {
+            forceFormData: true,
+            onSuccess: () => {
+                pagoModalVisible.value = false;
+                inscripcionParaPago.value = null;
+                metodoPagoSeleccionado.value = '';
+                pagoComprobanteFile.value = null;
+                pagoComprobanteDescripcion.value = '';
             },
         }
     );
@@ -353,6 +446,16 @@ watch(() => $page.props.flash, (flash) => {
                                             <i class="pi pi-ticket"></i>
                                         </Link>
                                         <button
+                                            v-if="data.pago === 'Pendiente'"
+                                            type="button"
+                                            @click="openPagarModal(data)"
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold"
+                                            title="Pagar"
+                                            aria-label="Pagar"
+                                        >
+                                            $
+                                        </button>
+                                        <button
                                             type="button"
                                             @click="openComprobanteModal(data)"
                                             class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200"
@@ -454,6 +557,104 @@ watch(() => $page.props.flash, (flash) => {
                                 class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700 transition-colors"
                             >
                                 Sí, eliminar
+                            </button>
+                        </div>
+                    </template>
+                </Dialog>
+
+                <Dialog
+                    v-model:visible="pagoModalVisible"
+                    modal
+                    header="Pagar"
+                    :style="{ width: '520px' }"
+                >
+                    <p class="text-sm text-gray-700 mb-3">
+                        <span class="font-semibold">Actividad:</span>
+                        {{ inscripcionParaPago?.actividad?.nombre || '-' }}
+                    </p>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="inscripcion_metodo_pago">
+                            Metodo de pago
+                        </label>
+                        <select
+                            id="inscripcion_metodo_pago"
+                            v-model="metodoPagoSeleccionado"
+                            class="block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-700"
+                            :disabled="!metodosPagoActividad.length"
+                        >
+                            <option value="" disabled>Seleccionar metodo</option>
+                            <option v-for="metodo in metodosPagoActividad" :key="metodo.id" :value="String(metodo.id)">
+                                {{ metodo.nombre }}
+                            </option>
+                        </select>
+                        <p v-if="!metodosPagoActividad.length" class="mt-1 text-xs text-gray-500">
+                            Esta actividad no tiene metodos de pago online configurados.
+                        </p>
+                    </div>
+                    <div v-if="metodoPagoSeleccionadoData" class="mb-4 rounded border border-gray-200 bg-gray-50 p-3">
+                        <p v-if="descripcionMetodoSeleccionado" class="text-sm text-gray-700">
+                            {{ descripcionMetodoSeleccionado }}
+                        </p>
+                        <div v-if="imagenMetodoSeleccionadoUrl" class="mt-3 flex justify-center">
+                            <img
+                                :src="imagenMetodoSeleccionadoUrl"
+                                :alt="`Imagen de ${metodoPagoSeleccionadoData.nombre}`"
+                                class="w-full max-w-md h-auto rounded border border-gray-200 object-contain bg-white p-2"
+                            />
+                        </div>
+                        <div v-if="botonesPagoMetodoSeleccionado.length" class="mt-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Botones de pago</p>
+                            <div class="flex flex-wrap gap-2">
+                                <a
+                                    v-for="boton in botonesPagoMetodoSeleccionado"
+                                    :key="boton.id"
+                                    :href="boton.link"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="inline-flex items-center rounded bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                                >
+                                    {{ boton.nombre }}
+                                </a>
+                            </div>
+                        </div>
+                        <p v-else class="mt-3 text-xs text-gray-500">
+                            No hay botones de pago asociados a esta actividad para el metodo seleccionado.
+                        </p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="inscripcion_pago_descripcion">
+                            Descripcion (opcional)
+                        </label>
+                        <input
+                            id="inscripcion_pago_descripcion"
+                            v-model="pagoComprobanteDescripcion"
+                            type="text"
+                            class="block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-700"
+                            placeholder="Ej: Transferencia febrero"
+                        />
+                    </div>
+                    <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        @change="onPagoComprobanteChange"
+                        class="block w-full text-sm text-gray-700"
+                    />
+                    <template #footer>
+                        <div class="flex justify-end gap-2">
+                            <button
+                                type="button"
+                                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                                @click="pagoModalVisible = false"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors"
+                                :disabled="!metodoPagoSeleccionado || !pagoComprobanteFile"
+                                @click="subirComprobantePago"
+                            >
+                                Confirmar pago
                             </button>
                         </div>
                     </template>

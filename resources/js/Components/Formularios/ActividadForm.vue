@@ -31,7 +31,7 @@ function onClickRefresh() {
 }
 
 const props = defineProps({
-  // Objeto con los campos que se bindearÃ¡n en v-model
+  // Objeto con los campos que se bindearán en v-model
   form: {
     type: Object,
     required: true,
@@ -43,7 +43,7 @@ const props = defineProps({
     default: false,
   },
 
-  // Arrays o catÃ¡logos necesarios para populates (opcional segÃºn tu diseÃ±o)
+  // Arrays o catálogos necesarios para populates (opcional segÃºn tu diseÃ±o)
   tiposActividad: {
     type: Array,
     default: () => [],
@@ -1102,7 +1102,7 @@ watch(
           />
 
           <div class="flex items-start gap-4">
-            <!-- Componente personalizado para subir imÃ¡gen -->
+            <!-- Componente personalizado para subir imágen -->
             <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
               <SingleImageUploader 
                 v-model:imagenId="form.imagen_id"

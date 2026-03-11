@@ -11,13 +11,92 @@ import Swal from 'sweetalert2';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
-import { ref } from 'vue';
+import InputSwitch from 'primevue/inputswitch';
+import Toast from 'primevue/toast';
+import { useToast } from 'primevue/usetoast';
+import Dropdown from 'primevue/dropdown';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import { FilterMatchMode } from 'primevue/api';
+import { computed, ref } from 'vue';
 
-defineProps({
+const { clases } = defineProps({
     clases: {
         type: Object,
         required: true
     }
+});
+
+const filtroMesReferencia = ref('mes_actual');
+const filtroMaestroManual = ref('');
+const toast = useToast();
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    'entidad.nombre': { value: null, matchMode: FilterMatchMode.EQUALS },
+});
+
+const entidadOptions = computed(() => {
+    const map = new Map();
+    (clases?.data || []).forEach((clase) => {
+        if (clase?.entidad?.id) {
+            map.set(clase.entidad.id, clase.entidad.nombre || `Entidad ${clase.entidad.id}`);
+        }
+    });
+
+    return Array.from(map.entries())
+        .map(([id, nombre]) => ({ id, nombre }))
+        .sort((a, b) => a.nombre.localeCompare(b.nombre));
+});
+
+const maestroOptions = computed(() => {
+    const map = new Map();
+    (clases?.data || []).forEach((clase) => {
+        (clase?.maestros || []).forEach((maestro) => {
+            if (maestro?.id) {
+                map.set(maestro.id, maestro.nombre || `Maestro ${maestro.id}`);
+            }
+        });
+    });
+
+    return Array.from(map.entries())
+        .map(([id, nombre]) => ({ id, nombre }))
+        .sort((a, b) => a.nombre.localeCompare(b.nombre));
+});
+
+const clasesFiltradas = computed(() => {
+    const rows = clases?.data || [];
+    const ahora = new Date();
+    const inicioMesActual = new Date(ahora.getFullYear(), ahora.getMonth(), 1, 0, 0, 0, 0);
+    const inicioMesAnterior = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1, 0, 0, 0, 0);
+    const finMesAnterior = new Date(ahora.getFullYear(), ahora.getMonth(), 0, 23, 59, 59, 999);
+    const maestroFilterId = filtroMaestroManual.value;
+
+    let limite = null;
+    if (filtroMesReferencia.value === 'ultimos_tres_meses') {
+        limite = new Date(inicioMesActual);
+        limite.setMonth(limite.getMonth() - 3);
+    }
+
+    return rows.filter((clase) => {
+        const mesRef = clase?.mes_referencia;
+        if (!mesRef || !/^\d{4}-(0[1-9]|1[0-2])$/.test(mesRef)) return false;
+        const [year, month] = mesRef.split('-').map(Number);
+        const fechaMes = new Date(year, month - 1, 1);
+        if (Number.isNaN(fechaMes.getTime())) return false;
+
+        if (filtroMesReferencia.value === 'mes_actual' && fechaMes < inicioMesActual) return false;
+        if (filtroMesReferencia.value === 'ultimo_mes' && !(fechaMes >= inicioMesAnterior && fechaMes <= finMesAnterior)) return false;
+        if (filtroMesReferencia.value === 'ultimos_tres_meses' && limite && fechaMes < limite) return false;
+
+        if (maestroFilterId !== null && maestroFilterId !== undefined && maestroFilterId !== '') {
+            const maestros = Array.isArray(clase?.maestros) ? clase.maestros : [];
+            const coincide = maestros.some((m) => String(m?.id) === String(maestroFilterId));
+            if (!coincide) return false;
+        }
+
+        return true;
+    });
 });
 
 const dayLabels = {
@@ -54,6 +133,7 @@ const formatMes = (mesReferencia) => {
 
 const imageDialogVisible = ref(false);
 const selectedImageUrl = ref('');
+const expandedRows = ref([]);
 
 const openImageDialog = (imageUrl) => {
     if (!imageUrl) return;
@@ -78,10 +158,41 @@ const deleteClase = (id) => {
         }
     });
 };
+
+const updateEstado = (row, nuevoEstado) => {
+    const previous = row.activa;
+    row.activa = nuevoEstado;
+
+    router.patch(route('clases.updateEstado', { clase: row.id }), {
+        activa: nuevoEstado
+    }, {
+        preserveScroll: true,
+        onError: () => {
+            row.activa = previous;
+            Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
+        },
+        onSuccess: () => {
+            toast.add({
+                severity: 'success',
+                summary: 'Estado actualizado',
+                detail: nuevoEstado ? 'Clase activada correctamente.' : 'Clase desactivada correctamente.',
+                life: 3000,
+            });
+        }
+    });
+};
 </script>
 
 <style scoped>
 @import '../../../css/datatable-header-style.css';
+
+:deep(.clases-table .p-datatable-thead > tr:first-child > th) {
+    padding-bottom: 0.1rem;
+}
+
+:deep(.clases-table .p-datatable-thead > tr.p-filter-row > th) {
+    padding-top: 0.1rem;
+}
 </style>
 
 <template>
@@ -89,6 +200,7 @@ const deleteClase = (id) => {
         <template #header>
             <h1 class="font-semibold text-xl text-gray-800 leading-tight">Clases</h1>
         </template>
+        <Toast position="top-right" />
         <div class="py-12">
             <div class="max-w-[110rem] mx-auto sm:px-6 lg:px-8">
                 <div class="p-6 bg-white border-b border-gray-200 max-w-[108rem] mx-auto">
@@ -98,7 +210,38 @@ const deleteClase = (id) => {
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="clases.data" stripedRows paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 90rem">
+                        <DataTable
+                            :value="clasesFiltradas"
+                            v-model:filters="filters"
+                            filterDisplay="row"
+                            :globalFilterFields="['nombre', 'ciclo.nombre', 'entidad.nombre', 'coordinador.nombre']"
+                            class="clases-table"
+                            stripedRows
+                            paginator
+                            :rows="10"
+                            :rowsPerPageOptions="[5, 10, 20, 50]"
+                            tableStyle="min-width: 90rem"
+                            dataKey="id"
+                            v-model:expandedRows="expandedRows"
+                        >
+                            <template #header>
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                                    <select
+                                        v-model="filtroMesReferencia"
+                                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
+                                    >
+                                        <option value="mes_actual">Mes actual en adelante</option>
+                                        <option value="ultimo_mes">Ultimo mes</option>
+                                        <option value="ultimos_tres_meses">Ultimos tres meses</option>
+                                        <option value="todo">Mostrar todo</option>
+                                    </select>
+                                    <IconField>
+                                        <InputIcon class="pi pi-search" />
+                                        <InputText v-model="filters.global.value" placeholder="Buscar..." />
+                                    </IconField>
+                                </div>
+                            </template>
+                            <Column expander style="width: 3rem" />
                             <Column header="Imagen">
                                 <template #body="slotProps">
                                     <div class="flex items-center justify-center">
@@ -126,7 +269,27 @@ const deleteClase = (id) => {
                                 </template>
                             </Column>
                             <Column field="ciclo.nombre" header="Ciclo" />
-                            <Column field="entidad.nombre" header="Entidad" />
+                            <Column field="entidad.nombre" header="Entidad" :showFilterMenu="false" filterField="entidad.nombre">
+                                <template #filter="{ filterModel, filterCallback }">
+                                    <Dropdown
+                                        v-model="filterModel.value"
+                                        @change="filterCallback()"
+                                        :options="entidadOptions"
+                                        optionLabel="nombre"
+                                        optionValue="nombre"
+                                        placeholder="Todas"
+                                        class="p-column-filter"
+                                        :showClear="true"
+                                    />
+                                </template>
+                            </Column>
+                            <Column header="ONL">
+                                <template #body="slotProps">
+                                    <span :class="(slotProps.data.stream_id || slotProps.data.stream?.id) ? 'text-green-600 font-semibold' : 'text-gray-500'">
+                                        {{ (slotProps.data.stream_id || slotProps.data.stream?.id) ? 'Si' : 'No' }}
+                                    </span>
+                                </template>
+                            </Column>
                             <Column header="Dias">
                                 <template #body="slotProps">
                                     {{ formatDias(slotProps.data.dias_semana) }}
@@ -144,14 +307,27 @@ const deleteClase = (id) => {
                                     </span>
                                     <span v-else class="text-gray-500">-</span>
                                 </template>
+                                <template #filter>
+                                    <Dropdown
+                                        v-model="filtroMaestroManual"
+                                        :options="maestroOptions"
+                                        optionLabel="nombre"
+                                        optionValue="id"
+                                        placeholder="Todos"
+                                        class="p-column-filter"
+                                        :showClear="true"
+                                    />
+                                </template>
                             </Column>
-                            <Column field="coordinador.nombre" header="Coordinador" />
-                            <Column field="esquema_precio.nombre" header="Esquema de precios" />
                             <Column header="Activa">
                                 <template #body="slotProps">
-                                    <span :class="slotProps.data.activa ? 'text-green-600 font-semibold' : 'text-gray-500'">
-                                        {{ slotProps.data.activa ? 'Si' : 'No' }}
-                                    </span>
+                                    <div class="flex justify-center">
+                                        <InputSwitch
+                                            :modelValue="slotProps.data.activa"
+                                            @update:modelValue="updateEstado(slotProps.data, $event)"
+                                            :disabled="!$page.props.user.permissions.includes('update clases')"
+                                        />
+                                    </div>
                                 </template>
                             </Column>
                             <Column header="En calendario">
@@ -190,6 +366,20 @@ const deleteClase = (id) => {
                                     </div>
                                 </template>
                             </Column>
+                            <template #expansion="{ data }">
+                                <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+                                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Coordinador</p>
+                                            <p class="text-sm text-gray-800">{{ data.coordinador?.nombre || '-' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Esquema de precios</p>
+                                            <p class="text-sm text-gray-800">{{ data.esquema_precio?.nombre || '-' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
                         </DataTable>
                     </div>
                 </div>

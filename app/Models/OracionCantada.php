@@ -18,6 +18,8 @@ class OracionCantada extends Model
         'dias_semana',
         'hora',
         'periodicidad',
+        'modalidad_id',
+        'stream_id',
         'imagen',
         'mostrar_en_calendario',
     ];
@@ -27,4 +29,14 @@ class OracionCantada extends Model
         'dias_semana' => 'array',
         'mostrar_en_calendario' => 'boolean',
     ];
+
+    public function stream()
+    {
+        return $this->belongsTo(Stream::class, 'stream_id');
+    }
+
+    public function modalidad()
+    {
+        return $this->belongsTo(Modalidad::class, 'modalidad_id');
+    }
 }

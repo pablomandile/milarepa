@@ -21,6 +21,14 @@ class InscripcionesController extends Controller
     {
         $inscripciones = Inscripcion::with([
                 'actividad',
+                'actividad.metodosPago',
+                'actividad.metodosPago.imagen',
+                'actividad.metodosPago.botonesPago',
+                'actividad.esquemaPrecio.membresias.membresia',
+                'actividad.esquemaPrecio.membresias.botonPago',
+                'actividad.esquemaPrecio.membresias.botonPago.metodoPago',
+                'actividad.botonPago',
+                'actividad.botonPago.metodoPago',
                 'actividad.imagen',
                 'actividad.entidad',
                 'actividad.lugar',
