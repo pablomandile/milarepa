@@ -398,7 +398,7 @@ const isClaseRowExpanded = (claseId, fh) => {
                                         </div>
                                         <div class="activity-right-col">
                                         <h4
-                                            class="text-2xl font-semibold text-gray-800 mb-5 mt-2 leading-tight whitespace-pre-line break-words [overflow-wrap:anywhere]"
+                                            class="text-2xl font-semibold text-gray-800 mb-5 mt-2 leading-tight whitespace-pre-line break-words"
                                         >
                                             {{ item.nombre }}
                                         </h4>
@@ -454,7 +454,7 @@ const isClaseRowExpanded = (claseId, fh) => {
                                     </div>
                                     <div class="activity-right-col">
                                         <h4
-                                            class="text-2xl font-semibold text-gray-800 mb-8 mt-2 leading-tight whitespace-pre-line break-words [overflow-wrap:anywhere]"
+                                            class="text-2xl font-semibold text-gray-800 mb-8 mt-2 leading-tight whitespace-pre-line break-words"
                                         >
                                             {{ item.nombre }}
                                         </h4>
@@ -529,7 +529,7 @@ const isClaseRowExpanded = (claseId, fh) => {
                                         />
                                     </div>
                                     <div class="activity-right-col">
-                                        <h4 class="text-2xl font-semibold text-gray-800 mb-5 mt-2 leading-tight whitespace-pre-line break-words [overflow-wrap:anywhere]">
+                                        <h4 class="text-2xl font-semibold text-gray-800 mb-5 mt-2 leading-tight whitespace-pre-line break-words">
                                             {{ item.nombre }}
                                         </h4>
                                         <div class="overflow-hidden rounded-lg border border-slate-200">

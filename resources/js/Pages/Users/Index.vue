@@ -39,6 +39,18 @@
             .map((role) => ({ label: role, value: role }))
     );
 
+    const filtroMembresia = ref('todos');
+
+    const usuariosFiltrados = computed(() => {
+        if (filtroMembresia.value === 'todos') {
+            return usuariosConRol.value;
+        }
+
+        return usuariosConRol.value.filter((usuario) =>
+            usuario.membresia && Number(usuario.membresia.id) !== 1
+        );
+    });
+
     const filters = ref({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         name: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -57,6 +69,7 @@
             membresia_nombre: { value: null, matchMode: FilterMatchMode.CONTAINS },
             role_name: { value: null, matchMode: FilterMatchMode.EQUALS }
         };
+        filtroMembresia.value = 'todos';
     };
 
     const deleteUsuario = (id) => {
@@ -103,7 +116,7 @@
                     <div class="mt-4">
                         <DataTable
                             v-model:filters="filters"
-                            :value="usuariosConRol"
+                            :value="usuariosFiltrados"
                             filterDisplay="menu"
                             :globalFilterFields="['name', 'email', 'telefono', 'membresia_nombre', 'role_name']"
                             stripedRows
@@ -114,13 +127,22 @@
                         >
                             <template #header>
                                 <div class="flex justify-between items-center">
-                                    <Button
-                                        type="button"
-                                        icon="pi pi-filter-slash"
-                                        label="Limpiar"
-                                        outlined
-                                        @click="clearFilters()"
-                                    />
+                                    <div class="flex items-center gap-2">
+                                        <Button
+                                            type="button"
+                                            icon="pi pi-filter-slash"
+                                            label="Limpiar"
+                                            outlined
+                                            @click="clearFilters()"
+                                        />
+                                        <select
+                                            v-model="filtroMembresia"
+                                            class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                            <option value="con_membresia">Con membresía</option>
+                                            <option value="todos">Mostrar todos</option>
+                                        </select>
+                                    </div>
                                     <IconField iconPosition="right">
                                         <InputIcon>
                                             <i class="pi pi-search" />

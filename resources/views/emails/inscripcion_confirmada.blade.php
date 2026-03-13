@@ -462,6 +462,7 @@
 
         <!-- Footer -->
         <div class="footer">
+            @include('emails.partials.logo_entidad_principal')
             <p><strong>Milarepa - Sistema de Inscripciones</strong></p>
             <p>Este es un correo automático. Por favor, no respondas a este mensaje.</p>
             <p>&copy; {{ now()->year }} Todos los derechos reservados.</p>

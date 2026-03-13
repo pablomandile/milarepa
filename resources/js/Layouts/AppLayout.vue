@@ -161,9 +161,6 @@ const logout = () => {
                                     <DropdownLink :href="route('grabaciones.index')" :active="route().current('grabaciones.*')">
                                         Grabaciones
                                     </DropdownLink>
-                                    <DropdownLink href="/email-preview" :active="route().current('email.preview.landing')">
-                                        Plantillas de Emails
-                                    </DropdownLink>
                                 </template>
                             </Dropdown>
                         </div>
@@ -297,6 +294,25 @@ const logout = () => {
                                     <DropdownLink :href="route('membresias.public.index')" :active="route().current('membresias.public.index')">
                                         Membresías pública
                                     </DropdownLink>
+                                </template>
+                            </Dropdown>
+                        </div>
+                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                            <Dropdown>
+                                <template #trigger>
+                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                        Emails
+                                        <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                    </template>
+
+                                <template #content>
+                                    <DropdownLink href="/email-preview" :active="route().current('email.preview.landing')">
+                                        Plantillas de Emails
+                                    </DropdownLink>
+        
                                 </template>
                             </Dropdown>
                         </div>

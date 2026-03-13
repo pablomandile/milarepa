@@ -68,8 +68,8 @@ class MembresiasGestionController extends Controller
 
         if ($estadoCuenta) {
             $estadoCuenta->estado = EstadoCuentaMembresia::ESTADO_EXPIRADA;
-            $estadoCuenta->observaciones = trim(($estadoCuenta->observaciones ?? '') . ' | Membresía eliminada');
             $estadoCuenta->save();
+            $estadoCuenta->delete();
         }
 
         $user->update([

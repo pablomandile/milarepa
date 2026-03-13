@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import DataView from 'primevue/dataview';
 import Dialog from 'primevue/dialog';
@@ -6,7 +6,7 @@ import { useToast } from 'primevue/usetoast';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 import backgroundImage from '../../../images/7036360.svg';
-import GuestUserForm from '@/Components/Formularios/GuestUserForm.vue';
+import InscripcionModoDialog from '@/Components/Dialogs/InscripcionModoDialog.vue';
 
 const $page = usePage();
 
@@ -40,10 +40,8 @@ const props = defineProps({
 });
 
 const layout = ref('grid');
-// Para controlar cuÃ¡les actividades estÃ¡n "giradas"
+// Para controlar cuáles actividades están "giradas"
 const flippedCards = ref({}); 
-// Modal de confirmaciÃ³n de inscripciÃ³n
-const confirmModalVisible = ref(false);
 const actividadAInscribir = ref(null);
 const toast = useToast();
 const emailInput = ref('');
@@ -51,8 +49,15 @@ const lookupError = ref('');
 const isLookingUp = ref(false);
 const userByEmail = ref(null);
 const guestModalVisible = ref(false);
+const inscripcionMode = ref(null); // null | 'nuevo' | 'registrado' | 'login'
 const guestErrors = ref({});
 const isGuestSubmitting = ref(false);
+const loginError = ref('');
+const isLoggingIn = ref(false);
+const loginForm = ref({
+  email: '',
+  password: '',
+});
 const mapModalVisible = ref(false);
 const selectedAddress = ref('');
 const guestForm = ref({
@@ -73,7 +78,7 @@ const guestForm = ref({
   registrar_datos: false,
 });
 
-// FunciÃ³n para formatear precios con punto para miles y coma para decimales
+// Función para formatear precios con punto para miles y coma para decimales
 const formatPrice = (price) => {
   if (!price || isNaN(price)) return '0,00';
   return new Intl.NumberFormat('es-AR', {
@@ -82,19 +87,19 @@ const formatPrice = (price) => {
   }).format(price);
 };
 
-// Mostrar toast cuando cambian los mensajes flash (Ã©xito / error)
+// Mostrar toast cuando cambian los mensajes flash (éxito / error)
 watch(() => $page.props.flash, (flash) => {
     if (flash?.error) {
         toast.add({
             severity: 'warn',
             summary: 'Aviso',
-            detail: flash.error || 'Ya estÃ¡ inscripto a esa actividad!',
+            detail: flash.error || 'Ya está inscripto a esa actividad!',
             life: 10000,
         });
     } else if (flash?.success) {
         toast.add({
             severity: 'success',
-            summary: 'InscripciÃ³n',
+            summary: 'Inscripción',
             detail: flash.success,
             life: 5000,
         });
@@ -120,26 +125,14 @@ const inscripcionesIds = computed(() => {
   return props.userInscripcionesActividadIds || [];
 });
 
-// FunciÃ³n que alterna el estado flipped
+// Función que alterna el estado flipped
 function toggleFlip(id) {
   flippedCards.value[id] = !flippedCards.value[id];
 }
-// AcciÃ³n al pulsar â€œInscribirmeâ€
+// Acción al pulsar "Inscribirme"
 function inscribir(actividad) {
-  if (!userContext.value) {
-    actividadAInscribir.value = actividad;
-    if (emailInput.value && !guestForm.value.email) {
-      guestForm.value.email = emailInput.value.trim();
-    }
-    guestModalVisible.value = true;
-    return;
-  }
   actividadAInscribir.value = actividad;
-  iniciarPagoParaUsuario();
-}
-// FunciÃ³n para confirmar la inscripciÃ³n despuÃ©s del modal
-function confirmarInscripcion() {
-  // Deprecated: flujo ahora va a pantalla de pago
+  abrirDialogoInscripcion();
 }
 function getFechaLimiteDescuento(actividad) {
   if (!actividad?.pagoAmticipado) return null;
@@ -243,8 +236,8 @@ async function buscarPorEmail() {
 
   const email = emailInput.value.trim();
   if (!email) {
-    lookupError.value = 'IngresÃ¡ un email vÃ¡lido.';
-    return;
+    lookupError.value = 'Ingresá un email válido.';
+    return null;
   }
 
   isLookingUp.value = true;
@@ -253,13 +246,102 @@ async function buscarPorEmail() {
     if (response.data?.found) {
       userByEmail.value = response.data.user;
       localStorage.setItem('gridActividadesEmail', email);
+      return response.data.user;
     } else {
       lookupError.value = 'No encontramos un usuario con ese email.';
+      return null;
     }
   } catch (error) {
-    lookupError.value = 'No se pudo validar el email. ProbÃ¡ de nuevo.';
+    lookupError.value = 'No se pudo validar el email. Probá de nuevo.';
+    return null;
   } finally {
     isLookingUp.value = false;
+  }
+}
+
+function abrirDialogoInscripcion() {
+  guestModalVisible.value = true;
+  inscripcionMode.value = null;
+  lookupError.value = '';
+  loginError.value = '';
+  emailInput.value = userByEmail.value?.email || $page.props?.auth?.user?.email || '';
+  loginForm.value = {
+    email: $page.props?.auth?.user?.email || emailInput.value || '',
+    password: '',
+  };
+}
+
+function seleccionarModoInscripcion(mode) {
+  inscripcionMode.value = mode;
+  lookupError.value = '';
+  loginError.value = '';
+
+  if (mode === 'nuevo') {
+    if (emailInput.value && !guestForm.value.email) {
+      guestForm.value.email = emailInput.value.trim();
+    }
+    return;
+  }
+
+  if (mode === 'registrado') {
+    emailInput.value = $page.props?.auth?.user?.email || emailInput.value || '';
+    return;
+  }
+
+  if (mode === 'login') {
+    loginForm.value.email = $page.props?.auth?.user?.email || emailInput.value || '';
+    loginForm.value.password = '';
+  }
+}
+
+async function continuarUsuarioRegistrado() {
+  if (!actividadAInscribir.value) return;
+  lookupError.value = '';
+  const user = await buscarPorEmail();
+  if (!user) return;
+
+  await axios.post(route('grid-actividades.pago.prepare'), {
+    actividad_id: actividadAInscribir.value.id,
+    user_id: user.id,
+  });
+
+  guestModalVisible.value = false;
+  router.visit(route('grid-actividades.pago', actividadAInscribir.value.id));
+}
+
+async function iniciarSesionYContinuar() {
+  if (!actividadAInscribir.value) return;
+  loginError.value = '';
+  const email = loginForm.value.email.trim();
+  const password = loginForm.value.password;
+
+  if (!email) {
+    loginError.value = 'Ingresá tu email.';
+    return;
+  }
+
+  if (!password) {
+    loginError.value = 'Ingresá tu contraseña.';
+    return;
+  }
+
+  isLoggingIn.value = true;
+  try {
+    await axios.post('/login', {
+      email,
+      password,
+      remember: false,
+    });
+
+    guestModalVisible.value = false;
+    router.visit(route('grid-actividades.pago', actividadAInscribir.value.id));
+  } catch (error) {
+    const status = error?.response?.status;
+    loginError.value = status === 422
+      ? 'Email o contraseña inválidos.'
+      : 'No se pudo iniciar sesión. Intentá nuevamente.';
+  } finally {
+    isLoggingIn.value = false;
   }
 }
 
@@ -276,46 +358,6 @@ onMounted(() => {
 function irMasInfo(actividad) {
   const destino = route('grid-actividades.show-public', actividad.id);
   router.visit(destino);
-}
-
-async function iniciarPagoParaUsuario() {
-  if (!actividadAInscribir.value || !userContext.value) return;
-  try {
-    await axios.post(route('grid-actividades.pago.prepare'), {
-      actividad_id: actividadAInscribir.value.id,
-      user_id: userContext.value.id,
-    });
-    router.visit(route('grid-actividades.pago', actividadAInscribir.value.id));
-  } catch (error) {
-    const mensaje = error?.response?.data?.message || 'No se pudo iniciar el pago.';
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: mensaje,
-      life: 5000,
-    });
-  }
-}
-
-function resetGuestForm() {
-  guestForm.value = {
-    name: '',
-    email: '',
-    telefono: '',
-    whatsapp: '',
-    pais_id: '',
-    provincia_id: '',
-    municipio_id: '',
-    barrio_id: '',
-    direccion: '',
-    msgxmail: false,
-    msgxwapp: false,
-    accesibilidad: false,
-    accesibilidad_desc: '',
-    info_tarjetas_kadampa: false,
-    registrar_datos: false,
-  };
-  guestErrors.value = {};
 }
 
 async function enviarInscripcionGuest() {
@@ -336,7 +378,7 @@ async function enviarInscripcionGuest() {
     router.visit(route('grid-actividades.pago', actividadAInscribir.value.id));
   } catch (error) {
     guestErrors.value = error?.response?.data?.errors || {};
-    const mensaje = error?.response?.data?.message || 'No se pudo procesar la inscripciÃ³n.';
+    const mensaje = error?.response?.data?.message || 'No se pudo procesar la inscripción.';
     toast.add({
       severity: 'error',
       summary: 'Error',
@@ -452,7 +494,7 @@ function renderMarkdown(value) {
                                 :href="route('asistant.panel')"
                                 class="inline-flex items-center rounded-md border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-600 hover:text-white transition-colors"
                             >
-                                Volver al menÃº
+                                Volver al menú
                             </Link>
                         </div>
                         <div v-if="!isAuthenticated" class="mb-6 rounded-lg border border-indigo-100 bg-indigo-50/40 p-4">
@@ -687,13 +729,13 @@ function renderMarkdown(value) {
                                         </div>
                                     </div>
 
-                                    <!-- BACK: descripciÃ³n completa -->
+                                    <!-- BACK: descripción completa -->
                                     <div class="flip-card-back p-4 md:p-6 flex flex-col h-full" @click="toggleFlip(actividad.id)">
-                                        <h3 class="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-gray-800">DescripciÃ³n</h3>
+                                        <h3 class="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-gray-800">Descripción</h3>
                                         <div class="flex-1 overflow-y-auto">
                                             <div
                                                 class="prose prose-xs md:prose-sm max-w-none text-gray-700"
-                                                v-html="renderMarkdown(actividad.descripcion?.descripcion || 'No hay descripciÃ³n disponible')"
+                                                v-html="renderMarkdown(actividad.descripcion?.descripcion || 'No hay descripción disponible')"
                                             ></div>
                                         </div>
                                         <div class="mt-4 pt-4 border-t border-gray-200">
@@ -719,42 +761,36 @@ function renderMarkdown(value) {
             </div>
         </div>
 
-        <!-- Modal de inscripciÃ³n para invitado -->
-        <Dialog
-            v-model:visible="guestModalVisible"
-            modal
-            header="Completa tus datos para inscribirte"
-            :style="{ width: '900px' }"
-            :breakpoints="{ '1199px': '90vw', '575px': '95vw' }"
-        >
-            <div class="max-h-[70vh] overflow-y-auto pr-2">
-                <GuestUserForm
-                    :form="guestForm"
-                    :errors="guestErrors"
-                    :paises="paises"
-                    :provincias="provincias"
-                    :municipios="municipios"
-                    :barrios="barrios"
-                />
-            </div>
-            <template #footer>
-                <div class="flex justify-end gap-2">
-                    <button
-                        @click="guestModalVisible = false"
-                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        @click="enviarInscripcionGuest"
-                        :disabled="isGuestSubmitting"
-                        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-60"
-                    >
-                        {{ isGuestSubmitting ? 'Enviando...' : 'Guardar e Inscribirme' }}
-                    </button>
-                </div>
-            </template>
-        </Dialog>
+        <!-- Modal de inscripción para invitado -->
+        <InscripcionModoDialog
+            v-model="guestModalVisible"
+            :mode="inscripcionMode"
+            :highlight-all-when-mode-empty="true"
+            :loading-nuevo="isGuestSubmitting"
+            :loading-registrado="isLookingUp"
+            :loading-login="isLoggingIn"
+            :guest-form="guestForm"
+            :guest-errors="guestErrors"
+            :paises="paises"
+            :provincias="provincias"
+            :municipios="municipios"
+            :barrios="barrios"
+            :email="emailInput"
+            :registered-error="lookupError"
+            :login-email="loginForm.email"
+            :login-password="loginForm.password"
+            :login-error="loginError"
+            registered-input-id="email-registrado-grid-index"
+            login-email-id="login-email-grid-index"
+            login-password-id="login-password-grid-index"
+            @update:email="emailInput = $event"
+            @update:login-email="loginForm.email = $event"
+            @update:login-password="loginForm.password = $event"
+            @select-mode="seleccionarModoInscripcion"
+            @submit-nuevo="enviarInscripcionGuest"
+            @submit-registrado="continuarUsuarioRegistrado"
+            @submit-login="iniciarSesionYContinuar"
+        />
 
         <Dialog
             v-model:visible="mapModalVisible"
@@ -839,7 +875,7 @@ function renderMarkdown(value) {
   color: white !important;
 }
 
-/* front y back se apilan, uno rota 0Â°, el otro 180Â° */
+/* front y back se apilan, uno rota 0°, el otro 180° */
 .flip-card-front,
 .flip-card-back {
   position: absolute;
@@ -858,3 +894,4 @@ function renderMarkdown(value) {
   cursor: pointer;
 }
 </style>
+

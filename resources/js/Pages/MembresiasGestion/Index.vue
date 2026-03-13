@@ -21,7 +21,7 @@
                         <div v-if="usuarios.data.length > 0" class="overflow-x-auto">
                             <DataTable
                                 v-model:filters="filters"
-                                :value="usuariosConMembresia"
+                                :value="usuariosFiltrados"
                                 filterDisplay="menu"
                                 :globalFilterFields="['name', 'email', 'membresia_nombre', 'membresia_inscripcion_fecha']"
                                 stripedRows
@@ -29,13 +29,22 @@
                             >
                                 <template #header>
                                     <div class="flex justify-between items-center">
-                                        <Button
-                                            type="button"
-                                            icon="pi pi-filter-slash"
-                                            label="Limpiar"
-                                            outlined
-                                            @click="clearFilters()"
-                                        />
+                                        <div class="flex items-center gap-2">
+                                            <Button
+                                                type="button"
+                                                icon="pi pi-filter-slash"
+                                                label="Limpiar"
+                                                outlined
+                                                @click="clearFilters()"
+                                            />
+                                            <select
+                                                v-model="filtroMembresia"
+                                                class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            >
+                                                <option value="con_membresia">Con membresia</option>
+                                                <option value="todos">Mostrar todos</option>
+                                            </select>
+                                        </div>
                                         <IconField iconPosition="right">
                                             <InputIcon>
                                                 <i class="pi pi-search" />
@@ -215,12 +224,24 @@ const props = defineProps({
     membresias: Array
 });
 
+const filtroMembresia = ref('con_membresia');
+
 const usuariosConMembresia = computed(() =>
     props.usuarios.data.map((usuario) => ({
         ...usuario,
         membresia_nombre: usuario.membresia && usuario.membresia.nombre ? usuario.membresia.nombre : ''
     }))
 );
+
+const usuariosFiltrados = computed(() => {
+    if (filtroMembresia.value === 'todos') {
+        return usuariosConMembresia.value;
+    }
+
+    return usuariosConMembresia.value.filter((usuario) =>
+        usuario.membresia && Number(usuario.membresia.id) !== 1
+    );
+});
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -238,6 +259,7 @@ const clearFilters = () => {
         membresia_nombre: { value: null, matchMode: FilterMatchMode.CONTAINS },
         membresia_inscripcion_fecha: { value: null, matchMode: FilterMatchMode.CONTAINS }
     };
+    filtroMembresia.value = 'con_membresia';
 };
 
 const mostrarModal = ref(false);

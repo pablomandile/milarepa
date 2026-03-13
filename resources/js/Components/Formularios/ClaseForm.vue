@@ -6,7 +6,6 @@ export default {
 
 <script setup>
 import { computed, watch } from 'vue';
-import { Link } from '@inertiajs/vue3';
 import FormSection from '@/Components/FormSection.vue'
 import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
@@ -66,7 +65,11 @@ const props = defineProps({
     },
 });
 
-defineEmits(['submit']);
+const emit = defineEmits(['submit', 'refresh-catalogo']);
+
+function onClickRefresh(catalogo) {
+    emit('refresh-catalogo', catalogo);
+}
 
 const diasSemanaOptions = [
     { label: 'Lunes', value: 'lunes' },
@@ -226,13 +229,23 @@ watch(
                             placeholder="Seleccione un ciclo"
                             class="w-full border border-gray-300"
                         />
-                        <Link
+                        <a
                             :href="route('ciclos.create')"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
                             v-tooltip="'Crear nuevo ciclo'"
                         >
                             <i class="pi pi-file-plus"></i>
-                        </Link>
+                        </a>
+                        <button
+                            type="button"
+                            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+                            @click="onClickRefresh('ciclos')"
+                            v-tooltip="'Refrescar ciclos'"
+                        >
+                            <i class="pi pi-refresh"></i>
+                        </button>
                     </div>
                     <InputError :message="$page.props.errors.ciclo_id" class="mt-2" />
                 </div>
@@ -249,13 +262,23 @@ watch(
                             placeholder="Seleccione una entidad"
                             class="w-full border border-gray-300"
                         />
-                        <Link
+                        <a
                             :href="route('entidades.create')"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
                             v-tooltip="'Crear nueva entidad'"
                         >
                             <i class="pi pi-file-plus"></i>
-                        </Link>
+                        </a>
+                        <button
+                            type="button"
+                            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+                            @click="onClickRefresh('entidades')"
+                            v-tooltip="'Refrescar entidades'"
+                        >
+                            <i class="pi pi-refresh"></i>
+                        </button>
                     </div>
                     <InputError :message="$page.props.errors.entidad_id" class="mt-2" />
                 </div>

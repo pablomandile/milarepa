@@ -4,7 +4,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 import Dialog from 'primevue/dialog';
 import { useToast } from 'primevue/usetoast';
-import GuestUserForm from '@/Components/Formularios/GuestUserForm.vue';
+import InscripcionModoDialog from '@/Components/Dialogs/InscripcionModoDialog.vue';
 
 const props = defineProps({
   actividad: {
@@ -364,27 +364,6 @@ function abrirMapa(direccion) {
 
 function direccionActividad() {
   return props.actividad?.lugar?.direccion || props.actividad?.entidad?.direccion || '';
-}
-
-function resetGuestForm() {
-  guestForm.value = {
-    name: '',
-    email: '',
-    telefono: '',
-    whatsapp: '',
-    pais_id: '',
-    provincia_id: '',
-    municipio_id: '',
-    barrio_id: '',
-    direccion: '',
-    msgxmail: false,
-    msgxwapp: false,
-    accesibilidad: false,
-    accesibilidad_desc: '',
-    info_tarjetas_kadampa: false,
-    registrar_datos: false,
-  };
-  guestErrors.value = {};
 }
 
 async function buscarPorEmail() {
@@ -805,131 +784,35 @@ onMounted(() => {
         />
       </div>
     </Dialog>
-
-    <Dialog
-      v-model:visible="guestModalVisible"
-      modal
-      header=""
-      :style="{ width: '900px' }"
-      :breakpoints="{ '1199px': '90vw', '575px': '95vw' }"
-    >
-      <div class="space-y-4">
-        <h2 class="text-xl font-semibold text-gray-900">Elige la forma de Inscribirte</h2>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <button
-            type="button"
-            class="px-3 py-2 rounded-md font-medium transition-colors"
-            :class="inscripcionMode === 'nuevo' || !inscripcionMode
-              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-            @click="seleccionarModoInscripcion('nuevo')"
-          >
-            Soy nuevo
-          </button>
-          <button
-            type="button"
-            class="px-3 py-2 rounded-md font-medium transition-colors"
-            :class="inscripcionMode === 'registrado' || !inscripcionMode
-              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-            @click="seleccionarModoInscripcion('registrado')"
-          >
-            Ya estoy Registrado
-          </button>
-          <button
-            type="button"
-            class="px-3 py-2 rounded-md font-medium transition-colors"
-            :class="inscripcionMode === 'login' || !inscripcionMode
-              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-            @click="seleccionarModoInscripcion('login')"
-          >
-            Iniciar sesión
-          </button>
-        </div>
-
-        <div v-if="inscripcionMode === 'nuevo'" class="max-h-[70vh] overflow-y-auto pr-2">
-          <GuestUserForm
-            :form="guestForm"
-            :errors="guestErrors"
-            :paises="paises"
-            :provincias="provincias"
-            :municipios="municipios"
-            :barrios="barrios"
-          />
-        </div>
-
-        <div v-else-if="inscripcionMode === 'registrado'" class="space-y-2">
-          <label class="text-sm font-medium text-gray-700" for="email-registrado">Email</label>
-          <input
-            id="email-registrado"
-            v-model="emailInput"
-            type="email"
-            class="w-full max-w-md rounded-md border border-gray-300 px-3 py-2"
-            placeholder="tu@email.com"
-          />
-          <p v-if="lookupError" class="text-sm text-red-600">{{ lookupError }}</p>
-        </div>
-
-        <div v-else-if="inscripcionMode === 'login'" class="space-y-2">
-          <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700" for="login-email">Email</label>
-            <input
-              id="login-email"
-              v-model="loginForm.email"
-              type="email"
-              class="block w-full max-w-md rounded-md border border-gray-300 px-3 py-2"
-              placeholder="tu@email.com"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700" for="login-password">Contraseña</label>
-            <input
-              id="login-password"
-              v-model="loginForm.password"
-              type="password"
-              class="block w-full max-w-md rounded-md border border-gray-300 px-3 py-2"
-              placeholder="••••••••"
-            />
-          </div>
-          <p v-if="loginError" class="text-sm text-red-600">{{ loginError }}</p>
-        </div>
-      </div>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <button
-            @click="guestModalVisible = false"
-            class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-600 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            v-if="inscripcionMode === 'nuevo'"
-            @click="enviarInscripcionGuest"
-            :disabled="isGuestSubmitting"
-            class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-60"
-          >
-            {{ isGuestSubmitting ? 'Enviando...' : 'Guardar e Inscribirme' }}
-          </button>
-          <button
-            v-else-if="inscripcionMode === 'registrado'"
-            @click="continuarUsuarioRegistrado"
-            :disabled="isLookingUp"
-            class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors disabled:opacity-60"
-          >
-            {{ isLookingUp ? 'Validando...' : 'Continuar' }}
-          </button>
-          <button
-            v-else-if="inscripcionMode === 'login'"
-            @click="iniciarSesionYContinuar"
-            :disabled="isLoggingIn"
-            class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors disabled:opacity-60"
-          >
-            {{ isLoggingIn ? 'Iniciando...' : 'Iniciar Sesión y Continuar' }}
-          </button>
-        </div>
-      </template>
-    </Dialog>
+    <InscripcionModoDialog
+      v-model="guestModalVisible"
+      :mode="inscripcionMode"
+      :highlight-all-when-mode-empty="true"
+      :loading-nuevo="isGuestSubmitting"
+      :loading-registrado="isLookingUp"
+      :loading-login="isLoggingIn"
+      :guest-form="guestForm"
+      :guest-errors="guestErrors"
+      :paises="paises"
+      :provincias="provincias"
+      :municipios="municipios"
+      :barrios="barrios"
+      :email="emailInput"
+      :registered-error="lookupError"
+      :login-email="loginForm.email"
+      :login-password="loginForm.password"
+      :login-error="loginError"
+      registered-input-id="email-registrado"
+      login-email-id="login-email"
+      login-password-id="login-password"
+      @update:email="emailInput = $event"
+      @update:login-email="loginForm.email = $event"
+      @update:login-password="loginForm.password = $event"
+      @select-mode="seleccionarModoInscripcion"
+      @submit-nuevo="enviarInscripcionGuest"
+      @submit-registrado="continuarUsuarioRegistrado"
+      @submit-login="iniciarSesionYContinuar"
+    />
   </AppLayout>
 </template>
+

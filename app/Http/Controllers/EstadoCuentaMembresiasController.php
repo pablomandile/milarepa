@@ -6,6 +6,7 @@ use App\Models\EstadoCuentaMembresia;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Membresia;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
@@ -69,7 +70,8 @@ class EstadoCuentaMembresiasController extends Controller
             'pagado' => 'required|boolean',
             'fecha_pago' => 'nullable|date',
             'observaciones' => 'nullable|string|max:255',
-            'modo' => 'nullable|string|max:100'
+            'modo' => ['nullable', Rule::in(EstadoCuentaMembresia::MODOS_PAGO)],
+            'info_pago' => 'nullable|string|max:255',
         ]);
 
         if ($validated['pagado'] && empty($validated['fecha_pago'])) {
@@ -88,7 +90,7 @@ class EstadoCuentaMembresiasController extends Controller
             'comprobante' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
             'estado_cuenta_id' => ['nullable', 'exists:estado_cuenta_membresias,id'],
             'mes_pagado' => ['nullable', 'date_format:Y-m'],
-            'modo' => ['nullable', 'in:Efectivo,Transferencia'],
+            'modo' => ['nullable', Rule::in(EstadoCuentaMembresia::MODOS_PAGO)],
         ], [
             'comprobante.max' => 'El comprobante supera el tamaÃ±o mÃ¡ximo permitido (4 MB).',
             'comprobante.mimes' => 'El comprobante debe ser PDF, JPG o PNG.',
@@ -208,5 +210,3 @@ class EstadoCuentaMembresiasController extends Controller
         }
     }
 }
-
-

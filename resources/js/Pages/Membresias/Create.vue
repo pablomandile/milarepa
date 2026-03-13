@@ -24,6 +24,7 @@
     const form = useForm({
         nombre: '',
         descripcion: '',
+        info: '',
         entidad_id: '',
         botonpago_id: null,
         imagen_id: null,

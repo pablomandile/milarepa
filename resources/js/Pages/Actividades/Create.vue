@@ -5,22 +5,37 @@
 </script>
 
 <script setup>
-    import { useForm } from '@inertiajs/vue3';
+    import { Link, router, useForm } from '@inertiajs/vue3';
     import AppLayout from '@/Layouts/AppLayout.vue'
     import ActividadForm from '@/Components/Formularios/ActividadForm.vue'
-    import { Link } from '@inertiajs/vue3';
     import ScrollTop from 'primevue/scrolltop';
-    import { Inertia } from '@inertiajs/inertia';
 
 
-    function reloadDescripciones() {
-    // Llama a Inertia.reload pidiendo solo la prop `descripciones` y preservando el resto
-        Inertia.reload({
-            only: ['descripciones'],
+    const CATALOGOS_RECARGABLES = new Set([
+        'tiposActividad',
+        'descripciones',
+        'entidades',
+        'lugares',
+        'esquema_precios',
+        'esquema_descuentos',
+        'programas',
+        'grabaciones',
+        'streams',
+    ]);
+
+    function reloadCatalogo(catalogo) {
+        if (!CATALOGOS_RECARGABLES.has(catalogo)) return;
+
+        router.reload({
+            only: [catalogo],
             preserveState: true,
             preserveScroll: true,
         });
-    } 
+    }
+
+    function reloadDescripciones() {
+        reloadCatalogo('descripciones');
+    }
 
     const props = defineProps({
         tiposActividad: {
@@ -232,6 +247,7 @@
                               :hide-header="true"
                               @submit="handleSubmit"
                               @refresh-descripciones="reloadDescripciones"
+                              @refresh-catalogo="reloadCatalogo"
                             />
                         </div>
                     </div>

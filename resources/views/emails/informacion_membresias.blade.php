@@ -73,10 +73,10 @@
         </div>
 
         <div class="footer">
+            @include('emails.partials.logo_entidad_principal')
             Milarepa - Sistema de Inscripciones<br>
             Este es un correo automático.
         </div>
     </div>
 </body>
 </html>
-

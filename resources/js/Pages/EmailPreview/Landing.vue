@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
@@ -36,7 +36,7 @@ const verEmail4 = () => {
 
 const verEmail5 = () => {
     if (email5Id.value) {
-        window.location.href = `/email-preview/email5/${email5Id.value}`;
+        window.location.href = `/email-preview/inscripcion-tk-registrada/${email5Id.value}`;
     }
 };
 
@@ -50,13 +50,13 @@ const verEmail6 = () => {
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Previsualización de Emails</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">PrevisualizaciÃ³n de Emails</h1>
         </template>
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Card 1: Inscripción Confirmada -->
+                    <!-- Card 1: InscripciÃ³n Confirmada -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-indigo-600 to-purple-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">📧 Inscripción Registrada</h2>
@@ -95,7 +95,7 @@ const verEmail6 = () => {
                         </div>
                     </div>
 
-                    <!-- Card 2: Confirmación de Pago -->
+                    <!-- Card 2: ConfirmaciÃ³n de Pago -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-green-600 to-emerald-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">💳 Confirmación de Pago</h2>
@@ -134,7 +134,7 @@ const verEmail6 = () => {
                         </div>
                     </div>
 
-                    <!-- Card 3: Grabación Disponible -->
+                    <!-- Card 3: GrabaciÃ³n Disponible -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-orange-600 to-red-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">🎬 Grabación Disponible</h2>
@@ -182,8 +182,8 @@ const verEmail6 = () => {
                     <!-- Card 4 -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-blue-600 to-cyan-700 text-white text-center">
-                            <h2 class="text-xl font-bold mb-2">Tarjetas Kadampa</h2>
-                            <p class="opacity-90 text-sm">Informacion de membresias</p>
+                            <h2 class="text-xl font-bold mb-2">💳 Tarjetas Kadampa</h2>
+                            <p class="opacity-90 text-sm">Información de membresías</p>
                         </div>
 
                         <div class="p-6 space-y-4">
@@ -221,13 +221,13 @@ const verEmail6 = () => {
                     <!-- Card 5 -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-pink-600 to-rose-700 text-white text-center">
-                            <h2 class="text-xl font-bold mb-2">💌 Email 5</h2>
-                            <p class="opacity-90 text-sm">Plantilla de email personalizada</p>
+                            <h2 class="text-xl font-bold mb-2">📧 Inscripción TK Registrada</h2>
+                            <p class="opacity-90 text-sm">Email de registro de Tarjeta Kadampa</p>
                         </div>
 
                         <div class="p-6 space-y-4">
                             <Link
-                                href="/email-preview/inscripcion"
+                                href="/email-preview/inscripcion-tk-registrada"
                                 class="block w-full px-4 py-2 text-center bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-semibold text-sm"
                             >
                                 Ver con Datos de Prueba
@@ -260,7 +260,7 @@ const verEmail6 = () => {
                     <!-- Card 6 -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-yellow-600 to-amber-700 text-white text-center">
-                            <h2 class="text-xl font-bold mb-2">📬 Email 6</h2>
+                            <h2 class="text-xl font-bold mb-2">📧 Email 6</h2>
                             <p class="opacity-90 text-sm">Plantilla de email personalizada</p>
                         </div>
 
@@ -300,3 +300,4 @@ const verEmail6 = () => {
         </div>
     </AppLayout>
 </template>
+

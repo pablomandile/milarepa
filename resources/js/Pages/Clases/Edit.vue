@@ -5,10 +5,9 @@ export default {
 </script>
 
 <script setup>
-import { useForm } from '@inertiajs/vue3';
+import { Link, router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import ClaseForm from '@/Components/Formularios/ClaseForm.vue';
-import { Link } from '@inertiajs/vue3';
 
 const props = defineProps({
     clase: {
@@ -67,6 +66,18 @@ const form = useForm({
     activa: props.clase.activa ?? true,
 });
 
+const CATALOGOS_RECARGABLES = new Set(['ciclos', 'entidades']);
+
+function reloadCatalogo(catalogo) {
+    if (!CATALOGOS_RECARGABLES.has(catalogo)) return;
+
+    router.reload({
+        only: [catalogo],
+        preserveState: true,
+        preserveScroll: true,
+    });
+}
+
 const handleSubmit = () => {
     form.put(route('clases.update', props.clase.id));
 };
@@ -106,6 +117,7 @@ const handleSubmit = () => {
                                 :imagen-preview-url="props.clase.imagen ? `/storage/${props.clase.imagen.ruta}` : ''"
                                 :hide-header="true"
                                 @submit="handleSubmit"
+                                @refresh-catalogo="reloadCatalogo"
                             />
                         </div>
                     </div>

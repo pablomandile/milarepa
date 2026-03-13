@@ -33,6 +33,7 @@
     const form = useForm({
         nombre: props.membresia.nombre,
         descripcion: props.membresia.descripcion,
+        info: props.membresia.info || '',
         entidad_id: props.membresia.entidad_id,
         botonpago_id: props.membresia.botonpago_id || null,
         imagen_id: props.membresia.imagen_id || null,

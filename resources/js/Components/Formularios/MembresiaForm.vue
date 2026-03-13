@@ -66,6 +66,17 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6 mt-3">
+                <InputLabel for="info" value="Info" :required="false"/>
+                <textarea
+                    id="info"
+                    v-model="form.info"
+                    rows="5"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    placeholder="Informacion adicional de la membresia"
+                ></textarea>
+                <InputError :message="$page.props.errors.info" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6 mt-3">
                 <InputLabel for="entidad_id" value="Entidad" :required="true"/>
                 <Dropdown
                     id="entidad_id"

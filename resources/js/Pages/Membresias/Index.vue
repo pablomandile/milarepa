@@ -4,7 +4,6 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import DataView from 'primevue/dataview';
 import Dialog from 'primevue/dialog';
-import Button from 'primevue/button';
 import Swal from 'sweetalert2';
 
 const page = usePage();
@@ -43,6 +42,7 @@ const isUploading = ref(false);
 const mesImputar = ref('');
 const pagoEfectivo = ref(false);
 const fallbackMembresiaImage = '/storage/img/actividades/imagen-no-disponible.jpg';
+const flippedCards = ref({});
 
 const userMembresia = props.user_membresia;
 
@@ -144,6 +144,74 @@ const imagenMembresia = (membresia) => {
     return fallbackMembresiaImage;
 };
 
+const toggleFlip = (id) => {
+    flippedCards.value[id] = !flippedCards.value[id];
+};
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function formatInlineMarkdown(value) {
+    return value
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>');
+}
+
+function renderInfoMarkdown(value) {
+    const safeText = escapeHtml(value).replace(/\r\n/g, '\n');
+    const lines = safeText.split('\n');
+    const html = [];
+    let inList = false;
+
+    for (const rawLine of lines) {
+        const line = rawLine.trim();
+
+        if (!line) {
+            if (inList) {
+                html.push('</ul>');
+                inList = false;
+            }
+            continue;
+        }
+
+        if (line.startsWith('- ')) {
+            if (!inList) {
+                html.push('<ul class="list-disc pl-5 my-2 space-y-1">');
+                inList = true;
+            }
+            html.push(`<li>${formatInlineMarkdown(line.slice(2).trim())}</li>`);
+            continue;
+        }
+
+        if (inList) {
+            html.push('</ul>');
+            inList = false;
+        }
+
+        if (line.startsWith('### ')) {
+            html.push(`<h5 class="text-sm font-semibold text-gray-900 mt-2">${formatInlineMarkdown(line.slice(4).trim())}</h5>`);
+        } else if (line.startsWith('## ')) {
+            html.push(`<h4 class="text-base font-semibold text-gray-900 mt-2">${formatInlineMarkdown(line.slice(3).trim())}</h4>`);
+        } else if (line.startsWith('# ')) {
+            html.push(`<h3 class="text-lg font-bold text-gray-900 mt-2">${formatInlineMarkdown(line.slice(2).trim())}</h3>`);
+        } else {
+            html.push(`<p class="text-xs text-gray-700 leading-relaxed mt-1">${formatInlineMarkdown(line)}</p>`);
+        }
+    }
+
+    if (inList) {
+        html.push('</ul>');
+    }
+
+    return html.join('');
+}
+
 function seleccionarComprobante(event) {
     comprobanteFile.value = event.target.files?.[0] || null;
 }
@@ -205,7 +273,7 @@ async function subirComprobante() {
                             <div>
                                 <h2 class="text-2xl font-bold text-900 m-0">Membresías Disponibles</h2>
                                 <p v-if="userMembresia" class="text-base text-600 mt-2">
-                                    <span class="font-semibold">Tu membresí­a actual: </span>
+                                    <span class="font-semibold">Tu membresía actual: </span>
                                     <span class="font-bold text-green-600">
                                         {{ userMembresia.nombre }}
                                         <span v-if="page.props.auth?.user?.membresia_online" class="ml-2 text-xs font-semibold text-indigo-600">ONLINE</span>
@@ -276,12 +344,26 @@ async function subirComprobante() {
                                             <div class="p-card bg-white border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300">
                                                 <div class="p-card-body p-4">
                                                     <div class="flex flex-col h-full">
-                                                        <div class="mb-3 overflow-hidden rounded border border-gray-200 bg-gray-50">
-                                                            <img
-                                                                :src="imagenMembresia(membresia)"
-                                                                :alt="`Imagen de ${membresia.nombre}`"
-                                                                class="h-auto w-full object-contain"
-                                                            />
+                                                        <div
+                                                            class="mb-3 overflow-hidden rounded border border-gray-200 bg-gray-50 flip-card-container cursor-pointer"
+                                                            :class="{ flipped: flippedCards[membresia.id] }"
+                                                            @click="toggleFlip(membresia.id)"
+                                                            :title="flippedCards[membresia.id] ? 'Ver imagen' : 'Ver info'"
+                                                        >
+                                                            <div class="flip-card-inner">
+                                                                <div class="flip-card-front">
+                                                                    <img
+                                                                        :src="imagenMembresia(membresia)"
+                                                                        :alt="`Imagen de ${membresia.nombre}`"
+                                                                        class="h-full w-full object-contain"
+                                                                    />
+                                                                </div>
+                                                                <div class="flip-card-back">
+                                                                    <div class="h-full w-full overflow-y-auto rounded border border-gray-200 bg-white p-2">
+                                                                        <div v-html="renderInfoMarkdown(membresia.info || 'Sin info cargada.')"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                         <div class="flex align-items-center mb-3">
                                                             <div class="bg-primary-100 border-circle w-3rem h-3rem flex align-items-center justify-content-center mr-3">
@@ -334,12 +416,26 @@ async function subirComprobante() {
                                             <div class="p-card-body p-4">
                                                 <div class="flex flex-col md:flex-row md:align-items-center md:justify-between">
                                                     <div class="flex-1">
-                                                        <div class="mb-3 overflow-hidden rounded border border-gray-200 bg-gray-50">
-                                                            <img
-                                                                :src="imagenMembresia(membresia)"
-                                                                :alt="`Imagen de ${membresia.nombre}`"
-                                                                class="h-auto w-full object-contain"
-                                                            />
+                                                        <div
+                                                            class="mb-3 overflow-hidden rounded border border-gray-200 bg-gray-50 flip-card-container cursor-pointer"
+                                                            :class="{ flipped: flippedCards[membresia.id] }"
+                                                            @click="toggleFlip(membresia.id)"
+                                                            :title="flippedCards[membresia.id] ? 'Ver imagen' : 'Ver info'"
+                                                        >
+                                                            <div class="flip-card-inner">
+                                                                <div class="flip-card-front">
+                                                                    <img
+                                                                        :src="imagenMembresia(membresia)"
+                                                                        :alt="`Imagen de ${membresia.nombre}`"
+                                                                        class="h-full w-full object-contain"
+                                                                    />
+                                                                </div>
+                                                                <div class="flip-card-back">
+                                                                    <div class="h-full w-full overflow-y-auto rounded border border-gray-200 bg-white p-2">
+                                                                        <div v-html="renderInfoMarkdown(membresia.info || 'Sin info cargada.')"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                         <div class="flex align-items-center mb-3">
                                                             <div class="bg-primary-100 border-circle w-3rem h-3rem flex align-items-center justify-content-center mr-3">
@@ -532,6 +628,37 @@ async function subirComprobante() {
     flex-direction: column;
 }
 
+.flip-card-container {
+    perspective: 1000px;
+    height: clamp(240px, 32vw, 340px);
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.flip-card-container.flipped .flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flip-card-back {
+    transform: rotateY(180deg);
+}
+
 .p-card-title {
     color: #374151;
     font-weight: 700;
@@ -553,10 +680,3 @@ async function subirComprobante() {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 </style>
-
-
-
-
-
-
-

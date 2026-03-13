@@ -7,6 +7,7 @@
 <script setup>
     import AppLayout from '@/Layouts/AppLayout.vue';
     import { Link, router } from '@inertiajs/vue3';
+    import { ref } from 'vue';
     import Swal from "sweetalert2";
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
@@ -49,6 +50,13 @@
         }).format(valor);
     };
 
+    const imagenMembresiaSrc = (membresia) => {
+        const ruta = membresia?.imagen?.ruta || '';
+        return ruta ? `/storage/${ruta}` : '';
+    };
+
+    const expandedRows = ref({});
+
 </script>
 
 <style scoped>
@@ -69,8 +77,29 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="membresias.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 60rem">
+                        <DataTable
+                            v-model:expandedRows="expandedRows"
+                            :value="membresias.data"
+                            dataKey="id"
+                            stripedRows
+                            paginator
+                            :rows="5"
+                            :rowsPerPageOptions="[5, 10, 20, 50]"
+                            tableStyle="min-width: 60rem"
+                        >
+                            <Column expander style="width: 3rem" />
                             <Column field="nombre" header="Nombre"></Column>
+                            <Column header="Imagen">
+                                <template #body="slotProps">
+                                    <img
+                                        v-if="imagenMembresiaSrc(slotProps.data)"
+                                        :src="imagenMembresiaSrc(slotProps.data)"
+                                        :alt="`Imagen de ${slotProps.data.nombre}`"
+                                        class="h-12 w-20 object-contain rounded border border-gray-200 bg-gray-50"
+                                    />
+                                    <span v-else class="text-xs text-gray-500">Sin imagen</span>
+                                </template>
+                            </Column>
                             <Column field="descripcion" header="Descripción"></Column>
                             <Column field="entidad.nombre" header="Entidad"></Column>
                             <Column header="Botón de Pago">
@@ -103,6 +132,14 @@
                                     </div>
                                 </template>
                             </Column>
+                            <template #expansion="slotProps">
+                                <div class="p-4 bg-gray-50 border border-gray-200 rounded-md">
+                                    <p class="text-sm font-semibold text-gray-800 mb-2">Info</p>
+                                    <p class="text-sm text-gray-700 whitespace-pre-line">
+                                        {{ slotProps.data.info || 'Sin info cargada.' }}
+                                    </p>
+                                </div>
+                            </template>
                         </DataTable>
                     </div>
                 </div>

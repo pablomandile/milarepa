@@ -3,10 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inscripcion;
+use App\Models\Entidad;
+use App\Models\BotonPago;
 use Inertia\Inertia;
 
 class EmailPreviewController extends Controller
 {
+    private function obtenerRutaImagenMetodoPagoPreview(): string
+    {
+        return 'img/mpago/c14MfVRiXG21I6r6CCh47IKdcj4eMmRrFGl6nTKb.png';
+    }
+
+    private function obtenerLinkBotonPagoTkBenefactorPreview(): string
+    {
+        $botonTkBenefactor = BotonPago::query()
+            ->whereRaw("LOWER(REPLACE(TRIM(nombre), ' ', '')) = ?", ['tkbenefactornmp'])
+            ->whereNotNull('link')
+            ->where('link', '!=', '')
+            ->latest('id')
+            ->first();
+
+        if (!$botonTkBenefactor) {
+            $botonTkBenefactor = BotonPago::query()
+                ->whereRaw("LOWER(nombre) LIKE ?", ['%tkbenefactornmp%'])
+                ->whereNotNull('link')
+                ->where('link', '!=', '')
+                ->latest('id')
+                ->first();
+        }
+
+        return (string) ($botonTkBenefactor?->link ?: 'https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=demo-tk');
+    }
+
     /**
      * Landing de preview de emails
      */
@@ -27,6 +55,7 @@ class EmailPreviewController extends Controller
             'inscripcion' => $inscripcion,
             'actividad' => $inscripcion->actividad,
             'usuario' => $inscripcion->user,
+            'entidadPrincipal' => Entidad::where('entidad_principal', true)->first(),
             'esPreviewPrueba' => $esPreviewPrueba,
         ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
     }
@@ -45,6 +74,7 @@ class EmailPreviewController extends Controller
             'inscripcion' => $inscripcion,
             'actividad' => $inscripcion->actividad,
             'usuario' => $inscripcion->user,
+            'entidadPrincipal' => Entidad::where('entidad_principal', true)->first(),
             'esPreviewPrueba' => $esPreviewPrueba,
         ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
     }
@@ -61,6 +91,7 @@ class EmailPreviewController extends Controller
             'inscripcion' => $inscripcion,
             'actividad' => $inscripcion->actividad,
             'usuario' => $inscripcion->user,
+            'entidadPrincipal' => Entidad::where('entidad_principal', true)->first(),
             'esPreviewPrueba' => $esPreviewPrueba,
         ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
     }
@@ -76,6 +107,24 @@ class EmailPreviewController extends Controller
         return response()->view('emails.informacion_membresias', [
             'inscripcion' => $inscripcion,
             'usuario' => $inscripcion->user,
+            'entidadPrincipal' => Entidad::where('entidad_principal', true)->first(),
+            'esPreviewPrueba' => $esPreviewPrueba,
+        ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+    }
+
+    /**
+     * Vista previa del email de inscripcion TK registrada
+     */
+    public function inscripcionTkRegistrada($id = null)
+    {
+        $inscripcion = $this->obtenerInscripcionParaPreview($id);
+        $esPreviewPrueba = is_null($id);
+
+        return response()->view('emails.inscripcion_tk_registrada', [
+            'inscripcion' => $inscripcion,
+            'actividad' => $inscripcion->actividad,
+            'usuario' => $inscripcion->user,
+            'entidadPrincipal' => Entidad::where('entidad_principal', true)->first(),
             'esPreviewPrueba' => $esPreviewPrueba,
         ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
     }
@@ -89,11 +138,11 @@ class EmailPreviewController extends Controller
                 'actividad.descripcion',
                 'actividad.modalidad',
                 'actividad.stream.links',
-                'actividad.metodosPago',
+                'actividad.metodosPago.imagen',
                 'actividad.botonPago',
                 'actividad.grabacion.botonPago',
                 'actividad.grabacion.linksgrabacion',
-                'user',
+                'user.membresia.botonPago.metodoPago.imagen',
                 'hospedaje.botonPago',
                 'comida.botonPago',
                 'transporte.botonPago',
@@ -114,6 +163,9 @@ class EmailPreviewController extends Controller
      */
     private function crearInscripcionPrueba()
     {
+        $rutaImagenMetodoPagoPreview = $this->obtenerRutaImagenMetodoPagoPreview();
+        $linkTkBenefactorPreview = $this->obtenerLinkBotonPagoTkBenefactorPreview();
+
         $botonActividad = (object) [
             'nombre' => 'Getnet Actividad',
             'link' => 'https://www.getnet.com.ar/pago/actividad-demo',
@@ -134,11 +186,34 @@ class EmailPreviewController extends Controller
             'nombre' => 'Getnet Transporte',
             'link' => 'https://www.getnet.com.ar/pago/transporte-demo',
         ];
+        $botonTkMercadoPago = (object) [
+            'nombre' => 'TK Benefactor',
+            'link' => $linkTkBenefactorPreview,
+            'metodoPago' => (object) [
+                'nombre' => 'Mercadopago Link',
+                'imagen' => (object) ['ruta' => $rutaImagenMetodoPagoPreview],
+            ],
+        ];
+
+        $entidadTk = (object) [
+            'nombre' => 'Centro de Meditacion Kadampa Argentina',
+            'logo_url' => null,
+        ];
+
+        $membresiaTk = (object) [
+            'id' => 2,
+            'nombre' => 'TK Benefactor',
+            'descripcion' => 'TK Benefactor',
+            'valor' => 3500.00,
+            'botonPago' => $botonTkMercadoPago,
+            'entidad' => $entidadTk,
+        ];
 
         $usuario = (object) [
             'name' => 'Juan Carlos Perez',
             'email' => 'juan@example.com',
             'membresia_id' => 2,
+            'membresia' => $membresiaTk,
         ];
 
         $entidad = (object) [
@@ -224,6 +299,12 @@ class EmailPreviewController extends Controller
                 'descripcion' => 'CBU: 0000003100012345678901 - Alias: MILAREPA.CENTRO. Adjunta el comprobante con tu nombre y apellido.',
             ],
             (object) ['id' => 5, 'nombre' => 'Getnet', 'descripcion' => null],
+            (object) [
+                'id' => 6,
+                'nombre' => 'Mercadopago Link',
+                'descripcion' => null,
+                'imagen' => (object) ['ruta' => $rutaImagenMetodoPagoPreview],
+            ],
         ];
 
         $lineaGeneral = (object) [
@@ -235,7 +316,7 @@ class EmailPreviewController extends Controller
         $lineaMembresia = (object) [
             'membresia_id' => 2,
             'precio' => 3500.00,
-            'membresia' => (object) ['nombre' => 'Miembro Activo'],
+            'membresia' => (object) ['nombre' => 'TK Benefactor'],
             'botonPago' => $botonActividad,
         ];
 
@@ -268,7 +349,7 @@ class EmailPreviewController extends Controller
 
         $inscripcion->id = 999;
         $inscripcion->online = true;
-        $inscripcion->membresia = 'Miembro Activo';
+        $inscripcion->membresia = 'TK Benefactor';
         $inscripcion->precioGeneral = 5000.00;
         $inscripcion->montoActividad = 3500.00;
         $inscripcion->montoGrabacion = 650.00;

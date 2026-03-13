@@ -181,7 +181,7 @@
                         <DataTable 
                         :value="actividadesFiltradas" 
                         v-model:filters="filters"
-                        :globalFilterFields="['nombre', 'tipo_actividad.abreviacion', 'modalidad.nombre', 'entidad.abreviacion']"
+                        :globalFilterFields="['nombre', 'tipo_actividad.abreviacion', 'modalidad.nombre', 'entidad.abreviacion', 'lugar.abreviacion']"
                         stripedRows 
                         removableSort 
                         paginator 
@@ -233,6 +233,11 @@
                             </Column>
                             <Column field="nombre" header="Nombre" sortable></Column>
                             <Column field="tipo_actividad.abreviacion" header="Tipo" sortable></Column>
+                            <Column header="Lugar" sortable>
+                                <template #body="slotProps">
+                                    {{ slotProps.data.entidad?.abreviacion || slotProps.data.lugar?.abreviacion || '-' }}
+                                </template>
+                            </Column>
                             <Column header="Fecha Inicio" sortable field="fecha_inicio">
                                 <template #body="slotProps">
                                     {{ slotProps.data.fecha_inicio ? new Date(slotProps.data.fecha_inicio).toLocaleDateString('es-AR') : '-' }}

@@ -5,7 +5,7 @@ import EsquemaMembresiaForm from '@/Components/Formularios/EsquemaMembresiaForm.
 import { Link } from '@inertiajs/vue3';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import { route } from 'ziggy-js';
@@ -31,12 +31,24 @@ const props = defineProps({
     }
 });
 
+const botonesPagoOrdenados = computed(() =>
+  [...props.botonesPago].sort((a, b) => Number(b.id) - Number(a.id))
+);
+
+function getDefaultMonedaId() {
+  return props.monedas.length ? props.monedas[0].id : null;
+}
+
+function normalizePrecio(precio) {
+  return precio === null || precio === undefined || precio === '' ? 0 : precio;
+}
+
 // Este form se usará para “Agregar Membresía”
 const formMembresia = useForm({
     membresia_id: null,
     botonpago_id: null,
     precio: null,
-    moneda_id: null
+    moneda_id: getDefaultMonedaId()
 });
 
 // Al hacer submit en el formulario de membresía
@@ -44,15 +56,26 @@ function handleAddMembresia() {
   router.post(route('esquemaprecios.storeMembresia', props.esquemaPrecio.id), {
     membresia_id: formMembresia.membresia_id,
     botonpago_id: formMembresia.botonpago_id,
-    precio: formMembresia.precio,
+    precio: normalizePrecio(formMembresia.precio),
     moneda_id: formMembresia.moneda_id,
   }, {
     onSuccess: () => {
       // Limpiar
       formMembresia.reset();
+      formMembresia.moneda_id = getDefaultMonedaId();
     }
   });
 }
+
+watch(
+  () => props.monedas,
+  (monedas) => {
+    if (!formMembresia.moneda_id && monedas.length) {
+      formMembresia.moneda_id = monedas[0].id;
+    }
+  },
+  { immediate: true }
+);
 
 // DataTable en modo edición por fila
 const editingRows = ref([]);
@@ -60,7 +83,8 @@ const editingRows = ref([]);
 function onRowEditSave(event) {
   const membershipLine = event.newData ?? event.data;
   // membershipLine tendrá { id, membresia_id, precio, moneda_id, ... }
-  router.put(route('esquemaprecios.updateMembresia', membershipLine.id), membershipLine, {
+  const payload = { ...membershipLine, precio: normalizePrecio(membershipLine?.precio) };
+  router.put(route('esquemaprecios.updateMembresia', membershipLine.id), payload, {
     onSuccess: () => {
       // row editing final
     }
@@ -84,7 +108,7 @@ function getMonedaLabel(monedaId) {
 }
 
 function getBotonPagoLabel(botonPagoId) {
-  const found = props.botonesPago.find((b) => b.id === botonPagoId);
+  const found = botonesPagoOrdenados.value.find((b) => b.id === botonPagoId);
   return found ? found.nombre : '—';
 }
 
@@ -121,7 +145,7 @@ function getBotonPagoLabel(botonPagoId) {
                         :form="formMembresia"
                         :membresias="membresias"
                         :monedas="monedas"
-                        :botonesPago="botonesPago"
+                        :botonesPago="botonesPagoOrdenados"
                         @submit="handleAddMembresia"
                     />
                 </div>
@@ -185,7 +209,7 @@ function getBotonPagoLabel(botonPagoId) {
                         <template #editor="{ data }">
                           <Dropdown
                             v-model="data.botonpago_id"
-                            :options="botonesPago"
+                            :options="botonesPagoOrdenados"
                             optionLabel="nombre"
                             optionValue="id"
                             placeholder="Elige boton de pago"
@@ -207,6 +231,7 @@ function getBotonPagoLabel(botonPagoId) {
                           <InputText
                             v-model="data.precio"
                             type="number"
+                            placeholder="$0"
                             class="w-full mt-1 border border-gray-300"
                           />
                         </template>

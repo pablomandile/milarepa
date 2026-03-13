@@ -10,7 +10,6 @@ import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
-import { Link } from '@inertiajs/vue3';
 import Dialog from 'primevue/dialog';
 import { computed, ref, watch, onMounted } from 'vue';
 
@@ -23,11 +22,13 @@ import Textarea from 'primevue/textarea';
 import InputSwitch from 'primevue/inputswitch';
 import SingleImageUploader from '@/Components/SingleImageUploader.vue';
 
-const emit = defineEmits(['submit','refresh-descripciones']);
+const emit = defineEmits(['submit', 'refresh-descripciones', 'refresh-catalogo']);
 
-function onClickRefresh() {
-  // En lugar de Inertia.reload aquÃ­, emitimos al padre
+function onClickRefresh(catalogo = 'descripciones') {
+  if (catalogo === 'descripciones') {
     emit('refresh-descripciones');
+  }
+  emit('refresh-catalogo', catalogo);
 }
 
 const props = defineProps({
@@ -43,7 +44,7 @@ const props = defineProps({
     default: false,
   },
 
-  // Arrays o catálogos necesarios para populates (opcional segÃºn tu diseÃ±o)
+  // Arrays o catálogos necesarios para populates (opcional según tu diseño)
   tiposActividad: {
     type: Array,
     default: () => [],
@@ -120,7 +121,7 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  // Nuevo prop para ocultar el header interno cuando se renderiza desde una vista que ya muestra el tÃ­tulo
+  // Nuevo prop para ocultar el header interno cuando se renderiza desde una vista que ya muestra el título
   hideHeader: {
     type: Boolean,
     default: false,
@@ -160,8 +161,28 @@ const entidadesParaSelect = computed(() => {
   });
 });
 
+const esquemasPreciosOrdenados = computed(() => {
+  return [...(props.esquema_precios || [])].sort((a, b) => {
+    const aEsActividadGratuita = String(a?.nombre || '').trim().toLowerCase() === 'actividad gratuita';
+    const bEsActividadGratuita = String(b?.nombre || '').trim().toLowerCase() === 'actividad gratuita';
 
-// Manejo del dialog genÃ©rico
+    if (aEsActividadGratuita !== bEsActividadGratuita) {
+      return aEsActividadGratuita ? -1 : 1;
+    }
+
+    const fechaA = a?.created_at ? new Date(a.created_at).getTime() : 0;
+    const fechaB = b?.created_at ? new Date(b.created_at).getTime() : 0;
+
+    if (fechaA !== fechaB) {
+      return fechaB - fechaA;
+    }
+
+    return Number(b?.id || 0) - Number(a?.id || 0);
+  });
+});
+
+
+// Manejo del dialog genérico
 const dialogVisible = ref(false);
 const dialogTitle = ref('');
 const detalleSeleccionado = ref(null);
@@ -400,13 +421,23 @@ watch(
             />
             
             <!-- Botón nuevo (Redirecciona al create de Tipos de Actividad) -->
-            <Link
+            <a
               :href="route('tiposactividad.create')"
+              target="_blank"
+              rel="noopener noreferrer"
               class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
               v-tooltip="'Crear nuevo tipo de actividad'"
             >
               <i class="pi pi-file-plus"></i>
-            </Link>
+            </a>
+            <button
+              type="button"
+              class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
+              @click="onClickRefresh('tiposActividad')"
+              v-tooltip="'Refrescar tipos de actividad'"
+            >
+              <i class="pi pi-refresh"></i>
+            </button>
           </div>
           <InputError :message="$page.props.errors.tipo_actividad_id" class="mt-2" />
         </div>
@@ -462,13 +493,15 @@ watch(
             </button>
 
             <!-- Botón nuevo (Redirecciona al create de Descripciones) -->
-            <Link
+            <a
               :href="route('descripciones.create')"
+              target="_blank"
+              rel="noopener noreferrer"
               class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white"
               v-tooltip="'Crear nueva descripción'"
             >
               <i class="pi pi-file-plus"></i>
-            </Link>
+            </a>
 
             <button type="button" class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white" @click="onClickRefresh" v-tooltip="'Refrescar'">
               <i class="pi pi-refresh "></i>
@@ -611,13 +644,23 @@ watch(
             </button>
 
             <!-- Botón nuevo (Redirecciona al create) -->
-            <Link
+            <a
               :href="route('entidades.create')"
+              target="_blank"
+              rel="noopener noreferrer"
               class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
               v-tooltip="'Crear nueva Entidad'"
             >
               <i class="pi pi-file-plus"></i>
-            </Link>
+            </a>
+            <button
+              type="button"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              @click="onClickRefresh('entidades')"
+              v-tooltip="'Refrescar entidades'"
+            >
+              <i class="pi pi-refresh"></i>
+            </button>
           </div>
           <InputError :message="$page.props.errors.entidad_id" class="mt-2" />
         </div>
@@ -650,13 +693,23 @@ watch(
               <i class="pi pi-eye"></i>
             </button>
 
-            <Link
+            <a
               :href="route('lugares.create')"
+              target="_blank"
+              rel="noopener noreferrer"
               class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
               v-tooltip="'Crear nuevo Lugar'"
             >
               <i class="pi pi-file-plus"></i>
-            </Link>
+            </a>
+            <button
+              type="button"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              @click="onClickRefresh('lugares')"
+              v-tooltip="'Refrescar lugares'"
+            >
+              <i class="pi pi-refresh"></i>
+            </button>
           </div>
           <InputError :message="$page.props.errors.lugar_id" class="mt-2" />
         </div>
@@ -711,7 +764,7 @@ watch(
             <Dropdown
               id="esquema_precio_id"
               v-model="form.esquema_precio_id"
-              :options="esquema_precios"
+              :options="esquemasPreciosOrdenados"
               optionLabel="nombre"
               optionValue="id"
               placeholder="Seleccione un esquema"
@@ -729,13 +782,23 @@ watch(
             </button>
 
             <!-- Botón nuevo (Redirecciona al create) -->
-            <Link
+            <a
               :href="route('esquemaprecios.create')"
+              target="_blank"
+              rel="noopener noreferrer"
               class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
               v-tooltip="'Crear nuevo Esquema'"
             >
               <i class="pi pi-file-plus"></i>
-            </Link>
+            </a>
+            <button
+              type="button"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              @click="onClickRefresh('esquema_precios')"
+              v-tooltip="'Refrescar esquemas de precios'"
+            >
+              <i class="pi pi-refresh"></i>
+            </button>
           </div>
           <InputError :message="$page.props.errors.esquema_precio_id" class="mt-2" />
         </div>
@@ -809,13 +872,23 @@ watch(
               <i class="pi pi-eye"></i>
             </button>
             <!-- Botón nuevo (Redirecciona al create) -->
-            <Link
+            <a
               :href="route('esquemadescuentos.create')"
+              target="_blank"
+              rel="noopener noreferrer"
               class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
               v-tooltip="'Crear nuevo Esquema'"
             >
             <i class="pi pi-file-plus"></i>
-            </Link>
+            </a>
+            <button
+              type="button"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              @click="onClickRefresh('esquema_descuentos')"
+              v-tooltip="'Refrescar esquemas de descuentos'"
+            >
+              <i class="pi pi-refresh"></i>
+            </button>
           </div>
         </div>
 
@@ -868,13 +941,23 @@ watch(
             </button>
 
             <!-- Botón nuevo (Redirecciona al create) -->
-            <Link
+            <a
               :href="route('programas.create')"
+              target="_blank"
+              rel="noopener noreferrer"
               class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
               v-tooltip="'Crear nuevo Programa'"
             >
               <i class="pi pi-file-plus"></i>
-            </Link>
+            </a>
+            <button
+              type="button"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              @click="onClickRefresh('programas')"
+              v-tooltip="'Refrescar programas'"
+            >
+              <i class="pi pi-refresh"></i>
+            </button>
           </div>
           <InputError :message="$page.props.errors.programa_id" class="mt-2" />
         </div>
@@ -966,13 +1049,23 @@ watch(
               >
                 <i class="pi pi-eye"></i>
               </button>
-              <Link
+              <a
                 :href="route('grabaciones.create')"
+                target="_blank"
+                rel="noopener noreferrer"
                 class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
                 v-tooltip="'Crear nueva Grabación'"
               >
                 <i class="pi pi-file-plus"></i>
-              </Link>
+              </a>
+              <button
+                type="button"
+                class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+                @click="onClickRefresh('grabaciones')"
+                v-tooltip="'Refrescar grabaciones'"
+              >
+                <i class="pi pi-refresh"></i>
+              </button>
             </div>
             <InputError :message="$page.props.errors.grabacion_id" class="mt-2" />
           </div>
@@ -1008,13 +1101,23 @@ watch(
             </button>
 
             <!-- Botón nuevo (Redirecciona al create) -->
-            <Link
+            <a
               :href="route('streams.create')"
+              target="_blank"
+              rel="noopener noreferrer"
               class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
               v-tooltip="'Crear nuevo Stream'"
             >
               <i class="pi pi-file-plus"></i>
-            </Link>
+            </a>
+            <button
+              type="button"
+              class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+              @click="onClickRefresh('streams')"
+              v-tooltip="'Refrescar streams'"
+            >
+              <i class="pi pi-refresh"></i>
+            </button>
           </div>
           <InputError :message="$page.props.errors.stream_id" class="mt-2" />
         </div>
@@ -1190,7 +1293,7 @@ watch(
     </template>
   </FormSection>
   <!-- ... -->
-   <!-- Dialog GenÃ©rico -->
+   <!-- Dialog Generico -->
    <Dialog
       v-model:visible="dialogVisible"
       :header="dialogTitle"
@@ -1199,7 +1302,7 @@ watch(
       modal
     >
     <template v-if="detalleSeleccionado">
-      <!-- AquÃ­ muestras la info segÃºn sea la data. Por ejemplo: -->
+      <!-- Aquí muestras la info según sea la data. Por ejemplo: -->
       <h3 class="text-xl font-bold mb-2">{{ detalleSeleccionado.nombre }}</h3>
       <p class="text-sm text-gray-600 whitespace-pre-wrap">
         <!-- Muestra 'contenido' o 'descripcion' o 'info', depende de tu objeto -->
@@ -1218,7 +1321,7 @@ watch(
 
     <!-- Comprobamos si hay 'membresias' -->
     <div v-if="detalleSeleccionado.membresias && detalleSeleccionado.membresias.length > 0">
-      <h4 class="font-semibold mt-4 mb-2">MembresÃ­as</h4>
+      <h4 class="font-semibold mt-4 mb-2">Membresías</h4>
 
       <ul class="space-y-2">
         <li
@@ -1229,7 +1332,7 @@ watch(
           <!-- Ejemplo de campos:
                line.precio, line.moneda.simbolo, line.membresia.nombre, line.membresia.entidad.abreviacion -->
           <strong class="block">
-            <!-- Nombre de la MembresÃ­a -->
+            <!-- Nombre de la Membresía -->
             {{ line.membresia ? line.membresia.nombre : 'â€”' }}
           </strong>
 

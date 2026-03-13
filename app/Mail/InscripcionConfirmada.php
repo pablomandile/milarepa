@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Inscripcion;
+use App\Models\Entidad;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -31,6 +32,7 @@ class InscripcionConfirmada extends Mailable
         $plantilla = $this->resolverPlantilla();
         $subject = match ($plantilla) {
             'emails.inscripcion_registrada' => 'Inscripcion registrada',
+            'emails.inscripcion_tk_registrada' => 'Inscripcion Tarjeta Kadampa registrada',
             'emails.envio_grabacion' => 'Grabacion disponible',
             'emails.informacion_membresias' => 'Informacion solicitada sobre Tarjetas Kadampa',
             default => 'Inscripcion confirmada',
@@ -46,12 +48,18 @@ class InscripcionConfirmada extends Mailable
      */
     public function content(): Content
     {
+        $this->inscripcion->loadMissing([
+            'user.membresia.botonPago.metodoPago.imagen',
+            'actividad.metodosPago.imagen',
+        ]);
+
         return new Content(
             view: $this->resolverPlantilla(),
             with: [
                 'inscripcion' => $this->inscripcion,
                 'actividad' => $this->inscripcion->actividad,
                 'usuario' => $this->inscripcion->guestUser ?: $this->inscripcion->user,
+                'entidadPrincipal' => Entidad::where('entidad_principal', true)->first(),
             ],
         );
     }
@@ -71,6 +79,7 @@ class InscripcionConfirmada extends Mailable
         if (in_array($this->plantilla, [
             'emails.inscripcion_confirmada',
             'emails.inscripcion_registrada',
+            'emails.inscripcion_tk_registrada',
             'emails.envio_grabacion',
             'emails.informacion_membresias',
         ], true)) {

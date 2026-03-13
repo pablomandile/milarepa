@@ -5,7 +5,7 @@ import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
 import Dropdown from 'primevue/dropdown';
-import { defineProps, defineEmits } from 'vue';
+import { computed, defineProps, defineEmits } from 'vue';
 
 const props = defineProps({
   form: {
@@ -27,6 +27,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['submit']);
+
+const botonesPagoOrdenados = computed(() =>
+  [...props.botonesPago].sort((a, b) => Number(b.id) - Number(a.id))
+);
 
 function handleSubmit() {
   emit('submit');
@@ -81,7 +85,7 @@ function handleSubmit() {
                 <Dropdown
                     id="botonpago_id"
                     v-model="form.botonpago_id"
-                    :options="botonesPago"
+                    :options="botonesPagoOrdenados"
                     optionLabel="nombre"
                     optionValue="id"
                     placeholder="Seleccione un boton de pago"
@@ -99,6 +103,7 @@ function handleSubmit() {
                     type="number"
                     step="1"
                     min="0"
+                    placeholder="$0"
                     class="mt-2 block w-full"
                 />
                 <InputError :message="$page.props.errors.precio" class="mt-2" />

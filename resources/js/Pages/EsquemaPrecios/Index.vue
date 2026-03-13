@@ -5,21 +5,41 @@
 </script>
 
 <script setup>
-    import { ref } from 'vue';
+    import { computed, ref } from 'vue';
     import AppLayout from '@/Layouts/AppLayout.vue';
     import { Link, router } from '@inertiajs/vue3';
     import Swal from "sweetalert2";
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
     
-    defineProps({
+    const props = defineProps({
         esquemaprecios: {
             type: Array,
             required: true
         }
-    })
+    });
 
-    // Controla quÃ© filas de la tabla principal están expandidas
+    const esquemasOrdenados = computed(() =>
+        [...props.esquemaprecios].sort((a, b) => {
+            const aEsActividadGratuita = (a.nombre || '').trim().toLowerCase() === 'actividad gratuita';
+            const bEsActividadGratuita = (b.nombre || '').trim().toLowerCase() === 'actividad gratuita';
+
+            if (aEsActividadGratuita !== bEsActividadGratuita) {
+                return aEsActividadGratuita ? -1 : 1;
+            }
+
+            const fechaA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const fechaB = b.created_at ? new Date(b.created_at).getTime() : 0;
+
+            if (fechaA !== fechaB) {
+                return fechaB - fechaA;
+            }
+
+            return Number(b.id || 0) - Number(a.id || 0);
+        })
+    );
+
+    // Controla qué filas de la tabla principal están expandidas
     const expandedRows = ref([]);
 
     const deleteEsquemaPrecio = (id) => {
@@ -34,7 +54,7 @@
         if (result.isConfirmed) {
         router.delete(route('esquemaprecios.destroy', id), {
                 onSuccess: () => {
-                Swal.fire("¡Eliminado!", "El EsquemaPrecio ha sido eliminada.", "success");
+                Swal.fire("¡Eliminado!", "El EsquemaPrecio ha sido eliminado.", "success");
                 },
                 onError: () => {
                 Swal.fire("Error", "Hubo un problema al eliminar el EsquemaPrecio.", "error");
@@ -65,7 +85,7 @@
                     </div>
                     <div class="mt-4">
                         <DataTable 
-                        :value="esquemaprecios" 
+                        :value="esquemasOrdenados" 
                         stripedRows 
                         paginator 
                         :rows="10" 

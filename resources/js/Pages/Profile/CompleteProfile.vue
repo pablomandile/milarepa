@@ -10,6 +10,7 @@
     import AppLayout from '@/Layouts/AppLayout.vue'
     import CompleteProfileForm from '@/Components/Formularios/CompleteProfileForm.vue'
     import ScrollTop from 'primevue/scrolltop';
+    import Swal from 'sweetalert2';
 
     const props = defineProps({
         user: {
@@ -55,6 +56,14 @@
     const isAsistant = computed(() => {
         const roles = (page.props.user?.roles || []).map((role) => String(role).toLowerCase());
         return roles.includes('asistant');
+    });
+
+    const canSkipProfile = computed(() => {
+        const hasPais = !!form.pais_id;
+        const hasProvincia = !!form.provincia_id;
+        const hasTelefono = !!String(form.telefono || '').trim();
+        const hasSexo = !!form.sexo_id;
+        return hasPais && hasProvincia && hasTelefono && hasSexo;
     });
     const form = useForm({
         accesibilidad: false,
@@ -135,12 +144,22 @@
             onSuccess: () => {
                 // Opcional: algo tras éxito
             },
+            onError: (errors) => {
+                const firstError = Object.values(errors || {})[0];
+                const detail = Array.isArray(firstError) ? firstError[0] : firstError;
+                Swal.fire('Error', detail || 'Revisa los campos obligatorios.', 'error');
+            },
             });
         } else {
             // Si estamos en modo "crear" o "completar" inicial
             form.post(route('profile.complete.store'), {
             onSuccess: () => {
                 // Opcional
+            },
+            onError: (errors) => {
+                const firstError = Object.values(errors || {})[0];
+                const detail = Array.isArray(firstError) ? firstError[0] : firstError;
+                Swal.fire('Error', detail || 'Revisa los campos obligatorios.', 'error');
             },
             });
         }
@@ -172,8 +191,9 @@
                         />
                             <div class="mt-6 flex justify-end">
                                 <Link
-                                    :href="isAsistant ? route('asistant.panel') : route('dashboard')"
-                                    class="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                                    :href="canSkipProfile ? (isAsistant ? route('asistant.panel') : route('dashboard')) : '#'"
+                                    class="inline-flex items-center px-4 py-2 rounded-md text-sm text-white"
+                                    :class="canSkipProfile ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-300 cursor-not-allowed pointer-events-none'"
                                 >
                                     Completar más tarde
                                 </Link>

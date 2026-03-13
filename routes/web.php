@@ -82,6 +82,10 @@ Route::get('/email-preview/informacion-membresias', [EmailPreviewController::cla
     ->name('preview.email.informacion-membresias');
 Route::get('/email-preview/informacion-membresias/{id}', [EmailPreviewController::class, 'informacionMembresias'])
     ->name('preview.email.informacion-membresias.id');
+Route::get('/email-preview/inscripcion-tk-registrada', [EmailPreviewController::class, 'inscripcionTkRegistrada'])
+    ->name('preview.email.inscripcion-tk-registrada');
+Route::get('/email-preview/inscripcion-tk-registrada/{id}', [EmailPreviewController::class, 'inscripcionTkRegistrada'])
+    ->name('preview.email.inscripcion-tk-registrada.id');
 
 // Grid de actividades pÃºblico (solo index + lookup por email)
 Route::get('/grid-actividades', [GridActividadesController::class, 'index'])

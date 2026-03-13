@@ -51,17 +51,19 @@
         .link-row {
             margin: 10px 0;
         }
-        .icon-button {
+        .video-icon-btn {
             display: inline-block;
-            width: 32px;
-            height: 32px;
-            line-height: 32px;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
             text-align: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff !important;
             text-decoration: none;
-            border-radius: 999px;
-            background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
-            color: #fff !important;
-            font-size: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            vertical-align: middle;
             margin-left: 8px;
         }
         .footer {
@@ -121,10 +123,10 @@
                                 href="{{ data_get($linkGrabacion, 'link') }}"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="icon-button"
+                                class="video-icon-btn"
                                 title="Abrir grabación"
                             >
-                                ▶️
+                                &#9654;
                             </a>
                         </div>
                     @endforeach
@@ -151,6 +153,7 @@
         </div>
 
         <div class="footer">
+            @include('emails.partials.logo_entidad_principal')
             Milarepa - Sistema de Inscripciones<br>
             Este es un correo automático.
         </div>

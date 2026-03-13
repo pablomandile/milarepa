@@ -15,6 +15,9 @@ use App\Models\Provincia;
 use App\Models\Municipio;
 use App\Models\Barrio;
 use App\Models\User;
+use App\Models\MetodoPago;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class MembresiasController extends Controller
 {
@@ -26,12 +29,12 @@ class MembresiasController extends Controller
         $entidadPrincipal = Entidad::where('entidad_principal', true)->first();
 
         if ($entidadPrincipal) {
-            $membresias = Membresia::with(['entidad', 'botonPago', 'imagen'])
+            $membresias = Membresia::with(['entidad', 'botonPago.metodoPago.imagen', 'imagen'])
                 ->where('entidad_id', $entidadPrincipal->id)
                 ->where('nombre', '!=', 'Sin membresia')
                 ->paginate(10);
         } else {
-            $membresias = Membresia::with(['entidad', 'botonPago', 'imagen'])
+            $membresias = Membresia::with(['entidad', 'botonPago.metodoPago.imagen', 'imagen'])
                 ->where('nombre', '!=', 'Sin membresia')
                 ->paginate(10);
         }
@@ -70,15 +73,62 @@ class MembresiasController extends Controller
         $entidadPrincipal = Entidad::where('entidad_principal', true)->first();
 
         if ($entidadPrincipal) {
-            $membresias = Membresia::with(['entidad', 'botonPago', 'imagen'])
+            $membresias = Membresia::with(['entidad', 'botonPago.metodoPago.imagen', 'imagen'])
                 ->where('entidad_id', $entidadPrincipal->id)
                 ->where('nombre', '!=', 'Sin membresia')
                 ->paginate(10);
         } else {
-            $membresias = Membresia::with(['entidad', 'botonPago', 'imagen'])
+            $membresias = Membresia::with(['entidad', 'botonPago.metodoPago.imagen', 'imagen'])
                 ->where('nombre', '!=', 'Sin membresia')
                 ->paginate(10);
         }
+
+        $metodoEfectivo = MetodoPago::query()
+            ->select(['id', 'nombre', 'descripcion'])
+            ->whereRaw('LOWER(nombre) = ?', ['efectivo'])
+            ->first();
+        $metodoTransferencia = MetodoPago::query()
+            ->select(['id', 'nombre', 'descripcion'])
+            ->whereRaw('LOWER(nombre) = ?', ['transferencia'])
+            ->first();
+        $botonesGetnet = BotonPago::query()
+            ->select(['id', 'nombre', 'descripcion', 'link'])
+            ->whereRaw('LOWER(nombre) LIKE ?', ['%getnet%'])
+            ->get();
+
+        $membresias->setCollection(
+            $membresias->getCollection()->map(function (Membresia $membresia) use ($metodoEfectivo, $metodoTransferencia, $botonesGetnet) {
+                $membresiaToken = str_replace(' ', '', $this->normalizarTextoSimple((string) $membresia->nombre));
+
+                $botonGetnet = $botonesGetnet->first(function (BotonPago $boton) use ($membresiaToken) {
+                    $nombreBoton = str_replace(' ', '', $this->normalizarTextoSimple((string) $boton->nombre));
+                    if (empty($membresiaToken)) {
+                        return false;
+                    }
+                    return str_contains($nombreBoton, 'getnet') && str_contains($nombreBoton, $membresiaToken);
+                });
+
+                $membresia->setAttribute('metodos_pago_alternativos', [
+                    'efectivo' => [
+                        'nombre' => $metodoEfectivo?->nombre ?: 'Efectivo',
+                        'descripcion' => $metodoEfectivo?->descripcion,
+                    ],
+                    'transferencia' => [
+                        'nombre' => $metodoTransferencia?->nombre ?: 'Transferencia',
+                        'descripcion' => $metodoTransferencia?->descripcion,
+                    ],
+                ]);
+
+                $membresia->setAttribute('boton_getnet', $botonGetnet ? [
+                    'id' => $botonGetnet->id,
+                    'nombre' => $botonGetnet->nombre,
+                    'descripcion' => $botonGetnet->descripcion,
+                    'link' => $botonGetnet->link,
+                ] : null);
+
+                return $membresia;
+            })
+        );
 
         $userMembresia = null;
         $selectedUserId = null;
@@ -90,7 +140,7 @@ class MembresiasController extends Controller
         }
 
         if ($selectedUserId) {
-            $selectedUser = User::with('membresia.botonPago')->find($selectedUserId);
+            $selectedUser = User::with('membresia.botonPago.metodoPago.imagen')->find($selectedUserId);
             if ($selectedUser?->membresia_id) {
                 $userMembresia = $selectedUser->membresia;
             }
@@ -220,6 +270,8 @@ class MembresiasController extends Controller
             'membresia_id' => ['required', 'exists:membresias,id'],
             'modalidad' => ['required', 'in:PRESENCIAL,ONLINE'],
             'motivo_online' => ['nullable', 'string', 'max:255'],
+            'comprobante' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
+            'modo_pago' => ['nullable', 'in:Efectivo,Transferencia'],
             'user_id' => ['nullable', 'exists:users,id'],
             'guest' => ['nullable', 'array'],
             'guest.name' => ['required_without:user_id', 'string', 'max:255'],
@@ -271,12 +323,45 @@ class MembresiasController extends Controller
             ]);
         }
 
-        $this->asignarMembresiaAUsuario(
+        $membresia = Membresia::with(['botonPago.metodoPago.imagen', 'entidad'])->findOrFail((int) $validated['membresia_id']);
+        $estadoCuenta = $this->asignarMembresiaAUsuario(
             $user,
-            (int) $validated['membresia_id'],
+            $membresia->id,
             (string) $validated['modalidad'],
             $validated['motivo_online'] ?? null
         );
+        $modoPago = (string) ($validated['modo_pago'] ?? 'Transferencia');
+        $importe = (float) ($estadoCuenta->importe ?? $membresia->valor ?? 0);
+        $requiereComprobante = $importe > 0 && !$request->hasFile('comprobante') && $modoPago !== 'Efectivo';
+
+        if ($requiereComprobante) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Subi un comprobante o marca que pagaste en efectivo.',
+            ], 422);
+        }
+
+        if ($request->hasFile('comprobante')) {
+            $estadoCuenta->comprobante = $request->file('comprobante')->store('comprobantes', 'public');
+        }
+
+        if ($request->hasFile('comprobante') || $modoPago === 'Efectivo') {
+            $estadoCuenta->modo = $modoPago;
+            $estadoCuenta->fecha_pago = Carbon::today()->toDateString();
+        }
+
+        $estadoCuenta->save();
+        $user->setRelation('membresia', $membresia);
+
+        try {
+            $this->enviarMailInscripcionTkRegistrada($user, $membresia);
+        } catch (\Throwable $e) {
+            Log::error('No se pudo enviar mail de inscripcion TK registrada.', [
+                'user_id' => $user->id,
+                'membresia_id' => $membresia->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json([
             'ok' => true,
@@ -285,7 +370,7 @@ class MembresiasController extends Controller
         ]);
     }
 
-    private function asignarMembresiaAUsuario(User $user, int $membresiaId, string $modalidad, ?string $motivoOnline = null): void
+    private function asignarMembresiaAUsuario(User $user, int $membresiaId, string $modalidad, ?string $motivoOnline = null): EstadoCuentaMembresia
     {
         $membresiaOnline = $modalidad === 'ONLINE';
         $user->update([
@@ -294,18 +379,17 @@ class MembresiasController extends Controller
             'membresia_online_motivo' => $membresiaOnline ? $motivoOnline : null,
         ]);
 
+        $user->loadMissing('membresia');
         $mesPagado = Carbon::now()->format('Y-m');
-        $existe = EstadoCuentaMembresia::where('user_id', $user->id)
+        $estadoCuenta = EstadoCuentaMembresia::where('user_id', $user->id)
             ->where('membresia_id', $membresiaId)
-            ->where('mes_pagado', $mesPagado)
-            ->exists();
-
-        if ($existe) {
-            return;
+            ->where('mes_pagado', $mesPagado)->first();
+        if ($estadoCuenta) {
+            return $estadoCuenta;
         }
 
         $importe = optional($user->membresia)->valor ?? 0;
-        EstadoCuentaMembresia::create([
+        return EstadoCuentaMembresia::create([
             'user_id' => $user->id,
             'membresia_id' => $membresiaId,
             'mes_pagado' => $mesPagado,
@@ -314,6 +398,46 @@ class MembresiasController extends Controller
             'pagado' => false,
             'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
             'observaciones' => 'Inscripcion realizada por ' . ($user->name ?? 'sistema'),
+        ]);
+    }
+
+    private function enviarMailInscripcionTkRegistrada(User $user, Membresia $membresia): void
+    {
+        if (empty($user->email)) {
+            return;
+        }
+
+        $membresia->loadMissing(['botonPago.metodoPago.imagen', 'entidad']);
+        $inscripcionMail = (object) [
+            'membresia' => $membresia->nombre,
+            'montoActividad' => (float) ($membresia->valor ?? 0),
+            'user' => (object) [
+                'membresia' => $membresia,
+            ],
+        ];
+
+        Mail::send('emails.inscripcion_tk_registrada', [
+            'inscripcion' => $inscripcionMail,
+            'actividad' => null,
+            'usuario' => $user,
+            'entidadPrincipal' => Entidad::where('entidad_principal', true)->first(),
+        ], function ($message) use ($user, $membresia) {
+            $message->to($user->email, $user->name)
+                ->subject('Inscripcion Tarjeta Kadampa registrada - ' . ($membresia->nombre ?? 'Membresia'));
+        });
+    }
+
+    private function normalizarTextoSimple(string $texto): string
+    {
+        $normalizado = mb_strtolower(trim($texto), 'UTF-8');
+        return strtr($normalizado, [
+            'á' => 'a',
+            'é' => 'e',
+            'í' => 'i',
+            'ó' => 'o',
+            'ú' => 'u',
+            'ü' => 'u',
+            'ñ' => 'n',
         ]);
     }
 }
