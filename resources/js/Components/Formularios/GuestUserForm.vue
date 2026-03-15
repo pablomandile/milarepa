@@ -48,6 +48,10 @@ const props = defineProps({
     },
 });
 
+const getError = (field) => {
+    return props.errors?.[field]?.[0] || props.errors?.[`guest.${field}`]?.[0] || '';
+};
+
 const provinciasFiltradas = computed(() => {
     if (!props.form.pais_id) return [];
     return props.provincias.filter((p) => p.pais_id == props.form.pais_id);
@@ -81,12 +85,12 @@ watch(
         <div class="col-span-1">
             <InputLabel for="guest_name" value="Nombre Completo" :required="true" class="mt-2" />
             <TextInput id="guest_name" v-model="form.name" type="text" class="mt-1 block w-full" />
-            <InputError :message="errors.name?.[0]" class="mt-2" />
+            <InputError :message="getError('name')" class="mt-2" />
         </div>
         <div class="col-span-1">
             <InputLabel for="guest_email" value="Correo Electrónico" :required="true" class="mt-2" />
             <TextInput id="guest_email" v-model="form.email" type="email" class="mt-1 block w-full" />
-            <InputError :message="errors.email?.[0]" class="mt-2" />
+            <InputError :message="getError('email')" class="mt-2" />
         </div>
         <div class="col-span-1" />
 
@@ -101,7 +105,7 @@ watch(
                 :unmask="true"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
-            <InputError :message="errors.telefono?.[0]" class="mt-2" />
+            <InputError :message="getError('telefono')" class="mt-2" />
         </div>
         <div class="col-span-1">
             <InputLabel for="guest_whatsapp" value="WhatsApp" :required="false" />
@@ -114,7 +118,7 @@ watch(
                 :unmask="true"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
-            <InputError :message="errors.whatsapp?.[0]" class="mt-2" />
+            <InputError :message="getError('whatsapp')" class="mt-2" />
         </div>
         <div class="col-span-1" />
 
@@ -129,7 +133,7 @@ watch(
                 placeholder="Seleccione un país"
                 class="w-full mt-1 border border-gray-300"
             />
-            <InputError :message="errors.pais_id?.[0]" class="mt-2" />
+            <InputError :message="getError('pais_id')" class="mt-2" />
         </div>
         <div class="col-span-1">
             <InputLabel for="guest_provincia_id" value="Provincia" :required="true" />
@@ -142,7 +146,7 @@ watch(
                 placeholder="Seleccione una provincia"
                 class="w-full mt-1 border border-gray-300"
             />
-            <InputError :message="errors.provincia_id?.[0]" class="mt-2" />
+            <InputError :message="getError('provincia_id')" class="mt-2" />
         </div>
         <div class="col-span-1" />
 
@@ -157,7 +161,7 @@ watch(
                 placeholder="Seleccione un municipio"
                 class="w-full mt-1 border border-gray-300"
             />
-            <InputError :message="errors.municipio_id?.[0]" class="mt-2" />
+            <InputError :message="getError('municipio_id')" class="mt-2" />
         </div>
         <div v-if="barriosFiltrados.length" class="col-span-1">
             <InputLabel for="guest_barrio_id" value="Barrio" :required="false" />
@@ -170,14 +174,14 @@ watch(
                 placeholder="Seleccione un barrio"
                 class="w-full mt-1 border border-gray-300"
             />
-            <InputError :message="errors.barrio_id?.[0]" class="mt-2" />
+            <InputError :message="getError('barrio_id')" class="mt-2" />
         </div>
         <div v-else class="col-span-1" />
 
         <div class="col-span-3">
             <InputLabel for="guest_direccion" value="Ingrese su dirección" :required="false" />
             <TextInput id="guest_direccion" v-model="form.direccion" type="text" class="mt-1 block w-full" />
-            <InputError :message="errors.direccion?.[0]" class="mt-2" />
+            <InputError :message="getError('direccion')" class="mt-2" />
         </div>
 
         <div class="col-span-3 space-y-3 px-2">
@@ -204,7 +208,7 @@ watch(
         <div v-if="form.accesibilidad" class="col-span-3">
             <InputLabel for="guest_accesibilidad_desc" value="Describa su impedimento" :required="false" />
             <TextInput id="guest_accesibilidad_desc" v-model="form.accesibilidad_desc" type="text" class="mt-1 block w-full" />
-            <InputError :message="errors.accesibilidad_desc?.[0]" class="mt-2" />
+            <InputError :message="getError('accesibilidad_desc')" class="mt-2" />
         </div>
 
         <div class="col-span-3">
@@ -216,7 +220,7 @@ watch(
                     </label>
                 </div>
             </div>
-            <InputError :message="errors.info_tarjetas_kadampa?.[0]" class="mt-2" />
+            <InputError :message="getError('info_tarjetas_kadampa')" class="mt-2" />
         </div>
 
         <div v-if="mostrarRegistrarDatos" class="col-span-3">

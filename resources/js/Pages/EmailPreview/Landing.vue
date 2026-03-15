@@ -50,13 +50,13 @@ const verEmail6 = () => {
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">PrevisualizaciÃ³n de Emails</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Previsualización de Emails</h1>
         </template>
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Card 1: InscripciÃ³n Confirmada -->
+                    <!-- Card 1: Inscripción Confirmada -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-indigo-600 to-purple-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">📧 Inscripción Registrada</h2>
@@ -95,7 +95,7 @@ const verEmail6 = () => {
                         </div>
                     </div>
 
-                    <!-- Card 2: ConfirmaciÃ³n de Pago -->
+                    <!-- Card 2: Confirmación de Pago -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-green-600 to-emerald-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">💳 Confirmación de Pago</h2>
@@ -134,7 +134,7 @@ const verEmail6 = () => {
                         </div>
                     </div>
 
-                    <!-- Card 3: GrabaciÃ³n Disponible -->
+                    <!-- Card 3: Grabación Disponible -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-orange-600 to-red-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">🎬 Grabación Disponible</h2>
@@ -259,8 +259,125 @@ const verEmail6 = () => {
 
                     <!-- Card 6 -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-                        <div class="p-6 bg-gradient-to-br from-yellow-600 to-amber-700 text-white text-center">
+                        <div class="p-6 bg-gradient-to-br from-violet-600 to-purple-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">📧 Email 6</h2>
+                            <p class="opacity-90 text-sm">Plantilla de email personalizada</p>
+                        </div>
+
+                        <div class="p-6 space-y-4">
+                            <Link
+                                href="/email-preview/inscripcion"
+                                class="block w-full px-4 py-2 text-center bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-semibold text-sm"
+                            >
+                                Ver con Datos de Prueba
+                            </Link>
+
+                            <div class="border-t pt-4">
+                                <label class="block text-xs font-medium text-gray-700 mb-2">
+                                    ID:
+                                </label>
+                                <div class="flex gap-2">
+                                    <input
+                                        v-model="email6Id"
+                                        type="number"
+                                        placeholder="Ingresa ID"
+                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-600"
+                                        @keyup.enter="verEmail6"
+                                    />
+                                    <button
+                                        @click="verEmail6"
+                                        :disabled="!email6Id"
+                                        class="px-3 py-2 bg-purple-700 text-white text-sm rounded-lg hover:bg-purple-800 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Ver
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 6 -->
+                    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                        <div class="p-6 bg-gradient-to-br from-teal-600 to-cyan-700 text-white text-center">
+                            <h2 class="text-xl font-bold mb-2">📧 Email 7</h2>
+                            <p class="opacity-90 text-sm">Plantilla de email personalizada</p>
+                        </div>
+
+                        <div class="p-6 space-y-4">
+                            <Link
+                                href="/email-preview/inscripcion"
+                                class="block w-full px-4 py-2 text-center bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-semibold text-sm"
+                            >
+                                Ver con Datos de Prueba
+                            </Link>
+
+                            <div class="border-t pt-4">
+                                <label class="block text-xs font-medium text-gray-700 mb-2">
+                                    ID:
+                                </label>
+                                <div class="flex gap-2">
+                                    <input
+                                        v-model="email6Id"
+                                        type="number"
+                                        placeholder="Ingresa ID"
+                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
+                                        @keyup.enter="verEmail6"
+                                    />
+                                    <button
+                                        @click="verEmail6"
+                                        :disabled="!email6Id"
+                                        class="px-3 py-2 bg-cyan-700 text-white text-sm rounded-lg hover:bg-cyan-800 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Ver
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 6 -->
+                    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                        <div class="p-6 bg-gradient-to-br from-fuchsia-600 to-pink-700 text-white text-center">
+                            <h2 class="text-xl font-bold mb-2">📧 Email 8</h2>
+                            <p class="opacity-90 text-sm">Plantilla de email personalizada</p>
+                        </div>
+
+                        <div class="p-6 space-y-4">
+                            <Link
+                                href="/email-preview/inscripcion"
+                                class="block w-full px-4 py-2 text-center bg-fuchsia-600 text-white rounded-lg hover:bg-fuchsia-700 transition-colors font-semibold text-sm"
+                            >
+                                Ver con Datos de Prueba
+                            </Link>
+
+                            <div class="border-t pt-4">
+                                <label class="block text-xs font-medium text-gray-700 mb-2">
+                                    ID:
+                                </label>
+                                <div class="flex gap-2">
+                                    <input
+                                        v-model="email6Id"
+                                        type="number"
+                                        placeholder="Ingresa ID"
+                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-600"
+                                        @keyup.enter="verEmail6"
+                                    />
+                                    <button
+                                        @click="verEmail6"
+                                        :disabled="!email6Id"
+                                        class="px-3 py-2 bg-pink-700 text-white text-sm rounded-lg hover:bg-pink-800 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Ver
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 6 -->
+                    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                        <div class="p-6 bg-gradient-to-br from-yellow-600 to-amber-700 text-white text-center">
+                            <h2 class="text-xl font-bold mb-2">📧 Email 9</h2>
                             <p class="opacity-90 text-sm">Plantilla de email personalizada</p>
                         </div>
 

@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use App\Mail\InscripcionConfirmada;
 use Illuminate\Support\Arr;
+use Illuminate\Validation\ValidationException;
 
 
 class GridActividadesController extends Controller
@@ -207,6 +208,14 @@ class GridActividadesController extends Controller
             'guest.registrar_datos' => ['nullable', 'boolean'],
         ]);
 
+        $guest = $data['guest'] ?? null;
+        $registrarDatos = (bool) ($guest['registrar_datos'] ?? false);
+        if ($registrarDatos && !empty($guest['email']) && User::where('email', $guest['email'])->exists()) {
+            throw ValidationException::withMessages([
+                'guest.email' => ['Este correo electrónico ya está registrado. Elegí "Ya estoy registrado" o iniciá sesión.'],
+            ]);
+        }
+
         $resolvedUserId = $data['user_id'] ?? null;
         if (empty($resolvedUserId) && empty($data['guest']) && auth()->check()) {
             $resolvedUserId = auth()->id();
@@ -249,8 +258,10 @@ class GridActividadesController extends Controller
             'metodosPago',
             'modalidad',
             'esquemaPrecio.membresias.membresia',
+            'esquemaPrecio.membresias.moneda',
             'esquemaPrecio.membresias.botonPago',
             'esquemaDescuento.membresias.membresia',
+            'esquemaDescuento.membresias.moneda',
             'esquemaDescuento.membresias.botonPago',
             'botonPago',
             'grabacion.botonPago',
@@ -324,6 +335,7 @@ class GridActividadesController extends Controller
     {
         $data = $request->validate([
             'pago_metodo' => ['required', 'string'],
+            'moneda_id' => ['nullable', 'integer', 'exists:monedas,id'],
             'incluye_grabacion' => ['nullable', 'boolean'],
             'modalidad_cursada' => ['nullable', 'in:presencial,online'],
             'comidas_ids' => ['nullable', 'array'],
@@ -434,7 +446,12 @@ class GridActividadesController extends Controller
             return response()->json(['ok' => false, 'message' => 'Ya estás inscripto a esta actividad.'], 422);
         }
 
-        [$precioGeneral, $precioMembresia, $membresiaNombre] = $this->calcularPrecios($actividad, $registrado ? $user : null);
+        $monedaIdSeleccionada = isset($data['moneda_id']) ? (int) $data['moneda_id'] : null;
+        [$precioGeneral, $precioMembresia, $membresiaNombre] = $this->calcularPrecios(
+            $actividad,
+            $registrado ? $user : null,
+            $monedaIdSeleccionada
+        );
         $montoActividad = (float) (($user && $user->membresia_id) ? $precioMembresia : $precioGeneral);
         $online = $this->resolverModalidadOnline($actividad, $user, $registrado, Arr::get($data, 'modalidad_cursada'));
         $incluyeGrabacion = (bool) ($data['incluye_grabacion'] ?? false);
@@ -781,6 +798,12 @@ class GridActividadesController extends Controller
 
         $registrarDatos = (bool) ($data['registrar_datos'] ?? false);
 
+        if ($registrarDatos && User::where('email', $data['email'])->exists()) {
+            throw ValidationException::withMessages([
+                'email' => ['Este correo electrónico ya está registrado. Elegí "Ya estoy registrado" o iniciá sesión.'],
+            ]);
+        }
+
         if ($registrarDatos) {
             $user = User::firstOrCreate(
                 ['email' => $data['email']],
@@ -928,11 +951,13 @@ class GridActividadesController extends Controller
         );
     }
 
-    private function calcularPrecios(Actividad $actividad, ?User $user): array
+    private function calcularPrecios(Actividad $actividad, ?User $user, ?int $monedaId = null): array
     {
         $actividad->loadMissing([
             'esquemaPrecio.membresias.membresia',
+            'esquemaPrecio.membresias.moneda',
             'esquemaDescuento.membresias.membresia',
+            'esquemaDescuento.membresias.moneda',
         ]);
 
         $precioGeneral = 0;
@@ -941,14 +966,15 @@ class GridActividadesController extends Controller
         $esquemaVigente = $this->obtenerEsquemaPrecioVigente($actividad);
 
         if ($esquemaVigente?->membresias) {
-            $general = $esquemaVigente->membresias
-                ->first(fn ($linea) => $this->esMembresiaGeneral($linea?->membresia?->nombre));
+            $general = $this->resolverLineaEsquema($esquemaVigente->membresias, null, $monedaId)
+                ?? $esquemaVigente->membresias
+                    ->first(fn ($linea) => $this->esMembresiaGeneral($linea?->membresia?->nombre));
             $precioGeneral = $general->precio ?? 0;
         }
 
         if ($user && $user->membresia_id && $esquemaVigente?->membresias) {
-            $pivot = $esquemaVigente->membresias
-                ->firstWhere('membresia_id', $user->membresia_id);
+            $pivot = $this->resolverLineaEsquema($esquemaVigente->membresias, (int) $user->membresia_id, $monedaId)
+                ?? $esquemaVigente->membresias->firstWhere('membresia_id', $user->membresia_id);
             $precioMembresia = $pivot->precio ?? 0;
             $membresiaNombre = $user->membresia?->nombre ?? $membresiaNombre;
         }
@@ -1020,6 +1046,45 @@ class GridActividadesController extends Controller
         ]);
 
         return str_contains($normalized, 'sin membres');
+    }
+
+    private function resolverLineaEsquema($lineas, ?int $membresiaId, ?int $monedaId)
+    {
+        if (!$lineas || $lineas->isEmpty()) {
+            return null;
+        }
+
+        if ($membresiaId && $monedaId) {
+            $exacta = $lineas->first(function ($linea) use ($membresiaId, $monedaId) {
+                return (int) ($linea->membresia_id ?? 0) === $membresiaId
+                    && (int) ($linea->moneda_id ?? 0) === $monedaId;
+            });
+            if ($exacta) {
+                return $exacta;
+            }
+        }
+
+        if ($monedaId) {
+            $generalMoneda = $lineas->first(function ($linea) use ($monedaId) {
+                return (int) ($linea->moneda_id ?? 0) === $monedaId
+                    && $this->esMembresiaGeneral($linea?->membresia?->nombre);
+            });
+            if ($generalMoneda) {
+                return $generalMoneda;
+            }
+        }
+
+        if ($membresiaId) {
+            $membresiaCualquieraMoneda = $lineas->first(function ($linea) use ($membresiaId) {
+                return (int) ($linea->membresia_id ?? 0) === $membresiaId;
+            });
+            if ($membresiaCualquieraMoneda) {
+                return $membresiaCualquieraMoneda;
+            }
+        }
+
+        return $lineas->first(fn ($linea) => $this->esMembresiaGeneral($linea?->membresia?->nombre))
+            ?? $lineas->first();
     }
 
     private function mostrarSelectorModalidadEnPago(Actividad $actividad, ?User $user): bool

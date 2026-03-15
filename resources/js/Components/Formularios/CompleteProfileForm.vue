@@ -5,7 +5,7 @@
 </script>
 
 <script setup>
-import { computed, watch, ref, onMounted } from 'vue';
+import { computed, watch, ref, onMounted, onBeforeUnmount } from 'vue';
 import { router } from '@inertiajs/vue3';
 import FormSection from '@/Components/FormSection.vue'
 import InputError from '../InputError.vue';
@@ -159,6 +159,21 @@ const isDirty = computed(() => {
     return JSON.stringify(current) !== JSON.stringify(initialSnapshot.value);
 });
 
+const isMobile = ref(false);
+
+function updateIsMobile() {
+    isMobile.value = window.innerWidth < 768;
+}
+
+onMounted(() => {
+    updateIsMobile();
+    window.addEventListener('resize', updateIsMobile);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', updateIsMobile);
+});
+
 </script>
 
 <template>
@@ -240,8 +255,17 @@ const isDirty = computed(() => {
                     <InputError :message="$page.props.errors.direccion" class="mt-2" />
                 </div>
                 <div class="col-span-1">
-                    <InputLabel for="telefono" class="text-indigo-400 mt-4" value="Teléfono" :required="true"/>
+                    <InputLabel :hfor="isMobile ? 'telefono_mobile' : 'telefono'" value="Teléfono" :required="true"/>
+                    <TextInput
+                        v-if="isMobile"
+                        id="telefono_mobile"
+                        v-model="form.telefono"
+                        type="text"
+                        autocomplete="tel"
+                        class="mt-1 block w-full"
+                    />
                     <InputMask
+                        v-else
                         id="telefono"
                         v-model="form.telefono"
                         mask="+999 99 9999 9999"
@@ -253,8 +277,17 @@ const isDirty = computed(() => {
                     <InputError :message="$page.props.errors.telefono" class="mt-2" />
                 </div>
                 <div class="col-span-1">
-                    <InputLabel for="whatsapp" class="text-indigo-400 mt-4" value="Whatsapp" :required="false"/>
+                    <InputLabel :hfor="isMobile ? 'whatsapp_mobile' : 'whatsapp'" value="Whatsapp" :required="false"/>
+                    <TextInput
+                        v-if="isMobile"
+                        id="whatsapp_mobile"
+                        v-model="form.whatsapp"
+                        type="text"
+                        autocomplete="tel"
+                        class="mt-1 block w-full"
+                    />
                     <InputMask
+                        v-else
                         id="whatsapp"
                         v-model="form.whatsapp"
                         mask="+999 99 9999 9999"

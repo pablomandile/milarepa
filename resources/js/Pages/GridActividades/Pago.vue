@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { usePage } from '@inertiajs/vue3';
 import Tag from 'primevue/tag';
 import Dialog from 'primevue/dialog';
 import Checkbox from 'primevue/checkbox';
@@ -30,6 +31,7 @@ const props = defineProps({
 });
 
 const toast = useToast();
+const page = usePage();
 const comprobanteModal = ref(false);
 const comprobanteFile = ref(null);
 const comprobanteDescripcion = ref('');
@@ -45,6 +47,7 @@ const metodosPago = computed(() =>
 );
 const pagoMetodo = ref(null);
 const comprobantePath = ref(props.pago?.comprobante_path || null);
+const monedaSeleccionadaId = ref(null);
 
 const saldoFinal = computed(() => parseFloat(props.saldo || 0));
 const actividadEsGratuita = computed(() => {
@@ -61,33 +64,183 @@ const comidasSeleccionadas = ref([]);
 const transportesSeleccionados = ref([]);
 const hospedajesSeleccionados = ref([]);
 
-const actividadPrecio = computed(() => parseFloat(props.saldo || 0) || 0);
+const normalizarNombre = (value) => String(value || '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .trim();
+
+const membresiaIdUsuario = computed(() => {
+  return (
+    page.props?.auth?.user?.membresia?.id ||
+    page.props?.auth?.user?.membresia_id ||
+    null
+  );
+});
+
+const fechaLimiteDescuento = computed(() => {
+  if (!props.actividad?.pagoAmticipado) return null;
+  const fecha = new Date(props.actividad.pagoAmticipado);
+  return Number.isNaN(fecha.getTime()) ? null : fecha;
+});
+
+const descuentoVigente = computed(() => {
+  if (!props.actividad?.esquema_descuento || !fechaLimiteDescuento.value) return false;
+  return new Date() <= fechaLimiteDescuento.value;
+});
+
+const esquemaVigente = computed(() => {
+  if (descuentoVigente.value && props.actividad?.esquema_descuento) {
+    return props.actividad.esquema_descuento;
+  }
+  return props.actividad?.esquema_precio || null;
+});
+
+const esMembresiaGeneral = (linea) => {
+  const nombre = normalizarNombre(linea?.membresia?.nombre);
+  return nombre === 'sin membresia' || nombre.includes('sin membres');
+};
+
+const lineasEsquemaConMoneda = computed(() => {
+  const lineas = esquemaVigente.value?.membresias || [];
+  return lineas.filter((linea) => {
+    const precio = Number(linea?.precio);
+    return Number.isFinite(precio) && linea?.moneda_id;
+  });
+});
+
+const monedasDisponibles = computed(() => {
+  const mapa = new Map();
+  for (const linea of lineasEsquemaConMoneda.value) {
+    const moneda = linea?.moneda;
+    if (!moneda?.id) continue;
+    if (!mapa.has(moneda.id)) {
+      mapa.set(moneda.id, {
+        id: moneda.id,
+        nombre: moneda.nombre || `Moneda ${moneda.id}`,
+        simbolo: moneda.simbolo || '$',
+      });
+    }
+  }
+  return Array.from(mapa.values());
+});
+
+const mostrarSelectorMoneda = computed(() => monedasDisponibles.value.length > 1);
+
+const monedaSeleccionada = computed(() => {
+  if (!monedasDisponibles.value.length) return null;
+  return monedasDisponibles.value.find((m) => m.id === monedaSeleccionadaId.value) || monedasDisponibles.value[0];
+});
+
+const simboloMoneda = computed(() => monedaSeleccionada.value?.simbolo || '$');
+
+const formatoNumero = (valor) => {
+  const numero = Number(valor || 0);
+  if (!Number.isFinite(numero)) return '0,00';
+  return new Intl.NumberFormat('es-AR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(numero);
+};
+
+const formatMoney = (valor, simbolo = simboloMoneda.value) => {
+  return `${simbolo} ${formatoNumero(valor)}`;
+};
+
+const obtenerLineaPrecio = (lineas, membresiaId, monedaId) => {
+  if (!Array.isArray(lineas) || !lineas.length) return null;
+  if (membresiaId && monedaId) {
+    const exacta = lineas.find((linea) => linea?.membresia_id === membresiaId && linea?.moneda_id === monedaId);
+    if (exacta) return exacta;
+  }
+  if (monedaId) {
+    const generalMoneda = lineas.find((linea) => esMembresiaGeneral(linea) && linea?.moneda_id === monedaId);
+    if (generalMoneda) return generalMoneda;
+  }
+  if (membresiaId) {
+    const membresiaCualquiera = lineas.find((linea) => linea?.membresia_id === membresiaId);
+    if (membresiaCualquiera) return membresiaCualquiera;
+  }
+  return lineas.find((linea) => esMembresiaGeneral(linea)) || lineas[0] || null;
+};
+
+const lineaActividadActual = computed(() => {
+  return obtenerLineaPrecio(
+    esquemaVigente.value?.membresias || [],
+    membresiaIdUsuario.value,
+    monedaSeleccionadaId.value
+  );
+});
+
+const resolverPrecioItemEnMoneda = (item, campoBase = 'precio') => {
+  const monedaId = monedaSeleccionadaId.value;
+  const preciosPorMoneda = item?.precios_por_moneda || item?.preciosPorMoneda || item?.precios || [];
+
+  if (Array.isArray(preciosPorMoneda) && preciosPorMoneda.length) {
+    const match = preciosPorMoneda.find((linea) => {
+      const lineaMonedaId = linea?.moneda_id || linea?.moneda?.id;
+      return monedaId && lineaMonedaId === monedaId;
+    }) || preciosPorMoneda[0];
+    const precioLinea = Number(match?.precio ?? match?.valor ?? 0);
+    const simbolo = match?.moneda?.simbolo || simboloMoneda.value;
+    return {
+      precio: Number.isFinite(precioLinea) ? precioLinea : 0,
+      simbolo,
+    };
+  }
+
+  const mapaPrecios = item?.precios_moneda || item?.preciosMoneda;
+  if (mapaPrecios && typeof mapaPrecios === 'object' && monedaId && mapaPrecios[monedaId] !== undefined) {
+    const valor = Number(mapaPrecios[monedaId]);
+    return {
+      precio: Number.isFinite(valor) ? valor : 0,
+      simbolo: simboloMoneda.value,
+    };
+  }
+
+  const valorBase = Number(item?.[campoBase] ?? 0);
+  return {
+    precio: Number.isFinite(valorBase) ? valorBase : 0,
+    simbolo: simboloMoneda.value,
+  };
+};
+
+const actividadPrecio = computed(() => {
+  if (lineaActividadActual.value?.precio !== undefined && lineaActividadActual.value?.precio !== null) {
+    return Number(lineaActividadActual.value.precio) || 0;
+  }
+  return parseFloat(props.saldo || 0) || 0;
+});
+const actividadSimbolo = computed(() => lineaActividadActual.value?.moneda?.simbolo || simboloMoneda.value);
 const grabacionDisponible = computed(() => !!props.actividad?.grabacion_id && !!props.actividad?.grabacion);
 const grabacionPrecio = computed(() => {
-  const valor = props.actividad?.grabacion?.valor;
-  return valor ? parseFloat(valor) : 0;
+  return resolverPrecioItemEnMoneda(props.actividad?.grabacion || {}, 'valor').precio;
 });
+const grabacionSimbolo = computed(() => resolverPrecioItemEnMoneda(props.actividad?.grabacion || {}, 'valor').simbolo);
 const grabacionPagoLink = computed(() => props.actividad?.grabacion?.boton_pago?.link || '');
 
 const comidasDisponibles = computed(() => props.actividad?.comidas || []);
+const precioComida = (comida) => resolverPrecioItemEnMoneda(comida, 'precio');
 const totalComidas = computed(() => {
   return comidasDisponibles.value
     .filter((comida) => comidasSeleccionadas.value.includes(comida.id))
-    .reduce((acc, comida) => acc + (parseFloat(comida.precio || 0) || 0), 0);
+    .reduce((acc, comida) => acc + precioComida(comida).precio, 0);
 });
 
 const transportesDisponibles = computed(() => props.actividad?.transportes || []);
+const precioTransporte = (transporte) => resolverPrecioItemEnMoneda(transporte, 'precio');
 const totalTransportes = computed(() => {
   return transportesDisponibles.value
     .filter((transporte) => transportesSeleccionados.value.includes(transporte.id))
-    .reduce((acc, transporte) => acc + (parseFloat(transporte.precio || 0) || 0), 0);
+    .reduce((acc, transporte) => acc + precioTransporte(transporte).precio, 0);
 });
 
 const hospedajesDisponibles = computed(() => props.actividad?.hospedajes || []);
+const precioHospedaje = (hospedaje) => resolverPrecioItemEnMoneda(hospedaje, 'precio');
 const totalHospedajes = computed(() => {
   return hospedajesDisponibles.value
     .filter((hospedaje) => hospedajesSeleccionados.value.includes(hospedaje.id))
-    .reduce((acc, hospedaje) => acc + (parseFloat(hospedaje.precio || 0) || 0), 0);
+    .reduce((acc, hospedaje) => acc + precioHospedaje(hospedaje).precio, 0);
 });
 
 const saldoAPagar = computed(() => {
@@ -96,7 +249,7 @@ const saldoAPagar = computed(() => {
 });
 const esPagoCero = computed(() => {
   return (
-    saldoFinal.value <= 0 ||
+    actividadPrecio.value <= 0 ||
     actividadEsGratuita.value
   );
 });
@@ -217,6 +370,7 @@ async function terminar() {
   try {
     const response = await axios.post(route('grid-actividades.pago.finalizar'), {
       pago_metodo: pagoMetodo.value || (esPagoCero.value ? 'gratis' : 'efectivo'),
+      moneda_id: monedaSeleccionadaId.value,
       incluye_grabacion: grabacionSeleccionada.value,
       modalidad_cursada: props.mostrarSelectorModalidad ? modalidadCursada.value : null,
       comidas_ids: comidasSeleccionadas.value,
@@ -252,6 +406,20 @@ async function terminar() {
     isFinalizing.value = false;
   }
 }
+
+watch(
+  monedasDisponibles,
+  (monedas) => {
+    if (!Array.isArray(monedas) || !monedas.length) {
+      monedaSeleccionadaId.value = null;
+      return;
+    }
+    if (!monedaSeleccionadaId.value || !monedas.some((m) => m.id === monedaSeleccionadaId.value)) {
+      monedaSeleccionadaId.value = monedas[0].id;
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
@@ -290,11 +458,26 @@ async function terminar() {
             Esta actividad está incluída con tu membresía
           </h2>
           <p v-else class="text-lg text-gray-600 mt-4">
-            Valor de la actividad: <span class="font-semibold text-gray-800">$ {{ saldoFinal.toLocaleString('es-AR') }}</span>
+            Valor de la actividad: <span class="font-semibold text-gray-800">{{ formatMoney(actividadPrecio, actividadSimbolo) }}</span>
           </p>
           <p v-if="!actividadEsGratuita" class="text-lg text-green-600 mt-1">
             Membresía aplicada: {{ membresia }}
           </p>
+
+          <div v-if="mostrarSelectorMoneda" class="mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="moneda_select">
+              ¿En qué moneda quieres abonar?
+            </label>
+            <select
+              id="moneda_select"
+              v-model="monedaSeleccionadaId"
+              class="w-full appearance-none rounded border border-sky-400 bg-blue-400 px-3 py-2 pr-10 text-sm text-white shadow-sm focus:border-sky-600 focus:ring focus:ring-sky-200"
+            >
+              <option v-for="moneda in monedasDisponibles" :key="moneda.id" :value="moneda.id">
+                {{ moneda.nombre }} ({{ moneda.simbolo }})
+              </option>
+            </select>
+          </div>
 
           <div v-if="mostrarSelectorModalidad" class="mt-4">
             <label class="block text-sm font-medium text-gray-700 mb-2" for="modalidad_cursada_select">
@@ -373,7 +556,7 @@ async function terminar() {
               <div class="mt-2 text-sm text-gray-700">
                 <div class="flex flex-wrap items-center gap-2">
                   <span>Monto a pagar de la actividad:</span>
-                  <span class="font-semibold">$ {{ actividadPrecio.toLocaleString('es-AR') }}</span>
+                  <span class="font-semibold">{{ formatMoney(actividadPrecio, actividadSimbolo) }}</span>
                   <a
                     v-if="esGetnetSeleccionado && actividadPagoLink"
                     :href="actividadPagoLink"
@@ -401,7 +584,7 @@ async function terminar() {
               <div v-if="grabacionSeleccionada" class="mt-2 text-sm text-gray-700">
                 <div class="flex flex-wrap items-center gap-2">
                   <span>Valor de grabación:</span>
-                  <span class="font-semibold">$ {{ grabacionPrecio.toLocaleString('es-AR') }}</span>
+                  <span class="font-semibold">{{ formatMoney(grabacionPrecio, grabacionSimbolo) }}</span>
                   <a
                     v-if="mostrarBotonesPago && grabacionPagoLink"
                     :href="grabacionPagoLink"
@@ -432,7 +615,7 @@ async function terminar() {
                     {{ comida.nombre }}
                   </label>
                   <div class="flex items-center gap-2">
-                    <span class="text-sm text-gray-700">$ {{ (parseFloat(comida.precio || 0) || 0).toLocaleString('es-AR') }}</span>
+                    <span class="text-sm text-gray-700">{{ formatMoney(precioComida(comida).precio, precioComida(comida).simbolo) }}</span>
                     <a
                       v-if="mostrarBotonesPago && comidasSeleccionadas.includes(comida.id) && comida.boton_pago?.link"
                       :href="comida.boton_pago.link"
@@ -446,7 +629,7 @@ async function terminar() {
                 </div>
               </div>
               <div class="mt-3 text-sm text-gray-800">
-                Total Comidas: <span class="font-semibold">$ {{ totalComidas.toLocaleString('es-AR') }}</span>
+                Total Comidas: <span class="font-semibold">{{ formatMoney(totalComidas) }}</span>
               </div>
             </div>
 
@@ -467,7 +650,7 @@ async function terminar() {
                     {{ transporte.descripcion || transporte.nombre }}
                   </label>
                   <div class="flex items-center gap-2">
-                    <span class="text-sm text-gray-700">$ {{ (parseFloat(transporte.precio || 0) || 0).toLocaleString('es-AR') }}</span>
+                    <span class="text-sm text-gray-700">{{ formatMoney(precioTransporte(transporte).precio, precioTransporte(transporte).simbolo) }}</span>
                     <a
                       v-if="mostrarBotonesPago && transportesSeleccionados.includes(transporte.id) && transporte.boton_pago?.link"
                       :href="transporte.boton_pago.link"
@@ -481,7 +664,7 @@ async function terminar() {
                 </div>
               </div>
               <div class="mt-3 text-sm text-gray-800">
-                Total Transportes: <span class="font-semibold">$ {{ totalTransportes.toLocaleString('es-AR') }}</span>
+                Total Transportes: <span class="font-semibold">{{ formatMoney(totalTransportes) }}</span>
               </div>
             </div>
 
@@ -516,7 +699,7 @@ async function terminar() {
                     {{ hospedaje.nombre }}
                   </label>
                   <div class="flex items-center gap-2">
-                    <span class="text-sm text-gray-700">$ {{ (parseFloat(hospedaje.precio || 0) || 0).toLocaleString('es-AR') }}</span>
+                    <span class="text-sm text-gray-700">{{ formatMoney(precioHospedaje(hospedaje).precio, precioHospedaje(hospedaje).simbolo) }}</span>
                     <a
                       v-if="mostrarBotonesPago && hospedajesSeleccionados.includes(hospedaje.id) && hospedaje.boton_pago?.link"
                       :href="hospedaje.boton_pago.link"
@@ -530,14 +713,14 @@ async function terminar() {
                 </div>
               </div>
               <div class="mt-3 text-sm text-gray-800">
-                Total Hospedaje: <span class="font-semibold">$ {{ totalHospedajes.toLocaleString('es-AR') }}</span>
+                Total Hospedaje: <span class="font-semibold">{{ formatMoney(totalHospedajes) }}</span>
               </div>
             </div>
 
             <div class="border rounded-lg p-4 bg-gray-50">
               <p class="text-sm text-gray-700">
                 Saldo a Pagar:
-                <span class="font-semibold text-gray-800">$ {{ saldoAPagar.toLocaleString('es-AR') }}</span>
+                <span class="font-semibold text-gray-800">{{ formatMoney(saldoAPagar) }}</span>
               </p>
             </div>
           </div>
@@ -632,6 +815,23 @@ async function terminar() {
 
 #pago_metodo_select option:hover,
 #pago_metodo_select option:focus {
+  background-color: #61b1d3;
+}
+
+#moneda_select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.85rem;
+}
+
+#moneda_select option {
+  background-color: #83c6e6;
+  color: #ffffff;
+}
+
+#moneda_select option:hover,
+#moneda_select option:focus {
   background-color: #61b1d3;
 }
 

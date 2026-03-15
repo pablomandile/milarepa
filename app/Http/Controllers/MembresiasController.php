@@ -19,6 +19,7 @@ use App\Models\MetodoPago;
 use App\Models\EnvioMail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 
 class MembresiasController extends Controller
 {
@@ -287,6 +288,14 @@ class MembresiasController extends Controller
             'guest.info_tarjetas_kadampa' => ['nullable', 'boolean'],
             'guest.registrar_datos' => ['nullable', 'boolean'],
         ]);
+
+        $guest = $validated['guest'] ?? null;
+        $registrarDatos = (bool) ($guest['registrar_datos'] ?? false);
+        if (!$validated['user_id'] && $registrarDatos && !empty($guest['email']) && User::where('email', $guest['email'])->exists()) {
+            throw ValidationException::withMessages([
+                'guest.email' => ['Este correo electrónico ya está registrado. Elegí "Ya estoy registrado" o iniciá sesión.'],
+            ]);
+        }
 
         $user = null;
         if (auth()->check()) {
