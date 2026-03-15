@@ -14,7 +14,7 @@ class MonedasController extends Controller
      */
     public function index()
     {
-        $monedas = Moneda::paginate(15);
+        $monedas = Moneda::get();
         return inertia('Monedas/Index', ['monedas' => $monedas]);
     }
 

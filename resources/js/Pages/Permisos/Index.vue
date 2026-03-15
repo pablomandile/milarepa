@@ -13,7 +13,7 @@ import Column from 'primevue/column';
 import Swal from 'sweetalert2';
 
 const props = defineProps({
-    roles: Object,
+    roles: Array,
     permissions: Array,
 });
 
@@ -34,7 +34,7 @@ onMounted(() => {
 });
 
 const getPermissionsByRole = (roleId) => {
-    const role = props.roles.data.find(r => r.id === roleId);
+    const role = (props.roles || []).find(r => r.id === roleId);
     if (role && role.permissions) {
         return role.permissions.map(p => p.name).join(', ');
     }
@@ -128,7 +128,7 @@ const hasMorePermissions = (permissions) => permissions.length > 20;
                         <p class="text-sm text-gray-600 mt-1">Visualiza los permisos asignados a cada rol del sistema.</p>
                     </div>
                     <div class="mt-6">
-                        <DataTable :value="roles.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                        <DataTable :value="roles" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="name" header="Rol" style="width: 15%">
                                 <template #body="slotProps">
                                     <span class="font-semibold text-gray-800">{{ formatRoleName(slotProps.data.name) }}</span>

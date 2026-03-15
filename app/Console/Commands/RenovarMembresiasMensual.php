@@ -21,8 +21,10 @@ class RenovarMembresiasMensual extends Command
 
         $this->info("Procesando periodo: {$periodo}");
 
-        User::whereNotNull('membresia_id')
-            ->with(['membresia.esquemaPrecio'])
+        User::whereHas('membresiaUsuario', function ($query) {
+                $query->whereNotNull('membresia_id');
+            })
+            ->with(['membresiaUsuario.membresia'])
             ->chunkById(200, function ($users) use ($periodo) {
                 foreach ($users as $user) {
                     $this->procesarUsuario($user, $periodo);
@@ -36,15 +38,21 @@ class RenovarMembresiasMensual extends Command
     protected function procesarUsuario(User $user, string $periodo): void
     {
         DB::transaction(function () use ($user, $periodo) {
+            $membresiaProfile = $user->membresiaUsuario;
+            $membresiaId = $membresiaProfile?->membresia_id;
+            if (!$membresiaId) {
+                return;
+            }
+
             // Expirar meses anteriores a este periodo
             EstadoCuentaMembresia::where('user_id', $user->id)
-                ->where('membresia_id', $user->membresia_id)
+                ->where('membresia_id', $membresiaId)
                 ->where('mes_pagado', '<', $periodo)
                 ->update(['estado' => EstadoCuentaMembresia::ESTADO_EXPIRADA]);
 
             // Crear registro activo para el periodo si no existe
             $existe = EstadoCuentaMembresia::where('user_id', $user->id)
-                ->where('membresia_id', $user->membresia_id)
+                ->where('membresia_id', $membresiaId)
                 ->where('mes_pagado', $periodo)
                 ->exists();
 
@@ -53,13 +61,13 @@ class RenovarMembresiasMensual extends Command
             }
 
             $importe = 0;
-            if ($user->membresia && $user->membresia->esquemaPrecio) {
-                $importe = $user->membresia->esquemaPrecio->precio ?? 0;
+            if ($membresiaProfile?->membresia) {
+                $importe = (float) ($membresiaProfile->membresia->valor ?? 0);
             }
 
             EstadoCuentaMembresia::create([
                 'user_id' => $user->id,
-                'membresia_id' => $user->membresia_id,
+                'membresia_id' => $membresiaId,
                 'mes_pagado' => $periodo,
                 'fecha_pago' => null,
                 'importe' => $importe,

@@ -19,7 +19,7 @@ class ExcencionPagoController extends Controller
     {
         $excenciones = ExcencionPago::with(['user', 'actividad'])
             ->orderByDesc('created_at')
-            ->paginate(10);
+            ->get();
 
         return inertia('ExcencionPago/Index', [
             'excenciones' => $excenciones,

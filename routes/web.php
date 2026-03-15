@@ -46,6 +46,8 @@ use App\Http\Controllers\UploadController;
 use App\Http\Controllers\StreamsController;
 use App\Http\Controllers\ProfileCompletionController;
 use App\Http\Controllers\EmailPreviewController;
+use App\Http\Controllers\EmailPlantillasController;
+use App\Http\Controllers\EnvioCorreosController;
 use App\Http\Controllers\ExcencionPagoController;
 use App\Http\Controllers\CiclosController;
 use App\Http\Controllers\ClasesController;
@@ -173,12 +175,20 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/grid-actividades', GridActividadesController::class, [
         'parameters' => ['grid-actividades' => 'grid-actividad'],
     ])->except(['index']);
+    Route::get('/usuarios/{user}/perfil', [UsuariosController::class, 'profileShow'])
+        ->name('usuarios.profile.show');
+    Route::get('/usuarios/{user}/complete-profile/edit', [ProfileCompletionController::class, 'editUser'])
+        ->name('usuarios.profile.complete.edit');
+    Route::put('/usuarios/{user}/complete-profile', [ProfileCompletionController::class, 'updateUser'])
+        ->name('usuarios.profile.complete.update');
     Route::resource('/usuarios', UsuariosController::class);
     Route::resource('/perfiles', PerfilesController::class);
     Route::resource('/roles', RolesController::class);
     Route::resource('/permisos', PermisosController::class, [
         'parameters' => ['permisos' => 'permiso'],
     ])->only(['create', 'store', 'edit', 'update', 'destroy']);
+    Route::resource('/emails', EmailPlantillasController::class);
+    Route::get('/envio-correos', [EnvioCorreosController::class, 'index'])->name('envio-correos.index');
     Route::resource('/membresias', MembresiasController::class);
     Route::get('/membresias-gestion', [MembresiasController::class, 'gestion'])->name('membresias.gestion');
     Route::post('/membresias/subscribe', [MembresiasController::class, 'subscribe'])->name('membresias.subscribe');

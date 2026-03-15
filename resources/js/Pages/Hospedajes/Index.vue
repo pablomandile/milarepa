@@ -15,7 +15,7 @@
     
     const { hospedajes } = defineProps({
         hospedajes: {
-            type: Object,
+            type: Array,
             required: true
         }
     });
@@ -24,7 +24,7 @@
     const hospedajeSeleccionado = ref(null);
 
     const verHospedaje = (id) => {
-        const hospedaje = hospedajes.data.find((hosp) => hosp.id === id);
+        const hospedaje = hospedajes.find((hosp) => hosp.id === id);
         if (hospedaje) {
             hospedajeSeleccionado.value = hospedaje;
             visible.value = true;
@@ -73,7 +73,7 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="hospedajes.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                        <DataTable :value="hospedajes" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre"></Column>
                             <Column field="descripcion" header="Descripción"></Column>
                             <Column header="Boton de Pago">

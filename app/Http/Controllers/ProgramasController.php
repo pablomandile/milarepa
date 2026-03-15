@@ -14,7 +14,7 @@ class ProgramasController extends Controller
      */
     public function index()
     {
-        $programas = Programa::orderByDesc('id')->paginate(15);
+        $programas = Programa::orderByDesc('id')->get();
         return inertia('Programas/Index', ['programas'=>$programas]);
     }
 

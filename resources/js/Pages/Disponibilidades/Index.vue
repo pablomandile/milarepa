@@ -7,7 +7,7 @@ import Column from 'primevue/column';
 
 defineProps({
     disponibilidades: {
-        type: Object,
+        type: Array,
         required: true,
     },
 });
@@ -53,7 +53,7 @@ const deleteDisponibilidad = (id) => {
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="disponibilidades.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                        <DataTable :value="disponibilidades" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="descripcion" header="Descripción"></Column>
 
                             <Column header="Acciones" class="flex justify-center space-x-2">

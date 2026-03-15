@@ -20,13 +20,13 @@
     
     const { lugareshospedaje } = defineProps({
         lugareshospedaje: {
-            type: Object,
+            type: Array,
             required: true
         }
     });
 
     const verLugarHospedaje = (id) => {
-        const lugar = lugareshospedaje.data.find((ent) => ent.id === id);
+        const lugar = lugareshospedaje.find((ent) => ent.id === id);
         if (lugar) {
             lugarHospedajeSeleccionado.value = lugar;
             visible.value = true;
@@ -75,7 +75,7 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="lugareshospedaje.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                        <DataTable :value="lugareshospedaje" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre"></Column>
                             <Column field="direccion" header="Dirección"></Column>
                             <Column field="telefono" header="Teléfono"></Column>

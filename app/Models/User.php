@@ -41,7 +41,6 @@ class User extends Authenticatable
         'accesibilidad_desc',
         'direccion',
         'pais_id',
-        
         'provincia_id',
         'municipio_id',
         'barrio_id',
@@ -50,17 +49,11 @@ class User extends Authenticatable
         'whatsapp',
         'fecha_nacimiento',
         'sexo_id',
-        'membresia_id',
-        'membresia_inscripcion_fecha',
-        'membresia_online',
-        'membresia_online_motivo',
         'es_maestro',
         'es_coordinador',
         'perfil_completo',
         'msgxmail',
         'msgxwapp',
-        'info_tarjetas_kadampa',
-        'envioInfoTk',
     ];
 
     /**
@@ -82,7 +75,6 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'membresia_online' => 'boolean',
     ];
 
     /**
@@ -102,6 +94,55 @@ class User extends Authenticatable
     public function membresia()
     {
         return $this->belongsTo(Membresia::class, 'membresia_id');
+    }
+
+    public function membresiaUsuario()
+    {
+        return $this->hasOne(MembresiaUsuario::class, 'user_id');
+    }
+
+    public function getMembresiaIdAttribute($value)
+    {
+        $profile = $this->getMembresiaUsuarioRelation();
+        return $profile?->membresia_id ?? $value;
+    }
+
+    public function getMembresiaInscripcionFechaAttribute($value)
+    {
+        $profile = $this->getMembresiaUsuarioRelation();
+        return $profile?->membresia_inscripcion_fecha ?? $value;
+    }
+
+    public function getMembresiaOnlineAttribute($value)
+    {
+        $profile = $this->getMembresiaUsuarioRelation();
+        if ($profile !== null) {
+            return (bool) $profile->membresia_online;
+        }
+
+        return (bool) $value;
+    }
+
+    public function getMembresiaOnlineMotivoAttribute($value)
+    {
+        $profile = $this->getMembresiaUsuarioRelation();
+        return $profile?->membresia_online_motivo ?? $value;
+    }
+
+    public function getInfoTarjetasKadampaAttribute($value)
+    {
+        $profile = $this->getMembresiaUsuarioRelation();
+        if ($profile !== null) {
+            return (bool) $profile->info_tarjetas_kadampa;
+        }
+
+        return (bool) $value;
+    }
+
+    public function getEnvioInfoTkAttribute($value)
+    {
+        $profile = $this->getMembresiaUsuarioRelation();
+        return $profile?->envioInfoTk ?? $value;
     }
 
     public function provincia()
@@ -137,5 +178,58 @@ class User extends Authenticatable
     public function inscripciones()
     {
         return $this->hasMany(Inscripcion::class, 'user_id');
+    }
+
+    public function updateMembresiaUsuario(array $attributes): void
+    {
+        $defaults = [
+            'membresia_id' => null,
+            'membresia_inscripcion_fecha' => null,
+            'membresia_online' => false,
+            'membresia_online_motivo' => null,
+            'info_tarjetas_kadampa' => false,
+            'envioInfoTk' => null,
+        ];
+
+        $payload = array_merge($defaults, $attributes);
+
+        $hasData =
+            !is_null($payload['membresia_id'])
+            || !is_null($payload['membresia_inscripcion_fecha'])
+            || (bool) $payload['membresia_online']
+            || !is_null($payload['membresia_online_motivo'])
+            || (bool) $payload['info_tarjetas_kadampa']
+            || !is_null($payload['envioInfoTk']);
+
+        if ($hasData) {
+            $this->membresiaUsuario()->updateOrCreate([], [
+                'membresia_id' => $payload['membresia_id'],
+                'membresia_inscripcion_fecha' => $payload['membresia_inscripcion_fecha'],
+                'membresia_online' => (bool) $payload['membresia_online'],
+                'membresia_online_motivo' => $payload['membresia_online_motivo'],
+                'info_tarjetas_kadampa' => (bool) $payload['info_tarjetas_kadampa'],
+                'envioInfoTk' => $payload['envioInfoTk'],
+            ]);
+        } else {
+            $this->membresiaUsuario()->delete();
+        }
+
+        $this->unsetRelation('membresiaUsuario');
+    }
+
+    private function getMembresiaUsuarioRelation(): ?MembresiaUsuario
+    {
+        if ($this->relationLoaded('membresiaUsuario')) {
+            return $this->getRelation('membresiaUsuario');
+        }
+
+        if (!$this->exists) {
+            return null;
+        }
+
+        $profile = $this->membresiaUsuario()->first();
+        $this->setRelation('membresiaUsuario', $profile);
+
+        return $profile;
     }
 }

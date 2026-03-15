@@ -14,7 +14,7 @@
 
     defineProps({
         membresias: {
-            type: Object,
+            type: Array,
             required: true
         }
     })
@@ -79,7 +79,7 @@
                     <div class="mt-4">
                         <DataTable
                             v-model:expandedRows="expandedRows"
-                            :value="membresias.data"
+                            :value="membresias"
                             dataKey="id"
                             stripedRows
                             paginator

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EnvioMail;
 use App\Models\Inscripcion;
 use App\Services\EmailInscripcionService;
 use Illuminate\Http\Request;
@@ -131,7 +132,7 @@ class EstadoInscripcionesController extends Controller
         $errores = 0;
         $sinDestino = 0;
 
-        $query->chunkById(100, function ($inscripciones) use (&$enviadas, &$errores, &$sinDestino) {
+        $query->chunkById(100, function ($inscripciones) use (&$enviadas, &$errores, &$sinDestino, $user) {
             foreach ($inscripciones as $inscripcion) {
                 $destinatario = $inscripcion->guestUser?->email ?: $inscripcion->user?->email;
                 if (empty($destinatario)) {
@@ -140,6 +141,7 @@ class EstadoInscripcionesController extends Controller
                 }
 
                 if (EmailInscripcionService::enviarPlantillaConfirmacion($inscripcion)) {
+                    $this->registrarEnvioManual($destinatario, $user->id, 'Envío de Confirmación');
                     $enviadas++;
                 } else {
                     $errores++;
@@ -191,7 +193,7 @@ class EstadoInscripcionesController extends Controller
         $errores = 0;
         $sinDestino = 0;
 
-        $query->chunkById(100, function ($inscripciones) use (&$enviadas, &$errores, &$sinDestino) {
+        $query->chunkById(100, function ($inscripciones) use (&$enviadas, &$errores, &$sinDestino, $user) {
             foreach ($inscripciones as $inscripcion) {
                 $destinatario = $inscripcion->guestUser?->email ?: $inscripcion->user?->email;
                 if (empty($destinatario)) {
@@ -200,6 +202,7 @@ class EstadoInscripcionesController extends Controller
                 }
 
                 if (EmailInscripcionService::enviarPlantillaGrabacion($inscripcion)) {
+                    $this->registrarEnvioManual($destinatario, $user->id, 'Envío de Grabaciones');
                     $enviadas++;
                 } else {
                     $errores++;
@@ -236,6 +239,17 @@ class EstadoInscripcionesController extends Controller
             ->where('envioConfirmacion', 'Enviada')
             ->where('envioGrabacion', 'Pendiente')
             ->whereHas('actividad.grabacion.linksgrabacion');
+    }
+
+    private function registrarEnvioManual(string $destinatario, int $userId, string $motivo): void
+    {
+        EnvioMail::create([
+            'fecha' => now()->toDateString(),
+            'tipo' => 'Manual',
+            'user_id' => $userId,
+            'destinatario' => $destinatario,
+            'motivo' => $motivo,
+        ]);
     }
 
     /**

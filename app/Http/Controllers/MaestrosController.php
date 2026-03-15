@@ -14,7 +14,7 @@ class MaestrosController extends Controller
      */
     public function index()
     {
-        $maestros = Maestro::with('imagen')->paginate(15);
+        $maestros = Maestro::with('imagen')->orderBy('nombre')->get();
         return inertia('Maestros/Index', ['maestros' => $maestros]);
     }
 

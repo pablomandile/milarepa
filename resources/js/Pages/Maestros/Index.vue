@@ -15,7 +15,7 @@
     
     defineProps({
         maestros: {
-            type: Object,
+            type: Array,
             required: true
         }
     })
@@ -74,7 +74,7 @@
                     </div>
                     <div class="mt-4">
                         <DataTable 
-                            :value="maestros.data" 
+                            :value="maestros" 
                             v-model:expandedRows="expandedRows"
                             dataKey="id"
                             stripedRows 

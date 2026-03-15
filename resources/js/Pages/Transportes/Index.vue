@@ -18,7 +18,7 @@
 
     const { transportes } = defineProps({
         transportes: {
-            type: Object,
+            type: Array,
             required: true
         }
     });
@@ -69,7 +69,7 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable v-model:filters="filters" :value="transportes.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem"
+                        <DataTable v-model:filters="filters" :value="transportes" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem"
                         :globalFilterFields="['descripcion']">
                             <template #header>
                                 <div class="flex justify-end">

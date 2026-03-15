@@ -130,8 +130,15 @@ function toggleFlip(id) {
   flippedCards.value[id] = !flippedCards.value[id];
 }
 // Acción al pulsar "Inscribirme"
-function inscribir(actividad) {
+async function inscribir(actividad) {
   actividadAInscribir.value = actividad;
+
+  if (isAuthenticated.value) {
+    emailInput.value = $page.props?.auth?.user?.email || '';
+    await continuarUsuarioRegistrado();
+    return;
+  }
+
   abrirDialogoInscripcion();
 }
 function getFechaLimiteDescuento(actividad) {

@@ -20,7 +20,7 @@ class ClasesController extends Controller
     {
         $clases = Clase::with(['ciclo', 'entidad', 'maestros', 'coordinador', 'esquemaPrecio', 'modalidad', 'stream', 'imagen'])
             ->orderByDesc('created_at')
-            ->paginate(15);
+            ->get();
 
         return inertia('Clases/Index', ['clases' => $clases]);
     }

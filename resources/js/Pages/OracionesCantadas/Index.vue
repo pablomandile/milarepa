@@ -9,7 +9,7 @@ import Dialog from 'primevue/dialog';
 
 defineProps({
     oracionesCantadas: {
-        type: Object,
+        type: Array,
         required: true,
     },
 });
@@ -99,7 +99,7 @@ const openImageDialog = (imageUrl) => {
                     </div>
 
                     <div class="mt-4">
-                        <DataTable :value="oracionesCantadas.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 68rem">
+                        <DataTable :value="oracionesCantadas" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 68rem">
                             <Column field="imagen" header="Imagen">
                                 <template #body="slotProps">
                                     <div class="flex items-center justify-center">

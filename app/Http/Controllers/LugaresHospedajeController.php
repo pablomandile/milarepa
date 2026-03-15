@@ -14,7 +14,7 @@ class LugaresHospedajeController extends Controller
      */
     public function index()
     {
-        $lugareshospedaje = LugarHospedaje::paginate(15);
+        $lugareshospedaje = LugarHospedaje::get();
         return inertia('LugaresHospedaje/Index', ['lugareshospedaje'=>$lugareshospedaje]);
     }
 

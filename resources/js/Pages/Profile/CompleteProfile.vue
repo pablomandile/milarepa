@@ -49,6 +49,10 @@
             type: Boolean,
             default: false,
         },
+        target_user_id: {
+            type: [Number, String],
+            default: null,
+        },
     });
 
   
@@ -81,9 +85,15 @@
         programa_estudio_id: '',
         es_maestro: false,
         es_coordinador: false,
+        msgxmail: false,
+        msgxwapp: false,
         perfil_completo: false
 
     });
+
+    function toBoolean(value) {
+        return value === true || value === 1 || value === '1';
+    }
 
     function parseISODateToLocal(dateStr) {
         if (!dateStr) return null;
@@ -102,7 +112,7 @@
     }
 
     if (props.updating && props.user) {
-        form.accesibilidad = props.user.accesibilidad === 1;
+        form.accesibilidad = toBoolean(props.user.accesibilidad);
         form.accesibilidad_desc = props.user.accesibilidad_desc ?? '';
         form.direccion = props.user.direccion ?? '';
         form.pais_id = props.user.pais_id ?? '';
@@ -115,10 +125,10 @@
         form.sexo_id = props.user.sexo_id ?? '';
         form.membresia_id = props.user.membresia_id ?? '';
         form.programa_estudio_id = props.user.programa_estudio_id ?? '';
-        form.es_maestro = props.user.es_mastro;
-        form.es_coordinador = props.user.es_coordinador;
-        form.msgxmail = props.user.msgxmail === 1;
-        form.msgxwapp = props.user.msgxwapp === 1;
+        form.es_maestro = toBoolean(props.user.es_maestro);
+        form.es_coordinador = toBoolean(props.user.es_coordinador);
+        form.msgxmail = toBoolean(props.user.msgxmail);
+        form.msgxwapp = toBoolean(props.user.msgxwapp);
     }
 
     function submit() {
@@ -140,7 +150,11 @@
         
         if (props.updating) {
             // Si estamos en modo edición
-            form.put(route('profile.complete.update'), {
+            const updateRoute = props.target_user_id
+                ? route('usuarios.profile.complete.update', props.target_user_id)
+                : route('profile.complete.update');
+
+            form.put(updateRoute, {
             onSuccess: () => {
                 // Opcional: algo tras éxito
             },

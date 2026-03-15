@@ -21,7 +21,7 @@
 
     const { descripciones } = defineProps({
         descripciones: {
-            type: Object,
+            type: Array,
             required: true
         }
     });
@@ -56,7 +56,7 @@
     };
 
     const verDescripcion = (id) => {
-        const descripcion = descripciones.data.find((desc) => desc.id === id);
+        const descripcion = descripciones.find((desc) => desc.id === id);
         if (descripcion) {
             descripcionSeleccionada.value = descripcion;
             visible.value = true;
@@ -83,7 +83,7 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable v-model:filters="filters" :value="descripciones.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem"
+                        <DataTable v-model:filters="filters" :value="descripciones" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem"
                         :globalFilterFields="['descripcion', 'nombre']">
                             <template #header>
                                 <div class="flex justify-end">

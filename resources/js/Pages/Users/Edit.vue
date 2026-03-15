@@ -72,6 +72,7 @@
                             :updating="true" 
                             :form="form"
                             :roles="roles"
+                            :more-profile-href="route('usuarios.profile.complete.edit', props.usuario.id)"
                             @submit="handleSubmit"/>
                         </div>
                     </div>

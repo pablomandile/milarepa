@@ -13,7 +13,7 @@ class MembresiasGestionController extends Controller
 {
     public function index()
     {
-        $usuarios = User::with('membresia')
+        $usuarios = User::with(['membresia', 'membresiaUsuario'])
             ->orderBy('name')
             ->paginate(15);
 
@@ -38,10 +38,13 @@ class MembresiasGestionController extends Controller
 
         $membresia = $validated['membresia_id'] ? Membresia::find($validated['membresia_id']) : null;
 
-        $user->update([
+        $user->updateMembresiaUsuario([
             'membresia_id' => $validated['membresia_id'],
             'membresia_inscripcion_fecha' => $validated['membresia_id'] ? now()->toDateString() : null,
-            'membresia_online' => $validated['membresia_id'] ? (bool) $validated['membresia_online'] : false
+            'membresia_online' => $validated['membresia_id'] ? (bool) $validated['membresia_online'] : false,
+            'membresia_online_motivo' => null,
+            'info_tarjetas_kadampa' => (bool) ($user->info_tarjetas_kadampa ?? false),
+            'envioInfoTk' => $user->envioInfoTk,
         ]);
 
         if ($validated['membresia_id'] && $membresia) {
@@ -72,11 +75,13 @@ class MembresiasGestionController extends Controller
             $estadoCuenta->delete();
         }
 
-        $user->update([
+        $user->updateMembresiaUsuario([
             'membresia_id' => null,
             'membresia_inscripcion_fecha' => null,
             'membresia_online' => false,
             'membresia_online_motivo' => null,
+            'info_tarjetas_kadampa' => (bool) ($user->info_tarjetas_kadampa ?? false),
+            'envioInfoTk' => $user->envioInfoTk,
         ]);
 
         return redirect()->back()

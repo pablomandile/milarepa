@@ -5,7 +5,7 @@
             <div class="flex justify-between items-center">
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                     <i class="fas fa-clipboard-check mr-2 text-indigo-600"></i>
-                    Estado de Inscripciones - Sistema
+                    Estado de Inscripciones
                 </h2>
             </div>
         </template>

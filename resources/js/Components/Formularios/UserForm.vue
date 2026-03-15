@@ -13,7 +13,7 @@ import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
 import InputSwitch from 'primevue/inputswitch';
 import Dropdown from 'primevue/dropdown';
-import { usePage } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 
 const $page = usePage();
 
@@ -30,6 +30,10 @@ defineProps({
     roles: {
         type: Array,
         default: () => []
+    },
+    moreProfileHref: {
+        type: String,
+        default: null,
     }
 })
 
@@ -122,9 +126,18 @@ const formatRoleName = (roleName) => {
             </div>
         </template>
         <template #actions>
-            <PrimaryButton>
-                {{ updating ? 'Actualizar' : 'Crear' }}
-            </PrimaryButton>
+            <div class="flex items-center gap-3">
+                <PrimaryButton>
+                    {{ updating ? 'Actualizar' : 'Crear' }}
+                </PrimaryButton>
+                <Link
+                    v-if="updating && moreProfileHref"
+                    :href="moreProfileHref"
+                    class="inline-flex items-center px-4 py-2 rounded-md bg-indigo-100 text-indigo-700 hover:bg-indigo-200 text-sm font-medium"
+                >
+                    Más datos Perfil
+                </Link>
+            </div>
         </template>
     </FormSection>
 </template>

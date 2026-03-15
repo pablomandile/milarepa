@@ -17,7 +17,7 @@ class OracionesCantadasController extends Controller
             ->orderBy('periodicidad')
             ->orderBy('dia')
             ->orderBy('nombre')
-            ->paginate(15);
+            ->get();
 
         return Inertia::render('OracionesCantadas/Index', [
             'oracionesCantadas' => $oracionesCantadas,

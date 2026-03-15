@@ -104,10 +104,10 @@ class EstadoCuentaMembresiasController extends Controller
                 'message' => 'Subi un comprobante o marca que pagaste en efectivo.',
             ], 422);
         }
-        $userId = $request->user()->id;
+        $user = $request->user()->loadMissing(['membresia', 'membresiaUsuario']);
+        $userId = $user->id;
         $estadoCuenta = null;
         if ($request->filled('mes_pagado')) {
-            $user = $request->user();
             $membresiaId = $user->membresia_id;
             if (!$membresiaId) {
                 return response()->json([
@@ -205,7 +205,7 @@ class EstadoCuentaMembresiasController extends Controller
                 'importe' => $importe,
                 'pagado' => false,
                 'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
-                'observaciones' => 'Inscripción realizada por ' . ($request->user()->name ?? 'sistema')
+                'observaciones' => 'Inscripción realizada por sistema'
             ]);
         }
     }

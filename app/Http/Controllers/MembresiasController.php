@@ -16,6 +16,7 @@ use App\Models\Municipio;
 use App\Models\Barrio;
 use App\Models\User;
 use App\Models\MetodoPago;
+use App\Models\EnvioMail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -96,39 +97,35 @@ class MembresiasController extends Controller
             ->whereRaw('LOWER(nombre) LIKE ?', ['%getnet%'])
             ->get();
 
-        $membresias->setCollection(
-            $membresias->getCollection()->map(function (Membresia $membresia) use ($metodoEfectivo, $metodoTransferencia, $botonesGetnet) {
-                $membresiaToken = str_replace(' ', '', $this->normalizarTextoSimple((string) $membresia->nombre));
+        foreach ($membresias as $membresia) {
+            $membresiaToken = str_replace(' ', '', $this->normalizarTextoSimple((string) $membresia->nombre));
 
-                $botonGetnet = $botonesGetnet->first(function (BotonPago $boton) use ($membresiaToken) {
-                    $nombreBoton = str_replace(' ', '', $this->normalizarTextoSimple((string) $boton->nombre));
-                    if (empty($membresiaToken)) {
-                        return false;
-                    }
-                    return str_contains($nombreBoton, 'getnet') && str_contains($nombreBoton, $membresiaToken);
-                });
+            $botonGetnet = $botonesGetnet->first(function (BotonPago $boton) use ($membresiaToken) {
+                $nombreBoton = str_replace(' ', '', $this->normalizarTextoSimple((string) $boton->nombre));
+                if (empty($membresiaToken)) {
+                    return false;
+                }
+                return str_contains($nombreBoton, 'getnet') && str_contains($nombreBoton, $membresiaToken);
+            });
 
-                $membresia->setAttribute('metodos_pago_alternativos', [
-                    'efectivo' => [
-                        'nombre' => $metodoEfectivo?->nombre ?: 'Efectivo',
-                        'descripcion' => $metodoEfectivo?->descripcion,
-                    ],
-                    'transferencia' => [
-                        'nombre' => $metodoTransferencia?->nombre ?: 'Transferencia',
-                        'descripcion' => $metodoTransferencia?->descripcion,
-                    ],
-                ]);
+            $membresia->setAttribute('metodos_pago_alternativos', [
+                'efectivo' => [
+                    'nombre' => $metodoEfectivo?->nombre ?: 'Efectivo',
+                    'descripcion' => $metodoEfectivo?->descripcion,
+                ],
+                'transferencia' => [
+                    'nombre' => $metodoTransferencia?->nombre ?: 'Transferencia',
+                    'descripcion' => $metodoTransferencia?->descripcion,
+                ],
+            ]);
 
-                $membresia->setAttribute('boton_getnet', $botonGetnet ? [
-                    'id' => $botonGetnet->id,
-                    'nombre' => $botonGetnet->nombre,
-                    'descripcion' => $botonGetnet->descripcion,
-                    'link' => $botonGetnet->link,
-                ] : null);
-
-                return $membresia;
-            })
-        );
+            $membresia->setAttribute('boton_getnet', $botonGetnet ? [
+                'id' => $botonGetnet->id,
+                'nombre' => $botonGetnet->nombre,
+                'descripcion' => $botonGetnet->descripcion,
+                'link' => $botonGetnet->link,
+            ] : null);
+        }
 
         $userMembresia = null;
         $selectedUserId = null;
@@ -140,7 +137,7 @@ class MembresiasController extends Controller
         }
 
         if ($selectedUserId) {
-            $selectedUser = User::with('membresia.botonPago.metodoPago.imagen')->find($selectedUserId);
+            $selectedUser = User::with(['membresia.botonPago.metodoPago.imagen', 'membresiaUsuario'])->find($selectedUserId);
             if ($selectedUser?->membresia_id) {
                 $userMembresia = $selectedUser->membresia;
             }
@@ -234,7 +231,7 @@ class MembresiasController extends Controller
      */
     public function gestion()
     {
-        $membresias = Membresia::with(['entidad', 'botonPago', 'imagen'])->paginate(10);
+        $membresias = Membresia::with(['entidad', 'botonPago', 'imagen'])->get();
 
         return inertia('Membresias/Gestion', ['membresias' => $membresias]);
     }
@@ -319,7 +316,15 @@ class MembresiasController extends Controller
                 'msgxwapp' => (bool) ($guest['msgxwapp'] ?? false),
                 'accesibilidad' => (bool) ($guest['accesibilidad'] ?? false),
                 'accesibilidad_desc' => $guest['accesibilidad_desc'] ?? null,
+            ]);
+
+            $user->updateMembresiaUsuario([
+                'membresia_id' => $user->membresia_id,
+                'membresia_inscripcion_fecha' => $user->membresia_inscripcion_fecha,
+                'membresia_online' => (bool) ($user->membresia_online ?? false),
+                'membresia_online_motivo' => $user->membresia_online_motivo,
                 'info_tarjetas_kadampa' => (bool) ($guest['info_tarjetas_kadampa'] ?? false),
+                'envioInfoTk' => $user->envioInfoTk,
             ]);
         }
 
@@ -373,10 +378,13 @@ class MembresiasController extends Controller
     private function asignarMembresiaAUsuario(User $user, int $membresiaId, string $modalidad, ?string $motivoOnline = null): EstadoCuentaMembresia
     {
         $membresiaOnline = $modalidad === 'ONLINE';
-        $user->update([
+        $user->updateMembresiaUsuario([
             'membresia_id' => $membresiaId,
+            'membresia_inscripcion_fecha' => now()->toDateString(),
             'membresia_online' => $membresiaOnline,
             'membresia_online_motivo' => $membresiaOnline ? $motivoOnline : null,
+            'info_tarjetas_kadampa' => (bool) ($user->info_tarjetas_kadampa ?? false),
+            'envioInfoTk' => $user->envioInfoTk,
         ]);
 
         $user->loadMissing('membresia');
@@ -425,6 +433,14 @@ class MembresiasController extends Controller
             $message->to($user->email, $user->name)
                 ->subject('Inscripcion Tarjeta Kadampa registrada - ' . ($membresia->nombre ?? 'Membresia'));
         });
+
+        EnvioMail::create([
+            'fecha' => now()->toDateString(),
+            'tipo' => 'Automático',
+            'user_id' => null,
+            'destinatario' => $user->email,
+            'motivo' => 'Registro inscripción TK',
+        ]);
     }
 
     private function normalizarTextoSimple(string $texto): string

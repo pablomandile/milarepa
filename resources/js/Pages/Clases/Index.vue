@@ -23,7 +23,7 @@ import { computed, ref } from 'vue';
 
 const { clases } = defineProps({
     clases: {
-        type: Object,
+        type: Array,
         required: true
     }
 });
@@ -38,7 +38,7 @@ const filters = ref({
 
 const entidadOptions = computed(() => {
     const map = new Map();
-    (clases?.data || []).forEach((clase) => {
+    (clases || []).forEach((clase) => {
         if (clase?.entidad?.id) {
             map.set(clase.entidad.id, clase.entidad.nombre || `Entidad ${clase.entidad.id}`);
         }
@@ -51,7 +51,7 @@ const entidadOptions = computed(() => {
 
 const maestroOptions = computed(() => {
     const map = new Map();
-    (clases?.data || []).forEach((clase) => {
+    (clases || []).forEach((clase) => {
         (clase?.maestros || []).forEach((maestro) => {
             if (maestro?.id) {
                 map.set(maestro.id, maestro.nombre || `Maestro ${maestro.id}`);
@@ -65,7 +65,7 @@ const maestroOptions = computed(() => {
 });
 
 const clasesFiltradas = computed(() => {
-    const rows = clases?.data || [];
+    const rows = clases || [];
     const ahora = new Date();
     const inicioMesActual = new Date(ahora.getFullYear(), ahora.getMonth(), 1, 0, 0, 0, 0);
     const inicioMesAnterior = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1, 0, 0, 0, 0);

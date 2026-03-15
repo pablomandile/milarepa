@@ -20,13 +20,13 @@
     
     const props = defineProps({
         usuarios: {
-            type: Object,
+            type: Array,
             required: true
         }
     })
 
     const usuariosConRol = computed(() =>
-        props.usuarios.data.map((usuario) => ({
+        (props.usuarios || []).map((usuario) => ({
             ...usuario,
             role_name: usuario.roles && usuario.roles.length > 0 ? usuario.roles[0].name : '',
             membresia_nombre: usuario.membresia && usuario.membresia.nombre ? usuario.membresia.nombre : ''
@@ -212,6 +212,15 @@
                             <Column header="Acciones">
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
+                                        <Link
+                                            :href="route('usuarios.profile.show', parseInt(slotProps.data.id))"
+                                            v-if="$page.props.user.permissions.includes('update usuarios')"
+                                            v-tooltip="'Ver perfil'"
+                                            class="text-slate-600 hover:text-slate-800"
+                                            style="display: flex; align-items: center;"
+                                        >
+                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </Link>
                                         <Link
                                             :href="route('usuarios.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update usuarios')"

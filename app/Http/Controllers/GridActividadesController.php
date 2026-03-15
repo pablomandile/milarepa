@@ -11,6 +11,7 @@ use App\Models\Pais;
 use App\Models\Provincia;
 use App\Models\Municipio;
 use App\Models\Barrio;
+use App\Models\EnvioMail;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -75,7 +76,9 @@ class GridActividadesController extends Controller
         // Obtener IDs de actividades donde el usuario actual está inscripto
         $userInscripcionesActividadIds = [];
         if (auth()->check()) {
-            $userInscripcionesActividadIds = auth()->user()->inscripciones()->pluck('actividad_id')->toArray();
+            /** @var User $authUser */
+            $authUser = auth()->user();
+            $userInscripcionesActividadIds = $authUser->inscripciones()->pluck('actividad_id')->toArray();
         }
 
         // dd($actividades->toArray());
@@ -146,7 +149,7 @@ class GridActividadesController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $user = User::with('membresia')
+        $user = User::with(['membresia', 'membresiaUsuario'])
             ->where('email', $data['email'])
             ->first();
 
@@ -260,7 +263,7 @@ class GridActividadesController extends Controller
         $membresiaNombre = 'Sin membresía';
         $userContext = null;
         if (!empty($pago['user_id'])) {
-            $user = User::with('membresia')->find($pago['user_id']);
+            $user = User::with(['membresia', 'membresiaUsuario'])->find($pago['user_id']);
             if ($user) {
                 $userContext = $user;
                 [$precioGeneral, $precioMembresia, $membresiaNombre] = $this->calcularPrecios($actividad, $user);
@@ -361,7 +364,7 @@ class GridActividadesController extends Controller
         $registrado = false;
 
         if (!empty($pago['user_id'])) {
-            $user = User::with('membresia')->findOrFail($pago['user_id']);
+            $user = User::with(['membresia', 'membresiaUsuario'])->findOrFail($pago['user_id']);
             $registrado = true;
         } elseif (!empty($pago['guest'])) {
             $guest = $pago['guest'];
@@ -383,9 +386,16 @@ class GridActividadesController extends Controller
                         'msgxwapp' => (bool) ($guest['msgxwapp'] ?? false),
                         'accesibilidad' => (bool) ($guest['accesibilidad'] ?? false),
                         'accesibilidad_desc' => $guest['accesibilidad_desc'] ?? null,
-                        'info_tarjetas_kadampa' => (bool) ($guest['info_tarjetas_kadampa'] ?? false),
                     ]
                 );
+                $user->updateMembresiaUsuario([
+                    'membresia_id' => $user->membresia_id,
+                    'membresia_inscripcion_fecha' => $user->membresia_inscripcion_fecha,
+                    'membresia_online' => (bool) ($user->membresia_online ?? false),
+                    'membresia_online_motivo' => $user->membresia_online_motivo,
+                    'info_tarjetas_kadampa' => (bool) ($guest['info_tarjetas_kadampa'] ?? false),
+                    'envioInfoTk' => $user->envioInfoTk,
+                ]);
                 $user->syncRoles(['asistant']);
                 $registrado = true;
             } else {
@@ -511,6 +521,18 @@ class GridActividadesController extends Controller
                     $inscripcion->envioConfirmacion = 'Enviada';
                 }
                 $inscripcion->save();
+
+                $motivoEnvio = $inscripcion->pago === 'Saldado'
+                    ? 'Inscripción Confirmada'
+                    : 'Inscripción Registrada';
+
+                EnvioMail::create([
+                    'fecha' => now()->toDateString(),
+                    'tipo' => 'Automático',
+                    'user_id' => null,
+                    'destinatario' => $destinatarioRegistro,
+                    'motivo' => $motivoEnvio,
+                ]);
             } catch (\Exception $e) {
                 Log::error('Error al enviar mail de inscripcion en finalizarPago', [
                     'inscripcion_id' => $inscripcion->id,
@@ -533,13 +555,27 @@ class GridActividadesController extends Controller
                         new InscripcionConfirmada($inscripcion, 'emails.informacion_membresias')
                     );
 
+                    EnvioMail::create([
+                        'fecha' => now()->toDateString(),
+                        'tipo' => 'Automático',
+                        'user_id' => null,
+                        'destinatario' => $destinatarioInfoTk,
+                        'motivo' => 'Información TK',
+                    ]);
+
                     $fechaEnvio = now();
                     if ($guestUser) {
                         $guestUser->envioInfoTk = $fechaEnvio;
                         $guestUser->save();
                     } elseif ($user) {
-                        $user->envioInfoTk = $fechaEnvio;
-                        $user->save();
+                        $user->updateMembresiaUsuario([
+                            'membresia_id' => $user->membresia_id,
+                            'membresia_inscripcion_fecha' => $user->membresia_inscripcion_fecha,
+                            'membresia_online' => (bool) ($user->membresia_online ?? false),
+                            'membresia_online_motivo' => $user->membresia_online_motivo,
+                            'info_tarjetas_kadampa' => (bool) ($user->info_tarjetas_kadampa ?? false),
+                            'envioInfoTk' => $fechaEnvio,
+                        ]);
                     }
                 } catch (\Exception $e) {
                     // Ignorar error de mail de info TK
@@ -662,7 +698,7 @@ class GridActividadesController extends Controller
             'esquemaDescuento.membresias.membresia',
         ])->findOrFail($data['actividad_id']);
 
-        $user = User::with('membresia')->findOrFail($data['user_id']);
+        $user = User::with(['membresia', 'membresiaUsuario'])->findOrFail($data['user_id']);
 
         $yaInscripto = Inscripcion::where('user_id', $user->id)
             ->where('actividad_id', $actividad->id)
@@ -762,9 +798,17 @@ class GridActividadesController extends Controller
                     'msgxwapp' => (bool) ($data['msgxwapp'] ?? false),
                     'accesibilidad' => (bool) ($data['accesibilidad'] ?? false),
                     'accesibilidad_desc' => $data['accesibilidad_desc'] ?? null,
-                    'info_tarjetas_kadampa' => (bool) ($data['info_tarjetas_kadampa'] ?? false),
                 ]
             );
+
+            $user->updateMembresiaUsuario([
+                'membresia_id' => $user->membresia_id,
+                'membresia_inscripcion_fecha' => $user->membresia_inscripcion_fecha,
+                'membresia_online' => (bool) ($user->membresia_online ?? false),
+                'membresia_online_motivo' => $user->membresia_online_motivo,
+                'info_tarjetas_kadampa' => (bool) ($data['info_tarjetas_kadampa'] ?? false),
+                'envioInfoTk' => $user->envioInfoTk,
+            ]);
 
             $user->syncRoles(['asistant']);
 

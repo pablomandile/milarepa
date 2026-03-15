@@ -13,7 +13,7 @@
     
     defineProps({
         monedas: {
-            type: Object,
+            type: Array,
             required: true
         }
     })
@@ -60,7 +60,7 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="monedas.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                        <DataTable :value="monedas" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre"></Column>
                             <Column field="simbolo" header="Símbolo"></Column>
                             <Column header="Acciones">

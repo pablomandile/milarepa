@@ -15,7 +15,7 @@ class TransportesController extends Controller
      */
     public function index()
     {
-        $transportes = Transporte::with('botonPago')->paginate(15);
+        $transportes = Transporte::with('botonPago')->get();
         return inertia('Transportes/Index', ['transportes'=>$transportes]);
     }
 

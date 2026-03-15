@@ -16,7 +16,7 @@ class HospedajesController extends Controller
      */
     public function index()
     {
-        $hospedajes = Hospedaje::with(['lugarHospedaje', 'botonPago'])->paginate(10);
+        $hospedajes = Hospedaje::with(['lugarHospedaje', 'botonPago'])->get();
 
         return inertia('Hospedajes/Index', ['hospedajes'=>$hospedajes]);
     }

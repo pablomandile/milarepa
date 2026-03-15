@@ -15,7 +15,7 @@ class UsuariosController extends Controller
      */
     public function index()
     {
-        $usuarios = User::with(['roles', 'membresia'])->paginate(15);
+        $usuarios = User::with(['roles', 'membresia', 'membresiaUsuario'])->get();
         return inertia('Users/Index', ['usuarios' => $usuarios]);
     }
 
@@ -67,11 +67,29 @@ class UsuariosController extends Controller
      */
     public function edit(string $id)
     {
-        $usuario = User::with(['roles', 'membresia'])->findOrFail($id);
+        $usuario = User::with(['roles', 'membresia', 'membresiaUsuario'])->findOrFail($id);
         $roles = Role::all();
         return inertia('Users/Edit', [
             'usuario' => $usuario,
             'roles' => $roles
+        ]);
+    }
+
+    public function profileShow(User $user)
+    {
+        $user->load([
+            'pais',
+            'provincia',
+            'municipio',
+            'barrio',
+            'sexo',
+            'membresia.entidad',
+            'membresiaUsuario.membresia.entidad',
+            'programaEstudio',
+        ]);
+
+        return Inertia::render('Profile/UserShow', [
+            'userProfile' => $user,
         ]);
     }
 

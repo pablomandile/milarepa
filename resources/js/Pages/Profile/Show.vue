@@ -93,7 +93,7 @@ function computeAge(dateStr) {
                                             <i class="pi pi-globe text-indigo-500 mr-2 mt-1"></i>
                                             <div>
                                                 <p class="text-xs text-gray-500">País</p>
-                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.pais.nombre }}</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.pais?.nombre ?? 'No especificado' }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-start">
@@ -186,7 +186,7 @@ function computeAge(dateStr) {
                                             <i class="pi pi-users text-purple-600 mr-2 mt-1"></i>
                                             <div>
                                                 <p class="text-xs text-gray-500">Sexo</p>
-                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.sexo.sexo }}</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.sexo?.sexo ?? 'No especificado' }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-start">
@@ -200,14 +200,14 @@ function computeAge(dateStr) {
                                             <i class="pi pi-id-card text-purple-600 mr-2 mt-1"></i>
                                             <div>
                                                 <p class="text-xs text-gray-500">Membresía</p>
-                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.membresia.nombre }}</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.membresia?.nombre ?? $page.props.auth.user.membresia_usuario?.membresia?.nombre ?? 'No especificado' }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-start">
                                             <i class="pi pi-building text-purple-600 mr-2 mt-1"></i>
                                             <div>
                                                 <p class="text-xs text-gray-500">Asiste a</p>
-                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.membresia.entidad.nombre }}</p>
+                                                <p class="font-semibold text-gray-800">{{ $page.props.auth.user.membresia?.entidad?.nombre ?? $page.props.auth.user.membresia_usuario?.entidad?.nombre ?? 'No especificado' }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-start">

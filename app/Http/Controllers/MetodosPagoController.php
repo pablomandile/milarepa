@@ -16,7 +16,7 @@ class MetodosPagoController extends Controller
      */
     public function index()
     {
-        $metodosPago = MetodoPago::with('imagen')->paginate(15);
+        $metodosPago = MetodoPago::with('imagen')->get();
         return inertia('MetodosPago/Index', ['metodosPago' => $metodosPago]);
     }
 

@@ -14,7 +14,7 @@ class ModalidadesController extends Controller
      */
     public function index()
     {
-        $modalidades = Modalidad::paginate(15);
+        $modalidades = Modalidad::get();
         return inertia('Modalidades/Index', ['modalidades' => $modalidades]);
     }
 

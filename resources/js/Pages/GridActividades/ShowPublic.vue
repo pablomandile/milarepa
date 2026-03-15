@@ -477,7 +477,13 @@ async function iniciarSesionYContinuar() {
   }
 }
 
-function inscribir() {
+async function inscribir() {
+  if (isAuthenticated.value) {
+    emailInput.value = page.props?.auth?.user?.email || '';
+    await continuarUsuarioRegistrado();
+    return;
+  }
+
   abrirDialogoInscripcion();
 }
 

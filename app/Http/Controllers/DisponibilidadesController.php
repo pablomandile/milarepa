@@ -14,7 +14,7 @@ class DisponibilidadesController extends Controller
      */
     public function index()
     {
-        $disponibilidades = Disponibilidad::paginate(15);
+        $disponibilidades = Disponibilidad::get();
         return inertia('Disponibilidades/Index', ['disponibilidades' => $disponibilidades]);
     }
 

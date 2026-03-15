@@ -13,7 +13,7 @@
     
     defineProps({
         metodosPago: {
-            type: Object,
+            type: Array,
             required: true
         }
     })
@@ -60,9 +60,9 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="metodosPago.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                        <DataTable :value="metodosPago" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="nombre" header="Nombre"></Column>
-                            <Column field="descripcion" header="Descripción"></Column>
+                            <Column field="descripcion" header="Descripciï¿½n"></Column>
                             <Column field="tipo_de_pago" header="Tipo de pago"></Column>
                             <Column header="Acciones">
                                 <template #body="slotProps">

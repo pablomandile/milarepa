@@ -13,7 +13,7 @@ import Column from 'primevue/column';
 import Swal from 'sweetalert2';
 
 const props = defineProps({
-    roles: Object,
+    roles: Array,
 });
 
 const page = usePage();
@@ -75,7 +75,7 @@ const deleteRole = (id, name) => {
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="roles.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                        <DataTable :value="roles" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="name" header="Nombre"></Column>
                             <Column header="Acciones" class="text-center" style="width: 150px">
                                 <template #body="slotProps">

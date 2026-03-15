@@ -21,7 +21,7 @@
     
     const { programas } = defineProps({
         programas: {
-            type: Object,
+            type: Array,
             required: true
         }
     });
@@ -56,7 +56,7 @@
     };
 
     const verPrograma = (id) => {
-        const programa = programas.data.find((pro) => pro.id === id);
+        const programa = programas.find((pro) => pro.id === id);
         if (programa) {
             programaSeleccionado.value = programa;
             visible.value = true;
@@ -83,7 +83,7 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable v-model:filters="filters" :value="programas.data" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem"
+                        <DataTable v-model:filters="filters" :value="programas" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem"
                         :globalFilterFields="['programa', 'nombre']">
                             <template #header>
                                 <div class="flex justify-end">

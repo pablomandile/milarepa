@@ -15,7 +15,7 @@ class ComidasController extends Controller
      */
     public function index()
     {
-        $comidas = Comida::with('botonPago')->paginate(15);
+        $comidas = Comida::with('botonPago')->get();
         return inertia('Comidas/Index', ['comidas' => $comidas]);
     }
 

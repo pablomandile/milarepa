@@ -15,7 +15,7 @@ class CoordinadoresController extends Controller
      */
     public function index()
     {
-        $coordinadores = Coordinador::paginate(15);
+        $coordinadores = Coordinador::get();
         return inertia('Coordinadores/Index', ['coordinadores' => $coordinadores]);
     }
 

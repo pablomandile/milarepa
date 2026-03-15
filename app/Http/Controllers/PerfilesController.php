@@ -14,7 +14,7 @@ class PerfilesController extends Controller
      */
     public function index()
     {
-        $roles = Role::with('permissions')->paginate(15);
+        $roles = Role::with('permissions')->get();
         $permissions = Permission::all();
 
         return Inertia::render('Permisos/Index', [
