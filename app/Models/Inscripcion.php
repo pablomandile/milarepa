@@ -69,6 +69,12 @@ class Inscripcion extends Model
         return $this->belongsTo(Comida::class);
     }
 
+    public function comidas()
+    {
+        return $this->belongsToMany(Comida::class, 'inscripcion_comida', 'inscripcion_id', 'comida_id')
+            ->withTimestamps();
+    }
+
     public function transporte()
     {
         return $this->belongsTo(Transporte::class);

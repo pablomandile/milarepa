@@ -88,6 +88,10 @@ Route::get('/email-preview/inscripcion-tk-registrada', [EmailPreviewController::
     ->name('preview.email.inscripcion-tk-registrada');
 Route::get('/email-preview/inscripcion-tk-registrada/{id}', [EmailPreviewController::class, 'inscripcionTkRegistrada'])
     ->name('preview.email.inscripcion-tk-registrada.id');
+Route::get('/email-preview/actividades-online', [EmailPreviewController::class, 'envioActividadesOnline'])
+    ->name('preview.email.actividades-online');
+Route::get('/email-preview/actividades-online/{id}', [EmailPreviewController::class, 'envioActividadesOnline'])
+    ->name('preview.email.actividades-online.id');
 
 // Grid de actividades pÃºblico (solo index + lookup por email)
 Route::get('/grid-actividades', [GridActividadesController::class, 'index'])
@@ -204,6 +208,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         ->name('inscripciones.por-actividad');
     Route::post('/inscripciones/{inscripcion}/comprobante', [InscripcionesController::class, 'uploadComprobante'])
         ->name('inscripciones.comprobante');
+    Route::post('/inscripciones/{inscripcion}/pago/prepare', [InscripcionesController::class, 'preparePago'])
+        ->name('inscripciones.pago.prepare');
     Route::get('/inscripciones/{inscripcion}/ticket', [InscripcionesController::class, 'ticket'])
         ->name('inscripciones.ticket');
     Route::get('/inscripciones/{inscripcion}/asistir', [InscripcionesController::class, 'asistir'])

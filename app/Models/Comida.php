@@ -25,4 +25,10 @@ class Comida extends Model
     {
         return $this->belongsTo(BotonPago::class, 'botonpago_id');
     }
+
+    public function inscripciones()
+    {
+        return $this->belongsToMany(Inscripcion::class, 'inscripcion_comida', 'comida_id', 'inscripcion_id')
+            ->withTimestamps();
+    }
 }

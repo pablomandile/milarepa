@@ -42,7 +42,7 @@ const verEmail5 = () => {
 
 const verEmail6 = () => {
     if (email6Id.value) {
-        window.location.href = `/email-preview/email6/${email6Id.value}`;
+        window.location.href = `/email-preview/actividades-online/${email6Id.value}`;
     }
 };
 </script>
@@ -260,13 +260,13 @@ const verEmail6 = () => {
                     <!-- Card 6 -->
                     <div class="bg-white overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-violet-600 to-purple-700 text-white text-center">
-                            <h2 class="text-xl font-bold mb-2">📧 Email 6</h2>
-                            <p class="opacity-90 text-sm">Plantilla de email personalizada</p>
+                            <h2 class="text-xl font-bold mb-2">📧 Actividades Online</h2>
+                            <p class="opacity-90 text-sm">Bienvenida + enlace a clases online</p>
                         </div>
 
                         <div class="p-6 space-y-4">
                             <Link
-                                href="/email-preview/inscripcion"
+                                href="/email-preview/actividades-online"
                                 class="block w-full px-4 py-2 text-center bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-semibold text-sm"
                             >
                                 Ver con Datos de Prueba

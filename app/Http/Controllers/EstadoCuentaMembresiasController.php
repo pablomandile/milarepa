@@ -17,7 +17,7 @@ class EstadoCuentaMembresiasController extends Controller
      */
     public function index()
     {
-        $estadoCuentas = EstadoCuentaMembresia::with(['user', 'membresia', 'membresia.entidad'])
+        $estadoCuentas = EstadoCuentaMembresia::with(['user.membresiaUsuario', 'membresia', 'membresia.entidad'])
             ->orderBy('mes_pagado', 'desc')
             ->orderBy('created_at', 'desc')
             ->paginate(15);
@@ -57,7 +57,7 @@ class EstadoCuentaMembresiasController extends Controller
     public function edit(EstadoCuentaMembresia $estadoCuentaMembresia)
     {
         return inertia('EstadoCuentaMembresias/Edit', [
-            'estadoCuenta' => $estadoCuentaMembresia->load(['user', 'membresia', 'membresia.entidad'])
+            'estadoCuenta' => $estadoCuentaMembresia->load(['user.membresiaUsuario', 'membresia', 'membresia.entidad'])
         ]);
     }
 
@@ -72,11 +72,33 @@ class EstadoCuentaMembresiasController extends Controller
             'observaciones' => 'nullable|string|max:255',
             'modo' => ['nullable', Rule::in(EstadoCuentaMembresia::MODOS_PAGO)],
             'info_pago' => 'nullable|string|max:255',
+            'modalidad' => ['nullable', Rule::in(['online', 'presencial'])],
+            'estado_activo' => 'required|boolean',
         ]);
 
         if ($validated['pagado'] && empty($validated['fecha_pago'])) {
             $validated['fecha_pago'] = Carbon::today()->toDateString();
         }
+
+        $validated['estado'] = $validated['estado_activo']
+            ? EstadoCuentaMembresia::ESTADO_ACTIVA
+            : EstadoCuentaMembresia::ESTADO_EXPIRADA;
+
+        unset($validated['estado_activo']);
+
+        if (!empty($validated['modalidad']) && $estadoCuentaMembresia->user) {
+            $usuario = $estadoCuentaMembresia->user;
+            $usuario->updateMembresiaUsuario([
+                'membresia_id' => $usuario->membresia_id,
+                'membresia_inscripcion_fecha' => $usuario->membresia_inscripcion_fecha,
+                'membresia_online' => $validated['modalidad'] === 'online',
+                'membresia_online_motivo' => $usuario->membresia_online_motivo,
+                'info_tarjetas_kadampa' => (bool) ($usuario->info_tarjetas_kadampa ?? false),
+                'envioInfoTk' => $usuario->envioInfoTk,
+            ]);
+        }
+
+        unset($validated['modalidad']);
 
         $estadoCuentaMembresia->update($validated);
 

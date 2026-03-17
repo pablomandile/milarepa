@@ -61,6 +61,10 @@ const form = useForm({
     observaciones: props.estadoCuenta.observaciones || '',
     modo: props.estadoCuenta.modo || '',
     info_pago: props.estadoCuenta.info_pago || '',
+    modalidad: (props.estadoCuenta.user?.membresia_online || props.estadoCuenta.user?.membresia_usuario?.membresia_online)
+        ? 'online'
+        : 'presencial',
+    estado_activo: String(props.estadoCuenta.estado || '').toLowerCase() === 'activa',
 });
 
 const guardarCambios = () => {

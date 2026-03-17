@@ -286,7 +286,7 @@ class ActividadesController extends Controller
             $botonesPago = BotonPago::select('id', 'nombre')->orderByDesc('created_at')->get();
             $lugarHospedaje = LugarHospedaje::all();
             $hospedajes = Hospedaje::all();
-            $comidas = Comida::all();
+            $comidas = Comida::orderByDesc('created_at')->get();
             $transportes = Transporte::all();
 
             return inertia('Actividades/Edit', [

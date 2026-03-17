@@ -33,7 +33,8 @@ class InscripcionesController extends Controller
                 'actividad.entidad',
                 'actividad.lugar',
                 'hospedaje',
-            'comida',
+                'comida',
+                'comidas',
             'transporte',
             'comprobantes'
             ])
@@ -174,6 +175,8 @@ class InscripcionesController extends Controller
             'online' => 'required|boolean',
             'hospedaje_id' => 'nullable|exists:hospedajes,id',
             'comida_id' => 'nullable|exists:comidas,id',
+            'comidas_ids' => 'nullable|array',
+            'comidas_ids.*' => 'integer|exists:comidas,id',
             'transporte_id' => 'nullable|exists:transportes,id',
         ]);
         $userId = auth()->id();
@@ -191,9 +194,13 @@ class InscripcionesController extends Controller
             return back()->with('error', 'Ya está inscripto a esa actividad!');
         }
 
-        // Crear Inscripci�n usando el usuario autenticado
+        // Crear Inscripción usando el usuario autenticado
         $data = $request->all();
         $data['user_id'] = $userId;
+        $comidasIds = $request->input('comidas_ids', []);
+        if (!empty($comidasIds) && empty($data['comida_id'])) {
+            $data['comida_id'] = $comidasIds[0];
+        }
         [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto((float) $data['montoapagar']);
         $data['pago'] = $estadoPago;
         $data['estado'] = $estadoInscripcion;
@@ -202,6 +209,10 @@ class InscripcionesController extends Controller
         $data['envioGrabacion'] = 'Pendiente';
 
         $inscripcion = Inscripcion::create($data);
+
+        if (!empty($comidasIds)) {
+            $inscripcion->comidas()->sync($comidasIds);
+        }
 
         // Cargar relaciones para el email
         $inscripcion->load([
@@ -228,14 +239,14 @@ class InscripcionesController extends Controller
             }
             $inscripcion->save();
             $mensajeEmail = 'Email de confirmación enviado correctamente a ' . $inscripcion->user->email;
-            Log::info('Email de Inscripci�n enviado correctamente', [
+            Log::info('Email de Inscripción enviado correctamente', [
                 'inscripcion_id' => $inscripcion->id,
                 'user_email' => $inscripcion->user->email
             ]);
         } catch (\Exception $e) {
             $emailEnviado = false;
             $mensajeEmail = 'Advertencia: No se pudo enviar el email de confirmación. Error: ' . $e->getMessage();
-            Log::error('Error al enviar email de Inscripci�n', [
+            Log::error('Error al enviar email de Inscripción', [
                 'inscripcion_id' => $inscripcion->id,
                 'user_email' => $inscripcion->user->email,
                 'error' => $e->getMessage(),
@@ -243,9 +254,9 @@ class InscripcionesController extends Controller
             ]);
         }
 
-        // Redirigir a la vista de detalle (show) de la Inscripci�n
+        // Redirigir a la vista de detalle (show) de la Inscripción
         return redirect()->route('inscripciones.show', ['inscripcion' => $inscripcion->id])
-            ->with('success', 'Inscripci�n creada correctamente.')
+            ->with('success', 'Inscripción creada correctamente.')
             ->with('email_status', [
                 'enviado' => $emailEnviado,
                 'mensaje' => $mensajeEmail
@@ -267,13 +278,14 @@ class InscripcionesController extends Controller
             'user',
             'hospedaje',
             'comida',
+            'comidas',
             'transporte',
             'comprobantes',
         ])->findOrFail($id);
 
-        // Verificar que la Inscripci�n pertenece al usuario autenticado
+        // Verificar que la Inscripción pertenece al usuario autenticado
         if ($inscripcion->user_id !== auth()->id()) {
-            return back()->with('error', 'No autorizado a ver esta Inscripci�n.');
+            return back()->with('error', 'No autorizado a ver esta Inscripción.');
         }
 
         // Formatear fecha de la actividad
@@ -293,7 +305,7 @@ class InscripcionesController extends Controller
     }
 
     /**
-     * Display a mobile ticket view for the given Inscripci�n.
+     * Display a mobile ticket view for the given Inscripción.
      */
     public function ticket(string $id)
     {
@@ -306,7 +318,7 @@ class InscripcionesController extends Controller
 
         // Authorize ownership
         if ($inscripcion->user_id !== auth()->id()) {
-            return back()->with('error', 'No autorizado a ver esta Inscripci�n.');
+            return back()->with('error', 'No autorizado a ver esta Inscripción.');
         }
 
         // Format activity start date
@@ -326,7 +338,7 @@ class InscripcionesController extends Controller
     }
 
     /**
-     * Mark attendance for the given Inscripci�n via a signed URL.
+     * Mark attendance for the given Inscripción via a signed URL.
      */
     public function asistir(string $id)
     {
@@ -399,14 +411,14 @@ class InscripcionesController extends Controller
     {
         $inscripcion = Inscripcion::findOrFail($id);
         
-        // Verificar que la Inscripci�n pertenece al usuario autenticado
+        // Verificar que la Inscripción pertenece al usuario autenticado
         if ($inscripcion->user_id !== auth()->id()) {
             return back()->withErrors(['message' => 'No autorizado']);
         }
         
         $inscripcion->delete();
         
-        return back()->with('success', 'Inscripci�n eliminada correctamente');
+        return back()->with('success', 'Inscripción eliminada correctamente');
     }
 
     public function uploadComprobante(Request $request, Inscripcion $inscripcion)
@@ -427,7 +439,7 @@ class InscripcionesController extends Controller
             'comprobante' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
             'descripcion' => ['nullable', 'string', 'max:255'],
         ], [
-            'comprobante.max' => 'El comprobante supera el tama�o m�ximo permitido (4 MB).',
+            'comprobante.max' => 'El comprobante supera el tamaño máximo permitido (4 MB).',
             'comprobante.mimes' => 'El comprobante debe ser PDF, JPG o PNG.',
         ]);
 
@@ -439,6 +451,32 @@ class InscripcionesController extends Controller
         ]);
 
         return back()->with('success', 'Comprobante subido correctamente.');
+    }
+
+    public function preparePago(Request $request, Inscripcion $inscripcion)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return back()->withErrors(['message' => 'No autorizado']);
+        }
+
+        $esOwner = $inscripcion->user_id === $user->id;
+        $esAdmin = $user->hasRole(['Admin', 'Editor', 'admin', 'editor']);
+
+        if (!$esOwner && !$esAdmin) {
+            return back()->withErrors(['message' => 'No autorizado']);
+        }
+
+        $request->session()->put('grid_pago', [
+            'actividad_id' => $inscripcion->actividad_id,
+            'user_id' => $inscripcion->user_id,
+            'guest' => null,
+            'inscripcion_id' => $inscripcion->id,
+            'comprobante_path' => null,
+            'pago_metodo' => null,
+        ]);
+
+        return redirect()->route('grid-actividades.pago', ['actividad' => $inscripcion->actividad_id]);
     }
 
     private function resolverEstadoSegunMonto(float $montoApagar): array

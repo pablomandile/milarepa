@@ -13,6 +13,7 @@ use App\Models\Municipio;
 use App\Models\Barrio;
 use App\Models\EnvioMail;
 use App\Models\User;
+use App\Models\EstadoCuentaMembresia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
@@ -76,16 +77,22 @@ class GridActividadesController extends Controller
 
         // Obtener IDs de actividades donde el usuario actual está inscripto
         $userInscripcionesActividadIds = [];
+        $userMembresiaActiva = null;
         if (auth()->check()) {
             /** @var User $authUser */
             $authUser = auth()->user();
             $userInscripcionesActividadIds = $authUser->inscripciones()->pluck('actividad_id')->toArray();
+            $userMembresiaActiva = $this->resolverMembresiaActivaUsuario($authUser);
         }
 
         // dd($actividades->toArray());
         return inertia('GridActividades/Index', [
             'actividades' => $actividades->toArray(),
             'userInscripcionesActividadIds' => $userInscripcionesActividadIds,
+            'userMembresiaActiva' => $userMembresiaActiva ? [
+                'id' => $userMembresiaActiva->id,
+                'nombre' => $userMembresiaActiva->nombre,
+            ] : null,
             'paises' => $paises,
             'provincias' => $provincias,
             'municipios' => $municipios,
@@ -167,15 +174,18 @@ class GridActividadesController extends Controller
             ->pluck('actividad_id')
             ->toArray();
 
+        $membresiaActiva = $this->resolverMembresiaActivaUsuario($user);
+        $membresiaRespuesta = $membresiaActiva ?: $user->membresia;
+
         return response()->json([
             'found' => true,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'membresia' => $user->membresia ? [
-                    'id' => $user->membresia->id,
-                    'nombre' => $user->membresia->nombre,
+                'membresia' => $membresiaRespuesta ? [
+                    'id' => $membresiaRespuesta->id,
+                    'nombre' => $membresiaRespuesta->nombre,
                 ] : null,
                 'inscripciones_actividad_ids' => $inscripcionesIds,
             ],
@@ -292,12 +302,21 @@ class GridActividadesController extends Controller
 
         $mostrarSelectorModalidad = $this->mostrarSelectorModalidadEnPago($actividad, $userContext);
 
+        $inscripcionExistente = null;
+        if (!empty($pago['inscripcion_id'])) {
+            $inscripcionExistente = Inscripcion::with(['comidas'])
+                ->where('id', $pago['inscripcion_id'])
+                ->where('actividad_id', $actividad->id)
+                ->first();
+        }
+
         return inertia('GridActividades/Pago', [
             'actividad' => $actividad,
             'pago' => $pago,
             'saldo' => $saldo,
             'membresia' => $membresiaNombre,
             'mostrarSelectorModalidad' => $mostrarSelectorModalidad,
+            'inscripcion' => $inscripcionExistente,
         ]);
     }
 
@@ -483,6 +502,55 @@ class GridActividadesController extends Controller
             + (float) ($montoTransporte ?? 0)
             + $montoHospedaje;
         [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
+
+        if (!empty($pago['inscripcion_id'])) {
+            $inscripcion = Inscripcion::where('id', $pago['inscripcion_id'])
+                ->where('actividad_id', $actividad->id)
+                ->first();
+
+            if (!$inscripcion) {
+                return response()->json(['ok' => false, 'message' => 'No se encontró la inscripción a actualizar.'], 404);
+            }
+
+            $inscripcion->update([
+                'membresia' => $membresiaNombre,
+                'precioGeneral' => $precioGeneral,
+                'montoActividad' => $montoActividad,
+                'montoGrabacion' => $montoGrabacion,
+                'montoTransporte' => $montoTransporte,
+                'montoComidas' => $montoComidas,
+                'montoapagar' => $montoApagar,
+                'pago' => $estadoPago,
+                'estado' => $estadoInscripcion,
+                'envioLinkStream' => $envioLinkStream,
+                'envioGrabacion' => $envioGrabacion,
+                'online' => $online,
+                'hospedaje_id' => $hospedajeId,
+                'comida_id' => $comidaId,
+                'transporte_id' => $transporteId,
+            ]);
+
+            $inscripcion->comidas()->sync($comidasIds);
+
+            if (!empty($pago['comprobante_path'])) {
+                InscripcionComprobante::create([
+                    'inscripcion_id' => $inscripcion->id,
+                    'ruta' => $pago['comprobante_path'],
+                    'descripcion' => $pago['comprobante_descripcion'] ?? null,
+                ]);
+            }
+
+            $request->session()->forget('grid_pago');
+
+            return response()->json([
+                'ok' => true,
+                'inscripcion_id' => $inscripcion->id,
+                'registered' => true,
+                'can_view_private' => true,
+                'updated_existing' => true,
+            ]);
+        }
+
         $inscripcion = Inscripcion::create([
             'actividad_id' => $actividad->id,
             'user_id' => $user->id,
@@ -506,6 +574,10 @@ class GridActividadesController extends Controller
             'comida_id' => $comidaId,
             'transporte_id' => $transporteId,
         ]);
+
+        if (!empty($comidasIds)) {
+            $inscripcion->comidas()->sync($comidasIds);
+        }
 
         if (!empty($pago['comprobante_path'])) {
             InscripcionComprobante::create([
@@ -623,6 +695,7 @@ class GridActividadesController extends Controller
             'actividad.tipoActividad',
             'hospedaje',
             'comida',
+            'comidas',
             'transporte',
             'comprobantes',
         ];
@@ -658,6 +731,10 @@ class GridActividadesController extends Controller
             'modalidad',
             'tipoActividad',
             'maestros.imagen',
+            'grabacion',
+            'comidas',
+            'transportes',
+            'hospedajes',
             'esquemaPrecio.membresias.membresia',
             'esquemaDescuento.membresias.membresia',
         ];
@@ -672,9 +749,14 @@ class GridActividadesController extends Controller
         $barrios = Barrio::all();
 
         $userInscripcionesActividadIds = [];
+        $userMembresiaActiva = null;
         if (auth()->check()) {
+            $authUser = auth()->user();
             $userInscripcionesActividadIds = Inscripcion::where('user_id', auth()->id())
                 ->pluck('actividad_id');
+            if ($authUser) {
+                $userMembresiaActiva = $this->resolverMembresiaActivaUsuario($authUser);
+            }
         }
 
         if (!empty($actividad->fecha_inicio)) {
@@ -693,6 +775,10 @@ class GridActividadesController extends Controller
             'municipios' => $municipios,
             'barrios' => $barrios,
             'userInscripcionesActividadIds' => $userInscripcionesActividadIds,
+            'userMembresiaActiva' => $userMembresiaActiva ? [
+                'id' => $userMembresiaActiva->id,
+                'nombre' => $userMembresiaActiva->nombre,
+            ] : null,
             'returnUrl' => $request->query('return_url'),
         ]);
     }
@@ -1173,6 +1259,19 @@ class GridActividadesController extends Controller
         }
 
         return ['Pendiente', 'Registrada'];
+    }
+
+    private function resolverMembresiaActivaUsuario(User $user)
+    {
+        $estadoActivo = EstadoCuentaMembresia::query()
+            ->with('membresia')
+            ->where('user_id', $user->id)
+            ->where('estado', EstadoCuentaMembresia::ESTADO_ACTIVA)
+            ->orderByDesc('mes_pagado')
+            ->orderByDesc('created_at')
+            ->first();
+
+        return $estadoActivo?->membresia;
     }
 
     private function canUseLugarRelation(): bool

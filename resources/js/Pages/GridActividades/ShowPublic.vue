@@ -31,6 +31,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  userMembresiaActiva: {
+    type: Object,
+    default: null,
+  },
   returnUrl: {
     type: String,
     default: null,
@@ -142,6 +146,7 @@ const actividadEsGratuita = computed(() => {
 const membresiaIdUsuario = computed(() => {
   return (
     userByEmail.value?.membresia?.id ||
+    props.userMembresiaActiva?.id ||
     page.props?.auth?.user?.membresia?.id ||
     page.props?.auth?.user?.membresia_id ||
     null
@@ -150,6 +155,7 @@ const membresiaIdUsuario = computed(() => {
 
 const membresiaNombreUsuario = computed(() => {
   if (userByEmail.value?.membresia?.nombre) return userByEmail.value.membresia.nombre;
+  if (props.userMembresiaActiva?.nombre) return props.userMembresiaActiva.nombre;
   if (page.props?.auth?.user?.membresia?.nombre) return page.props.auth.user.membresia.nombre;
 
   const match = (esquemaVigente.value?.membresias || []).find(
@@ -327,6 +333,28 @@ const programaTexto = computed(() => {
 const programaHtml = computed(() => {
   if (!programaTexto.value) return '';
   return renderMaestroMarkdown(programaTexto.value);
+});
+
+const serviciosOfrecidos = computed(() => {
+  const servicios = [];
+
+  if (Array.isArray(props.actividad?.transportes) && props.actividad.transportes.length > 0) {
+    servicios.push('Transporte');
+  }
+
+  if (Array.isArray(props.actividad?.comidas) && props.actividad.comidas.length > 0) {
+    servicios.push('Comidas');
+  }
+
+  if (props.actividad?.grabacion_id || props.actividad?.grabacion) {
+    servicios.push('Grabación');
+  }
+
+  if (Array.isArray(props.actividad?.hospedajes) && props.actividad.hospedajes.length > 0) {
+    servicios.push('Acomodaciones');
+  }
+
+  return servicios;
 });
 
 const mapEmbedUrl = computed(() => {
@@ -640,6 +668,17 @@ onMounted(() => {
                   <div v-else class="h-24 md:h-auto md:w-24 shrink-0 border-t border-rose-100 md:border-t-0 md:border-l bg-rose-50/60 flex items-center justify-center text-slate-400">
                     <i class="pi pi-user text-xl"></i>
                   </div>
+                </div>
+              </div>
+
+              <div class="rounded-lg border border-cyan-100 bg-gradient-to-br from-cyan-50 to-white shadow-md p-5 flex items-start gap-3">
+                <i class="pi pi-briefcase text-indigo-600 text-2xl"></i>
+                <div>
+                  <h3 class="text-sm font-semibold text-gray-800">Servicios</h3>
+                  <p v-if="serviciosOfrecidos.length" class="text-gray-700 text-base">
+                    {{ serviciosOfrecidos.join(', ') }}
+                  </p>
+                  <p v-else class="text-gray-500 text-base">No ofrece servicios adicionales</p>
                 </div>
               </div>
 

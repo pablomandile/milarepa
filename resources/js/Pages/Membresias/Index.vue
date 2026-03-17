@@ -21,6 +21,10 @@ const props = defineProps({
         type: Object,
         default: null
     },
+    user_membresia_online: {
+        type: Boolean,
+        default: false
+    },
     estado_cuenta: {
         type: Object,
         default: null
@@ -50,10 +54,10 @@ const inscrbirme = (membresia) => {
     const userActive = userMembresia;
 
     if (userActive && userActive.id === membresia.id) {
-        // Si es la misma membresÃ­a
-        Swal.fire('InformaciÃ³n', 'Ya tienes esta membresÃ­a activa', 'info');
+        // Si es la misma membresía
+        Swal.fire('Información', 'Ya tienes esta membresía activa', 'info');
     } else {
-        // Mostrar modal de confirmaciÃ³n con modalidad
+        // Mostrar modal de confirmación con modalidad
         membresiaPendiente.value = membresia;
         modalidad.value = 'PRESENCIAL';
         motivoOnline.value = '';
@@ -69,10 +73,10 @@ const confirmarCambio = () => {
     }, {
         onSuccess: () => {
             showConfirmDialog.value = false;
-            Swal.fire('Â¡Ã‰xito!', 'Tu membresÃ­a ha sido actualizada', 'success');
+            Swal.fire('¡Éxito!', 'Tu membresía ha sido actualizada', 'success');
         },
         onError: () => {
-            Swal.fire('Error', 'Hubo un problema al cambiar la membresÃ­a', 'error');
+            Swal.fire('Error', 'Hubo un problema al cambiar la membresía', 'error');
         }
     });
 };
@@ -276,7 +280,7 @@ async function subirComprobante() {
                                     <span class="font-semibold">Tu membresía actual: </span>
                                     <span class="font-bold text-green-600">
                                         {{ userMembresia.nombre }}
-                                        <span v-if="page.props.auth?.user?.membresia_online" class="ml-2 text-xs font-semibold text-indigo-600">ONLINE</span>
+                                        <span v-if="props.user_membresia_online || page.props.auth?.user?.membresia_online" class="ml-2 text-xs font-semibold text-indigo-600">ONLINE</span>
                                     </span>
                                 </p>
                                 <template v-if="userMembresia">

@@ -28,6 +28,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  inscripcion: {
+    type: Object,
+    default: null,
+  },
 });
 
 const toast = useToast();
@@ -42,6 +46,8 @@ const metodosPago = computed(() =>
   (props.actividad?.metodos_pago || []).map((metodo) => ({
     id: metodo.id,
     nombre: metodo.nombre,
+    tipo: metodo.tipo_de_pago || '',
+    label: metodo.tipo_de_pago ? `${metodo.nombre} (${metodo.tipo_de_pago})` : metodo.nombre,
     value: (metodo.nombre || '').toString().toLowerCase(),
   }))
 );
@@ -247,6 +253,25 @@ const saldoAPagar = computed(() => {
   const totalGrabacion = grabacionSeleccionada.value ? grabacionPrecio.value : 0;
   return actividadPrecio.value + totalGrabacion + totalComidas.value + totalTransportes.value + totalHospedajes.value;
 });
+const esPagoDeInscripcionExistente = computed(() => !!props.pago?.inscripcion_id);
+const comidasBloqueadasIds = computed(() => {
+  if (!esPagoDeInscripcionExistente.value || !props.inscripcion) return [];
+  if (Array.isArray(props.inscripcion.comidas) && props.inscripcion.comidas.length) {
+    return props.inscripcion.comidas.map((comida) => comida.id);
+  }
+  return props.inscripcion.comida_id ? [props.inscripcion.comida_id] : [];
+});
+const transportesBloqueadosIds = computed(() => {
+  if (!esPagoDeInscripcionExistente.value || !props.inscripcion?.transporte_id) return [];
+  return [props.inscripcion.transporte_id];
+});
+const hospedajesBloqueadosIds = computed(() => {
+  if (!esPagoDeInscripcionExistente.value || !props.inscripcion?.hospedaje_id) return [];
+  return [props.inscripcion.hospedaje_id];
+});
+const grabacionBloqueada = computed(() => {
+  return esPagoDeInscripcionExistente.value && !!props.inscripcion?.montoGrabacion && Number(props.inscripcion.montoGrabacion) > 0;
+});
 const esPagoCero = computed(() => {
   return (
     actividadPrecio.value <= 0 ||
@@ -286,9 +311,7 @@ const esEfectivoSeleccionado = computed(() => metodoSeleccionado.value === 'efec
 const esTransferenciaSeleccionado = computed(() => metodoSeleccionado.value === 'transferencia');
 const esGetnetSeleccionado = computed(() => metodoSeleccionado.value === 'getnet');
 const mostrarBotonesPago = computed(() => {
-  if (esPagoCero.value) return false;
-  if (esMetodoTipoEfectivo.value || esTransferenciaSeleccionado.value) return false;
-  return true;
+  return !esPagoCero.value && esGetnetSeleccionado.value;
 });
 const mostrarInfoEfectivo = computed(() => !esPagoCero.value && esMetodoTipoEfectivo.value);
 const mostrarInfoTransferencia = computed(() => !esPagoCero.value && esTransferenciaSeleccionado.value);
@@ -380,7 +403,12 @@ async function terminar() {
     const inscripcionId = response.data?.inscripcion_id;
     const registrado = response.data?.registered;
     const canViewPrivate = !!response.data?.can_view_private;
+    const updatedExisting = !!response.data?.updated_existing;
     if (inscripcionId) {
+      if (updatedExisting) {
+        window.location.href = route('inscripciones.index');
+        return;
+      }
       if (registrado && canViewPrivate) {
         window.location.href = route('inscripciones.show', { inscripcion: inscripcionId });
       } else {
@@ -417,6 +445,25 @@ watch(
     if (!monedaSeleccionadaId.value || !monedas.some((m) => m.id === monedaSeleccionadaId.value)) {
       monedaSeleccionadaId.value = monedas[0].id;
     }
+  },
+  { immediate: true }
+);
+
+watch(
+  () => props.inscripcion,
+  (inscripcion) => {
+    if (!inscripcion) return;
+
+    if (inscripcion.comida_id) {
+      comidasSeleccionadas.value = [inscripcion.comida_id];
+    }
+    if (Array.isArray(inscripcion.comidas) && inscripcion.comidas.length) {
+      comidasSeleccionadas.value = inscripcion.comidas.map((comida) => comida.id);
+    }
+
+    transportesSeleccionados.value = inscripcion.transporte_id ? [inscripcion.transporte_id] : [];
+    hospedajesSeleccionados.value = inscripcion.hospedaje_id ? [inscripcion.hospedaje_id] : [];
+    grabacionSeleccionada.value = !!inscripcion.montoGrabacion && Number(inscripcion.montoGrabacion) > 0;
   },
   { immediate: true }
 );
@@ -471,6 +518,7 @@ watch(
             <select
               id="moneda_select"
               v-model="monedaSeleccionadaId"
+              :disabled="esPagoDeInscripcionExistente"
               class="w-full appearance-none rounded border border-sky-400 bg-blue-400 px-3 py-2 pr-10 text-sm text-white shadow-sm focus:border-sky-600 focus:ring focus:ring-sky-200"
             >
               <option v-for="moneda in monedasDisponibles" :key="moneda.id" :value="moneda.id">
@@ -486,6 +534,7 @@ watch(
             <select
               id="modalidad_cursada_select"
               v-model="modalidadCursada"
+              :disabled="esPagoDeInscripcionExistente"
               class="w-full appearance-none rounded border border-sky-400 bg-blue-400 px-3 py-2 pr-10 text-sm text-white shadow-sm focus:border-sky-600 focus:ring focus:ring-sky-200"
             >
               <option value="presencial">Presencial</option>
@@ -506,7 +555,7 @@ watch(
                 Selecciona un método de pago
               </option>
               <option v-for="metodo in metodosPago" :key="metodo.id" :value="metodo.value">
-                {{ metodo.nombre }}
+                {{ metodo.label }}
               </option>
             </select>
           </div>
@@ -576,6 +625,7 @@ watch(
                   inputId="grabacion_check"
                   v-model="grabacionSeleccionada"
                   binary
+                  :disabled="grabacionBloqueada"
                 />
                 <label for="grabacion_check" class="text-sm font-semibold text-gray-700">
                   Agregar grabación
@@ -611,6 +661,7 @@ watch(
                       :inputId="`comida_${comida.id}`"
                       :value="comida.id"
                       v-model="comidasSeleccionadas"
+                      :disabled="comidasBloqueadasIds.includes(comida.id)"
                     />
                     {{ comida.nombre }}
                   </label>
@@ -646,6 +697,7 @@ watch(
                       :inputId="`transporte_${transporte.id}`"
                       :value="transporte.id"
                       v-model="transportesSeleccionados"
+                      :disabled="transportesBloqueadosIds.includes(transporte.id)"
                     />
                     {{ transporte.descripcion || transporte.nombre }}
                   </label>
@@ -695,6 +747,7 @@ watch(
                       :inputId="`hospedaje_${hospedaje.id}`"
                       :value="hospedaje.id"
                       v-model="hospedajesSeleccionados"
+                      :disabled="hospedajesBloqueadosIds.includes(hospedaje.id)"
                     />
                     {{ hospedaje.nombre }}
                   </label>
@@ -734,7 +787,7 @@ watch(
               :disabled="isFinalizing || !puedeFinalizar"
               @click="terminar"
             >
-              {{ isFinalizing ? 'Finalizando...' : 'Terminar inscripción' }}
+              {{ isFinalizing ? 'Finalizando...' : (esPagoDeInscripcionExistente ? 'Terminar Pago' : 'Terminar inscripción') }}
             </button>
           </div>
         </div>

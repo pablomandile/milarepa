@@ -38,6 +38,10 @@ class MembresiasGestionController extends Controller
 
         $membresia = $validated['membresia_id'] ? Membresia::find($validated['membresia_id']) : null;
 
+        if ($validated['membresia_id']) {
+            $this->expirarMembresiasActivasUsuario($user->id);
+        }
+
         $user->updateMembresiaUsuario([
             'membresia_id' => $validated['membresia_id'],
             'membresia_inscripcion_fecha' => $validated['membresia_id'] ? now()->toDateString() : null,
@@ -62,17 +66,14 @@ class MembresiasGestionController extends Controller
 
     public function eliminar(User $user)
     {
-        // Borrado lógico del estado de cuenta del mes actual (si existe)
-        $mesActual = Carbon::now()->format('Y-m');
-        $estadoCuenta = EstadoCuentaMembresia::where('user_id', $user->id)
-            ->where('membresia_id', $user->membresia_id)
-            ->where('mes_pagado', $mesActual)
-            ->first();
+        $membresiaIdActual = $user->membresiaUsuario?->membresia_id ?? $user->membresia_id;
 
-        if ($estadoCuenta) {
-            $estadoCuenta->estado = EstadoCuentaMembresia::ESTADO_EXPIRADA;
-            $estadoCuenta->save();
-            $estadoCuenta->delete();
+        if ($membresiaIdActual) {
+            EstadoCuentaMembresia::query()
+                ->where('user_id', $user->id)
+                ->where('membresia_id', $membresiaIdActual)
+                ->where('estado', EstadoCuentaMembresia::ESTADO_ACTIVA)
+                ->update(['estado' => EstadoCuentaMembresia::ESTADO_EXPIRADA]);
         }
 
         $user->updateMembresiaUsuario([
@@ -97,6 +98,7 @@ class MembresiasGestionController extends Controller
         $existe = EstadoCuentaMembresia::where('user_id', $userId)
             ->where('membresia_id', $membresiaId)
             ->where('mes_pagado', $mesPagado)
+            ->where('estado', EstadoCuentaMembresia::ESTADO_ACTIVA)
             ->exists();
 
         if (!$existe) {
@@ -111,5 +113,13 @@ class MembresiasGestionController extends Controller
                 'observaciones' => 'Inscripción realizada por ' . (auth()->user()->name ?? 'sistema')
             ]);
         }
+    }
+
+    private function expirarMembresiasActivasUsuario(int $userId): void
+    {
+        EstadoCuentaMembresia::query()
+            ->where('user_id', $userId)
+            ->where('estado', EstadoCuentaMembresia::ESTADO_ACTIVA)
+            ->update(['estado' => EstadoCuentaMembresia::ESTADO_EXPIRADA]);
     }
 }

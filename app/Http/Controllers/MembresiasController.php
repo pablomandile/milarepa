@@ -42,10 +42,22 @@ class MembresiasController extends Controller
         }
 
         $userMembresia = null;
+        $userMembresiaOnline = false;
         $estadoCuenta = null;
         $estadosCuenta = [];
-        if (auth()->check() && auth()->user()->membresia_id) {
-            $userMembresia = Membresia::with('botonPago')->find(auth()->user()->membresia_id);
+        if (auth()->check()) {
+            $authUser = User::with(['membresiaUsuario.membresia.botonPago', 'membresia.botonPago'])->find(auth()->id());
+            $membresiaId = $authUser?->membresiaUsuario?->membresia_id ?? $authUser?->membresia_id;
+            $userMembresiaOnline = (bool) ($authUser?->membresia_online ?? false);
+
+            $userMembresia = $authUser ? $this->resolverMembresiaActivaUsuario($authUser) : null;
+            if (!$userMembresia) {
+                $userMembresia = $authUser?->membresiaUsuario?->membresia;
+            }
+            if (!$userMembresia && $membresiaId) {
+                $userMembresia = Membresia::with('botonPago')->find($membresiaId);
+            }
+
             if ($userMembresia) {
                 $estadoCuenta = EstadoCuentaMembresia::where('user_id', auth()->id())
                     ->where('membresia_id', $userMembresia->id)
@@ -62,6 +74,7 @@ class MembresiasController extends Controller
         return inertia('Membresias/Index', [
             'membresias' => $membresias,
             'user_membresia' => $userMembresia,
+            'user_membresia_online' => $userMembresiaOnline,
             'estado_cuenta' => $estadoCuenta,
             'estados_cuenta' => $estadosCuenta,
         ]);
@@ -138,9 +151,18 @@ class MembresiasController extends Controller
         }
 
         if ($selectedUserId) {
-            $selectedUser = User::with(['membresia.botonPago.metodoPago.imagen', 'membresiaUsuario'])->find($selectedUserId);
-            if ($selectedUser?->membresia_id) {
-                $userMembresia = $selectedUser->membresia;
+            $selectedUser = User::with(['membresia.botonPago.metodoPago.imagen', 'membresiaUsuario.membresia.botonPago.metodoPago.imagen'])->find($selectedUserId);
+            if ($selectedUser) {
+                $membresiaId = $selectedUser->membresiaUsuario?->membresia_id ?? $selectedUser->membresia_id;
+                $userMembresia = $this->resolverMembresiaActivaUsuario($selectedUser);
+
+                if (!$userMembresia) {
+                    $userMembresia = $selectedUser->membresiaUsuario?->membresia;
+                }
+
+                if (!$userMembresia && $membresiaId) {
+                    $userMembresia = $selectedUser->membresia;
+                }
             }
         }
 
@@ -386,6 +408,8 @@ class MembresiasController extends Controller
 
     private function asignarMembresiaAUsuario(User $user, int $membresiaId, string $modalidad, ?string $motivoOnline = null): EstadoCuentaMembresia
     {
+        $this->expirarMembresiasActivasUsuario($user->id);
+
         $membresiaOnline = $modalidad === 'ONLINE';
         $user->updateMembresiaUsuario([
             'membresia_id' => $membresiaId,
@@ -398,13 +422,6 @@ class MembresiasController extends Controller
 
         $user->loadMissing('membresia');
         $mesPagado = Carbon::now()->format('Y-m');
-        $estadoCuenta = EstadoCuentaMembresia::where('user_id', $user->id)
-            ->where('membresia_id', $membresiaId)
-            ->where('mes_pagado', $mesPagado)->first();
-        if ($estadoCuenta) {
-            return $estadoCuenta;
-        }
-
         $importe = optional($user->membresia)->valor ?? 0;
         return EstadoCuentaMembresia::create([
             'user_id' => $user->id,
@@ -416,6 +433,14 @@ class MembresiasController extends Controller
             'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
             'observaciones' => 'Inscripcion realizada por ' . ($user->name ?? 'sistema'),
         ]);
+    }
+
+    private function expirarMembresiasActivasUsuario(int $userId): void
+    {
+        EstadoCuentaMembresia::query()
+            ->where('user_id', $userId)
+            ->where('estado', EstadoCuentaMembresia::ESTADO_ACTIVA)
+            ->update(['estado' => EstadoCuentaMembresia::ESTADO_EXPIRADA]);
     }
 
     private function enviarMailInscripcionTkRegistrada(User $user, Membresia $membresia): void
@@ -450,6 +475,19 @@ class MembresiasController extends Controller
             'destinatario' => $user->email,
             'motivo' => 'Registro inscripción TK',
         ]);
+    }
+
+    private function resolverMembresiaActivaUsuario(User $user): ?Membresia
+    {
+        $estadoActivo = EstadoCuentaMembresia::query()
+            ->with('membresia.botonPago.metodoPago.imagen')
+            ->where('user_id', $user->id)
+            ->where('estado', EstadoCuentaMembresia::ESTADO_ACTIVA)
+            ->orderByDesc('mes_pagado')
+            ->orderByDesc('created_at')
+            ->first();
+
+        return $estadoActivo?->membresia;
     }
 
     private function normalizarTextoSimple(string $texto): string

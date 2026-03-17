@@ -153,18 +153,21 @@ watch(() => $page.props.flash, (flash) => {
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div
-                v-if="inscripcion.hospedaje || inscripcion.comida || inscripcion.transporte"
+                v-if="inscripcion.hospedaje || inscripcion.comida || (inscripcion.comidas && inscripcion.comidas.length) || inscripcion.transporte"
                 class="bg-rose-50 rounded-xl border border-rose-100 shadow-sm p-4 sm:p-5 sm:col-span-3"
               >
                 <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-rose-500"></span> Servicios
+                  <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Servicios
                 </h3>
                 <div class="text-sm text-gray-700 space-y-1">
                   <div v-if="inscripcion.hospedaje">
                     <strong>Hospedaje:</strong> {{ inscripcion.hospedaje.nombre }}
                   </div>
-                  <div v-if="inscripcion.comida">
-                    <strong>Comida:</strong> {{ inscripcion.comida.nombre }}
+                  <div v-if="(inscripcion.comidas && inscripcion.comidas.length) || inscripcion.comida">
+                    <strong>Comidas:</strong>
+                    {{ (inscripcion.comidas && inscripcion.comidas.length)
+                      ? inscripcion.comidas.map((comida) => comida.nombre).join(', ')
+                      : inscripcion.comida.nombre }}
                   </div>
                   <div v-if="inscripcion.transporte">
                     <strong>Transporte:</strong> {{ inscripcion.transporte.descripcion || inscripcion.transporte.nombre }}

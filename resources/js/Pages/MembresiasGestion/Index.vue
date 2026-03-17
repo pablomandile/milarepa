@@ -23,7 +23,7 @@
                                 v-model:filters="filters"
                                 :value="usuariosFiltrados"
                                 filterDisplay="menu"
-                                :globalFilterFields="['name', 'email', 'membresia_nombre', 'membresia_inscripcion_fecha']"
+                                :globalFilterFields="['name', 'email', 'membresia_nombre', 'modalidad_texto', 'membresia_inscripcion_fecha']"
                                 stripedRows
                                 tableStyle="min-width: 50rem"
                             >
@@ -93,6 +93,17 @@
                                     </template>
                                     <template #filter="{ filterModel }">
                                         <InputText v-model="filterModel.value" type="text" placeholder="Buscar por fecha" class="p-column-filter" />
+                                    </template>
+                                </Column>
+                                <Column field="modalidad_texto" header="Modalidad" :showFilterMatchModes="false">
+                                    <template #body="{ data }">
+                                        <span v-if="tieneMembresiaReal(data)" class="text-sm text-gray-700">
+                                            {{ modalidadTexto(data) }}
+                                        </span>
+                                        <span v-else class="text-sm text-gray-500">-</span>
+                                    </template>
+                                    <template #filter="{ filterModel }">
+                                        <InputText v-model="filterModel.value" type="text" placeholder="Buscar por modalidad" class="p-column-filter" />
                                     </template>
                                 </Column>
                                 <Column header="Acciones">
@@ -229,7 +240,10 @@ const filtroMembresia = ref('con_membresia');
 const usuariosConMembresia = computed(() =>
     props.usuarios.data.map((usuario) => ({
         ...usuario,
-        membresia_nombre: usuario.membresia && usuario.membresia.nombre ? usuario.membresia.nombre : ''
+        membresia_nombre: usuario.membresia && usuario.membresia.nombre ? usuario.membresia.nombre : '',
+        modalidad_texto: usuario.membresia && Number(usuario.membresia.id) !== 1
+            ? ((usuario.membresia_online || usuario.membresia_usuario?.membresia_online) ? 'Online' : 'Presencial')
+            : ''
     }))
 );
 
@@ -269,6 +283,12 @@ const formMembresiaOnline = ref('presencial');
 
 const tieneMembresiaReal = (usuario) => {
     return usuario.membresia && usuario.membresia.id !== 1;
+};
+
+const modalidadTexto = (usuario) => {
+    return (usuario.membresia_online || usuario.membresia_usuario?.membresia_online)
+        ? 'Online'
+        : 'Presencial';
 };
 
 const formatearFecha = (fecha) => {

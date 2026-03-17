@@ -4,7 +4,7 @@
             <div class="flex justify-between items-center">
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                     <i class="fas fa-receipt mr-2 text-indigo-600"></i>
-                    Estado de Cuenta de Membresías - Sistema
+                    Estado de Cuenta de Membresías
                 </h2>
             </div>
         </template>
@@ -23,6 +23,14 @@
                                 <option value="last1">Último mes</option>
                                 <option value="all">Mostrar todo</option>
                             </select>
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                                <input
+                                    v-model="mostrarExpiradas"
+                                    type="checkbox"
+                                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                >
+                                Mostrar Expiradas
+                            </label>
                         </div>
 
                         <div v-if="filtradas.length > 0" class="overflow-x-auto">
@@ -55,7 +63,12 @@
                                             <div>
                                                 <p class="text-sm font-semibold text-gray-800">
                                                     {{ cuenta.membresia.nombre }}
-                                                    <span v-if="cuenta.user?.membresia_online" class="ml-2 text-xs font-semibold text-indigo-600">Online</span>
+                                                    <span
+                                                        v-if="cuenta.user?.membresia_online || cuenta.user?.membresia_usuario?.membresia_online"
+                                                        class="ml-2 text-xs font-semibold text-indigo-600"
+                                                    >
+                                                        Online
+                                                    </span>
                                                 </p>
                                                 <p class="text-xs text-gray-600">{{ cuenta.membresia.entidad.nombre }}</p>
                                             </div>
@@ -170,13 +183,19 @@ const props = defineProps({
 });
 
 const filtroPeriodo = ref('last1');
+const mostrarExpiradas = ref(false);
 
 const filtradas = computed(() => {
     const data = props.estadoCuentas?.data || [];
-    if (filtroPeriodo.value === 'all') return data;
+    const base = mostrarExpiradas.value
+        ? data
+        : data.filter((cuenta) => String(cuenta.estado || '').toLowerCase() !== 'expirada');
+
+    if (filtroPeriodo.value === 'all') return base;
+
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    return data.filter((cuenta) => {
+    return base.filter((cuenta) => {
         if (!cuenta.mes_pagado) return false;
         const [year, month] = String(cuenta.mes_pagado).split('-');
         const fecha = new Date(Number(year), Number(month) - 1, 1);

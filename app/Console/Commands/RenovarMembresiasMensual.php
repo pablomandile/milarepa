@@ -25,9 +25,9 @@ class RenovarMembresiasMensual extends Command
                 $query->whereNotNull('membresia_id');
             })
             ->with(['membresiaUsuario.membresia'])
-            ->chunkById(200, function ($users) use ($periodo) {
+            ->chunkById(200, function ($users) use ($periodo, $now) {
                 foreach ($users as $user) {
-                    $this->procesarUsuario($user, $periodo);
+                    $this->procesarUsuario($user, $periodo, $now);
                 }
             });
 
@@ -35,46 +35,107 @@ class RenovarMembresiasMensual extends Command
         return Command::SUCCESS;
     }
 
-    protected function procesarUsuario(User $user, string $periodo): void
+    protected function procesarUsuario(User $user, string $periodo, Carbon $fechaProceso): void
     {
-        DB::transaction(function () use ($user, $periodo) {
+        DB::transaction(function () use ($user, $periodo, $fechaProceso) {
             $membresiaProfile = $user->membresiaUsuario;
             $membresiaId = $membresiaProfile?->membresia_id;
             if (!$membresiaId) {
                 return;
             }
 
-            // Expirar meses anteriores a este periodo
+            $registroActual = EstadoCuentaMembresia::query()
+                ->where('user_id', $user->id)
+                ->where('membresia_id', $membresiaId)
+                ->where('mes_pagado', $periodo)
+                ->latest('id')
+                ->first();
+
+            $estadoActivo = EstadoCuentaMembresia::query()
+                ->where('user_id', $user->id)
+                ->where('membresia_id', $membresiaId)
+                ->where('estado', EstadoCuentaMembresia::ESTADO_ACTIVA)
+                ->orderByDesc('mes_pagado')
+                ->orderByDesc('created_at')
+                ->first();
+
+            $plantilla = $estadoActivo
+                ?: EstadoCuentaMembresia::query()
+                    ->where('user_id', $user->id)
+                    ->where('membresia_id', $membresiaId)
+                    ->orderByDesc('mes_pagado')
+                    ->orderByDesc('created_at')
+                    ->first();
+
+            if ($registroActual) {
+                $modoActual = $registroActual->modo ?: $plantilla?->modo;
+                $esSuscripcion = $this->esModoSuscripcion($modoActual);
+
+                $registroActual->estado = EstadoCuentaMembresia::ESTADO_ACTIVA;
+                if ($modoActual) {
+                    $registroActual->modo = $modoActual;
+                }
+                if ($esSuscripcion) {
+                    $registroActual->pagado = true;
+                    $registroActual->fecha_pago = $registroActual->fecha_pago ?: $fechaProceso->toDateString();
+                }
+                $registroActual->save();
+
+                $this->expirarOtrosActivos($user->id, $registroActual->id);
+                return;
+            }
+
+            if ($estadoActivo && $estadoActivo->mes_pagado < $periodo) {
+                $estadoActivo->estado = EstadoCuentaMembresia::ESTADO_EXPIRADA;
+                $estadoActivo->save();
+            }
+
             EstadoCuentaMembresia::where('user_id', $user->id)
                 ->where('membresia_id', $membresiaId)
                 ->where('mes_pagado', '<', $periodo)
                 ->update(['estado' => EstadoCuentaMembresia::ESTADO_EXPIRADA]);
 
-            // Crear registro activo para el periodo si no existe
-            $existe = EstadoCuentaMembresia::where('user_id', $user->id)
-                ->where('membresia_id', $membresiaId)
-                ->where('mes_pagado', $periodo)
-                ->exists();
+            $importe = (float) ($plantilla?->importe ?? ($membresiaProfile?->membresia?->valor ?? 0));
+            $modo = $plantilla?->modo;
+            $esSuscripcion = $this->esModoSuscripcion($modo);
 
-            if ($existe) {
-                return;
-            }
-
-            $importe = 0;
-            if ($membresiaProfile?->membresia) {
-                $importe = (float) ($membresiaProfile->membresia->valor ?? 0);
-            }
-
-            EstadoCuentaMembresia::create([
+            $nuevoEstado = EstadoCuentaMembresia::create([
                 'user_id' => $user->id,
                 'membresia_id' => $membresiaId,
                 'mes_pagado' => $periodo,
-                'fecha_pago' => null,
+                'fecha_pago' => $esSuscripcion ? $fechaProceso->toDateString() : null,
                 'importe' => $importe,
-                'pagado' => false,
+                'pagado' => $esSuscripcion,
                 'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
-                'observaciones' => 'Renovación automática mensual',
+                'modo' => $modo,
+                'info_pago' => $plantilla?->info_pago,
+                'observaciones' => $plantilla?->observaciones ?: 'Renovación automática mensual',
             ]);
+
+            $this->expirarOtrosActivos($user->id, $nuevoEstado->id);
         });
+    }
+
+    private function expirarOtrosActivos(int $userId, int $exceptId): void
+    {
+        EstadoCuentaMembresia::query()
+            ->where('user_id', $userId)
+            ->where('estado', EstadoCuentaMembresia::ESTADO_ACTIVA)
+            ->where('id', '!=', $exceptId)
+            ->update(['estado' => EstadoCuentaMembresia::ESTADO_EXPIRADA]);
+    }
+
+    private function esModoSuscripcion(?string $modo): bool
+    {
+        $normalizado = mb_strtolower(trim((string) $modo), 'UTF-8');
+        $normalizado = strtr($normalizado, [
+            'á' => 'a',
+            'é' => 'e',
+            'í' => 'i',
+            'ó' => 'o',
+            'ú' => 'u',
+        ]);
+
+        return $normalizado === 'suscripcion';
     }
 }

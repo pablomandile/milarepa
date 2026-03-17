@@ -58,7 +58,21 @@ const formatFecha = (fecha) => {
         return '-';
     }
 
-    const date = new Date(`${fecha}T00:00:00`);
+    const value = String(fecha).trim();
+    const soloFecha = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+    if (soloFecha) {
+        const [, year, month, day] = soloFecha;
+        return `${day}/${month}/${year}`;
+    }
+
+    const normalizedValue = value.includes(' ') ? value.replace(' ', 'T') : value;
+    const date = new Date(normalizedValue);
+
+    if (Number.isNaN(date.getTime())) {
+        return '-';
+    }
+
     return date.toLocaleDateString('es-UY');
 };
 </script>

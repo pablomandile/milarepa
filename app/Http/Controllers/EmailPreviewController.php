@@ -129,6 +129,30 @@ class EmailPreviewController extends Controller
         ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
     }
 
+    /**
+     * Vista previa del email de actividades online
+     */
+    public function envioActividadesOnline($id = null)
+    {
+        $inscripcion = null;
+        if (!is_null($id)) {
+            $inscripcion = $this->obtenerInscripcionParaPreview($id);
+        }
+
+        $nombrePracticante = $inscripcion?->user?->name ?? 'Practicante Kadampa';
+        $mesOnline = mb_strtoupper(now()->locale('es')->translatedFormat('F'), 'UTF-8');
+
+        return response()->view('emails.envio_Actividades_online', [
+            'inscripcion' => $inscripcion,
+            'usuario' => $inscripcion?->user,
+            'nombrePracticante' => $nombrePracticante,
+            'mesOnline' => $mesOnline,
+            'linkActividadesOnline' => 'https://milarepa.com.ar/actividades-online',
+            'entidadPrincipal' => Entidad::where('entidad_principal', true)->first(),
+            'esPreviewPrueba' => is_null($id),
+        ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+    }
+
     private function obtenerInscripcionParaPreview($id = null)
     {
         if ($id) {

@@ -1,5 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import InputSwitch from 'primevue/inputswitch';
 
 const props = defineProps({
     estadoCuenta: {
@@ -46,6 +47,12 @@ const formatearMes = (mesPagado) => {
                 <div>
                     <p class="text-sm text-gray-600">Membresia</p>
                     <p class="text-lg font-semibold text-indigo-600">{{ estadoCuenta.membresia.nombre }}</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Modalidad:
+                        <span class="font-semibold text-gray-800">
+                            {{ (estadoCuenta.user?.membresia_online || estadoCuenta.user?.membresia_usuario?.membresia_online) ? 'Online' : 'Presencial' }}
+                        </span>
+                    </p>
                 </div>
                 <div>
                     <p class="text-sm text-gray-600">Entidad</p>
@@ -63,6 +70,33 @@ const formatearMes = (mesPagado) => {
         </div>
 
         <form @submit.prevent="$emit('submit')">
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Modalidad
+                </label>
+                <select
+                    v-model="form.modalidad"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                    <option value="presencial">Presencial</option>
+                    <option value="online">Online</option>
+                </select>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Estado
+                </label>
+                <label class="inline-flex items-center gap-3 cursor-pointer">
+                    <InputSwitch
+                        v-model="form.estado_activo"
+                    />
+                    <span class="text-sm font-medium" :class="form.estado_activo ? 'text-green-700' : 'text-red-700'">
+                        {{ form.estado_activo ? 'Activa' : 'Expirada' }}
+                    </span>
+                </label>
+            </div>
+
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                     Estado de Pago

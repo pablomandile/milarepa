@@ -132,26 +132,81 @@ const props = defineProps({
   },
 });
 
+function ordenarUltimosRegistros(items = []) {
+  return [...items].sort((a, b) => {
+    const fechaA = a?.created_at ? new Date(a.created_at).getTime() : 0;
+    const fechaB = b?.created_at ? new Date(b.created_at).getTime() : 0;
+
+    if (fechaA !== fechaB) {
+      return fechaB - fechaA;
+    }
+
+    return Number(b?.id || 0) - Number(a?.id || 0);
+  });
+}
+
 const maestrosOrdenados = computed(() => {
-  return [...(props.maestros || [])].sort((a, b) =>
-    String(a?.nombre || '').localeCompare(String(b?.nombre || ''), 'es', { sensitivity: 'base' })
-  );
+  return ordenarUltimosRegistros(props.maestros || []);
 });
 
 const tiposActividadOrdenados = computed(() => {
-  return [...(props.tiposActividad || [])].sort((a, b) =>
-    String(a?.nombre || '').localeCompare(String(b?.nombre || ''), 'es', { sensitivity: 'base' })
-  );
+  return ordenarUltimosRegistros(props.tiposActividad || []);
 });
 
 const coordinadoresOrdenados = computed(() => {
-  return [...(props.coordinadores || [])].sort((a, b) =>
-    String(a?.nombre || '').localeCompare(String(b?.nombre || ''), 'es', { sensitivity: 'base' })
-  );
+  return ordenarUltimosRegistros(props.coordinadores || []);
+});
+
+const descripcionesOrdenadas = computed(() => {
+  return ordenarUltimosRegistros(props.descripciones || []);
+});
+
+const lugaresOrdenados = computed(() => {
+  return ordenarUltimosRegistros(props.lugares || []);
+});
+
+const modalidadesOrdenadas = computed(() => {
+  return ordenarUltimosRegistros(props.modalidades || []);
+});
+
+const disponibilidadesOrdenadas = computed(() => {
+  return ordenarUltimosRegistros(props.disponibilidades || []);
+});
+
+const esquemaDescuentosOrdenados = computed(() => {
+  return ordenarUltimosRegistros(props.esquema_descuentos || []);
+});
+
+const programasOrdenados = computed(() => {
+  return ordenarUltimosRegistros(props.programas || []);
+});
+
+const metodosPagoOrdenados = computed(() => {
+  return ordenarUltimosRegistros(props.metodosPago || []);
+});
+
+const grabacionesOrdenadas = computed(() => {
+  return ordenarUltimosRegistros(props.grabaciones || []);
+});
+
+const streamsOrdenados = computed(() => {
+  return ordenarUltimosRegistros(props.streams || []);
+});
+
+const lugaresHospedajeOrdenados = computed(() => {
+  return ordenarUltimosRegistros(props.lugaresHospedaje || []);
+});
+
+const transportesOrdenados = computed(() => {
+  return ordenarUltimosRegistros(props.transportes || []);
+});
+
+const botonesPagoOrdenados = computed(() => {
+  return ordenarUltimosRegistros(props.botonesPago || []);
 });
 
 const entidadesParaSelect = computed(() => {
-  return (props.entidades || []).map((entidad) => {
+  return ordenarUltimosRegistros(props.entidades || []).map((entidad) => {
     const nombre = String(entidad?.nombre || '');
     const nombreCorto = nombre.length > 36 ? `${nombre.slice(0, 36)}...` : nombre;
     return {
@@ -318,11 +373,15 @@ function submitForm() {
 
 const filteredHospedajes = computed(() => {
   if (!props.form?.lugar_hospedaje_id) {
-    return props.hospedajes;
+    return ordenarUltimosRegistros(props.hospedajes || []);
   }
-  return props.hospedajes.filter(
+  return ordenarUltimosRegistros((props.hospedajes || []).filter(
     (hospedaje) => hospedaje.lugar_hospedaje_id === props.form.lugar_hospedaje_id
-  );
+  ));
+});
+
+const comidasOrdenadas = computed(() => {
+  return ordenarUltimosRegistros(props.comidas || []);
 });
 
 function parseToDate(value) {
@@ -474,7 +533,7 @@ watch(
             <Dropdown
               id="descripcion_id"
               v-model="form.descripcion_id"
-              :options="descripciones"
+              :options="descripcionesOrdenadas"
               optionLabel="nombre"
               optionValue="id"
               placeholder="Seleccione Descripción"
@@ -676,7 +735,7 @@ watch(
             <Dropdown
               id="lugar_id"
               v-model="form.lugar_id"
-              :options="lugares"
+              :options="lugaresOrdenados"
               optionLabel="nombre"
               optionValue="id"
               placeholder="Seleccione Lugar (opcional)"
@@ -725,7 +784,7 @@ watch(
           <Dropdown
             id="modalidad_id"
             v-model="form.modalidad_id"
-            :options="modalidades"
+            :options="modalidadesOrdenadas"
             optionLabel="nombre"
             optionValue="id"
             placeholder="Seleccione la modalidad"
@@ -744,7 +803,7 @@ watch(
           <Dropdown
             id="disponibilidad_id"
             v-model="form.disponibilidad_id"
-            :options="disponibilidades"
+            :options="disponibilidadesOrdenadas"
             optionLabel="descripcion"
             optionValue="id"
             placeholder="Seleccione la Disponibilidad"
@@ -855,7 +914,7 @@ watch(
             <Dropdown
               id="esquema_descuento_id"
               v-model="form.esquema_descuento_id"
-              :options="esquema_descuentos"
+              :options="esquemaDescuentosOrdenados"
               optionLabel="nombre"
               optionValue="id"
               placeholder="Seleccione el esquema de desc."
@@ -923,7 +982,7 @@ watch(
             <Dropdown
               id="programa_id"
               v-model="form.programa_id"
-              :options="programas"
+              :options="programasOrdenados"
               optionLabel="nombre"
               optionValue="id"
               placeholder="Seleccione un programa"
@@ -972,7 +1031,7 @@ watch(
           <MultiSelect
             id="metodos_pago"
             v-model="form.metodos_pago_ids"
-            :options="metodosPago"
+            :options="metodosPagoOrdenados"
             optionLabel="nombre"
             optionValue="id"
             class="w-full mt-1 border border-gray-300"
@@ -1034,7 +1093,7 @@ watch(
               <Dropdown
                 id="grabacion_id"
                 v-model="form.grabacion_id"
-                :options="grabaciones"
+                :options="grabacionesOrdenadas"
                 optionLabel="nombre"
                 optionValue="id"
                 placeholder="Seleccione Grabación"
@@ -1083,7 +1142,7 @@ watch(
             <Dropdown
               id="stream_id"
               v-model="form.stream_id"
-              :options="streams"
+              :options="streamsOrdenados"
               optionLabel="nombre"
               optionValue="id"
               placeholder="Seleccione Stream"
@@ -1132,7 +1191,7 @@ watch(
           <Dropdown
             id="lugar_hospedaje_id"
             v-model="form.lugar_hospedaje_id"
-            :options="lugaresHospedaje"
+            :options="lugaresHospedajeOrdenados"
             optionLabel="nombre"
             optionValue="id"
             placeholder="Seleccione un lugar"
@@ -1168,7 +1227,7 @@ watch(
           <MultiSelect
             id="comidas"
             v-model="form.comidas_ids"
-            :options="comidas"
+            :options="comidasOrdenadas"
             optionLabel="nombre"
             optionValue="id"
             class="w-full mt-1 border border-gray-300"
@@ -1186,7 +1245,7 @@ watch(
           <MultiSelect
             id="transportes"
             v-model="form.transportes_ids"
-            :options="transportes"
+            :options="transportesOrdenados"
             optionLabel="descripcion"
             optionValue="id"
             class="w-full mt-1 border border-gray-300"
@@ -1273,7 +1332,7 @@ watch(
           <Dropdown
             id="botonpago_id"
             v-model="form.botonpago_id"
-            :options="botonesPago"
+            :options="botonesPagoOrdenados"
             optionLabel="nombre"
             optionValue="id"
             placeholder="Seleccione un botón de pago"

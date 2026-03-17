@@ -21,6 +21,10 @@ const props = defineProps({
     required: false,
     default: () => []
   },
+  userMembresiaActiva: {
+    type: Object,
+    default: null,
+  },
   paises: {
     type: Array,
     default: () => []
@@ -107,7 +111,18 @@ watch(() => $page.props.flash, (flash) => {
 }, { immediate: true });
 
 const userContext = computed(() => {
-  return userByEmail.value || $page.props?.auth?.user || null;
+  if (userByEmail.value) return userByEmail.value;
+
+  const authUser = $page.props?.auth?.user;
+  if (!authUser) return null;
+
+  if (!props.userMembresiaActiva) return authUser;
+
+  return {
+    ...authUser,
+    membresia: props.userMembresiaActiva,
+    membresia_id: props.userMembresiaActiva.id,
+  };
 });
 const mapEmbedUrl = computed(() => {
   if (!selectedAddress.value) return '';
