@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EmailEnvioConfiguracion;
 use App\Models\EnvioMail;
 use App\Models\Inscripcion;
 use App\Services\EmailInscripcionService;
@@ -118,6 +119,8 @@ class EstadoInscripcionesController extends Controller
             abort(403);
         }
 
+        $configuracionConfirmacion = EmailEnvioConfiguracion::resolverPlantilla('inscripcion_confirmada');
+
         $query = $this->queryConfirmacionesPendientes()->with([
             'actividad.entidad',
             'actividad.imagen',
@@ -132,7 +135,7 @@ class EstadoInscripcionesController extends Controller
         $errores = 0;
         $sinDestino = 0;
 
-        $query->chunkById(100, function ($inscripciones) use (&$enviadas, &$errores, &$sinDestino, $user) {
+        $query->chunkById(100, function ($inscripciones) use (&$enviadas, &$errores, &$sinDestino, $user, $configuracionConfirmacion) {
             foreach ($inscripciones as $inscripcion) {
                 $destinatario = $inscripcion->guestUser?->email ?: $inscripcion->user?->email;
                 if (empty($destinatario)) {
@@ -141,7 +144,7 @@ class EstadoInscripcionesController extends Controller
                 }
 
                 if (EmailInscripcionService::enviarPlantillaConfirmacion($inscripcion)) {
-                    $this->registrarEnvioManual($destinatario, $user->id, 'Envío de Confirmación');
+                    $this->registrarEnvioManual($destinatario, $user->id, $configuracionConfirmacion['nombre']);
                     $enviadas++;
                 } else {
                     $errores++;
@@ -179,6 +182,8 @@ class EstadoInscripcionesController extends Controller
             abort(403);
         }
 
+        $configuracionGrabacion = EmailEnvioConfiguracion::resolverPlantilla('envio_grabacion');
+
         $query = $this->queryGrabacionesPendientes()->with([
             'actividad.entidad',
             'actividad.imagen',
@@ -193,7 +198,7 @@ class EstadoInscripcionesController extends Controller
         $errores = 0;
         $sinDestino = 0;
 
-        $query->chunkById(100, function ($inscripciones) use (&$enviadas, &$errores, &$sinDestino, $user) {
+        $query->chunkById(100, function ($inscripciones) use (&$enviadas, &$errores, &$sinDestino, $user, $configuracionGrabacion) {
             foreach ($inscripciones as $inscripcion) {
                 $destinatario = $inscripcion->guestUser?->email ?: $inscripcion->user?->email;
                 if (empty($destinatario)) {
@@ -202,7 +207,7 @@ class EstadoInscripcionesController extends Controller
                 }
 
                 if (EmailInscripcionService::enviarPlantillaGrabacion($inscripcion)) {
-                    $this->registrarEnvioManual($destinatario, $user->id, 'Envío de Grabaciones');
+                    $this->registrarEnvioManual($destinatario, $user->id, $configuracionGrabacion['nombre']);
                     $enviadas++;
                 } else {
                     $errores++;

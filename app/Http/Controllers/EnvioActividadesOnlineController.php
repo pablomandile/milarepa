@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\EnvioMail;
 use App\Models\Entidad;
+use App\Models\EmailEnvioConfiguracion;
 use App\Models\MembresiaUsuario;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -36,10 +37,10 @@ class EnvioActividadesOnlineController extends Controller
     {
         $inicioMesActual = Carbon::now()->startOfMonth();
         $fechaEnvio = now()->toDateString();
-        $mesMotivo = ucfirst(now()->locale('es')->translatedFormat('F'));
         $mesOnline = mb_strtoupper(now()->locale('es')->translatedFormat('F'), 'UTF-8');
         $entidadPrincipal = Entidad::where('entidad_principal', true)->first();
         $linkActividadesOnline = 'https://milarepa.com.ar/actividades-online';
+        $configuracionEnvio = EmailEnvioConfiguracion::resolverPlantilla('envio_actividades_online');
 
         $candidatos = MembresiaUsuario::query()
             ->with('user:id,name,email')
@@ -63,7 +64,7 @@ class EnvioActividadesOnlineController extends Controller
                 continue;
             }
 
-            Mail::send('emails.envio_Actividades_online', [
+            Mail::send($configuracionEnvio['view'], [
                 'usuario' => $usuario,
                 'nombrePracticante' => $usuario->name,
                 'mesOnline' => $mesOnline,
@@ -84,7 +85,7 @@ class EnvioActividadesOnlineController extends Controller
                 'tipo' => 'Manual',
                 'user_id' => auth()->id(),
                 'destinatario' => $usuario->email,
-                'motivo' => 'Actividades Online [' . $mesMotivo . ']',
+                'motivo' => $configuracionEnvio['nombre'],
             ]);
 
             $enviados++;

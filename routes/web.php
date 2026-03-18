@@ -48,6 +48,7 @@ use App\Http\Controllers\StreamsController;
 use App\Http\Controllers\ProfileCompletionController;
 use App\Http\Controllers\EmailPreviewController;
 use App\Http\Controllers\EmailPlantillasController;
+use App\Http\Controllers\EmailEnvioConfiguracionesController;
 use App\Http\Controllers\EnvioCorreosController;
 use App\Http\Controllers\EnvioActividadesOnlineController;
 use App\Http\Controllers\ExcencionPagoController;
@@ -199,6 +200,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         'parameters' => ['permisos' => 'permiso'],
     ])->only(['create', 'store', 'edit', 'update', 'destroy']);
     Route::resource('/emails', EmailPlantillasController::class);
+    Route::get('/email-envio-configuraciones', [EmailEnvioConfiguracionesController::class, 'index'])
+        ->name('email-envio-configuraciones.index');
+    Route::put('/email-envio-configuraciones', [EmailEnvioConfiguracionesController::class, 'update'])
+        ->name('email-envio-configuraciones.update');
     Route::get('/envio-correos', [EnvioCorreosController::class, 'index'])->name('envio-correos.index');
     Route::get('/envio-actividades-online', [EnvioActividadesOnlineController::class, 'index'])
         ->name('envio-actividades-online.index');

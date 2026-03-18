@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Actividad;
+use App\Models\EmailEnvioConfiguracion;
 use App\Models\Inscripcion;
 use App\Models\InscripcionComprobante;
 use App\Mail\InscripcionConfirmada;
@@ -231,7 +232,12 @@ class InscripcionesController extends Controller
         $mensajeEmail = '';
         
         try {
-            Mail::to($inscripcion->user->email)->send(new InscripcionConfirmada($inscripcion));
+            $procesoKey = $inscripcion->estado === 'Confirmada'
+                ? 'inscripcion_confirmada'
+                : 'inscripcion_registrada';
+            $configuracionEnvio = EmailEnvioConfiguracion::resolverPlantilla($procesoKey);
+
+            Mail::to($inscripcion->user->email)->send(new InscripcionConfirmada($inscripcion, $configuracionEnvio['view']));
             $emailEnviado = true;
             $inscripcion->envioRegistro = 'Enviada';
             if ($inscripcion->estado === 'Confirmada') {

@@ -76,13 +76,7 @@ class InscripcionConfirmada extends Mailable
 
     private function resolverPlantilla(): string
     {
-        if (in_array($this->plantilla, [
-            'emails.inscripcion_confirmada',
-            'emails.inscripcion_registrada',
-            'emails.inscripcion_tk_registrada',
-            'emails.envio_grabacion',
-            'emails.informacion_membresias',
-        ], true)) {
+        if (is_string($this->plantilla) && str_starts_with($this->plantilla, 'emails.')) {
             return $this->plantilla;
         }
 

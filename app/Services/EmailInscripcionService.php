@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Inscripcion;
+use App\Models\EmailEnvioConfiguracion;
 use App\Mail\InscripcionConfirmada;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -30,9 +31,14 @@ class EmailInscripcionService
                 ]);
             }
 
+            $procesoKey = $inscripcion->estado === 'Confirmada'
+                ? 'inscripcion_confirmada'
+                : 'inscripcion_registrada';
+            $configuracion = EmailEnvioConfiguracion::resolverPlantilla($procesoKey);
+
             // Enviar email
             Mail::to($inscripcion->user->email)
-                ->send(new InscripcionConfirmada($inscripcion));
+                ->send(new InscripcionConfirmada($inscripcion, $configuracion['view']));
             $inscripcion->envioRegistro = 'Enviada';
             if ($inscripcion->estado === 'Confirmada') {
                 $inscripcion->envioConfirmacion = 'Enviada';
@@ -76,8 +82,10 @@ class EmailInscripcionService
                 return false;
             }
 
+            $configuracion = EmailEnvioConfiguracion::resolverPlantilla('inscripcion_confirmada');
+
             Mail::to($destinatario)->send(
-                new InscripcionConfirmada($inscripcion, 'emails.inscripcion_confirmada')
+                new InscripcionConfirmada($inscripcion, $configuracion['view'])
             );
 
             $inscripcion->envioRegistro = 'Enviada';
@@ -115,8 +123,10 @@ class EmailInscripcionService
                 return false;
             }
 
+            $configuracion = EmailEnvioConfiguracion::resolverPlantilla('envio_grabacion');
+
             Mail::to($destinatario)->send(
-                new InscripcionConfirmada($inscripcion, 'emails.envio_grabacion')
+                new InscripcionConfirmada($inscripcion, $configuracion['view'])
             );
 
             $inscripcion->envioGrabacion = 'Enviada';

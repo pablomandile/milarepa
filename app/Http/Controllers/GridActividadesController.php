@@ -12,6 +12,7 @@ use App\Models\Provincia;
 use App\Models\Municipio;
 use App\Models\Barrio;
 use App\Models\EnvioMail;
+use App\Models\EmailEnvioConfiguracion;
 use App\Models\User;
 use App\Models\EstadoCuentaMembresia;
 use Carbon\Carbon;
@@ -604,23 +605,26 @@ class GridActividadesController extends Controller
         $destinatarioRegistro = $inscripcion->guestUser?->email ?: $inscripcion->user?->email;
         if (!empty($destinatarioRegistro)) {
             try {
-                Mail::to($destinatarioRegistro)->send(new InscripcionConfirmada($inscripcion));
+                $procesoRegistro = $inscripcion->pago === 'Saldado'
+                    ? 'inscripcion_confirmada'
+                    : 'inscripcion_registrada';
+                $configuracionRegistro = EmailEnvioConfiguracion::resolverPlantilla($procesoRegistro);
+
+                Mail::to($destinatarioRegistro)->send(
+                    new InscripcionConfirmada($inscripcion, $configuracionRegistro['view'])
+                );
                 $inscripcion->envioRegistro = 'Enviada';
                 if ($inscripcion->estado === 'Confirmada') {
                     $inscripcion->envioConfirmacion = 'Enviada';
                 }
                 $inscripcion->save();
 
-                $motivoEnvio = $inscripcion->pago === 'Saldado'
-                    ? 'Inscripción Confirmada'
-                    : 'Inscripción Registrada';
-
                 EnvioMail::create([
                     'fecha' => now()->toDateString(),
                     'tipo' => 'Automático',
                     'user_id' => null,
                     'destinatario' => $destinatarioRegistro,
-                    'motivo' => $motivoEnvio,
+                    'motivo' => $configuracionRegistro['nombre'],
                 ]);
             } catch (\Exception $e) {
                 Log::error('Error al enviar mail de inscripcion en finalizarPago', [
@@ -640,8 +644,10 @@ class GridActividadesController extends Controller
             $destinatarioInfoTk = $guestUser?->email ?: $user?->email;
             if ($destinatarioInfoTk) {
                 try {
+                    $configuracionInfoTk = EmailEnvioConfiguracion::resolverPlantilla('informacion_membresias');
+
                     Mail::to($destinatarioInfoTk)->send(
-                        new InscripcionConfirmada($inscripcion, 'emails.informacion_membresias')
+                        new InscripcionConfirmada($inscripcion, $configuracionInfoTk['view'])
                     );
 
                     EnvioMail::create([
@@ -649,7 +655,7 @@ class GridActividadesController extends Controller
                         'tipo' => 'Automático',
                         'user_id' => null,
                         'destinatario' => $destinatarioInfoTk,
-                        'motivo' => 'Información TK',
+                        'motivo' => $configuracionInfoTk['nombre'],
                     ]);
 
                     $fechaEnvio = now();

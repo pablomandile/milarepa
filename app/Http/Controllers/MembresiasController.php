@@ -17,6 +17,7 @@ use App\Models\Barrio;
 use App\Models\User;
 use App\Models\MetodoPago;
 use App\Models\EnvioMail;
+use App\Models\EmailEnvioConfiguracion;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
@@ -458,7 +459,9 @@ class MembresiasController extends Controller
             ],
         ];
 
-        Mail::send('emails.inscripcion_tk_registrada', [
+        $configuracionTk = EmailEnvioConfiguracion::resolverPlantilla('inscripcion_tk_registrada');
+
+        Mail::send($configuracionTk['view'], [
             'inscripcion' => $inscripcionMail,
             'actividad' => null,
             'usuario' => $user,
@@ -473,7 +476,7 @@ class MembresiasController extends Controller
             'tipo' => 'Automático',
             'user_id' => null,
             'destinatario' => $user->email,
-            'motivo' => 'Registro inscripción TK',
+            'motivo' => $configuracionTk['nombre'],
         ]);
     }
 
