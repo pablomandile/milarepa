@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use App\Models\User;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TiposActividadController;
 use App\Http\Controllers\EntidadesController;
@@ -48,6 +49,7 @@ use App\Http\Controllers\ProfileCompletionController;
 use App\Http\Controllers\EmailPreviewController;
 use App\Http\Controllers\EmailPlantillasController;
 use App\Http\Controllers\EnvioCorreosController;
+use App\Http\Controllers\EnvioActividadesOnlineController;
 use App\Http\Controllers\ExcencionPagoController;
 use App\Http\Controllers\CiclosController;
 use App\Http\Controllers\ClasesController;
@@ -140,9 +142,14 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::get('/dashboard', function () {
         $user = auth()->user();
         // Chequeas si el perfil está incompleto
+        if (!$user instanceof User) {
+            return redirect()->route('login');
+        }
+
         if (is_null($user->telefono)) {
             return redirect()->route('profile.complete');
         }
+
         if ($user->hasRole('asistant')) {
             return redirect()->route('asistant.panel');
         }
@@ -193,6 +200,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     ])->only(['create', 'store', 'edit', 'update', 'destroy']);
     Route::resource('/emails', EmailPlantillasController::class);
     Route::get('/envio-correos', [EnvioCorreosController::class, 'index'])->name('envio-correos.index');
+    Route::get('/envio-actividades-online', [EnvioActividadesOnlineController::class, 'index'])
+        ->name('envio-actividades-online.index');
+    Route::post('/envio-actividades-online/enviar', [EnvioActividadesOnlineController::class, 'enviar'])
+        ->name('envio-actividades-online.enviar');
     Route::resource('/membresias', MembresiasController::class);
     Route::get('/membresias-gestion', [MembresiasController::class, 'gestion'])->name('membresias.gestion');
     Route::post('/membresias/subscribe', [MembresiasController::class, 'subscribe'])->name('membresias.subscribe');

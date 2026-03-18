@@ -145,6 +145,12 @@ class User extends Authenticatable
         return $profile?->envioInfoTk ?? $value;
     }
 
+    public function getEnvioActOnlineAttribute($value)
+    {
+        $profile = $this->getMembresiaUsuarioRelation();
+        return $profile?->envioActOnline ?? $value;
+    }
+
     public function provincia()
     {
         return $this->belongsTo(Provincia::class, 'provincia_id');
@@ -189,6 +195,7 @@ class User extends Authenticatable
             'membresia_online_motivo' => null,
             'info_tarjetas_kadampa' => false,
             'envioInfoTk' => null,
+            'envioActOnline' => null,
         ];
 
         $payload = array_merge($defaults, $attributes);
@@ -199,7 +206,8 @@ class User extends Authenticatable
             || (bool) $payload['membresia_online']
             || !is_null($payload['membresia_online_motivo'])
             || (bool) $payload['info_tarjetas_kadampa']
-            || !is_null($payload['envioInfoTk']);
+            || !is_null($payload['envioInfoTk'])
+            || !is_null($payload['envioActOnline']);
 
         if ($hasData) {
             $this->membresiaUsuario()->updateOrCreate([], [
@@ -209,6 +217,7 @@ class User extends Authenticatable
                 'membresia_online_motivo' => $payload['membresia_online_motivo'],
                 'info_tarjetas_kadampa' => (bool) $payload['info_tarjetas_kadampa'],
                 'envioInfoTk' => $payload['envioInfoTk'],
+                'envioActOnline' => $payload['envioActOnline'],
             ]);
         } else {
             $this->membresiaUsuario()->delete();

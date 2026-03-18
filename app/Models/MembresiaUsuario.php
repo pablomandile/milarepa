@@ -17,6 +17,7 @@ class MembresiaUsuario extends Model
         'membresia_online_motivo',
         'info_tarjetas_kadampa',
         'envioInfoTk',
+        'envioActOnline',
     ];
 
     protected $casts = [
@@ -24,6 +25,7 @@ class MembresiaUsuario extends Model
         'info_tarjetas_kadampa' => 'boolean',
         'membresia_inscripcion_fecha' => 'date',
         'envioInfoTk' => 'datetime',
+        'envioActOnline' => 'date',
     ];
 
     public function user(): BelongsTo

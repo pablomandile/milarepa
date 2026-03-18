@@ -315,6 +315,9 @@ const logout = () => {
                                     <DropdownLink :href="route('envio-correos.index')" :active="route().current('envio-correos.*')">
                                         Historico de Envios
                                     </DropdownLink>
+                                    <DropdownLink :href="route('envio-actividades-online.index')" :active="route().current('envio-actividades-online.*')">
+                                        Envío Actividades Online
+                                    </DropdownLink>
                                     <DropdownLink href="/email-preview" :active="route().current('email.preview.landing')">
                                         Plantillas de Emails
                                     </DropdownLink>
@@ -592,6 +595,9 @@ const logout = () => {
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('envio-correos.index')" :active="route().current('envio-correos.*')">
                             Historico de Envios
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('envio-actividades-online.index')" :active="route().current('envio-actividades-online.*')">
+                            Envío Actividades Online
                         </ResponsiveNavLink>
                     </div>
 

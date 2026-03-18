@@ -227,7 +227,10 @@ class ActividadesController extends Controller
         }
 
         // Obtener IDs de actividades donde el usuario actual está inscripto
-        $userInscripcionesActividadIds = auth()->user()->inscripciones()->pluck('actividad_id')->toArray();
+        $authUser = auth()->user();
+        $userInscripcionesActividadIds = $authUser instanceof \App\Models\User
+            ? $authUser->inscripciones()->pluck('actividad_id')->toArray()
+            : [];
 
         return inertia('Actividades/Show', [
             'actividad' => $actividad->toArray(),
