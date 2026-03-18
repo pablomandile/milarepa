@@ -134,12 +134,47 @@ const formatMes = (mesReferencia) => {
 const imageDialogVisible = ref(false);
 const selectedImageUrl = ref('');
 const expandedRows = ref([]);
+const expandedCardIds = ref([]);
 
 const openImageDialog = (imageUrl) => {
     if (!imageUrl) return;
     selectedImageUrl.value = imageUrl;
     imageDialogVisible.value = true;
 };
+
+const isCardExpanded = (id) => expandedCardIds.value.includes(id);
+
+const toggleCardExpanded = (id) => {
+    const idx = expandedCardIds.value.indexOf(id);
+    if (idx === -1) {
+        expandedCardIds.value.push(id);
+    } else {
+        expandedCardIds.value.splice(idx, 1);
+    }
+};
+
+const normalizeText = (value) => String(value ?? '').toLowerCase();
+
+const clasesFiltradasMobile = computed(() => {
+    const query = normalizeText(filters.value?.global?.value);
+    const entidadFilter = filters.value?.['entidad.nombre']?.value;
+
+    return clasesFiltradas.value.filter((clase) => {
+        if (entidadFilter && clase?.entidad?.nombre !== entidadFilter) return false;
+
+        if (!query) return true;
+
+        const fields = [
+            clase?.nombre,
+            clase?.ciclo?.nombre,
+            clase?.entidad?.nombre,
+            clase?.coordinador?.nombre,
+            Array.isArray(clase?.maestros) ? clase.maestros.map((m) => m.nombre).join(' ') : '',
+        ];
+
+        return fields.some((field) => normalizeText(field).includes(query));
+    });
+});
 
 const deleteClase = (id) => {
     Swal.fire({
@@ -203,19 +238,200 @@ const updateEstado = (row, nuevoEstado) => {
         <Toast position="top-right" />
         <div class="py-12">
             <div class="max-w-[110rem] mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-[108rem] mx-auto">
+                <div class="bg-white border-b border-gray-200 max-w-[108rem] mx-auto p-0 sm:p-6">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create clases')">
                         <Link :href="route('clases.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
                             NUEVA CLASE
                         </Link>
                     </div>
                     <div class="mt-4">
+                        <div class="sm:hidden px-4">
+                            <div class="flex flex-col gap-2">
+                                <select
+                                    v-model="filtroMesReferencia"
+                                    class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
+                                >
+                                    <option value="mes_actual">Mes actual en adelante</option>
+                                    <option value="ultimo_mes">Ultimo mes</option>
+                                    <option value="ultimos_tres_meses">Ultimos tres meses</option>
+                                    <option value="todo">Mostrar todo</option>
+                                </select>
+                                <Dropdown
+                                    v-model="filters['entidad.nombre'].value"
+                                    :options="entidadOptions"
+                                    optionLabel="nombre"
+                                    optionValue="nombre"
+                                    placeholder="Todas las entidades"
+                                    class="w-full"
+                                    :showClear="true"
+                                />
+                                <Dropdown
+                                    v-model="filtroMaestroManual"
+                                    :options="maestroOptions"
+                                    optionLabel="nombre"
+                                    optionValue="id"
+                                    placeholder="Todos los maestros"
+                                    class="w-full"
+                                    :showClear="true"
+                                />
+                                <IconField class="mb-2">
+                                    <InputIcon class="pi pi-search" />
+                                    <InputText v-model="filters.global.value" placeholder="Buscar..." />
+                                </IconField>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 sm:hidden">
+                            <div
+                                v-for="clase in clasesFiltradasMobile"
+                                :key="clase.id"
+                                class="overflow-hidden border border-gray-200 bg-white shadow-sm"
+                            >
+                                <button
+                                    type="button"
+                                    class="block w-full bg-gray-100"
+                                    title="Ver imagen"
+                                    @click="openImageDialog(clase.imagen ? '/storage/' + clase.imagen.ruta : '')"
+                                >
+                                    <img
+                                        v-if="clase.imagen"
+                                        :src="'/storage/' + clase.imagen.ruta"
+                                        :alt="`Imagen de ${clase.nombre || 'Clase'}`"
+                                        class="h-auto w-full object-contain"
+                                    />
+                                    <img
+                                        v-else
+                                        src="/storage/img/actividades/imagen-no-disponible.jpg"
+                                        alt="Sin imagen"
+                                        class="h-auto w-full object-contain"
+                                    />
+                                </button>
+
+                                <div class="space-y-3 p-4">
+                                    <div class="space-y-1">
+                                        <p class="text-base font-semibold text-gray-800">
+                                            {{ clase.nombre || '-' }}
+                                        </p>
+                                        <p class="text-sm text-gray-600">
+                                            {{ clase.ciclo?.nombre || '-' }}
+                                        </p>
+                                    </div>
+
+                                    <div class="space-y-2 text-sm text-gray-700">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Mes</span>
+                                            <span>{{ formatMes(clase.mes_referencia) }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Entidad</span>
+                                            <span>{{ clase.entidad?.nombre || '-' }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">ONL</span>
+                                            <span :class="(clase.stream_id || clase.stream?.id) ? 'text-green-600 font-semibold' : 'text-gray-500'">
+                                                {{ (clase.stream_id || clase.stream?.id) ? 'Si' : 'No' }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Dias</span>
+                                            <span>{{ formatDias(clase.dias_semana) }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Horario</span>
+                                            <span>{{ formatHora(clase.horario_desde) }} - {{ formatHora(clase.horario_hasta) }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Maestros</span>
+                                            <span v-if="Array.isArray(clase.maestros) && clase.maestros.length">
+                                                {{ clase.maestros.map((m) => m.nombre).join(', ') }}
+                                            </span>
+                                            <span v-else class="text-gray-500">-</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Activa</span>
+                                            <InputSwitch
+                                                :modelValue="clase.activa"
+                                                @update:modelValue="updateEstado(clase, $event)"
+                                                :disabled="!$page.props.user.permissions.includes('update clases')"
+                                            />
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">En calendario</span>
+                                            <span :class="clase.mostrar_en_calendario ? 'text-green-600 font-semibold' : 'text-gray-500'">
+                                                {{ clase.mostrar_en_calendario ? 'Si' : 'No' }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                        @click="toggleCardExpanded(clase.id)"
+                                    >
+                                        <span>{{ isCardExpanded(clase.id) ? 'Ocultar detalles' : 'Ver mas detalles' }}</span>
+                                        <i
+                                            class="pi"
+                                            :class="isCardExpanded(clase.id) ? 'pi-chevron-up' : 'pi-chevron-down'"
+                                        ></i>
+                                    </button>
+
+                                    <div v-if="isCardExpanded(clase.id)" class="rounded-md border border-gray-200 bg-gray-50 p-3">
+                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Coordinador</p>
+                                                <p>{{ clase.coordinador?.nombre || '-' }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Esquema de precios</p>
+                                                <p>{{ clase.esquema_precio?.nombre || '-' }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-gray-200 bg-white px-4 py-3">
+                                    <div class="flex flex-wrap items-center justify-center gap-2">
+                                        <Link
+                                            :href="`${route('clases.show-public', { clase: parseInt(clase.id) })}?return_url=${encodeURIComponent(route('clases.index'))}`"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-3"
+                                            title="Ver landing publica"
+                                            aria-label="Ver landing publica"
+                                        >
+                                            <i class="fas fa-eye"></i>
+                                            <span class="text-xs font-semibold">Ver landing publica</span>
+                                        </Link>
+                                        <Link
+                                            v-if="$page.props.user.permissions.includes('update clases')"
+                                            :href="route('clases.edit', parseInt(clase.id))"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3"
+                                            title="Editar clase"
+                                            aria-label="Editar clase"
+                                        >
+                                            <i class="fas fa-pen-to-square"></i>
+                                            <span class="text-xs font-semibold">Editar clase</span>
+                                        </Link>
+                                        <button
+                                            v-if="$page.props.user.permissions.includes('delete clases')"
+                                            type="button"
+                                            @click="deleteClase(parseInt(clase.id))"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3"
+                                            title="Borrar clase"
+                                            aria-label="Borrar clase"
+                                        >
+                                            <i class="fas fa-trash"></i>
+                                            <span class="text-xs font-semibold">Borrar clase</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <DataTable
                             :value="clasesFiltradas"
                             v-model:filters="filters"
                             filterDisplay="row"
                             :globalFilterFields="['nombre', 'ciclo.nombre', 'entidad.nombre', 'coordinador.nombre']"
-                            class="clases-table"
+                            class="clases-table hidden sm:block"
                             stripedRows
                             paginator
                             :rows="10"

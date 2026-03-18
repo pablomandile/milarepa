@@ -79,6 +79,18 @@
 
     // Controla qué filas de la tabla principal están expandidas
     const expandedRows = ref([]);
+    const expandedCardIds = ref([]);
+
+    const isCardExpanded = (id) => expandedCardIds.value.includes(id);
+
+    const toggleCardExpanded = (id) => {
+        const idx = expandedCardIds.value.indexOf(id);
+        if (idx === -1) {
+            expandedCardIds.value.push(id);
+        } else {
+            expandedCardIds.value.splice(idx, 1);
+        }
+    };
 
     const verActividad = (id) => {
         const actividad = actividades.find((ent) => ent.id === id);
@@ -157,6 +169,24 @@
     const direccionActividad = (actividad) => {
         return actividad?.lugar?.direccion || actividad?.entidad?.direccion || '';
     };
+
+    const normalizeText = (value) => String(value ?? '').toLowerCase();
+
+    const actividadesFiltradasMobile = computed(() => {
+        const query = normalizeText(filters.value?.global?.value);
+        if (!query) return actividadesFiltradas.value;
+
+        return actividadesFiltradas.value.filter((actividad) => {
+            const fields = [
+                actividad?.nombre,
+                actividad?.tipo_actividad?.abreviacion,
+                actividad?.modalidad?.nombre,
+                actividad?.entidad?.abreviacion,
+                actividad?.lugar?.abreviacion,
+            ];
+            return fields.some((field) => normalizeText(field).includes(query));
+        });
+    });
 </script>
 
 <style scoped>
@@ -171,13 +201,262 @@
         <Toast position="top-right" />
         <div class="py-12">
             <div class="max-w-[110rem] mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-[108rem] mx-auto">
+                <div class="bg-white border-b border-gray-200 max-w-[108rem] mx-auto p-0 sm:p-6">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create actividades')">
                         <Link :href="route('actividades.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
                             NUEVA ACTIVIDAD
                         </Link>
                     </div>
                     <div class="mt-4">
+                        <div class="sm:hidden px-4">
+                            <div class="flex flex-col gap-2">
+                                <select
+                                    v-model="filtroFechaInicio"
+                                    class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
+                                >
+                                    <option value="mes_actual">Mes actual en adelante</option>
+                                    <option value="ultimo_mes">Ultimo mes</option>
+                                    <option value="ultimos_tres_meses">Ultimos tres meses</option>
+                                    <option value="todo">Mostrar todo</option>
+                                </select>
+                                <IconField>
+                                    <InputIcon class="pi pi-search" />
+                                    <InputText v-model="filters.global.value" placeholder="Buscar..." />
+                                </IconField>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 sm:hidden">
+                            <div
+                                v-for="actividad in actividadesFiltradasMobile"
+                                :key="actividad.id"
+                                class="overflow-hidden border border-gray-200 bg-white shadow-sm"
+                            >
+                                <button
+                                    type="button"
+                                    class="block w-full bg-gray-100"
+                                    title="Ver imagen"
+                                    @click="verImagen(actividad)"
+                                >
+                                    <img
+                                        v-if="actividad.imagen"
+                                        :src="'/storage/' + actividad.imagen.ruta"
+                                        :alt="`Imagen de ${actividad.nombre || 'Actividad'}`"
+                                        class="h-auto w-full object-contain"
+                                    />
+                                    <img
+                                        v-else
+                                        src="/storage/img/actividades/imagen-no-disponible.jpg"
+                                        alt="Sin imagen"
+                                        class="h-auto w-full object-contain"
+                                    />
+                                </button>
+
+                                <div class="space-y-3 p-4">
+                                    <div class="space-y-1">
+                                        <p class="text-base font-semibold text-gray-800">
+                                            {{ actividad.nombre || '-' }}
+                                        </p>
+                                        <p class="text-sm text-gray-600">
+                                            {{ actividad.tipo_actividad?.abreviacion || '-' }}
+                                        </p>
+                                    </div>
+
+                                    <div class="space-y-2 text-sm text-gray-700">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Lugar</span>
+                                            <span>{{ actividad.entidad?.abreviacion || actividad.lugar?.abreviacion || '-' }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Fecha inicio</span>
+                                            <span>
+                                                {{ actividad.fecha_inicio ? new Date(actividad.fecha_inicio).toLocaleDateString('es-AR') : '-' }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Hora inicio</span>
+                                            <span>
+                                                {{ actividad.fecha_inicio ? new Date(actividad.fecha_inicio).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' hs.' : '-' }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Modalidad</span>
+                                            <span>{{ actividad.modalidad?.nombre || '-' }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Estado</span>
+                                            <InputSwitch
+                                                :modelValue="actividad.estado"
+                                                @update:modelValue="updateEstado(actividad, $event)"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                        @click="toggleCardExpanded(actividad.id)"
+                                    >
+                                        <span>{{ isCardExpanded(actividad.id) ? 'Ocultar detalles' : 'Ver mas detalles' }}</span>
+                                        <i
+                                            class="pi"
+                                            :class="isCardExpanded(actividad.id) ? 'pi-chevron-up' : 'pi-chevron-down'"
+                                        ></i>
+                                    </button>
+
+                                    <div v-if="isCardExpanded(actividad.id)" class="rounded-md border border-gray-200 bg-gray-50 p-3">
+                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
+                                            <div v-if="actividad.entidad">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Lugar</p>
+                                                <p>{{ actividad.lugar?.nombre || actividad.entidad.abreviacion }}</p>
+                                                <p v-if="direccionActividad(actividad)" class="text-xs text-gray-600">
+                                                    {{ direccionActividad(actividad) }}
+                                                </p>
+                                            </div>
+                                            <div v-if="actividad.descripcion">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Descripcion</p>
+                                                <p>{{ actividad.descripcion.descripcion }}</p>
+                                            </div>
+                                            <div v-if="actividad.observaciones">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Observaciones</p>
+                                                <p>{{ actividad.observaciones }}</p>
+                                            </div>
+                                            <div v-if="actividad.disponibilidad">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Disponibilidad</p>
+                                                <p>{{ actividad.disponibilidad.descripcion }}</p>
+                                            </div>
+                                            <div v-if="actividad.maestros && actividad.maestros.length">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Maestros</p>
+                                                <p>{{ actividad.maestros.map((maestro) => maestro.nombre).join(', ') }}</p>
+                                            </div>
+                                            <div v-if="actividad.coordinadores && actividad.coordinadores.length">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Coordinadores</p>
+                                                <p>{{ actividad.coordinadores.map((coordinador) => coordinador.nombre).join(', ') }}</p>
+                                            </div>
+                                            <div v-if="actividad.programa" class="flex items-center gap-2">
+                                                <div>
+                                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Programa</p>
+                                                    <p>{{ actividad.programa.nombre }}</p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    class="text-indigo-600 hover:text-indigo-800"
+                                                    title="Ver programa completo"
+                                                    @click="verPrograma(actividad.programa)"
+                                                >
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                            <div v-if="actividad.esquema_precio" class="flex items-center gap-2">
+                                                <div>
+                                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Esquema de precios</p>
+                                                    <p>{{ actividad.esquema_precio.nombre }}</p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    class="text-indigo-600 hover:text-indigo-800"
+                                                    title="Ver esquema de precios completo"
+                                                    @click="verEsquemaPrecio(actividad.esquema_precio)"
+                                                >
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                            <div v-if="actividad.esquema_descuento">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Esquema descuentos</p>
+                                                <p>{{ actividad.esquema_descuento.nombre }}</p>
+                                            </div>
+                                            <div v-if="actividad.hospedajes && actividad.hospedajes.length">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Hospedajes</p>
+                                                <p>{{ actividad.hospedajes.map((hospedaje) => hospedaje.nombre).join(', ') }}</p>
+                                            </div>
+                                            <div v-if="actividad.comidas && actividad.comidas.length">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Comidas</p>
+                                                <p>{{ actividad.comidas.map((comida) => comida.nombre).join(', ') }}</p>
+                                            </div>
+                                            <div v-if="actividad.transportes && actividad.transportes.length">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Transportes</p>
+                                                <p>{{ actividad.transportes.map((transporte) => transporte.descripcion).join(', ') }}</p>
+                                            </div>
+                                            <div v-if="actividad.stream">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Stream</p>
+                                                <p>{{ actividad.stream.titulo || 'Disponible' }}</p>
+                                            </div>
+                                            <div v-if="actividad.grabacion">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Grabacion</p>
+                                                <p>{{ actividad.grabacion.titulo || 'Disponible' }}</p>
+                                            </div>
+                                            <div v-if="actividad.fecha_fin">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Fecha fin</p>
+                                                <p>{{ new Date(actividad.fecha_fin).toLocaleDateString('es-AR') }}</p>
+                                            </div>
+                                            <div v-if="actividad.fecha_fin">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Hora fin</p>
+                                                <p>{{ new Date(actividad.fecha_fin).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }) }} hs.</p>
+                                            </div>
+                                            <div v-if="actividad.pagoAmticipado">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Fecha pago anticipado</p>
+                                                <p>{{ new Date(actividad.pagoAmticipado).toLocaleDateString('es-AR') }}</p>
+                                            </div>
+                                            <div v-if="actividad.tipo_actividad?.nombre">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Tipo de actividad</p>
+                                                <p>{{ actividad.tipo_actividad.nombre }}</p>
+                                            </div>
+                                            <div v-if="actividad.metodos_pago && actividad.metodos_pago.length">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Metodos de pago</p>
+                                                <div class="flex flex-wrap gap-2">
+                                                    <Tag v-for="metodo in actividad.metodos_pago" :key="metodo.id" severity="info" :value="metodo.nombre"></Tag>
+                                                </div>
+                                                <div>
+                                                    <span v-for="(metodo, index) in actividad.metodos_pago" :key="metodo.id" class="text-xs block">
+                                                        {{ metodo.descripcion }}<span v-if="index < actividad.metodos_pago.length - 1"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div v-if="actividad.link_web">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Link web</p>
+                                                <a :href="actividad.link_web" target="_blank" class="text-blue-500 hover:underline text-sm">{{ actividad.link_web }}</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-gray-200 bg-white px-4 py-3">
+                                    <div class="flex flex-wrap items-center justify-center gap-2">
+                                        <Link
+                                            :href="`${route('grid-actividades.show-public', actividad.id)}?return_url=${encodeURIComponent(route('actividades.index'))}`"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-3"
+                                            title="Ver landing publica"
+                                            aria-label="Ver landing publica"
+                                        >
+                                            <i class="fas fa-eye"></i>
+                                            <span class="text-xs font-semibold">Ver landing publica</span>
+                                        </Link>
+                                        <Link
+                                            v-if="$page.props.user.permissions.includes('update actividades')"
+                                            :href="route('actividades.edit', { actividad: parseInt(actividad.id) })"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3"
+                                            title="Editar actividad"
+                                            aria-label="Editar actividad"
+                                        >
+                                            <i class="fas fa-pen-to-square"></i>
+                                            <span class="text-xs font-semibold">Editar actividad</span>
+                                        </Link>
+                                        <button
+                                            v-if="$page.props.user.permissions.includes('delete actividades')"
+                                            type="button"
+                                            @click="deleteActividad(parseInt(actividad.id))"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3"
+                                            title="Borrar actividad"
+                                            aria-label="Borrar actividad"
+                                        >
+                                            <i class="fas fa-trash"></i>
+                                            <span class="text-xs font-semibold">Borrar actividad</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <DataTable 
                         :value="actividadesFiltradas" 
                         v-model:filters="filters"
@@ -190,6 +469,7 @@
                         dataKey="id"
                         :rowsPerPageOptions="[5, 10, 20, 50]" 
                         tableStyle="min-width: 50rem"
+                        class="hidden sm:block"
                         >
                             <template #header>
                                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">

@@ -10,11 +10,11 @@
         </template>
 
         <div class="py-12">
-            <div class="w-full p-4 sm:px-6 lg:px-8">
+            <div class="w-full p-0 sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
+                    <div class="p-0 sm:p-6 text-gray-900">
                         <!-- Tabla de Estado de Cuentas -->
-                        <div class="mb-4 flex items-center gap-3">
+                        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center px-4 sm:px-0">
                             <label class="text-sm font-medium text-gray-700">Filtro</label>
                             <select
                                 v-model="filtroPeriodo"
@@ -33,7 +33,133 @@
                             </label>
                         </div>
 
-                        <div v-if="filtradas.length > 0" class="overflow-x-auto">
+                        <div v-if="filtradas.length > 0" class="space-y-4 sm:hidden">
+                            <div
+                                v-for="cuenta in filtradas"
+                                :key="cuenta.id"
+                                class="overflow-hidden border border-gray-200 bg-white shadow-sm"
+                            >
+                                <div class="space-y-3 p-4">
+                                    <div class="space-y-1">
+                                        <p class="text-base font-semibold text-gray-800">{{ cuenta.user.name }}</p>
+                                        <p class="text-sm text-gray-600">{{ cuenta.user.email }}</p>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-sm text-gray-500">Membresia</span>
+                                            <div class="text-right">
+                                                <p class="text-sm font-semibold text-gray-800">
+                                                    {{ cuenta.membresia.nombre }}
+                                                    <span
+                                                        v-if="cuenta.user?.membresia_online || cuenta.user?.membresia_usuario?.membresia_online"
+                                                        class="ml-2 text-xs font-semibold text-indigo-600"
+                                                    >
+                                                        Online
+                                                    </span>
+                                                </p>
+                                                <p class="text-xs text-gray-600">{{ cuenta.membresia.entidad.nombre }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3 text-sm">
+                                            <span class="text-gray-500">Mes</span>
+                                            <span>{{ formatearMes(cuenta.mes_pagado) }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3 text-sm">
+                                            <span class="text-gray-500">Importe</span>
+                                            <span>${{ parseFloat(cuenta.importe).toFixed(2) }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3 text-sm">
+                                            <span class="text-gray-500">Estado</span>
+                                            <span
+                                                v-if="cuenta.pagado"
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                                            >
+                                                <i class="fas fa-check-circle mr-1"></i>
+                                                Pagado
+                                            </span>
+                                            <span
+                                                v-else
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800"
+                                            >
+                                                <i class="fas fa-times-circle mr-1"></i>
+                                                Pendiente
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                        @click="toggleCardExpanded(cuenta.id)"
+                                    >
+                                        <span>{{ isCardExpanded(cuenta.id) ? 'Ocultar detalles' : 'Ver mas detalles' }}</span>
+                                        <i
+                                            class="pi"
+                                            :class="isCardExpanded(cuenta.id) ? 'pi-chevron-up' : 'pi-chevron-down'"
+                                        ></i>
+                                    </button>
+
+                                    <div v-if="isCardExpanded(cuenta.id)" class="rounded-md border border-gray-200 bg-gray-50 p-3">
+                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Modo</p>
+                                                <p>{{ cuenta.modo || '-' }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Pago</p>
+                                                <p>{{ cuenta.fecha_pago ? formatearFecha(cuenta.fecha_pago) : '-' }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Comprobante</p>
+                                                <button
+                                                    v-if="cuenta.comprobante"
+                                                    type="button"
+                                                    @click="abrirComprobante(cuenta.comprobante)"
+                                                    class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-indigo-600 hover:text-indigo-800"
+                                                    title="Ver comprobante"
+                                                    aria-label="Ver comprobante"
+                                                >
+                                                    <i class="fas fa-file"></i>
+                                                    <span class="text-xs font-semibold">Ver comprobante</span>
+                                                </button>
+                                                <span v-else class="text-gray-400">-</span>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Observaciones</p>
+                                                <p>{{ cuenta.observaciones || '-' }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-gray-200 bg-white px-4 py-3">
+                                    <div class="flex flex-wrap items-center justify-center gap-2">
+                                        <Link
+                                            v-if="$page.props.user.permissions.includes('update estado_cuenta_membresias')"
+                                            :href="route('estado-cuenta-membresias.edit', cuenta.id)"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-blue-600 text-white px-3 text-xs font-semibold hover:bg-blue-700 transition"
+                                            title="Editar"
+                                            aria-label="Editar"
+                                        >
+                                            <i class="fas fa-edit"></i>
+                                            <span>Editar</span>
+                                        </Link>
+                                        <span
+                                            v-else
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-gray-300 text-gray-500 px-3 text-xs font-semibold cursor-not-allowed"
+                                            title="Editar"
+                                            aria-label="Editar"
+                                        >
+                                            <i class="fas fa-edit"></i>
+                                            <span>Editar</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="filtradas.length > 0" class="hidden overflow-x-auto sm:block">
                             <table class="min-w-full border-collapse border border-gray-300">
                                 <thead class="bg-indigo-300 text-white text-sm">
                                     <tr>
@@ -220,6 +346,18 @@ const formatearFecha = (fecha) => {
 const comprobanteModal = ref(false);
 const comprobantePath = ref('');
 const comprobanteIsPdf = computed(() => (comprobantePath.value || '').toLowerCase().endsWith('.pdf'));
+const expandedCardIds = ref([]);
+
+const isCardExpanded = (id) => expandedCardIds.value.includes(id);
+
+const toggleCardExpanded = (id) => {
+    const idx = expandedCardIds.value.indexOf(id);
+    if (idx === -1) {
+        expandedCardIds.value.push(id);
+    } else {
+        expandedCardIds.value.splice(idx, 1);
+    }
+};
 
 const abrirComprobante = (path) => {
     comprobantePath.value = path;
