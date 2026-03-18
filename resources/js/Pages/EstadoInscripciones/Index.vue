@@ -11,10 +11,10 @@
         </template>
 
         <div class="py-12">
-            <div class="w-full p-4 sm:px-6 lg:px-8">
+            <div class="w-full p-0 sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
-                        <div class="mb-4 flex items-center gap-3">
+                    <div class="p-0 sm:p-6 text-gray-900">
+                        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center px-4 sm:px-0">
                             <label class="text-sm font-medium text-gray-700">Filtro</label>
                             <select
                                 v-model="filtroPeriodo"
@@ -43,7 +43,239 @@
                             </button>
                         </div>
 
-                        <div v-if="filtradas.length > 0" class="overflow-x-auto">
+                        <div v-if="filtradas.length > 0" class="space-y-4 sm:hidden">
+                            <div
+                                v-for="inscripcion in filtradas"
+                                :key="inscripcion.id"
+                                class="overflow-hidden border border-gray-200 bg-white shadow-sm"
+                            >
+                                <div class="space-y-3 p-4">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="font-semibold text-gray-800">{{ nombreUsuario(inscripcion) }}</span>
+                                        <span
+                                            class="inline-flex w-fit items-center px-2 py-1 rounded-full text-xs font-medium"
+                                            :class="isInvitado(inscripcion) ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
+                                        >
+                                            {{ isInvitado(inscripcion) ? 'Invitado' : 'Registrado' }}
+                                        </span>
+                                    </div>
+
+                                    <div class="space-y-2 text-sm text-gray-700">
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-800">
+                                                {{ inscripcion.actividad?.nombre || '-' }}
+                                            </p>
+                                            <p class="text-xs text-gray-600">
+                                                {{ inscripcion.actividad?.entidad?.nombre || '-' }}
+                                            </p>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Membresia</span>
+                                            <span>{{ inscripcion.membresia || '-' }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Monto</span>
+                                            <template v-if="isEditing(inscripcion)">
+                                                <input
+                                                    v-model.number="editForm.montoapagar"
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    class="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
+                                                />
+                                            </template>
+                                            <span v-else class="text-blue-700 font-medium">
+                                                ${{ formatearMonto(inscripcion.montoapagar) }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Pago</span>
+                                            <template v-if="isEditing(inscripcion)">
+                                                <select
+                                                    v-model="editForm.pago"
+                                                    class="rounded border border-gray-300 px-2 py-1 text-sm"
+                                                >
+                                                    <option value="Saldado">Saldado</option>
+                                                    <option value="Parcial">Parcial</option>
+                                                    <option value="Pendiente">Pendiente</option>
+                                                </select>
+                                            </template>
+                                            <span
+                                                v-else
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                                :class="badgePagoClass(inscripcion.pago)"
+                                            >
+                                                {{ inscripcion.pago || '-' }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Estado</span>
+                                            <span>{{ inscripcion.estado || '-' }}</span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                        @click="toggleCardExpanded(inscripcion.id)"
+                                    >
+                                        <span>{{ isCardExpanded(inscripcion.id) ? 'Ocultar detalles' : 'Ver mas detalles' }}</span>
+                                        <i
+                                            class="pi"
+                                            :class="isCardExpanded(inscripcion.id) ? 'pi-chevron-up' : 'pi-chevron-down'"
+                                        ></i>
+                                    </button>
+
+                                    <div v-if="isCardExpanded(inscripcion.id)" class="rounded-md border border-gray-200 bg-gray-50 p-3">
+                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</p>
+                                                <p>{{ emailUsuario(inscripcion) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Pais</p>
+                                                <p>{{ paisUsuario(inscripcion) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Provincia</p>
+                                                <p>{{ provinciaUsuario(inscripcion) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Municipio/Barrio</p>
+                                                <p>{{ municipioBarrioUsuario(inscripcion) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Inscripto</p>
+                                                <p>{{ formatearFecha(inscripcion.created_at) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Modalidad</p>
+                                                <p>{{ modalidadInscripcion(inscripcion) }}</p>
+                                            </div>
+                                            <div v-if="inscripcion.montoActividad !== null && inscripcion.montoActividad !== undefined">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Monto Actividad</p>
+                                                <p class="text-blue-700 font-medium">${{ formatearMonto(inscripcion.montoActividad) }}</p>
+                                            </div>
+                                            <div v-if="inscripcion.montoTransporte !== null && inscripcion.montoTransporte !== undefined">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Monto Transporte</p>
+                                                <p class="text-blue-700 font-medium">${{ formatearMonto(inscripcion.montoTransporte) }}</p>
+                                            </div>
+                                            <div v-if="inscripcion.montoComidas !== null && inscripcion.montoComidas !== undefined">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Monto Comidas</p>
+                                                <p class="text-blue-700 font-medium">${{ formatearMonto(inscripcion.montoComidas) }}</p>
+                                            </div>
+                                            <div v-if="inscripcion.montoGrabacion !== null && inscripcion.montoGrabacion !== undefined">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Monto Grabacion</p>
+                                                <p class="text-blue-700 font-medium">${{ formatearMonto(inscripcion.montoGrabacion) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Auditor</p>
+                                                <p>{{ inscripcion.auditor_user?.name || '-' }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Auditado</p>
+                                                <p>{{ formatearFecha(inscripcion.auditoria_fecha) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Envio Registro</p>
+                                                <p>{{ envioEstado(inscripcion, 'envioRegistro') }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Envio Confirmacion</p>
+                                                <p>{{ envioEstado(inscripcion, 'envioConfirmacion') }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Envio Grabacion</p>
+                                                <p>{{ envioEstado(inscripcion, 'envioGrabacion') }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Comprobante</p>
+                                                <div class="flex items-center gap-2">
+                                                    <button
+                                                        v-if="isEditing(inscripcion)"
+                                                        type="button"
+                                                        @click="openComprobanteModal(inscripcion)"
+                                                        class="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sky-700"
+                                                        title="Subir comprobante"
+                                                        aria-label="Subir comprobante"
+                                                    >
+                                                        <i class="pi pi-upload"></i>
+                                                        <span class="text-xs font-semibold">Subir comprobante</span>
+                                                    </button>
+                                                    <template v-else>
+                                                        <button
+                                                            v-if="urlComprobante(inscripcion)"
+                                                            type="button"
+                                                            @click="abrirComprobante(inscripcion)"
+                                                            class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-indigo-600"
+                                                            title="Ver comprobante"
+                                                            aria-label="Ver comprobante"
+                                                        >
+                                                            <i class="fas fa-file-alt"></i>
+                                                            <span class="text-xs font-semibold">Ver comprobante</span>
+                                                        </button>
+                                                        <span
+                                                            v-if="comprobantesExtras(inscripcion) > 0"
+                                                            class="text-xs font-semibold text-gray-500"
+                                                        >
+                                                            +{{ comprobantesExtras(inscripcion) }}
+                                                        </span>
+                                                        <span v-else-if="!urlComprobante(inscripcion)" class="text-xs text-gray-400">Sin comprobante</span>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-gray-200 bg-white px-4 py-3">
+                                    <div v-if="canEdit" class="flex flex-wrap justify-center gap-2">
+                                        <template v-if="isEditing(inscripcion)">
+                                            <button
+                                                class="inline-flex items-center justify-center gap-2 rounded bg-green-600 px-3 py-2 text-xs text-white hover:bg-green-700 disabled:opacity-60"
+                                                :disabled="isSaving"
+                                                @click="guardarEdicion(inscripcion)"
+                                                aria-label="Guardar"
+                                                title="Guardar"
+                                            >
+                                                <span>Guardar</span>
+                                            </button>
+                                            <button
+                                                class="inline-flex items-center justify-center gap-2 rounded bg-gray-200 px-3 py-2 text-xs text-gray-700 hover:bg-gray-300"
+                                                @click="cancelarEdicion"
+                                                aria-label="Cancelar"
+                                                title="Cancelar"
+                                            >
+                                                <span>Cancelar</span>
+                                            </button>
+                                        </template>
+                                        <template v-else>
+                                            <button
+                                                class="inline-flex items-center justify-center gap-2 rounded bg-indigo-50 px-3 py-2 text-xs text-indigo-700 hover:bg-indigo-100"
+                                                @click="iniciarEdicion(inscripcion)"
+                                                aria-label="Editar"
+                                                title="Editar"
+                                            >
+                                                <i class="pi pi-file-edit"></i>
+                                                <span>Editar</span>
+                                            </button>
+                                            <button
+                                                class="inline-flex items-center justify-center gap-2 rounded bg-emerald-50 px-3 py-2 text-xs text-emerald-700 hover:bg-emerald-100"
+                                                @click="abrirConfirmarSaldado(inscripcion)"
+                                                aria-label="Saldado"
+                                                title="Saldado"
+                                            >
+                                                <i class="pi pi-check-circle"></i>
+                                                <span>Saldado</span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                    <span v-else class="text-xs text-gray-400">Sin permisos</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="filtradas.length > 0" class="hidden overflow-x-auto sm:block">
                             <DataTable
                                 :value="filtradas"
                                 dataKey="id"
@@ -499,6 +731,7 @@ const toast = useToast();
 const page = usePage();
 const filtroPeriodo = ref('last1');
 const expandedRows = ref([]);
+const expandedCardIds = ref([]);
 const editRowId = ref(null);
 const editForm = ref({
     montoapagar: 0,
@@ -534,6 +767,17 @@ const isInvitado = (inscripcion) => {
 };
 
 const isEditing = (inscripcion) => editRowId.value === inscripcion.id;
+
+const isCardExpanded = (id) => expandedCardIds.value.includes(id);
+
+const toggleCardExpanded = (id) => {
+    const idx = expandedCardIds.value.indexOf(id);
+    if (idx === -1) {
+        expandedCardIds.value.push(id);
+    } else {
+        expandedCardIds.value.splice(idx, 1);
+    }
+};
 
 const iniciarEdicion = (inscripcion) => {
     editRowId.value = inscripcion.id;

@@ -262,7 +262,7 @@ async function subirComprobante() {
 <template>
     <AppLayout>
         <div class="py-12">
-            <div class="px-4 sm:px-6 lg:px-8">
+            <div class="px-0 sm:px-6 lg:px-8">
                 <div v-if="isAsistant" class="mb-4">
                     <Link
                         :href="route('asistant.panel')"
@@ -271,9 +271,9 @@ async function subirComprobante() {
                         Volver al panel
                     </Link>
                 </div>
-                <div class="bg-white border-round shadow-1">
-                    <div class="p-6 border-bottom-1 border-200">
-                        <div class="flex justify-content-between align-items-center mb-4">
+                <div class="bg-white shadow-1 rounded-none sm:rounded-lg">
+                    <div class="p-0 sm:p-6 border-bottom-1 border-200">
+                        <div class="px-4 sm:px-0 flex justify-content-between align-items-center mb-4">
                             <div>
                                 <h2 class="text-2xl font-bold text-900 m-0">Membresías Disponibles</h2>
                                 <p v-if="userMembresia" class="text-base text-600 mt-2">
@@ -343,9 +343,9 @@ async function subirComprobante() {
                                         <div
                                             v-for="(membresia, index) in slotProps.items"
                                             :key="membresia.id"
-                                            class="col-12 md:col-6 xl:col-4 p-2"
+                                            class="col-12 md:col-6 xl:col-4 p-0 sm:p-2"
                                         >
-                                            <div class="p-card bg-white border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300">
+                                            <div class="p-card w-full bg-white border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300">
                                                 <div class="p-card-body p-4">
                                                     <div class="flex flex-col h-full">
                                                         <div

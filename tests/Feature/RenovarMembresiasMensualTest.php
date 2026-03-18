@@ -10,6 +10,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
+/**
+ * @method void assertSame(mixed $expected, mixed $actual, string $message = '')
+ * @method void assertNotNull(mixed $actual, string $message = '')
+ * @method void assertFalse(bool $condition, string $message = '')
+ * @method void assertNull(mixed $actual, string $message = '')
+ * @method void assertTrue(bool $condition, string $message = '')
+ */
 class RenovarMembresiasMensualTest extends TestCase
 {
     use RefreshDatabase;

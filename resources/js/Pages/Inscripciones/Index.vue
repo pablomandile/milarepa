@@ -134,6 +134,19 @@ const comprobantesExtras = (inscripcion) => {
     return count > 1 ? count - 1 : 0;
 };
 
+const expandedCardIds = ref([]);
+
+const isCardExpanded = (id) => expandedCardIds.value.includes(id);
+
+const toggleCardExpanded = (id) => {
+    const idx = expandedCardIds.value.indexOf(id);
+    if (idx === -1) {
+        expandedCardIds.value.push(id);
+    } else {
+        expandedCardIds.value.splice(idx, 1);
+    }
+};
+
 const abrirComprobante = (inscripcionOrUrl) => {
     const items = [];
     if (inscripcionOrUrl && typeof inscripcionOrUrl === 'object') {
@@ -189,7 +202,7 @@ watch(() => $page.props.flash, (flash) => {
         </template>
         <Toast position="top-right" />
         <div class="py-12">
-            <div class="px-4 sm:px-6 lg:px-8">
+            <div class="px-0 sm:px-6 lg:px-8">
                 <div v-if="isAsistant" class="mb-4">
                     <Link
                         :href="route('asistant.panel')"
@@ -208,8 +221,212 @@ watch(() => $page.props.flash, (flash) => {
                     {{ $page.props.flash.error }}
                 </div>
                 
-                <div class="p-6 bg-white border-b border-gray-200">
+                <div class="bg-white border-b border-gray-200 p-0 sm:p-6">
                     <div class="mt-4">
+                        <div class="space-y-4 sm:hidden">
+                            <div
+                                v-for="inscripcion in inscripciones"
+                                :key="inscripcion.id"
+                                class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+                            >
+                                <Link
+                                    :href="route('inscripciones.show', { inscripcion: inscripcion.id })"
+                                    class="block w-full bg-gray-100"
+                                    title="Ver inscripción"
+                                >
+                                    <img
+                                        v-if="inscripcion.actividad?.imagen"
+                                        :src="'/storage/' + inscripcion.actividad.imagen.ruta"
+                                        :alt="'Imagen de ' + inscripcion.actividad.nombre"
+                                        class="h-auto w-full object-contain"
+                                    />
+                                    <img
+                                        v-else
+                                        src="/storage/img/actividades/imagen-no-disponible.jpg"
+                                        alt="Sin imagen"
+                                        class="h-auto w-full object-contain"
+                                    />
+                                </Link>
+
+                                <div class="space-y-3 p-4">
+                                    <div class="space-y-1">
+                                        <p class="text-base font-semibold text-gray-800">
+                                            {{ inscripcion.actividad?.nombre || '-' }}
+                                        </p>
+                                        <p class="text-sm text-gray-600">
+                                            {{ inscripcion.actividad?.entidad?.nombre || '-' }}
+                                        </p>
+                                    </div>
+
+                                    <div class="space-y-2 text-sm text-gray-700">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Fecha</span>
+                                            <span class="font-medium">
+                                                {{ inscripcion.actividad?.fecha_inicio_formateada || '-' }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Lugar</span>
+                                            <button
+                                                v-if="direccionActividad(inscripcion)"
+                                                type="button"
+                                                class="inline-flex items-center gap-1 text-right text-sky-700 hover:text-sky-900"
+                                                @click="abrirMapa(direccionActividad(inscripcion))"
+                                            >
+                                                <span class="max-w-[200px] break-words">{{ direccionActividad(inscripcion) }}</span>
+                                                <i class="pi pi-map"></i>
+                                            </button>
+                                            <span v-else>-</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Precio general</span>
+                                            <span>${{ formatMoney(inscripcion.precioGeneral) }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Monto a pagar</span>
+                                            <span class="font-semibold text-green-700">${{ formatMoney(inscripcion.montoapagar) }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Pago</span>
+                                            <span
+                                                class="text-xs font-semibold px-2 py-1 rounded-full"
+                                                :class="{
+                                                    'bg-green-100 text-green-700': inscripcion.pago === 'Saldado',
+                                                    'bg-yellow-100 text-yellow-700': inscripcion.pago === 'Parcial',
+                                                    'bg-yellow-100 text-yellow-700': inscripcion.pago === 'Pendiente'
+                                                }"
+                                            >
+                                                {{ inscripcion.pago }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Asistencia</span>
+                                            <span>{{ inscripcion.asistencia || '-' }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Comprobante</span>
+                                            <div class="flex items-center gap-2">
+                                                <button
+                                                    v-if="urlComprobante(inscripcion)"
+                                                    type="button"
+                                                    @click="abrirComprobante(inscripcion)"
+                                                    class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200"
+                                                    title="Ver comprobante"
+                                                    aria-label="Ver comprobante"
+                                                >
+                                                    <i class="pi pi-file"></i>
+                                                </button>
+                                                <span
+                                                    v-if="comprobantesExtras(inscripcion) > 0"
+                                                    class="text-xs font-semibold text-gray-500"
+                                                >
+                                                    +{{ comprobantesExtras(inscripcion) }}
+                                                </span>
+                                                <span v-else class="text-xs text-gray-400">Sin comprobante</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-3">
+                                            <span class="text-gray-500">Inscripto</span>
+                                            <span>{{ new Date(inscripcion.created_at).toLocaleDateString() }}</span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                        @click="toggleCardExpanded(inscripcion.id)"
+                                    >
+                                        <span>{{ isCardExpanded(inscripcion.id) ? 'Ocultar detalles' : 'Ver mas detalles' }}</span>
+                                        <i
+                                            class="pi"
+                                            :class="isCardExpanded(inscripcion.id) ? 'pi-chevron-up' : 'pi-chevron-down'"
+                                        ></i>
+                                    </button>
+
+                                    <div v-if="isCardExpanded(inscripcion.id)" class="rounded-md border border-gray-200 bg-gray-50 p-3">
+                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Membresia</p>
+                                                <p>{{ inscripcion.membresia || '-' }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Online</p>
+                                                <p>{{ inscripcion.online ? 'Si' : 'No' }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Stream</p>
+                                                <p>{{ inscripcion.envioLinkStream || '-' }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Grabacion</p>
+                                                <p>{{ inscripcion.envioGrabacion || '-' }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Transporte</p>
+                                                <p>{{ inscripcion.transporte?.descripcion || inscripcion.transporte?.nombre || '-' }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Comidas</p>
+                                                <p>
+                                                    {{ inscripcion.comidas?.length ? inscripcion.comidas.map((comida) => comida.nombre).join(', ') : (inscripcion.comida?.nombre || '-') }}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Hospedaje</p>
+                                                <p>{{ inscripcion.hospedaje?.nombre || '-' }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-gray-200 bg-white px-4 py-3">
+                                    <div class="flex flex-wrap items-center justify-center gap-2">
+                                        <Link
+                                            v-if="inscripcion.pago === 'Saldado'"
+                                            :href="route('inscripciones.ticket', { inscripcion: inscripcion.id })"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3"
+                                            title="Ver ticket"
+                                            aria-label="Ver ticket"
+                                        >
+                                            <i class="pi pi-ticket"></i>
+                                            <span class="text-xs font-semibold">Ver ticket</span>
+                                        </Link>
+                                        <button
+                                            v-if="inscripcion.pago === 'Pendiente'"
+                                            type="button"
+                                            @click="openPagarModal(inscripcion)"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 font-bold"
+                                            title="Pagar"
+                                            aria-label="Pagar"
+                                        >
+                                            <span>$</span>
+                                            <span class="text-xs font-semibold">Pagar</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click="openComprobanteModal(inscripcion)"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3"
+                                            title="Informar pago"
+                                            aria-label="Informar pago"
+                                        >
+                                            <i class="pi pi-upload"></i>
+                                            <span class="text-xs font-semibold">Informar pago</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click="confirmDelete(inscripcion.id)"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3"
+                                            title="Eliminar inscripcion"
+                                            aria-label="Eliminar inscripcion"
+                                        >
+                                            <i class="pi pi-trash"></i>
+                                            <span class="text-xs font-semibold">Eliminar</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <DataTable
                             :value="inscripciones"
                             dataKey="id"
@@ -218,7 +435,7 @@ watch(() => $page.props.flash, (flash) => {
                             :rows="10"
                             :rowsPerPageOptions="[5, 10, 20]"
                             responsiveLayout="scroll"
-                            class="p-datatable-sm"
+                            class="hidden p-datatable-sm sm:block"
                         >
                             <Column expander style="width: 3rem" />
                             <Column header="Imagen" style="width: 90px">
