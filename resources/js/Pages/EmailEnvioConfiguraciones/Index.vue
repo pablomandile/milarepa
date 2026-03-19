@@ -8,7 +8,7 @@ const props = defineProps({
         type: Array,
         required: true,
     },
-    emails: {
+    plantillasArchivos: {
         type: Array,
         required: true,
     },
@@ -32,11 +32,6 @@ const procesos = computed(() => {
 
 const guardar = () => {
     form.put(route('email-envio-configuraciones.update'));
-};
-
-const getLabelPlantilla = (archivo) => {
-    const email = props.emails.find((item) => item.plantilla_archivo === archivo);
-    return email ? `${email.nombre} (${email.plantilla_archivo})` : archivo;
 };
 
 const colorByProceso = {
@@ -121,11 +116,11 @@ const getColorClasses = (procesoKey) => {
                                     :class="getColorClasses(proceso.proceso_key).foco"
                                 >
                                     <option
-                                        v-for="email in emails"
-                                        :key="`${proceso.id}-${email.id}`"
-                                        :value="email.plantilla_archivo"
+                                        v-for="archivo in plantillasArchivos"
+                                        :key="`${proceso.id}-${archivo}`"
+                                        :value="archivo"
                                     >
-                                        {{ getLabelPlantilla(email.plantilla_archivo) }}
+                                        {{ archivo }}
                                     </option>
                                 </select>
                             </div>

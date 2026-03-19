@@ -56,6 +56,7 @@ use App\Http\Controllers\CiclosController;
 use App\Http\Controllers\ClasesController;
 use App\Http\Controllers\LugaresController;
 use App\Http\Controllers\PaginasActividadesOnlineController;
+use App\Http\Controllers\PaginasConfiguracionController;
 use App\Http\Controllers\ActividadesOnlineController;
 
 
@@ -95,6 +96,8 @@ Route::get('/email-preview/actividades-online', [EmailPreviewController::class, 
     ->name('preview.email.actividades-online');
 Route::get('/email-preview/actividades-online/{id}', [EmailPreviewController::class, 'envioActividadesOnline'])
     ->name('preview.email.actividades-online.id');
+Route::get('/email-preview/reporte-semanal-inscripciones-actividad', [EmailPreviewController::class, 'reporteSemanalInscripcionesPorActividad'])
+    ->name('preview.email.reporte-semanal-inscripciones-actividad');
 
 // Grid de actividades pÃºblico (solo index + lookup por email)
 Route::get('/grid-actividades', [GridActividadesController::class, 'index'])
@@ -264,6 +267,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/paginas-actividades-online', PaginasActividadesOnlineController::class, [
         'parameters' => ['paginas-actividades-online' => 'paginas_actividades_online'],
     ]);
+    Route::get('/paginas/configuracion', [PaginasConfiguracionController::class, 'index'])
+        ->name('paginas.configuracion');
+    Route::put('/paginas/configuracion', [PaginasConfiguracionController::class, 'update'])
+        ->name('paginas.configuracion.update');
     Route::resource('/ciclos', CiclosController::class, [
         'parameters' => ['ciclos' => 'ciclo'],
     ]);

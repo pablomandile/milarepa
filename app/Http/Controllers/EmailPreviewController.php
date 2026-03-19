@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Inscripcion;
 use App\Models\Entidad;
 use App\Models\BotonPago;
+use App\Services\ReporteInscripcionesPorActividadService;
 use Inertia\Inertia;
 
 class EmailPreviewController extends Controller
@@ -150,6 +151,79 @@ class EmailPreviewController extends Controller
             'linkActividadesOnline' => 'https://milarepa.com.ar/actividades-online',
             'entidadPrincipal' => Entidad::where('entidad_principal', true)->first(),
             'esPreviewPrueba' => is_null($id),
+        ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+    }
+
+    /**
+     * Vista previa del email de reporte semanal de inscripciones por actividad.
+     */
+    public function reporteSemanalInscripcionesPorActividad(ReporteInscripcionesPorActividadService $reporteService)
+    {
+        $reporte = $reporteService->construirReporte();
+
+        if (empty($reporte['actividades'])) {
+            $reporte = [
+                'resumen' => [
+                    'eventos_activos' => 6,
+                    'total_inscriptos' => 148,
+                    'inscriptos_con_tk' => 52,
+                    'inscriptos_con_tk_pct' => 35.1,
+                    'inscriptos_sin_tk' => 96,
+                    'inscriptos_sin_tk_pct' => 64.9,
+                    'inscriptos_ultimos_5_dias' => 27,
+                    'pendientes_pago' => 18,
+                ],
+                'actividades' => [
+                    [
+                        'id' => 1,
+                        'nombre' => 'Retiro de Meditación de Fin de Semana',
+                        'maestro' => 'Kelsang Drolma',
+                        'fecha' => now()->addDays(9)->toDateString(),
+                        'fecha_formateada' => now()->addDays(9)->translatedFormat('j \\d\\e F'),
+                        'dias_restantes' => 9,
+                        'total_inscriptos' => 44,
+                        'inscriptos_ultimos_5_dias' => 11,
+                        'pendientes_pago' => 8,
+                        'pendiente_importe' => 98500,
+                    ],
+                    [
+                        'id' => 2,
+                        'nombre' => 'Curso de Introducción al Budismo Kadampa',
+                        'maestro' => 'Kelsang Damcho',
+                        'fecha' => now()->addDays(14)->toDateString(),
+                        'fecha_formateada' => now()->addDays(14)->translatedFormat('j \\d\\e F'),
+                        'dias_restantes' => 14,
+                        'total_inscriptos' => 62,
+                        'inscriptos_ultimos_5_dias' => 9,
+                        'pendientes_pago' => 6,
+                        'pendiente_importe' => 74200,
+                    ],
+                    [
+                        'id' => 3,
+                        'nombre' => 'Puja de Tara y Enseñanzas Especiales',
+                        'maestro' => 'Kelsang Rinchen',
+                        'fecha' => now()->addDays(21)->toDateString(),
+                        'fecha_formateada' => now()->addDays(21)->translatedFormat('j \\d\\e F'),
+                        'dias_restantes' => 21,
+                        'total_inscriptos' => 42,
+                        'inscriptos_ultimos_5_dias' => 7,
+                        'pendientes_pago' => 4,
+                        'pendiente_importe' => 51600,
+                    ],
+                ],
+                'rango' => [
+                    'desde' => now()->startOfWeek()->translatedFormat('j \\d\\e F'),
+                    'hasta' => now()->endOfWeek()->translatedFormat('j \\d\\e F'),
+                ],
+            ];
+        }
+
+        return response()->view('emails.reporte_semanal_inscripciones_actividad', [
+            'resumen' => $reporte['resumen'],
+            'actividades' => $reporte['actividades'],
+            'rango' => $reporte['rango'],
+            'entidadPrincipal' => Entidad::where('entidad_principal', true)->first(),
+            'esPreviewPrueba' => true,
         ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
     }
 

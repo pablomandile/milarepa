@@ -267,6 +267,8 @@ class GridActividadesController extends Controller
 
         $actividad->load([
             'metodosPago',
+            'lugar',
+            'entidad',
             'modalidad',
             'esquemaPrecio.membresias.membresia',
             'esquemaPrecio.membresias.moneda',

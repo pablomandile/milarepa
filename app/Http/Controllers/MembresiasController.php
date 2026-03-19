@@ -35,11 +35,11 @@ class MembresiasController extends Controller
             $membresias = Membresia::with(['entidad', 'botonPago.metodoPago.imagen', 'imagen'])
                 ->where('entidad_id', $entidadPrincipal->id)
                 ->where('nombre', '!=', 'Sin membresia')
-                ->paginate(10);
+                ->get();
         } else {
             $membresias = Membresia::with(['entidad', 'botonPago.metodoPago.imagen', 'imagen'])
                 ->where('nombre', '!=', 'Sin membresia')
-                ->paginate(10);
+                ->get();
         }
 
         $userMembresia = null;
@@ -92,11 +92,11 @@ class MembresiasController extends Controller
             $membresias = Membresia::with(['entidad', 'botonPago.metodoPago.imagen', 'imagen'])
                 ->where('entidad_id', $entidadPrincipal->id)
                 ->where('nombre', '!=', 'Sin membresia')
-                ->paginate(10);
+                ->get();
         } else {
             $membresias = Membresia::with(['entidad', 'botonPago.metodoPago.imagen', 'imagen'])
                 ->where('nombre', '!=', 'Sin membresia')
-                ->paginate(10);
+                ->get();
         }
 
         $metodoEfectivo = MetodoPago::query()

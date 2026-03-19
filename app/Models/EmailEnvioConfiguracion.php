@@ -14,6 +14,7 @@ class EmailEnvioConfiguracion extends Model
         'informacion_membresias' => 'informacion_membresias.blade.php',
         'inscripcion_tk_registrada' => 'inscripcion_tk_registrada.blade.php',
         'envio_actividades_online' => 'envio_Actividades_online.blade.php',
+        'reporte_semanal_inscripciones_actividad' => 'reporte_semanal_inscripciones_actividad.blade.php',
     ];
 
     protected $table = 'email_envio_configuraciones';
@@ -67,6 +68,7 @@ class EmailEnvioConfiguracion extends Model
             'informacion_membresias' => 'Información de Membresías',
             'inscripcion_tk_registrada' => 'Inscripción TK Registrada',
             'envio_actividades_online' => 'Actividades Online',
+            'reporte_semanal_inscripciones_actividad' => 'Reporte Semanal de Inscripciones por Actividad',
             default => 'Envío de Email',
         };
     }

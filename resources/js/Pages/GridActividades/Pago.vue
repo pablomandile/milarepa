@@ -47,8 +47,9 @@ const metodosPago = computed(() =>
     id: metodo.id,
     nombre: metodo.nombre,
     tipo: metodo.tipo_de_pago || '',
+    descripcion: metodo.descripcion || '',
     label: metodo.tipo_de_pago ? `${metodo.nombre} (${metodo.tipo_de_pago})` : metodo.nombre,
-    value: (metodo.nombre || '').toString().toLowerCase(),
+    value: normalizarMetodoPago(metodo.nombre || ''),
   }))
 );
 const pagoMetodo = ref(null);
@@ -288,15 +289,16 @@ const normalizarMetodoPago = (valor) => {
     .trim();
 };
 
-const esMetodoTipoEfectivo = computed(() => {
-  const metodo = normalizarMetodoPago(metodoSeleccionado.value);
-  return ['efectivo', 'tarjeta de credito', 'tarjeta de debito'].includes(metodo);
+const metodoSeleccionado = computed(() => normalizarMetodoPago(pagoMetodo.value || ''));
+const metodoPagoSeleccionado = computed(() => {
+  return metodosPago.value.find((metodo) => metodo.value === metodoSeleccionado.value) || null;
 });
-const tipoMetodoEfectivo = computed(() => {
-  const metodo = normalizarMetodoPago(metodoSeleccionado.value);
-  if (metodo === 'tarjeta de credito') return 'credito';
-  if (metodo === 'tarjeta de debito') return 'debito';
-  return 'efectivo';
+const tipoMetodoSeleccionado = computed(() => normalizarMetodoPago(metodoPagoSeleccionado.value?.tipo || ''));
+const esMetodoPresencialPorTipo = computed(() => tipoMetodoSeleccionado.value.includes('presencial'));
+
+const esMetodoTipoEfectivo = computed(() => {
+  if (esMetodoPresencialPorTipo.value) return true;
+  return ['efectivo', 'tarjeta de credito', 'tarjeta de debito'].includes(metodoSeleccionado.value);
 });
 
 const puedeFinalizar = computed(() => {
@@ -305,8 +307,6 @@ const puedeFinalizar = computed(() => {
   if (esMetodoTipoEfectivo.value) return true;
   return ['transferencia', 'getnet'].includes(pagoMetodo.value) || !!comprobantePath.value;
 });
-
-const metodoSeleccionado = computed(() => (pagoMetodo.value || '').toString().toLowerCase());
 const esEfectivoSeleccionado = computed(() => metodoSeleccionado.value === 'efectivo');
 const esTransferenciaSeleccionado = computed(() => metodoSeleccionado.value === 'transferencia');
 const esGetnetSeleccionado = computed(() => metodoSeleccionado.value === 'getnet');
@@ -325,16 +325,17 @@ const descripcionEfectivo = computed(() => {
 });
 
 const tituloMetodoTipoEfectivo = computed(() => {
-  if (tipoMetodoEfectivo.value === 'credito') return 'Pago con Tarjeta de crédito';
-  if (tipoMetodoEfectivo.value === 'debito') return 'Pago con Tarjeta de débito';
+  if (esMetodoPresencialPorTipo.value) {
+    return `Pago presencial${metodoPagoSeleccionado.value?.nombre ? ` (${metodoPagoSeleccionado.value.nombre})` : ''}`;
+  }
   return 'Pago en efectivo';
 });
+const direccionPagoMetodoTipoEfectivo = computed(() => {
+  return props.actividad?.lugar?.direccion || props.actividad?.entidad?.direccion || '';
+});
 const descripcionMetodoTipoEfectivo = computed(() => {
-  if (tipoMetodoEfectivo.value === 'credito') {
-    return 'Podes pagar con tarjeta de crédito en el lugar antes de comenzar. Tu inscripción quedará en estado pendiente para aprobación.';
-  }
-  if (tipoMetodoEfectivo.value === 'debito') {
-    return 'Podes pagar con tarjeta de débito en el lugar antes de comenzar. Tu inscripción quedará en estado pendiente para aprobación.';
+  if (esMetodoTipoEfectivo.value) {
+    return 'Podés pagar con tarjeta de débito en el lugar antes de comenzar. Tu inscripción quedará en estado pendiente para aprobación.';
   }
   return `${descripcionEfectivo.value} Tu inscripción quedará en estado pendiente para aprobación.`;
 });
@@ -564,7 +565,14 @@ watch(
             <div v-if="mostrarInfoEfectivo" class="border rounded-lg p-4">
               <h3 class="text-sm font-semibold text-gray-700">{{ tituloMetodoTipoEfectivo }}</h3>
               <p class="text-sm text-green-600 mt-1">
-                {{ descripcionMetodoTipoEfectivo }}
+                <template v-if="esMetodoTipoEfectivo">
+                  Podés pagar con tarjeta de débito en el lugar
+                  <strong v-if="direccionPagoMetodoTipoEfectivo"> ({{ direccionPagoMetodoTipoEfectivo }}) </strong>
+                  antes de comenzar. Tu inscripción quedará en estado pendiente para aprobación.
+                </template>
+                <template v-else>
+                  {{ descripcionMetodoTipoEfectivo }}
+                </template>
               </p>
             </div>
             <div v-if="mostrarInfoTransferencia && tieneTransferencia" class="border rounded-lg p-4">

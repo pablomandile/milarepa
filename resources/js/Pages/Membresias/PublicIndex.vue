@@ -43,6 +43,7 @@ const props = defineProps({
 const isAuthenticated = computed(() => !!page.props?.auth?.user);
 const currentUser = computed(() => page.props?.auth?.user || null);
 const selectedUserId = computed(() => currentUser.value?.id || props.selected_user_id || null);
+const membresiasItems = computed(() => Array.isArray(props.membresias) ? props.membresias : (props.membresias?.data || []));
 
 const layout = ref('grid');
 const showDialog = ref(false);
@@ -226,7 +227,7 @@ function openSubscribeDialog(membresia) {
     return;
   }
 
-  const membresiaCompleta = props.membresias?.data?.find((item) => item.id === membresia.id) || membresia;
+  const membresiaCompleta = membresiasItems.value.find((item) => item.id === membresia.id) || membresia;
   membresiaPendiente.value = membresiaCompleta;
   resetDialogState();
   showDialog.value = true;
@@ -475,11 +476,8 @@ async function iniciarSesionModoLogin() {
             </div>
 
             <DataView
-              :value="membresias.data"
+              :value="membresiasItems"
               :layout="layout"
-              paginator
-              :rows="9"
-              :rowsPerPageOptions="[3, 6, 9]"
               class="mb-6"
             >
               <template #grid="slotProps">

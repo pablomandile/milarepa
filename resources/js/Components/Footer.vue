@@ -68,7 +68,13 @@
       <div
         class="flex flex-wrap items-center lg:gap-6 lg:justify-between lg:flex-nowrap">
         <div class="grow">
-            <LogoMilarepa class="w-[100px] h-[100px] lg:block hidden"/>
+            <img
+              v-if="footerLogoUrl"
+              :src="footerLogoUrl"
+              alt="Logo entidad principal"
+              class="w-[200px] h-[200px] lg:block hidden object-contain"
+            />
+            <LogoMilarepa v-else class="w-[100px] h-[100px] lg:block hidden"/>
         </div>
         <div
           class="flex flex-col justify-between w-full lg:w-auto lg:justify-start lg:flex-row lg:divide-x lg:gap-0">
@@ -118,6 +124,8 @@
 </footer>
 </template>
 <script setup>
+import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import LogoMilarepa from "./Icons/LogoMilarepa.vue";
 import Facebook from "./Icons/Facebook.vue";
 import Wpp from "./Icons/Wpp.vue";
@@ -126,6 +134,9 @@ import Instagram from "./Icons/Instagram.vue";
 import Spotify from "./Icons/Spotify.vue";
 import Ornament from "../../images/ornament.svg";
 import 'primeicons/primeicons.css';
+
+const page = usePage();
+const footerLogoUrl = computed(() => page.props.ui?.footer_logo_url || null);
 
 
 defineProps({

@@ -24,18 +24,26 @@ const form = useForm({
 const verificationLinkSent = ref(null);
 const photoPreview = ref(null);
 const photoInput = ref(null);
+const processedPhotoFile = ref(null);
 const editing = ref(false);
 const confirmVisible = ref(false);
+const maxPhotoSizeBytes = 2 * 1024 * 1024;
+const compressionTargetBytes = Math.floor(maxPhotoSizeBytes * 0.95);
 
 const updateProfileInformation = () => {
-    if (photoInput.value) {
+    if (processedPhotoFile.value) {
+        form.photo = processedPhotoFile.value;
+    } else if (photoInput.value) {
         form.photo = photoInput.value.files[0];
     }
 
     form.post(route('user-profile-information.update'), {
         errorBag: 'updateProfileInformation',
         preserveScroll: true,
-        onSuccess: () => clearPhotoFileInput(),
+        onSuccess: () => {
+            clearPhotoFileInput();
+            editing.value = false;
+        },
     });
 };
 
@@ -44,13 +52,39 @@ const sendEmailVerification = () => {
 };
 
 const selectNewPhoto = () => {
+    if (!editing.value) return;
+    form.clearErrors('photo');
     photoInput.value.click();
 };
 
-const updatePhotoPreview = () => {
+const updatePhotoPreview = async () => {
     const photo = photoInput.value.files[0];
 
-    if (! photo) return;
+    if (!photo) {
+        processedPhotoFile.value = null;
+        return;
+    }
+
+    form.clearErrors('photo');
+    let finalPhoto = photo;
+
+    if (photo.size > compressionTargetBytes) {
+        try {
+            finalPhoto = await compressImageToTarget(photo, compressionTargetBytes);
+        } catch {
+            form.setError('photo', 'No se pudo procesar la imagen seleccionada.');
+            processedPhotoFile.value = null;
+            return;
+        }
+    }
+
+    if (finalPhoto.size > maxPhotoSizeBytes) {
+        form.setError('photo', 'Tamaño del archivo excedido. Probá una imagen más liviana.');
+        processedPhotoFile.value = null;
+        return;
+    }
+
+    processedPhotoFile.value = finalPhoto;
 
     const reader = new FileReader();
 
@@ -58,23 +92,87 @@ const updatePhotoPreview = () => {
         photoPreview.value = e.target.result;
     };
 
-    reader.readAsDataURL(photo);
+    reader.readAsDataURL(finalPhoto);
 };
 
 const deletePhoto = () => {
+    if (!editing.value) return;
     router.delete(route('current-user-photo.destroy'), {
         preserveScroll: true,
         onSuccess: () => {
             photoPreview.value = null;
+            processedPhotoFile.value = null;
             clearPhotoFileInput();
         },
     });
 };
 
 const clearPhotoFileInput = () => {
+    processedPhotoFile.value = null;
     if (photoInput.value?.value) {
         photoInput.value.value = null;
     }
+};
+
+const loadImageFromFile = (file) => new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+    image.src = URL.createObjectURL(file);
+});
+
+const canvasToBlob = (canvas, type, quality) => new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+        if (blob) {
+            resolve(blob);
+        } else {
+            reject(new Error('No se pudo convertir la imagen.'));
+        }
+    }, type, quality);
+});
+
+const compressImageToTarget = async (file, targetBytes) => {
+    const image = await loadImageFromFile(file);
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+        throw new Error('Canvas no disponible para compresión.');
+    }
+
+    const maxDimension = 1920;
+    let width = image.width;
+    let height = image.height;
+
+    if (width > maxDimension || height > maxDimension) {
+        const ratio = Math.min(maxDimension / width, maxDimension / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    context.drawImage(image, 0, 0, width, height);
+
+    const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+    let quality = mimeType === 'image/png' ? undefined : 0.9;
+    let blob = await canvasToBlob(canvas, mimeType, quality);
+
+    if (blob.size <= targetBytes) {
+        URL.revokeObjectURL(image.src);
+        return new File([blob], file.name, { type: blob.type, lastModified: Date.now() });
+    }
+
+    if (mimeType === 'image/jpeg') {
+        while (blob.size > targetBytes && quality > 0.4) {
+            quality -= 0.1;
+            blob = await canvasToBlob(canvas, mimeType, quality);
+        }
+    }
+
+    URL.revokeObjectURL(image.src);
+    return new File([blob], file.name, { type: blob.type, lastModified: Date.now() });
 };
 const openConfirm = () => {
     // Open confirmation modal instead of direct submit
@@ -113,17 +211,25 @@ const openConfirm = () => {
                     />
                 </div>
 
-                <SecondaryButton class="mt-2 me-2" type="button" @click.prevent="selectNewPhoto">
-                    Select A New Photo
+                <SecondaryButton
+                    class="mt-2 me-2"
+                    type="button"
+                    :disabled="!editing"
+                    :class="{ 'opacity-50 cursor-not-allowed': !editing }"
+                    @click.prevent="selectNewPhoto"
+                >
+                    Nueva imagen
                 </SecondaryButton>
 
                 <SecondaryButton
                     v-if="user.profile_photo_path"
                     type="button"
                     class="mt-2"
+                    :disabled="!editing"
+                    :class="{ 'opacity-50 cursor-not-allowed': !editing }"
                     @click.prevent="deletePhoto"
                 >
-                    Remove Photo
+                    Quitar foto
                 </SecondaryButton>
 
                 <InputError :message="form.errors.photo" class="mt-2" />

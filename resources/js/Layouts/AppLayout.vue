@@ -24,14 +24,15 @@ const mobileMenuSections = ref({
     inscripciones: false,
     membresias: false,
     pagos: false,
-    usuarios: false,
     paginas: false,
+    configuracion: false,
     ayuda: false,
 });
 const isAsistant = computed(() => {
     const roles = (page.props.user?.roles || []).map((role) => String(role).toLowerCase());
     return roles.includes('asistant');
 });
+const navLogoUrl = computed(() => page.props.ui?.navbar_logo_url || null);
 
 const switchToTeam = (team) => {
     router.put(route('current-team.update'), {
@@ -71,7 +72,13 @@ const toggleMobileSection = (key) => {
                         <!-- Logo -->
                         <div class="shrink-0 flex items-center">
                             <Link :href="route('dashboard')">
-                                <ApplicationMark class="block h-9 w-auto" />
+                                <img
+                                    v-if="navLogoUrl"
+                                    :src="navLogoUrl"
+                                    alt="Logo entidad principal"
+                                    class="block h-9 w-auto object-contain"
+                                />
+                                <ApplicationMark v-else class="block h-9 w-auto" />
                             </Link>
                         </div>
 
@@ -266,30 +273,6 @@ const toggleMobileSection = (key) => {
                             <Dropdown>
                                 <template #trigger>
                                     <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
-                                        Usuarios
-                                        <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                        </svg>
-                                    </button>
-                                    </template>
-
-                                <template #content>
-                                    <DropdownLink :href="route('usuarios.index')" :active="route().current('usuarios.*')">
-                                        Usuarios
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('roles.index')" :active="route().current('roles.*')">
-                                        Roles
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
-                                        Permisos
-                                    </DropdownLink>
-                                </template>
-                            </Dropdown>
-                        </div>
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
-                            <Dropdown>
-                                <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Páginas
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -300,9 +283,6 @@ const toggleMobileSection = (key) => {
                                 <template #content>
                                     <DropdownLink :href="route('paginas.actividades-online')" :active="route().current('paginas.actividades-online')">
                                         Actividades Online
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('paginas-actividades-online.index')" :active="route().current('paginas-actividades-online.*')">
-                                        Configuración Página Actividades Online
                                     </DropdownLink>
                                     <DropdownLink :href="route('grid-actividades.index')" :active="route().current('grid-actividades.*')">
                                         Grilla de Cursos y Retiros Activos
@@ -328,9 +308,6 @@ const toggleMobileSection = (key) => {
                                     <DropdownLink :href="route('emails.index')" :active="route().current('emails.*')">
                                         Emails
                                     </DropdownLink>
-                                    <DropdownLink :href="route('email-envio-configuraciones.index')" :active="route().current('email-envio-configuraciones.*')">
-                                        Configuración de Envíos
-                                    </DropdownLink>
                                     <DropdownLink :href="route('envio-correos.index')" :active="route().current('envio-correos.*')">
                                         Historico de Envios
                                     </DropdownLink>
@@ -341,6 +318,39 @@ const toggleMobileSection = (key) => {
                                         Plantillas de Emails
                                     </DropdownLink>
         
+                                </template>
+                            </Dropdown>
+                        </div>
+                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                            <Dropdown>
+                                <template #trigger>
+                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                        Configuración
+                                        <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                    </template>
+
+                                <template #content>
+                                    <DropdownLink :href="route('paginas-actividades-online.index')" :active="route().current('paginas-actividades-online.*')">
+                                        Configuración Página Actividades Online
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('email-envio-configuraciones.index')" :active="route().current('email-envio-configuraciones.*')">
+                                        Configuración de Envíos
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('usuarios.index')" :active="route().current('usuarios.*')">
+                                        Usuarios
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('roles.index')" :active="route().current('roles.*')">
+                                        Roles
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
+                                        Permisos
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('paginas.configuracion')" :active="route().current('paginas.configuracion')">
+                                        Configuración General
+                                    </DropdownLink>
                                 </template>
                             </Dropdown>
                         </div>
@@ -444,8 +454,16 @@ const toggleMobileSection = (key) => {
                         <div class="ms-3 relative">
                             <Dropdown align="right" width="48">
                                 <template #trigger>
-                                    <button v-if="$page.props.jetstream.managesProfilePhotos" class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
-                                        <img class="h-8 w-8 rounded-full object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
+                                    <button
+                                        v-if="$page.props.jetstream.managesProfilePhotos"
+                                        type="button"
+                                        class="inline-flex items-center px-2 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-900 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150"
+                                    >
+                                        <img class="h-8 w-8 rounded-full object-cover me-2" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
+                                        ¡Bienvenido {{ $page.props.auth.user.name }}!
+                                        <svg class="ms-2 -me-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                        </svg>
                                     </button>
 
                                     <span v-else class="inline-flex rounded-md">
@@ -631,9 +649,6 @@ const toggleMobileSection = (key) => {
                             <ResponsiveNavLink :href="route('emails.index')" :active="route().current('emails.*')">
                                 Emails
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('email-envio-configuraciones.index')" :active="route().current('email-envio-configuraciones.*')">
-                                Configuración de Envíos
-                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('envio-correos.index')" :active="route().current('envio-correos.*')">
                                 Historico de Envios
                             </ResponsiveNavLink>
@@ -725,29 +740,6 @@ const toggleMobileSection = (key) => {
                         <button
                             type="button"
                             class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
-                            :aria-expanded="isMobileSectionOpen('usuarios')"
-                            @click="toggleMobileSection('usuarios')"
-                        >
-                            <span>Usuarios</span>
-                            <span class="text-lg font-bold leading-none">{{ isMobileSectionOpen('usuarios') ? '-' : '+' }}</span>
-                        </button>
-                        <div v-if="isMobileSectionOpen('usuarios')" class="space-y-1">
-                            <ResponsiveNavLink :href="route('usuarios.index')" :active="route().current('usuarios.*')">
-                                Usuarios
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('roles.index')" :active="route().current('roles.*')">
-                                Roles
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
-                                Permisos
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-
-                    <div class="space-y-1">
-                        <button
-                            type="button"
-                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
                             :aria-expanded="isMobileSectionOpen('paginas')"
                             @click="toggleMobileSection('paginas')"
                         >
@@ -758,11 +750,40 @@ const toggleMobileSection = (key) => {
                             <ResponsiveNavLink :href="route('paginas.actividades-online')" :active="route().current('paginas.actividades-online')">
                                 Actividades Online
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('paginas-actividades-online.index')" :active="route().current('paginas-actividades-online.*')">
-                                Pagina Actividades Online
-                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('membresias.public.index')" :active="route().current('membresias.public.index')">
                                 Membresías pública
+                            </ResponsiveNavLink>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <button
+                            type="button"
+                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                            :aria-expanded="isMobileSectionOpen('configuracion')"
+                            @click="toggleMobileSection('configuracion')"
+                        >
+                            <span>Configuración</span>
+                            <span class="text-lg font-bold leading-none">{{ isMobileSectionOpen('configuracion') ? '-' : '+' }}</span>
+                        </button>
+                        <div v-if="isMobileSectionOpen('configuracion')" class="space-y-1">
+                            <ResponsiveNavLink :href="route('paginas-actividades-online.index')" :active="route().current('paginas-actividades-online.*')">
+                                Página Actividades Online
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('paginas.configuracion')" :active="route().current('paginas.configuracion')">
+                                Configuración
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('email-envio-configuraciones.index')" :active="route().current('email-envio-configuraciones.*')">
+                                Configuración de Envíos
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('usuarios.index')" :active="route().current('usuarios.*')">
+                                Usuarios
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('roles.index')" :active="route().current('roles.*')">
+                                Roles
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
+                                Permisos
                             </ResponsiveNavLink>
                         </div>
                     </div>

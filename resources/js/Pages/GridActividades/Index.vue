@@ -144,8 +144,48 @@ const inscripcionesIds = computed(() => {
 function toggleFlip(id) {
   flippedCards.value[id] = !flippedCards.value[id];
 }
+
+function obtenerFechaFinActividad(actividad) {
+  const valor = actividad?.fecha_fin ?? actividad?.fechaFin ?? actividad?.fecha_hasta ?? null;
+  if (!valor) return null;
+
+  if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+    const fechaFinDia = new Date(`${valor}T23:59:59`);
+    return Number.isNaN(fechaFinDia.getTime()) ? null : fechaFinDia;
+  }
+
+  const fecha = new Date(valor);
+  return Number.isNaN(fecha.getTime()) ? null : fecha;
+}
+
+function actividadFinalizada(actividad) {
+  const fechaFin = obtenerFechaFinActividad(actividad);
+  if (!fechaFin) return false;
+  return new Date() > fechaFin;
+}
+
+function actividadSinInscripcionDisponible(actividad) {
+  return esInscrito(actividad.id) || actividadFinalizada(actividad);
+}
+
+function textoBotonInscripcion(actividad) {
+  if (esInscrito(actividad.id)) return 'Inscripto';
+  if (actividadFinalizada(actividad)) return 'Actividad finalizada';
+  return 'Inscribirme';
+}
+
 // Acción al pulsar "Inscribirme"
 async function inscribir(actividad) {
+  if (actividadFinalizada(actividad)) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Inscripción cerrada',
+      detail: 'La fecha de esta actividad ya finalizó.',
+      life: 5000,
+    });
+    return;
+  }
+
   actividadAInscribir.value = actividad;
 
   if (isAuthenticated.value) {
@@ -740,13 +780,13 @@ function renderMarkdown(value) {
                                                 <span>Más info.</span>
                                             </button>
                                             <button
-                                                :disabled="esInscrito(actividad.id)"
+                                              :disabled="actividadSinInscripcionDisponible(actividad)"
                                                 class="py-2 px-3 rounded text-sm flex-1 transition-colors flex items-center justify-center gap-1"
-                                                :class="esInscrito(actividad.id) ? 'bg-gray-200 text-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
+                                              :class="actividadSinInscripcionDisponible(actividad) ? 'bg-gray-200 text-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
                                                 @click="inscribir(actividad)"
                                             >
                                                 <i v-if="esInscrito(actividad.id)" class="pi pi-heart-fill"></i>
-                                                {{ esInscrito(actividad.id) ? 'Inscripto' : 'Inscribirme' }}
+                                              {{ textoBotonInscripcion(actividad) }}
                                             </button>
                                         </div>
                                     </div>
@@ -762,13 +802,13 @@ function renderMarkdown(value) {
                                         </div>
                                         <div class="mt-4 pt-4 border-t border-gray-200">
                                             <button
-                                            :disabled="esInscrito(actividad.id)"
+                                            :disabled="actividadSinInscripcionDisponible(actividad)"
                                             class="py-1.5 px-4 rounded w-full transition-colors flex items-center justify-center gap-2"
-                                            :class="esInscrito(actividad.id) ? 'bg-gray-400 text-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
+                                            :class="actividadSinInscripcionDisponible(actividad) ? 'bg-gray-400 text-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
                                             @click="inscribir(actividad)"
                                             >
                                             <i v-if="esInscrito(actividad.id)" class="pi pi-heart-fill"></i>
-                                            {{ esInscrito(actividad.id) ? 'Inscripto' : 'Inscribirme' }}
+                                            {{ textoBotonInscripcion(actividad) }}
                                             </button>
                                         </div>
                                     </div>

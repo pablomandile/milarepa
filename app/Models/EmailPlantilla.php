@@ -11,4 +11,16 @@ class EmailPlantilla extends Model
         'descripcion',
         'plantilla_archivo',
     ];
+
+    public static function listaPlantillasArchivo(): array
+    {
+        return static::query()
+            ->whereNotNull('plantilla_archivo')
+            ->where('plantilla_archivo', '!=', '')
+            ->orderBy('plantilla_archivo')
+            ->pluck('plantilla_archivo')
+            ->unique()
+            ->values()
+            ->all();
+    }
 }

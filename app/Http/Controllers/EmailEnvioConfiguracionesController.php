@@ -16,19 +16,17 @@ class EmailEnvioConfiguracionesController extends Controller
             ->orderBy('id')
             ->get(['id', 'proceso_key', 'proceso_nombre', 'plantilla_archivo']);
 
-        $emails = EmailPlantilla::query()
-            ->orderBy('nombre')
-            ->get(['id', 'nombre', 'plantilla_archivo']);
+        $plantillasArchivos = EmailPlantilla::listaPlantillasArchivo();
 
         return inertia('EmailEnvioConfiguraciones/Index', [
             'configuraciones' => $configuraciones,
-            'emails' => $emails,
+            'plantillasArchivos' => $plantillasArchivos,
         ]);
     }
 
     public function update(Request $request): RedirectResponse
     {
-        $plantillasValidas = EmailPlantilla::query()->pluck('plantilla_archivo')->all();
+        $plantillasValidas = EmailPlantilla::listaPlantillasArchivo();
 
         $validated = $request->validate([
             'configuraciones' => ['required', 'array'],

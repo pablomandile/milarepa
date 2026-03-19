@@ -14,7 +14,7 @@ const isAsistant = computed(() => {
 
 const props = defineProps({
     membresias: {
-        type: Object,
+        type: [Array, Object],
         required: true
     },
     user_membresia: {
@@ -34,6 +34,8 @@ const props = defineProps({
         default: () => []
     }
 });
+
+const membresiasItems = computed(() => Array.isArray(props.membresias) ? props.membresias : (props.membresias?.data || []));
 
 const layout = ref('grid');
 const showConfirmDialog = ref(false);
@@ -331,11 +333,8 @@ async function subirComprobante() {
                         </div>
                         <div class="mt-4">
                             <DataView
-                                :value="membresias.data"
+                                :value="membresiasItems"
                                 :layout="layout"
-                                paginator
-                                :rows="9"
-                                :rowsPerPageOptions="[3, 6, 9]"
                                 class="mb-6"
                             >
                                 <template #grid="slotProps">
