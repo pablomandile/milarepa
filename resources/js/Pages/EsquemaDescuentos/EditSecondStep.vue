@@ -90,7 +90,6 @@ function getBotonPagoLabel(botonPagoId) {
 
 function onRowEditCancel(event) {
   // Opcional: revertir cambios, loguear, etc.
-  console.log('row-edit-cancel event:', event);
 }
 
 </script>

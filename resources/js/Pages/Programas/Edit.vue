@@ -28,11 +28,8 @@
 
     const handleSubmit = () => {
         form.put(route('programas.update', props.programa.id), {
-            onSuccess: () => {
-                console.log('Programa actualizado exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

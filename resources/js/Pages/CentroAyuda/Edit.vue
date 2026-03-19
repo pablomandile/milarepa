@@ -42,11 +42,8 @@
 
     const handleSubmit = () => {
         form.put(route('centroayuda.update', props.ticket.id), {
-            onSuccess: () => {
-                console.log('Ticket actualizado exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

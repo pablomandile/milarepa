@@ -32,11 +32,8 @@
 
     const handleSubmit = () => {
         form.put(route('transportes.update', props.transporte.id), {
-            onSuccess: () => {
-                console.log('Transporte actualizado exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

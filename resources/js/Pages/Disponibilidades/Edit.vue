@@ -27,11 +27,8 @@
 
     const handleSubmit = () => {
         form.put(route('disponibilidades.update', props.disponibilidad.id), {
-            onSuccess: () => {
-                console.log('Disponibilidad actualizada exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

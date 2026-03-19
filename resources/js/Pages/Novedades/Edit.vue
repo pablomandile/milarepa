@@ -29,11 +29,8 @@
 
     const handleSubmit = () => {
         form.put(route('novedades.update', props.novedad.id), {
-            onSuccess: () => {
-                console.log('Novedad actualizada exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

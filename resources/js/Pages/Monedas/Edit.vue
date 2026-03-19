@@ -28,11 +28,8 @@
 
     const handleSubmit = () => {
         form.put(route('monedas.update', props.moneda.id), {
-            onSuccess: () => {
-                console.log('Moneda actualizada exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

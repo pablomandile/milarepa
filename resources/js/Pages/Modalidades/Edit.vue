@@ -27,11 +27,8 @@
 
     const handleSubmit = () => {
         form.put(route('modalidades.update', props.modalidad.id), {
-            onSuccess: () => {
-                console.log('Modalidad actualizada exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

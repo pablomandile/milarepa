@@ -20,7 +20,6 @@
     if (!props.metodoPago) {
         console.error('La Método de pago no está definida');
     }
-    console.log(props.metodoPago.nombre);
     const form = useForm({
         nombre: props.metodoPago.nombre,
         descripcion: props.metodoPago.descripcion,
@@ -30,11 +29,8 @@
 
     const handleSubmit = () => {
         form.put(route('metodospago.update', props.metodoPago.id), {
-            onSuccess: () => {
-                console.log('Método de pago actualizado exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

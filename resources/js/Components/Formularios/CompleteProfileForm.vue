@@ -74,7 +74,6 @@ const municipiosFiltrados = computed(() => {
         return mpid === provId;
     });
     
-    console.log('Provincia ID:', provId, 'Municipios encontrados:', filtrados.length);
     return filtrados;
 });
 

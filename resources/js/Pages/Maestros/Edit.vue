@@ -31,11 +31,8 @@
 
     const handleSubmit = () => {
         form.put(route('maestros.update', props.maestro.id), {
-            onSuccess: () => {
-                console.log('Maestro actualizado exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

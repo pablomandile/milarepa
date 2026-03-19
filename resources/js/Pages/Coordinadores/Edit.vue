@@ -29,11 +29,8 @@
 
     const handleSubmit = () => {
         form.put(route('coordinadores.update', props.coordinador.id), {
-            onSuccess: () => {
-                console.log('Coordinador actualizado exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

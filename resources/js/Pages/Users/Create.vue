@@ -31,11 +31,8 @@
 
     const handleSubmit = () => {
         form.post(route('usuarios.store'), {
-            onSuccess: () => {
-                console.log('Usuario creado exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al crear:', errors);
+                console.error('Errores al crear:', errors);
             }
         });
     }

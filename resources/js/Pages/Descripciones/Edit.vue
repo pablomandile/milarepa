@@ -27,11 +27,8 @@
 
     const handleSubmit = () => {
         form.put(route('descripciones.update', props.descripcion.id), {
-            onSuccess: () => {
-                console.log('Descripcion actualizada exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

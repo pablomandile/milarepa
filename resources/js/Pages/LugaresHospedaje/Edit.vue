@@ -32,11 +32,8 @@
 
     const handleSubmit = () => {
         form.put(route('lugareshospedaje.update', props.lugarhospedaje.id), {
-            onSuccess: () => {
-                console.log('Lugar de hospedaje actualizado exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

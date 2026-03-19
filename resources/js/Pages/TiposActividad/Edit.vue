@@ -28,11 +28,8 @@
 
     const handleSubmit = () => {
         form.put(route('tiposactividad.update', props.tipoActividad.id), {
-            onSuccess: () => {
-                console.log('Tipo de Actividad actualizado exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

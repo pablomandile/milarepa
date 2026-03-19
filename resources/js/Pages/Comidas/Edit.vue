@@ -36,11 +36,8 @@
 
     const handleSubmit = () => {
         form.put(route('comidas.update', props.comida.id), {
-            onSuccess: () => {
-                console.log('Comida actualizada exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }

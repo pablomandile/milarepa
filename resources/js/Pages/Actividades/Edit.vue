@@ -188,11 +188,8 @@
                 pagoAmticipado: formatDatetime(data.pagoAmticipado),
             };
         }).put(route('actividades.update', { actividad: props.actividad.id }), {
-            onSuccess: () => {
-                console.log('Actividad actualizada exitosamente');
-            },
             onError: errors => {
-                console.log('Errores al actualizar:', errors);
+                console.error('Errores al actualizar:', errors);
             }
         });
     }
