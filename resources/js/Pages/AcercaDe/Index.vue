@@ -4,6 +4,12 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link, usePage } from '@inertiajs/vue3';
 
 const page = usePage();
+const profilePhotoUrl = computed(() => {
+    const authUser = page.props.auth?.user;
+    return authUser?.profile_photo_url
+        || `https://ui-avatars.com/api/?name=${encodeURIComponent(authUser?.name || 'Pablo Mandile')}&background=7c3aed&color=ffffff&size=256&bold=true`;
+});
+
 const isAsistant = computed(() => {
     const roles = (page.props.user?.roles || []).map((role) => String(role).toLowerCase());
     return roles.includes('asistant');
@@ -20,7 +26,7 @@ const props = defineProps({
 <template>
     <AppLayout title="Acerca de">
         <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="w-full sm:max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div v-if="isAsistant" class="mb-4">
                     <Link
                         :href="route('asistant.panel')"
@@ -39,10 +45,10 @@ const props = defineProps({
                     </div>
 
                     <!-- Content -->
-                    <div class="p-8">
-                        <div class="max-w-3xl mx-auto">
+                    <div class="p-4 sm:p-8">
+                        <div class="w-full sm:max-w-3xl mx-auto">
                             <!-- Version Card -->
-                            <div class="bg-gradient-to-br from-blue-50 to-indigo-100 shadow-lg rounded-lg p-8 border-l-4 border-indigo-500 mb-6">
+                            <div class="w-full bg-gradient-to-br from-blue-50 to-indigo-100 shadow-lg rounded-lg p-4 sm:p-8 border-l-4 border-indigo-500 mb-6">
                                 <div class="flex items-start">
                                     <div class="flex-shrink-0">
                                         <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
@@ -64,12 +70,14 @@ const props = defineProps({
                             </div>
 
                             <!-- Developer Card -->
-                            <div class="bg-gradient-to-br from-purple-50 to-pink-100 shadow-lg rounded-lg p-8 border-l-4 border-purple-500">
+                            <div class="w-full bg-gradient-to-br from-purple-50 to-pink-100 shadow-lg rounded-lg p-4 sm:p-8 border-l-4 border-purple-500">
                                 <div class="flex items-start">
                                     <div class="flex-shrink-0">
-                                        <div class="flex items-center justify-center h-12 w-12 rounded-md bg-purple-500 text-white">
-                                            <i class="fas fa-user-tie text-2xl"></i>
-                                        </div>
+                                        <img
+                                            :src="profilePhotoUrl"
+                                            :alt="`Foto de ${page.props.auth?.user?.name || 'Pablo Mandile'}`"
+                                            class="h-14 w-14 rounded-full object-cover border-2 border-purple-300 shadow-sm"
+                                        />
                                     </div>
                                     <div class="ml-4">
                                         <h3 class="text-lg font-semibold text-gray-900 mb-3">Desarrollado por</h3>

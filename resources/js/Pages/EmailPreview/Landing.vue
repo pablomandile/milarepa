@@ -10,6 +10,13 @@ const email4Id = ref('');
 const email5Id = ref('');
 const email6Id = ref('');
 
+const props = defineProps({
+    mailInfoMembresiasImagenUrl: {
+        type: String,
+        default: '',
+    },
+});
+
 const verInscripcion = () => {
     if (inscripcionId.value) {
         window.location.href = `/email-preview/inscripcion/${inscripcionId.value}`;

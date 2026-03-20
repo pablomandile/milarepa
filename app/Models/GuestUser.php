@@ -34,6 +34,11 @@ class GuestUser extends Model
         return $this->hasMany(Inscripcion::class, 'guest_user_id');
     }
 
+    public function inscripcionesClases()
+    {
+        return $this->hasMany(InscripcionClase::class, 'guest_user_id');
+    }
+
     public function pais()
     {
         return $this->belongsTo(Pais::class, 'pais_id');

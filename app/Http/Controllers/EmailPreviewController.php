@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Inscripcion;
 use App\Models\Entidad;
 use App\Models\BotonPago;
+use App\Models\ConfiguracionSistema;
 use App\Services\ReporteInscripcionesPorActividadService;
 use Inertia\Inertia;
 
@@ -41,7 +42,9 @@ class EmailPreviewController extends Controller
      */
     public function landing()
     {
-        return Inertia::render('EmailPreview/Landing');
+        return Inertia::render('EmailPreview/Landing', [
+            'mailInfoMembresiasImagenUrl' => ConfiguracionSistema::obtenerTexto('mail_info_membresias_imagen_ruta', ''),
+        ]);
     }
 
     /**

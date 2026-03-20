@@ -186,6 +186,11 @@ class User extends Authenticatable
         return $this->hasMany(Inscripcion::class, 'user_id');
     }
 
+    public function inscripcionesClases()
+    {
+        return $this->hasMany(InscripcionClase::class, 'user_id');
+    }
+
     public function updateMembresiaUsuario(array $attributes): void
     {
         $defaults = [

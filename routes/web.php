@@ -58,6 +58,11 @@ use App\Http\Controllers\LugaresController;
 use App\Http\Controllers\PaginasActividadesOnlineController;
 use App\Http\Controllers\PaginasConfiguracionController;
 use App\Http\Controllers\ActividadesOnlineController;
+use App\Http\Controllers\MailInfoMembresiasController;
+use App\Http\Controllers\AsistenciasController;
+use App\Http\Controllers\InscripcionesClasesController;
+use App\Http\Controllers\LibrosController;
+use App\Http\Controllers\InventarioLibrosController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -219,10 +224,21 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::put('/membresias-gestion-usuarios/{user}/asignar', [MembresiasGestionController::class, 'asignar'])->name('membresias.asignar');
     Route::delete('/membresias-gestion-usuarios/{user}/eliminar', [MembresiasGestionController::class, 'eliminar'])->name('membresias.eliminar');
     Route::resource('/comidas', ComidasController::class);
+    Route::resource('/libros', LibrosController::class)->except(['show']);
+    Route::resource('/inventario-libros', InventarioLibrosController::class, [
+        'parameters' => ['inventario-libros' => 'inventario_libro'],
+    ])->except(['show']);
     Route::resource('/hospedajes', HospedajesController::class);
     Route::resource('/transportes', TransportesController::class);
     Route::resource('/inscripciones', InscripcionesController::class, [
         'parameters' => ['inscripciones' => 'inscripcion'],]);
+    Route::get('/inscripciones-clases/buscar-usuario', [InscripcionesClasesController::class, 'buscarUsuario'])
+        ->name('inscripciones-clases.buscar-usuario');
+    Route::get('/inscripciones-clases/precios-clase', [InscripcionesClasesController::class, 'preciosPorClase'])
+        ->name('inscripciones-clases.precios-clase');
+    Route::resource('/inscripciones-clases', InscripcionesClasesController::class, [
+        'parameters' => ['inscripciones-clases' => 'inscripciones_clase'],
+    ])->except(['show']);
     Route::get('/inscripciones-por-actividad', [InscripcionesController::class, 'porActividad'])
         ->name('inscripciones.por-actividad');
     Route::post('/inscripciones/{inscripcion}/comprobante', [InscripcionesController::class, 'uploadComprobante'])
@@ -271,12 +287,19 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         ->name('paginas.configuracion');
     Route::put('/paginas/configuracion', [PaginasConfiguracionController::class, 'update'])
         ->name('paginas.configuracion.update');
+    Route::get('/configuracion/mail-info-membresias', [MailInfoMembresiasController::class, 'index'])
+        ->name('mail-info-membresias.index');
+    Route::put('/configuracion/mail-info-membresias', [MailInfoMembresiasController::class, 'update'])
+        ->name('mail-info-membresias.update');
     Route::resource('/ciclos', CiclosController::class, [
         'parameters' => ['ciclos' => 'ciclo'],
     ]);
     Route::resource('/clases', ClasesController::class, [
         'parameters' => ['clases' => 'clase'],
     ]);
+    Route::resource('/asistencias', AsistenciasController::class, [
+        'parameters' => ['asistencias' => 'asistencia'],
+    ])->only(['index']);
     Route::patch('/clases/{clase}/estado', [ClasesController::class, 'updateEstado'])
         ->name('clases.updateEstado');
     Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');

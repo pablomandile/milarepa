@@ -76,4 +76,9 @@ class Clase extends Model
     {
         return $this->belongsTo(Imagen::class, 'imagen_id');
     }
+
+    public function inscripcionesClases()
+    {
+        return $this->hasMany(InscripcionClase::class, 'clase_id');
+    }
 }

@@ -56,6 +56,35 @@
                 <p class="row" style="margin-top: 12px;">
                     Ingresá al link de inscripción para conocer los precios y los beneficios de cada una de ellas.
                 </p>
+                @php
+                    $mailInfoMembresiasImagenUrl = \App\Models\ConfiguracionSistema::obtenerTexto('mail_info_membresias_imagen_ruta', '');
+                    $mailInfoMembresiasImagenId = \App\Models\ConfiguracionSistema::obtenerTexto('mail_info_membresias_imagen_id', '');
+
+                    if (empty($mailInfoMembresiasImagenUrl) && !empty($mailInfoMembresiasImagenId)) {
+                        $imagenMailInfoMembresias = \App\Models\Imagen::query()->find((int) $mailInfoMembresiasImagenId);
+                        if ($imagenMailInfoMembresias && !empty($imagenMailInfoMembresias->ruta)) {
+                            $mailInfoMembresiasImagenUrl = '/storage/' . ltrim((string) $imagenMailInfoMembresias->ruta, '/');
+                        }
+                    }
+
+                    if (!empty($mailInfoMembresiasImagenUrl)) {
+                        $esUrlAbsoluta = \Illuminate\Support\Str::startsWith($mailInfoMembresiasImagenUrl, ['http://', 'https://']);
+                        $mailInfoMembresiasImagenSrc = $esUrlAbsoluta
+                            ? $mailInfoMembresiasImagenUrl
+                            : asset(ltrim($mailInfoMembresiasImagenUrl, '/'));
+                    } else {
+                        $mailInfoMembresiasImagenSrc = '';
+                    }
+                @endphp
+                @if(!empty($mailInfoMembresiasImagenSrc))
+                    <div style="margin-top:12px; text-align:center;">
+                        <img
+                            src="{{ $mailInfoMembresiasImagenSrc }}"
+                            alt="Tarjetas Kadampa"
+                            style="max-width:100%; height:auto; border-radius:8px; border:1px solid #e5e7eb;"
+                        >
+                    </div>
+                @endif
             </div>
 
             <div style="text-align:center; margin: 22px 0;">
@@ -63,7 +92,7 @@
                     href="{{ url('/membresias/public') }}"
                     class="cta-button"
                 >
-                    Tarjetas Kadampa
+                    Más Info e Inscripción
                 </a>
             </div>
 

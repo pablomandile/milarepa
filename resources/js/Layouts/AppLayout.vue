@@ -25,6 +25,7 @@ const mobileMenuSections = ref({
     membresias: false,
     pagos: false,
     paginas: false,
+    emails: false,
     configuracion: false,
     ayuda: false,
 });
@@ -66,7 +67,7 @@ const toggleMobileSection = (key) => {
 
         <nav v-if="$page.props.auth?.user" class="bg-white border-b border-gray-100">
             <!-- Primary Navigation Menu -->
-            <div class="px-4 sm:px-6 lg:px-8">
+            <div class="px-4 sm:px-6 lg:px-4 xl:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex">
                         <!-- Logo -->
@@ -85,15 +86,15 @@ const toggleMobileSection = (key) => {
                         <template v-if="!isAsistant">
                             <!-- Navigation Links -->
                             <!-- Gestión Dropdown -->
-                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                            <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex">
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Inicio
                                 </NavLink>
                             </div>
-                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                            <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                                 <Dropdown>
                                     <template #trigger>
-                                        <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                        <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                             Gestión
                                             <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -120,6 +121,12 @@ const toggleMobileSection = (key) => {
                                         <DropdownLink :href="route('comidas.index')" :active="route().current('comidas.*')">
                                             Comidas
                                         </DropdownLink>
+                                        <DropdownLink :href="route('libros.index')" :active="route().current('libros.*')">
+                                            Libros
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('inventario-libros.index')" :active="route().current('inventario-libros.*')">
+                                            Inventario Libros
+                                        </DropdownLink>
                                         <DropdownLink :href="route('lugareshospedaje.index')" :active="route().current('lugareshospedaje.*')">
                                             Lugares de Hospedaje
                                         </DropdownLink>
@@ -135,10 +142,10 @@ const toggleMobileSection = (key) => {
                                     </template>
                                 </Dropdown>
                             </div>
-                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                            <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Actividades
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -169,6 +176,9 @@ const toggleMobileSection = (key) => {
                                     <DropdownLink :href="route('clases.index')" :active="route().current('clases.*')">
                                         Clases
                                     </DropdownLink>
+                                    <DropdownLink :href="route('asistencias.index')" :active="route().current('asistencias.*')">
+                                        Asistencias
+                                    </DropdownLink>
                                     <DropdownLink :href="route('ciclos.index')" :active="route().current('ciclos.*')">
                                         Ciclos
                                     </DropdownLink>
@@ -187,10 +197,10 @@ const toggleMobileSection = (key) => {
                                 </template>
                             </Dropdown>
                         </div>
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                        <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Inscripciones
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -205,16 +215,19 @@ const toggleMobileSection = (key) => {
                                     <DropdownLink :href="route('inscripciones.por-actividad')" :active="route().current('inscripciones.por-actividad')">
                                         Inscripciones por Actividad
                                     </DropdownLink>
+                                    <DropdownLink :href="route('inscripciones-clases.index')" :active="route().current('inscripciones-clases.*')">
+                                        Inscripciones de Clases
+                                    </DropdownLink>
                                     <DropdownLink :href="route('estadoinscripciones.index')" :active="route().current('estadoinscripciones.*')">
                                         Estado de Inscripciones
                                     </DropdownLink>
                                 </template>
                             </Dropdown>
                         </div>
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                        <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Membresías
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -235,10 +248,10 @@ const toggleMobileSection = (key) => {
                                 </template>
                             </Dropdown>
                         </div>
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                        <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Pagos
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -269,10 +282,10 @@ const toggleMobileSection = (key) => {
                                 </template>
                             </Dropdown>
                         </div>
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                        <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Páginas
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -293,10 +306,10 @@ const toggleMobileSection = (key) => {
                                 </template>
                             </Dropdown>
                         </div>
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                        <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Emails
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -321,10 +334,10 @@ const toggleMobileSection = (key) => {
                                 </template>
                             </Dropdown>
                         </div>
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                        <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Configuración
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -334,10 +347,13 @@ const toggleMobileSection = (key) => {
 
                                 <template #content>
                                     <DropdownLink :href="route('paginas-actividades-online.index')" :active="route().current('paginas-actividades-online.*')">
-                                        Configuración Página Actividades Online
+                                        Página Actividades Online
                                     </DropdownLink>
                                     <DropdownLink :href="route('email-envio-configuraciones.index')" :active="route().current('email-envio-configuraciones.*')">
-                                        Configuración de Envíos
+                                        Envío de mails
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('mail-info-membresias.index')" :active="route().current('mail-info-membresias.*')">
+                                        Mail Info Membresías
                                     </DropdownLink>
                                     <DropdownLink :href="route('usuarios.index')" :active="route().current('usuarios.*')">
                                         Usuarios
@@ -354,10 +370,10 @@ const toggleMobileSection = (key) => {
                                 </template>
                             </Dropdown>
                         </div>
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
+                        <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Ayuda
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -374,9 +390,6 @@ const toggleMobileSection = (key) => {
                                     </DropdownLink>
                                     <DropdownLink :href="route('versiones.index')" :active="route().current('versiones.*')">
                                         Versiones
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('reporteerror.index')" :active="route().current('reporteerror.*')">
-                                        Reportar un error
                                     </DropdownLink>
                                     <div class="border-t border-gray-200" />
                                     <DropdownLink :href="route('acercade.index')" :active="route().current('acercade.*')">
@@ -578,6 +591,12 @@ const toggleMobileSection = (key) => {
                             <ResponsiveNavLink :href="route('comidas.index')" :active="route().current('comidas.*')">
                                 Comidas
                             </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('libros.index')" :active="route().current('libros.*')">
+                                Libros
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('inventario-libros.index')" :active="route().current('inventario-libros.*')">
+                                Inventario Libros
+                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('lugareshospedaje.index')" :active="route().current('lugareshospedaje.*')">
                                 Lugares de Hospedaje
                             </ResponsiveNavLink>
@@ -605,10 +624,7 @@ const toggleMobileSection = (key) => {
                         </button>
                         <div v-if="isMobileSectionOpen('actividades')" class="space-y-1">
                             <ResponsiveNavLink :href="route('actividades.index')" :active="route().current('actividades.*')">
-                                Todas las Actividades
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('grid-actividades.index')" :active="route().current('grid-actividades.*')">
-                                Actividades del mes
+                                Todas los Cursos y Retiros
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('calendario.index')" :active="route().current('calendario.index')">
                                 Calendario
@@ -628,6 +644,9 @@ const toggleMobileSection = (key) => {
                             <ResponsiveNavLink :href="route('clases.index')" :active="route().current('clases.*')">
                                 Clases
                             </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('asistencias.index')" :active="route().current('asistencias.*')">
+                                Asistencias
+                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('ciclos.index')" :active="route().current('ciclos.*')">
                                 Ciclos
                             </ResponsiveNavLink>
@@ -642,18 +661,6 @@ const toggleMobileSection = (key) => {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('grabaciones.index')" :active="route().current('grabaciones.*')">
                                 Grabaciones
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink href="/email-preview" :active="route().current('email.preview.landing')">
-                                Plantillas de Emails
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('emails.index')" :active="route().current('emails.*')">
-                                Emails
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('envio-correos.index')" :active="route().current('envio-correos.*')">
-                                Historico de Envios
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('envio-actividades-online.index')" :active="route().current('envio-actividades-online.*')">
-                                Envío Actividades Online
                             </ResponsiveNavLink>
                         </div>
                     </div>
@@ -674,6 +681,9 @@ const toggleMobileSection = (key) => {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('inscripciones.por-actividad')" :active="route().current('inscripciones.por-actividad')">
                                 Inscripciones por Actividad
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('inscripciones-clases.index')" :active="route().current('inscripciones-clases.*')">
+                                Inscripciones de Clases
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('estadoinscripciones.index')" :active="route().current('estadoinscripciones.*')">
                                 Estado de inscripciones
@@ -750,8 +760,37 @@ const toggleMobileSection = (key) => {
                             <ResponsiveNavLink :href="route('paginas.actividades-online')" :active="route().current('paginas.actividades-online')">
                                 Actividades Online
                             </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('grid-actividades.index')" :active="route().current('grid-actividades.*')">
+                                Grilla de Cursos y Retiros Activos
+                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('membresias.public.index')" :active="route().current('membresias.public.index')">
                                 Membresías pública
+                            </ResponsiveNavLink>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <button
+                            type="button"
+                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                            :aria-expanded="isMobileSectionOpen('emails')"
+                            @click="toggleMobileSection('emails')"
+                        >
+                            <span>Emails</span>
+                            <span class="text-lg font-bold leading-none">{{ isMobileSectionOpen('emails') ? '-' : '+' }}</span>
+                        </button>
+                        <div v-if="isMobileSectionOpen('emails')" class="space-y-1">
+                            <ResponsiveNavLink :href="route('emails.index')" :active="route().current('emails.*')">
+                                Emails
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('envio-correos.index')" :active="route().current('envio-correos.*')">
+                                Historico de Envios
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('envio-actividades-online.index')" :active="route().current('envio-actividades-online.*')">
+                                Envío Actividades Online
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink href="/email-preview" :active="route().current('email.preview.landing')">
+                                Plantillas de Emails
                             </ResponsiveNavLink>
                         </div>
                     </div>
@@ -770,11 +809,11 @@ const toggleMobileSection = (key) => {
                             <ResponsiveNavLink :href="route('paginas-actividades-online.index')" :active="route().current('paginas-actividades-online.*')">
                                 Página Actividades Online
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('paginas.configuracion')" :active="route().current('paginas.configuracion')">
-                                Configuración
-                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('email-envio-configuraciones.index')" :active="route().current('email-envio-configuraciones.*')">
-                                Configuración de Envíos
+                                Envío de mails
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('mail-info-membresias.index')" :active="route().current('mail-info-membresias.*')">
+                                Mail Info Membresías
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('usuarios.index')" :active="route().current('usuarios.*')">
                                 Usuarios
@@ -784,6 +823,9 @@ const toggleMobileSection = (key) => {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('perfiles.index')" :active="route().current('perfiles.*')">
                                 Permisos
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('paginas.configuracion')" :active="route().current('paginas.configuracion')">
+                                Configuración General
                             </ResponsiveNavLink>
                         </div>
                     </div>
@@ -807,9 +849,6 @@ const toggleMobileSection = (key) => {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('versiones.index')" :active="route().current('versiones.*')">
                                 Versiones
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('reporteerror.index')" :active="route().current('reporteerror.*')">
-                                Reportar un error
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('acercade.index')" :active="route().current('acercade.*')">
                                 Acerca de
@@ -903,7 +942,7 @@ const toggleMobileSection = (key) => {
 
         <!-- Page Heading -->
         <header v-if="$slots.header" class="bg-white shadow">
-            <div class="w-full py-4 px-4 sm:px-6 lg:px-8">
+            <div class="w-full py-4 px-4 sm:px-6 lg:px-4 xl:px-8">
                 <slot name="header" />
             </div>
         </header>
@@ -915,3 +954,4 @@ const toggleMobileSection = (key) => {
         <Footer v-if="$page.props.auth?.user" />
     </div>
 </template>
+
