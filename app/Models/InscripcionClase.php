@@ -23,6 +23,8 @@ class InscripcionClase extends Model
         'montoActividad',
         'montoTharpa',
         'montoTienda',
+        'articulos_tienda',
+        'articulos_tharpa',
         'montoApagar',
         'pago',
         'online',

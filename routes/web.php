@@ -63,6 +63,11 @@ use App\Http\Controllers\AsistenciasController;
 use App\Http\Controllers\InscripcionesClasesController;
 use App\Http\Controllers\LibrosController;
 use App\Http\Controllers\InventarioLibrosController;
+use App\Http\Controllers\HistoricoPedidosLibrosController;
+use App\Http\Controllers\PrestamosAnexosController;
+use App\Http\Controllers\InventarioPorEntidadController;
+use App\Http\Controllers\DevolucionesAnexosController;
+use App\Http\Controllers\VentasLibrosController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -228,6 +233,36 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/inventario-libros', InventarioLibrosController::class, [
         'parameters' => ['inventario-libros' => 'inventario_libro'],
     ])->except(['show']);
+    Route::get('/inventario-libros/historico-pedidos', [HistoricoPedidosLibrosController::class, 'index'])
+        ->name('inventario-libros.historico-pedidos');
+    Route::get('/inventario-libros/por-entidad', [InventarioPorEntidadController::class, 'index'])
+        ->name('inventario-libros.por-entidad');
+    Route::get('/inventario-libros/ventas', [VentasLibrosController::class, 'index'])
+        ->name('inventario-libros.ventas.index');
+    Route::get('/inventario-libros/ventas/libros-por-entidad', [VentasLibrosController::class, 'librosPorEntidad'])
+        ->name('inventario-libros.ventas.libros-por-entidad');
+    Route::post('/inventario-libros/ventas', [VentasLibrosController::class, 'store'])
+        ->name('inventario-libros.ventas.store');
+    Route::get('/inventario-libros/prestamos-anexos', [PrestamosAnexosController::class, 'index'])
+        ->name('inventario-libros.prestamos-anexos.index');
+    Route::get('/inventario-libros/prestamos-anexos/create', [PrestamosAnexosController::class, 'create'])
+        ->name('inventario-libros.prestamos-anexos.create');
+    Route::post('/inventario-libros/prestamos-anexos', [PrestamosAnexosController::class, 'store'])
+        ->name('inventario-libros.prestamos-anexos.store');
+    Route::get('/inventario-libros/prestamos-anexos/{prestamo_anexo}/edit', [PrestamosAnexosController::class, 'edit'])
+        ->name('inventario-libros.prestamos-anexos.edit');
+    Route::put('/inventario-libros/prestamos-anexos/{prestamo_anexo}', [PrestamosAnexosController::class, 'update'])
+        ->name('inventario-libros.prestamos-anexos.update');
+    Route::delete('/inventario-libros/prestamos-anexos/{prestamo_anexo}', [PrestamosAnexosController::class, 'destroy'])
+        ->name('inventario-libros.prestamos-anexos.destroy');
+    Route::get('/inventario-libros/devoluciones-anexos', [DevolucionesAnexosController::class, 'index'])
+        ->name('inventario-libros.devoluciones-anexos.index');
+    Route::get('/inventario-libros/devoluciones-anexos/create', [DevolucionesAnexosController::class, 'create'])
+        ->name('inventario-libros.devoluciones-anexos.create');
+    Route::get('/inventario-libros/devoluciones-anexos/libros-por-entidad', [DevolucionesAnexosController::class, 'librosPorEntidad'])
+        ->name('inventario-libros.devoluciones-anexos.libros-por-entidad');
+    Route::post('/inventario-libros/devoluciones-anexos', [DevolucionesAnexosController::class, 'store'])
+        ->name('inventario-libros.devoluciones-anexos.store');
     Route::resource('/hospedajes', HospedajesController::class);
     Route::resource('/transportes', TransportesController::class);
     Route::resource('/inscripciones', InscripcionesController::class, [
@@ -236,6 +271,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         ->name('inscripciones-clases.buscar-usuario');
     Route::get('/inscripciones-clases/precios-clase', [InscripcionesClasesController::class, 'preciosPorClase'])
         ->name('inscripciones-clases.precios-clase');
+    Route::get('/inscripciones-clases/libros-por-entidad', [InscripcionesClasesController::class, 'librosPorEntidad'])
+        ->name('inscripciones-clases.libros-por-entidad');
     Route::resource('/inscripciones-clases', InscripcionesClasesController::class, [
         'parameters' => ['inscripciones-clases' => 'inscripciones_clase'],
     ])->except(['show']);
@@ -300,6 +337,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/asistencias', AsistenciasController::class, [
         'parameters' => ['asistencias' => 'asistencia'],
     ])->only(['index']);
+    Route::post('/asistencias/registrar-qr', [AsistenciasController::class, 'registrarDesdeQr'])
+        ->name('asistencias.registrar-qr');
     Route::patch('/clases/{clase}/estado', [ClasesController::class, 'updateEstado'])
         ->name('clases.updateEstado');
     Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');

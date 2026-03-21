@@ -472,7 +472,7 @@ const toggleMobileSection = (key) => {
                                         type="button"
                                         class="inline-flex items-center px-2 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-900 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150"
                                     >
-                                        <img class="h-8 w-8 rounded-full object-cover me-2" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
+                                        <img class="w-2rem h-2rem border-circle object-cover me-2 shrink-0" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
                                         ¡Bienvenido {{ $page.props.auth.user.name }}!
                                         <svg class="ms-2 -me-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -861,7 +861,7 @@ const toggleMobileSection = (key) => {
                 <div v-if="$page.props.auth?.user" class="pt-4 pb-1 border-t border-gray-200">
                     <div class="flex items-center px-4">
                         <div v-if="$page.props.jetstream.managesProfilePhotos" class="shrink-0 me-3">
-                            <img class="h-10 w-10 rounded-full object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
+                            <img class="w-2rem h-2rem border-circle object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
                         </div>
 
                         <div>
@@ -954,4 +954,6 @@ const toggleMobileSection = (key) => {
         <Footer v-if="$page.props.auth?.user" />
     </div>
 </template>
+
+
 

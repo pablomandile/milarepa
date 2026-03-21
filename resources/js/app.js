@@ -13,6 +13,7 @@ import 'primeicons/primeicons.css'; // Iconos
 import Tooltip from 'primevue/tooltip';
 import ToastService from 'primevue/toastservice';
 import Toast from 'primevue/toast'
+import ConfirmationService from 'primevue/confirmationservice';
 import 'primeflex/primeflex.css';
 
 
@@ -29,6 +30,7 @@ createInertiaApp({
             .use(ZiggyVue)
             .use(PrimeVue)
             .use(ToastService)
+            .use(ConfirmationService)
             .directive('tooltip', Tooltip)
             .component('Toast', Toast);
 

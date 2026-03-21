@@ -18,6 +18,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    librosTharpa: {
+        type: Array,
+        default: () => [],
+    },
     provincias: {
         type: Array,
         default: () => [],
@@ -48,7 +52,10 @@ const form = useForm({
     precioGeneral: 0,
     montoActividad: 0,
     montoTharpa: 0,
+    articulos_tharpa: '',
     montoTienda: 0,
+    articulos_tienda: '',
+    libros_tharpa_ids: [],
     montoApagar: 0,
     pago: '',
     online: false,
@@ -81,6 +88,7 @@ const submit = () => {
                             :form="form"
                             :clases="clases"
                             :entidades="entidades"
+                            :libros-tharpa="librosTharpa"
                             :provincias="provincias"
                             :municipios="municipios"
                             :barrios="barrios"

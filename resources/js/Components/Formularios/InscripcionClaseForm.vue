@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import Swal from 'sweetalert2';
+import MultiSelect from 'primevue/multiselect';
 
 const props = defineProps({
     form: {
@@ -12,6 +13,10 @@ const props = defineProps({
         default: () => [],
     },
     entidades: {
+        type: Array,
+        default: () => [],
+    },
+    librosTharpa: {
         type: Array,
         default: () => [],
     },
@@ -36,8 +41,10 @@ const props = defineProps({
 const emit = defineEmits(['submit']);
 
 const buscandoUsuario = ref(false);
+const cargandoLibrosEntidad = ref(false);
 const usuarioEncontrado = ref(false);
 const membresiaPendiente = ref('');
+const librosEntidad = ref([...(props.librosTharpa || [])]);
 const precioData = ref({
     precio_general: 0,
     membresias: [],
@@ -70,6 +77,7 @@ const clasesFiltradas = computed(() => {
 });
 
 const membresiasDisponibles = computed(() => precioData.value.membresias || []);
+const librosTharpaDisponibles = computed(() => librosEntidad.value || []);
 
 const normalizarTexto = (valor) => String(valor || '')
     .normalize('NFD')
@@ -94,18 +102,77 @@ const aplicarMembresiaPendiente = () => {
     membresiaPendiente.value = '';
 };
 
+const seleccionarSinMembresia = () => {
+    if (!mostrarCamposUsuario.value) {
+        return;
+    }
+
+    const opcionSinMembresia = membresiasDisponibles.value.find((m) => {
+        const nombre = normalizarTexto(m.nombre);
+        return nombre === 'sin membresia' || nombre.includes('sin membresia');
+    });
+
+    if (!opcionSinMembresia) {
+        return;
+    }
+
+    props.form.membresia = opcionSinMembresia.nombre;
+};
+
 const recalcularMontos = () => {
     const membresiaSeleccionada = membresiasDisponibles.value.find(
         (m) => String(m.nombre) === String(props.form.membresia)
     );
 
     const montoActividad = Number(membresiaSeleccionada?.precio || 0);
-    const montoTharpa = Number(props.form.montoTharpa || 0);
+    const idsSeleccionados = (props.form.libros_tharpa_ids || []).map((id) => Number(id));
+    const librosSeleccionados = librosTharpaDisponibles.value.filter((libro) => idsSeleccionados.includes(Number(libro.id)));
+    const montoTharpa = librosSeleccionados.reduce((acumulado, libro) => acumulado + Number(libro.precio || 0), 0);
+    props.form.articulos_tharpa = librosSeleccionados.map((libro) => libro.titulo).join(', ');
+    props.form.montoTharpa = Number(montoTharpa.toFixed(2));
     const montoTienda = Number(props.form.montoTienda || 0);
 
     props.form.precioGeneral = Number(precioData.value.precio_general || 0);
     props.form.montoActividad = montoActividad;
     props.form.montoApagar = Number((montoActividad + montoTharpa + montoTienda).toFixed(2));
+};
+
+const cargarLibrosPorEntidad = async () => {
+    const entidadId = Number(props.form.entidad_id || 0);
+
+    if (!entidadId) {
+        librosEntidad.value = [...(props.librosTharpa || [])];
+        return;
+    }
+
+    cargandoLibrosEntidad.value = true;
+
+    try {
+        const response = await fetch(`${route('inscripciones-clases.libros-por-entidad')}?entidad_id=${entidadId}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            const errorText = data?.message || data?.errors?.entidad_id?.[0] || 'No se pudo obtener libros por entidad.';
+            throw new Error(errorText);
+        }
+
+        librosEntidad.value = Array.isArray(data.libros) ? data.libros : [];
+    } catch (error) {
+        librosEntidad.value = [];
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: error.message || 'No se pudo filtrar libros por entidad.',
+            showConfirmButton: false,
+            timer: 3000,
+        });
+    } finally {
+        const idsDisponibles = new Set(librosEntidad.value.map((libro) => Number(libro.id)));
+        props.form.libros_tharpa_ids = (props.form.libros_tharpa_ids || []).filter((id) => idsDisponibles.has(Number(id)));
+        recalcularMontos();
+        cargandoLibrosEntidad.value = false;
+    }
 };
 
 watch(() => props.form.provincia_id, () => {
@@ -142,6 +209,7 @@ watch(() => props.form.clase_id, async (newClaseId) => {
         };
 
         aplicarMembresiaPendiente();
+        seleccionarSinMembresia();
         recalcularMontos();
     } catch (error) {
         Swal.fire({
@@ -162,11 +230,17 @@ watch(() => props.form.entidad_id, () => {
         precioData.value = { precio_general: 0, membresias: [] };
         recalcularMontos();
     }
-});
 
-watch(() => [props.form.membresia, props.form.montoTharpa, props.form.montoTienda], () => {
+    cargarLibrosPorEntidad();
+}, { immediate: true });
+
+watch(() => [props.form.membresia, props.form.libros_tharpa_ids, props.form.montoTienda], () => {
     recalcularMontos();
-});
+}, { deep: true, immediate: true });
+
+watch(() => [membresiasDisponibles.value, props.form.existing_user_id], () => {
+    seleccionarSinMembresia();
+}, { deep: true, immediate: true });
 
 const buscarUsuario = async () => {
     const email = String(props.form.email || '').trim();
@@ -207,6 +281,7 @@ const buscarUsuario = async () => {
         usuarioEncontrado.value = false;
         props.form.existing_user_id = null;
         membresiaPendiente.value = '';
+        seleccionarSinMembresia();
         if (!props.form.nombre) {
             props.form.nombre = '';
         }
@@ -220,6 +295,12 @@ const buscarUsuario = async () => {
 const onSubmit = () => {
     recalcularMontos();
     emit('submit');
+};
+
+const onMontoTiendaFocus = () => {
+    if (Number(props.form.montoTienda) === 0) {
+        props.form.montoTienda = '';
+    }
 };
 </script>
 
@@ -327,8 +408,13 @@ const onSubmit = () => {
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Clase</label>
-                <select v-model="form.clase_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                    <option value="">Seleccione</option>
+                <select
+                    v-model="form.clase_id"
+                    :disabled="!form.entidad_id"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100 disabled:text-gray-500"
+                    required
+                >
+                    <option value="">{{ form.entidad_id ? 'Seleccione' : 'Seleccione entidad primero' }}</option>
                     <option v-for="clase in clasesFiltradas" :key="clase.id" :value="clase.id">{{ clase.nombre }}</option>
                 </select>
                 <div v-if="form.errors.clase_id" class="mt-1 text-sm text-red-600">{{ form.errors.clase_id }}</div>
@@ -336,7 +422,7 @@ const onSubmit = () => {
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Membresía</label>
-                <select v-model="form.membresia" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                <select v-model="form.membresia" :disabled="mostrarCamposUsuario" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm disabled:bg-gray-100 disabled:text-gray-500" required>
                     <option value="">Seleccione</option>
                     <option v-for="m in membresiasDisponibles" :key="m.nombre" :value="m.nombre">
                         {{ m.nombre }}
@@ -356,13 +442,50 @@ const onSubmit = () => {
             </div>
 
             <div>
+                <label class="block text-sm font-medium text-gray-700">Libros Tharpa</label>
+                <MultiSelect
+                    v-model="form.libros_tharpa_ids"
+                    :options="librosTharpaDisponibles"
+                    optionLabel="titulo"
+                    optionValue="id"
+                    :loading="cargandoLibrosEntidad"
+                    filter
+                    display="chip"
+                    :maxSelectedLabels="3"
+                    selectedItemsLabel="{0} libros seleccionados"
+                    placeholder="Seleccione libros"
+                    class="mt-1 w-full border border-gray-300 rounded-md shadow-sm"
+                >
+                    <template #option="slotProps">
+                        <div class="flex w-full items-center justify-between gap-3">
+                            <span>{{ slotProps.option.titulo }}</span>
+                            <span class="text-xs text-gray-500">${{ Number(slotProps.option.precio || 0).toFixed(2) }}</span>
+                        </div>
+                    </template>
+                </MultiSelect>
+                <p class="mt-1 text-xs text-gray-500">Puede seleccionar múltiples libros con Ctrl/Cmd + click.</p>
+                <div v-if="form.errors.libros_tharpa_ids" class="mt-1 text-sm text-red-600">{{ form.errors.libros_tharpa_ids }}</div>
+            </div>
+
+            <div>
                 <label class="block text-sm font-medium text-gray-700">Monto Tharpa</label>
-                <input v-model="form.montoTharpa" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+                <input :value="Number(form.montoTharpa || 0).toFixed(2)" type="text" class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100" readonly />
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Artículo tienda</label>
+                <input
+                    v-model="form.articulos_tienda"
+                    type="text"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                    placeholder="Ej: incienso, cuenco, mala"
+                />
+                <div v-if="form.errors.articulos_tienda" class="mt-1 text-sm text-red-600">{{ form.errors.articulos_tienda }}</div>
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Monto Tienda</label>
-                <input v-model="form.montoTienda" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+                <input v-model="form.montoTienda" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" @focus="onMontoTiendaFocus" />
             </div>
 
             <div>

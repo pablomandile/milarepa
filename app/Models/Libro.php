@@ -30,8 +30,8 @@ class Libro extends Model
         return $this->belongsTo(Imagen::class, 'imagen_id');
     }
 
-    public function inventarioLibro()
+    public function inventariosEntidad()
     {
-        return $this->hasOne(InventarioLibro::class, 'libro_id');
+        return $this->hasMany(InventarioEntidadLibro::class, 'libro_id');
     }
 }

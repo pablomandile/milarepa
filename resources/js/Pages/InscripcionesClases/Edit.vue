@@ -22,6 +22,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    librosTharpa: {
+        type: Array,
+        default: () => [],
+    },
     provincias: {
         type: Array,
         default: () => [],
@@ -38,6 +42,13 @@ const props = defineProps({
 
 const persona = props.inscripcionClase.user || props.inscripcionClase.guest_user || {};
 const claseActual = props.clases.find((clase) => Number(clase.id) === Number(props.inscripcionClase.clase_id));
+const articulosTharpaPrevios = String(props.inscripcionClase.articulos_tharpa || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+const librosTharpaSeleccionados = (props.librosTharpa || [])
+    .filter((libro) => articulosTharpaPrevios.includes(libro.titulo))
+    .map((libro) => Number(libro.id));
 
 const form = useForm({
     email: props.inscripcionClase.email_snapshot || persona.email || '',
@@ -55,7 +66,10 @@ const form = useForm({
     precioGeneral: Number(props.inscripcionClase.precioGeneral || 0),
     montoActividad: Number(props.inscripcionClase.montoActividad || 0),
     montoTharpa: Number(props.inscripcionClase.montoTharpa || 0),
+    articulos_tharpa: props.inscripcionClase.articulos_tharpa || '',
     montoTienda: Number(props.inscripcionClase.montoTienda || 0),
+    articulos_tienda: props.inscripcionClase.articulos_tienda || '',
+    libros_tharpa_ids: librosTharpaSeleccionados,
     montoApagar: Number(props.inscripcionClase.montoApagar || 0),
     pago: props.inscripcionClase.pago || '',
     online: !!props.inscripcionClase.online,
@@ -88,6 +102,7 @@ const submit = () => {
                             :form="form"
                             :clases="clases"
                             :entidades="entidades"
+                            :libros-tharpa="librosTharpa"
                             :provincias="provincias"
                             :municipios="municipios"
                             :barrios="barrios"

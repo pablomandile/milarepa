@@ -19,7 +19,7 @@
 
             <div>
                 <InputLabel for="cantidad" value="Cantidad" />
-                <TextInput id="cantidad" v-model="form.cantidad" type="number" min="0" class="mt-1 block w-full" required />
+                <TextInput id="cantidad" v-model="form.cantidad" type="number" min="0" class="mt-1 block w-full" required @focus="onCantidadFocus" />
                 <InputError class="mt-2" :message="form.errors.cantidad" />
             </div>
         </div>
@@ -64,6 +64,12 @@ const form = useForm({
 });
 
 const submitLabel = props.mode === 'edit' ? 'Actualizar' : 'Guardar';
+
+const onCantidadFocus = () => {
+    if (Number(form.cantidad) === 0) {
+        form.cantidad = '';
+    }
+};
 
 const submit = () => {
     if (props.mode === 'edit' && props.inventario) {

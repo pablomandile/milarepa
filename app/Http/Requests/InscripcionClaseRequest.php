@@ -38,6 +38,10 @@ class InscripcionClaseRequest extends FormRequest
             'online' => ['required', 'boolean'],
             'montoTharpa' => ['nullable', 'numeric', 'min:0'],
             'montoTienda' => ['nullable', 'numeric', 'min:0'],
+            'articulos_tienda' => ['nullable', 'string'],
+            'articulos_tharpa' => ['nullable', 'string'],
+            'libros_tharpa_ids' => ['nullable', 'array'],
+            'libros_tharpa_ids.*' => ['integer', 'exists:libros,id'],
         ];
     }
 

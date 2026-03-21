@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LibroRequest;
-use App\Models\Imagen;
 use App\Models\Libro;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -22,9 +21,7 @@ class LibrosController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Libros/Create', [
-            'imagenes' => Imagen::orderBy('nombre')->get(['id', 'nombre']),
-        ]);
+        return Inertia::render('Libros/Create');
     }
 
     public function store(LibroRequest $request): RedirectResponse
@@ -36,9 +33,10 @@ class LibrosController extends Controller
 
     public function edit(Libro $libro): Response
     {
+        $libro->load('imagen');
+
         return Inertia::render('Libros/Edit', [
             'libro' => $libro,
-            'imagenes' => Imagen::orderBy('nombre')->get(['id', 'nombre']),
         ]);
     }
 

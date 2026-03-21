@@ -8,10 +8,6 @@ const props = defineProps({
         type: Object,
         required: true,
     },
-    imagenes: {
-        type: Array,
-        default: () => [],
-    },
 });
 </script>
 
@@ -26,7 +22,7 @@ const props = defineProps({
         <div class="py-8">
             <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-4 sm:p-6">
-                    <LibroForm :libro="props.libro" :imagenes="props.imagenes" mode="edit" />
+                    <LibroForm :libro="props.libro" mode="edit" />
                 </div>
             </div>
         </div>

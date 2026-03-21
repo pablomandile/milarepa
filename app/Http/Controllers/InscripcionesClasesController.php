@@ -8,12 +8,16 @@ use App\Models\Clase;
 use App\Models\EstadoCuentaMembresia;
 use App\Models\Entidad;
 use App\Models\GuestUser;
+use App\Models\HistoricoPedidoLibro;
+use App\Models\InventarioEntidadLibro;
 use App\Models\InscripcionClase;
+use App\Models\Libro;
 use App\Models\Municipio;
 use App\Models\Provincia;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -39,6 +43,7 @@ class InscripcionesClasesController extends Controller
         return inertia('InscripcionesClases/Create', [
             'clases' => $this->obtenerClasesDisponibles(),
             'entidades' => Entidad::orderBy('nombre')->get(['id', 'nombre']),
+            'librosTharpa' => Libro::orderBy('titulo')->get(['id', 'titulo', 'precio']),
             'provincias' => Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get(['id', 'nombre']),
             'municipios' => Municipio::orderBy('nombre')->get(['id', 'nombre', 'provincia_id']),
             'barrios' => Barrio::orderBy('nombre')->get(['id', 'nombre', 'provincia_id']),
@@ -57,6 +62,7 @@ class InscripcionesClasesController extends Controller
             'inscripcionClase' => $inscripcion,
             'clases' => $this->obtenerClasesDisponibles($inscripcion->clase_id),
             'entidades' => Entidad::orderBy('nombre')->get(['id', 'nombre']),
+            'librosTharpa' => Libro::orderBy('titulo')->get(['id', 'titulo', 'precio']),
             'provincias' => Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get(['id', 'nombre']),
             'municipios' => Municipio::orderBy('nombre')->get(['id', 'nombre', 'provincia_id']),
             'barrios' => Barrio::orderBy('nombre')->get(['id', 'nombre', 'provincia_id']),
@@ -67,9 +73,14 @@ class InscripcionesClasesController extends Controller
     {
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated) {
-            $this->persistirInscripcionClase($validated);
-        });
+        try {
+            DB::transaction(function () use ($validated) {
+                $this->persistirInscripcionClase($validated);
+            });
+        } catch (QueryException $exception) {
+            $this->lanzarErrorSiDuplicada($exception);
+            throw $exception;
+        }
 
         return redirect()->route('inscripciones-clases.index')->with('success', 'Inscripción de clase registrada correctamente.');
     }
@@ -78,9 +89,14 @@ class InscripcionesClasesController extends Controller
     {
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated, $inscripciones_clase) {
-            $this->persistirInscripcionClase($validated, $inscripciones_clase);
-        });
+        try {
+            DB::transaction(function () use ($validated, $inscripciones_clase) {
+                $this->persistirInscripcionClase($validated, $inscripciones_clase);
+            });
+        } catch (QueryException $exception) {
+            $this->lanzarErrorSiDuplicada($exception);
+            throw $exception;
+        }
 
         return redirect()->route('inscripciones-clases.index')->with('success', 'Inscripción de clase actualizada correctamente.');
     }
@@ -146,6 +162,40 @@ class InscripcionesClasesController extends Controller
         return response()->json($datosPrecio);
     }
 
+    public function librosPorEntidad(Request $request)
+    {
+        $request->validate([
+            'entidad_id' => ['required', 'integer', 'exists:entidades,id'],
+        ]);
+
+        $entidadId = $request->integer('entidad_id');
+        $stocksDisponibles = InventarioEntidadLibro::query()
+            ->where('entidad_id', $entidadId)
+            ->where('cantidad', '>', 0)
+            ->pluck('cantidad', 'libro_id');
+
+        $libros = Libro::query()
+            ->whereIn('id', $stocksDisponibles->keys()->all())
+            ->orderBy('titulo')
+            ->get(['id', 'titulo', 'precio'])
+            ->map(function ($libro) use ($stocksDisponibles) {
+                $stock = (int) ($stocksDisponibles[(int) $libro->id] ?? 0);
+
+                return [
+                    'id' => (int) $libro->id,
+                    'titulo' => $libro->titulo,
+                    'precio' => (float) ($libro->precio ?? 0),
+                    'stock_disponible' => $stock,
+                ];
+            })
+            ->filter(fn ($libro) => (int) $libro['stock_disponible'] > 0)
+            ->values();
+
+        return response()->json([
+            'libros' => $libros,
+        ]);
+    }
+
     private function persistirInscripcionClase(array $validated, ?InscripcionClase $inscripcionClase = null): void
     {
         $email = Str::lower(trim((string) ($validated['email'] ?? '')));
@@ -160,9 +210,158 @@ class InscripcionesClasesController extends Controller
         $membresiaSeleccionada = trim((string) $validated['membresia']);
         $montoActividad = $this->resolverMontoActividadPorMembresia($datosPrecio['membresias'], $membresiaSeleccionada);
 
-        $montoTharpa = (float) ($validated['montoTharpa'] ?? 0);
+        $librosTharpaIds = collect($validated['libros_tharpa_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values();
+
+        $librosSeleccionados = $librosTharpaIds->isEmpty()
+            ? collect()
+            : Libro::query()
+                ->whereIn('id', $librosTharpaIds->all())
+                ->orderBy('titulo')
+                ->get(['id', 'titulo', 'precio']);
+
+        $montoTharpa = (float) $librosSeleccionados->sum(fn ($libro) => (float) ($libro->precio ?? 0));
         $montoTienda = (float) ($validated['montoTienda'] ?? 0);
         $montoApagar = $montoActividad + $montoTharpa + $montoTienda;
+        $articulosTharpa = $librosSeleccionados->pluck('titulo')->filter()->implode(', ');
+
+        $librosTharpaIdsPrevios = collect();
+
+        if ($inscripcionClase) {
+            $titulosPrevios = collect(preg_split('/\s*,\s*/', (string) ($inscripcionClase->articulos_tharpa ?? ''), -1, PREG_SPLIT_NO_EMPTY))
+                ->map(fn ($titulo) => trim((string) $titulo))
+                ->filter()
+                ->values();
+
+            if ($titulosPrevios->isNotEmpty()) {
+                $librosTharpaIdsPrevios = Libro::query()
+                    ->whereIn('titulo', $titulosPrevios->all())
+                    ->pluck('id')
+                    ->map(fn ($id) => (int) $id)
+                    ->filter(fn ($id) => $id > 0)
+                    ->unique()
+                    ->values();
+            }
+        }
+
+        $librosIdsADescontar = $inscripcionClase
+            ? $librosTharpaIds->diff($librosTharpaIdsPrevios)->values()
+            : $librosTharpaIds;
+
+        $librosIdsADevolver = $inscripcionClase
+            ? $librosTharpaIdsPrevios->diff($librosTharpaIds)->values()
+            : collect();
+
+        if ($librosIdsADescontar->isNotEmpty() || $librosIdsADevolver->isNotEmpty()) {
+            $librosIdsAjuste = $librosIdsADescontar
+                ->merge($librosIdsADevolver)
+                ->unique()
+                ->values();
+
+            $entidadVentaId = (int) ($clase->entidad_id ?? 0);
+
+            $inventariosEntidad = InventarioEntidadLibro::query()
+                ->where('entidad_id', $entidadVentaId)
+                ->whereIn('libro_id', $librosIdsAjuste->all())
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('libro_id');
+
+            $librosParaImporte = Libro::query()
+                ->whereIn('id', $librosIdsAjuste->all())
+                ->get(['id', 'precio'])
+                ->keyBy('id');
+
+            $fechaVenta = now();
+            $vendedorId = auth()->id();
+
+            foreach ($librosIdsADescontar as $libroId) {
+                $inventario = $inventariosEntidad->get($libroId);
+
+                if (!$inventario) {
+                    throw ValidationException::withMessages([
+                        'libros_tharpa_ids' => 'El libro seleccionado no tiene inventario disponible en la entidad de la clase.',
+                    ]);
+                }
+
+                if ((int) $inventario->cantidad < 1) {
+                    throw ValidationException::withMessages([
+                        'libros_tharpa_ids' => 'No hay stock suficiente en la entidad de la clase para uno de los libros seleccionados.',
+                    ]);
+                }
+
+                $cantidadInicialEntidad = (int) $inventario->cantidad;
+                $cantidadVendida = 1;
+                $cantidadFinalEntidad = $cantidadInicialEntidad - $cantidadVendida;
+                $cantidadTotal = (int) InventarioEntidadLibro::query()
+                    ->where('libro_id', (int) $libroId)
+                    ->lockForUpdate()
+                    ->sum('cantidad');
+
+                $inventario->update([
+                    'cantidad' => $cantidadFinalEntidad,
+                ]);
+
+                $libroVendido = $librosParaImporte->get((int) $libroId);
+
+                HistoricoPedidoLibro::create([
+                    'fecha' => $fechaVenta,
+                    'libro_id' => (int) $libroId,
+                    'entidad_id' => $entidadVentaId > 0 ? $entidadVentaId : null,
+                    'cantidad_total' => $cantidadTotal,
+                    'cantidad_inicial' => $cantidadInicialEntidad,
+                    'cantidad_vendida' => $cantidadVendida,
+                    'cantidad_final' => $cantidadFinalEntidad,
+                    'importe' => (float) ($libroVendido?->precio ?? 0),
+                    'vendedor_id' => $vendedorId,
+                    'email_comprador' => $email,
+                ]);
+            }
+
+            foreach ($librosIdsADevolver as $libroId) {
+                $inventario = $inventariosEntidad->get($libroId);
+
+                if (!$inventario) {
+                    $inventario = InventarioEntidadLibro::create([
+                        'entidad_id' => $entidadVentaId,
+                        'libro_id' => (int) $libroId,
+                        'cantidad' => 0,
+                    ]);
+
+                    $inventariosEntidad->put((int) $libroId, $inventario);
+                }
+
+                $cantidadInicialEntidad = (int) $inventario->cantidad;
+                $cantidadVendida = 1;
+                $cantidadFinalEntidad = $cantidadInicialEntidad + 1;
+                $cantidadTotal = (int) InventarioEntidadLibro::query()
+                    ->where('libro_id', (int) $libroId)
+                    ->lockForUpdate()
+                    ->sum('cantidad');
+
+                $inventario->update([
+                    'cantidad' => $cantidadFinalEntidad,
+                ]);
+
+                $libroDevuelto = $librosParaImporte->get((int) $libroId);
+
+                HistoricoPedidoLibro::create([
+                    'fecha' => $fechaVenta,
+                    'libro_id' => (int) $libroId,
+                    'entidad_id' => $entidadVentaId > 0 ? $entidadVentaId : null,
+                    'cantidad_total' => $cantidadTotal,
+                    'cantidad_inicial' => $cantidadInicialEntidad,
+                    'cantidad_vendida' => $cantidadVendida,
+                    'cantidad_final' => $cantidadFinalEntidad,
+                    'importe' => -1 * (float) ($libroDevuelto?->precio ?? 0),
+                    'vendedor_id' => $vendedorId,
+                    'email_comprador' => $email,
+                ]);
+            }
+        }
 
         $existingUser = User::where('email', $email)->first();
         $user = $existingUser;
@@ -220,6 +419,8 @@ class InscripcionesClasesController extends Controller
             'montoActividad' => $montoActividad,
             'montoTharpa' => $montoTharpa,
             'montoTienda' => $montoTienda,
+            'articulos_tienda' => $validated['articulos_tienda'] ?? null,
+            'articulos_tharpa' => $articulosTharpa,
             'montoApagar' => $montoApagar,
             'pago' => $validated['pago'],
             'online' => (bool) $validated['online'],
@@ -228,6 +429,21 @@ class InscripcionesClasesController extends Controller
         if ($inscripcionClase) {
             $inscripcionClase->update($payload);
             return;
+        }
+
+        if ($userId !== null) {
+            $inscripcionEliminada = InscripcionClase::withTrashed()
+                ->where('clase_id', $validated['clase_id'])
+                ->where('user_id', $userId)
+                ->whereNotNull('deleted_at')
+                ->latest('id')
+                ->first();
+
+            if ($inscripcionEliminada) {
+                $inscripcionEliminada->restore();
+                $inscripcionEliminada->update($payload);
+                return;
+            }
         }
 
         InscripcionClase::create($payload);
@@ -282,6 +498,13 @@ class InscripcionesClasesController extends Controller
     private function normalizarTexto(string $texto): string
     {
         return Str::of($texto)->ascii()->lower()->trim()->value();
+    }
+
+    private function obtenerEntidadPrincipalId(): ?int
+    {
+        return Entidad::query()
+            ->where('entidad_principal', true)
+            ->value('id');
     }
 
     private function obtenerClasesDisponibles(?int $incluirClaseId = null)
@@ -340,5 +563,18 @@ class InscripcionesClasesController extends Controller
                 'entidad_id' => $clase->entidad_id,
             ])
             ->values();
+    }
+
+    private function lanzarErrorSiDuplicada(QueryException $exception): void
+    {
+        $errorInfo = $exception->errorInfo;
+        $mysqlCode = (int) ($errorInfo[1] ?? 0);
+        $mensaje = (string) ($errorInfo[2] ?? '');
+
+        if ($mysqlCode === 1062 && str_contains($mensaje, 'inscripciones_clases_clase_user_unique')) {
+            throw ValidationException::withMessages([
+                'email' => 'El usuario ya está inscripto en esta clase.',
+            ]);
+        }
     }
 }

@@ -65,7 +65,6 @@ const deleteInscripcionClase = (id) => {
 
                     <div class="mt-4">
                         <DataTable :value="inscripcionesClases" stripedRows paginator :rows="10" :rowsPerPageOptions="[10, 20, 50]" tableStyle="min-width: 65rem">
-                            <Column field="id" header="#" />
                             <Column header="Clase">
                                 <template #body="slotProps">
                                     {{ slotProps.data.clase?.nombre || '-' }}
