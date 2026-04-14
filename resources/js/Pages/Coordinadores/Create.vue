@@ -21,7 +21,7 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Agregar Nuevo Coordinador</h1>
+            <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Agregar Nuevo Coordinador/a</h1>
         </template>
         <div class="py-12">
             <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">

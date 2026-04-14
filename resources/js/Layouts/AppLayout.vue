@@ -103,23 +103,20 @@ const toggleMobileSection = (key) => {
                                         </template>
 
                                     <template #content>
-                                        <DropdownLink :href="route('maestros.index')" :active="route().current('maestros.*')">
-                                            Maestros
-                                        </DropdownLink>
-                                        <DropdownLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
-                                            Coordinadores
-                                        </DropdownLink>
                                         <DropdownLink :href="route('entidades.index')" :active="route().current('entidades.*')">
                                             Entidades
                                         </DropdownLink>
                                         <DropdownLink :href="route('lugares.index')" :active="route().current('lugares.*')">
                                             Lugares
                                         </DropdownLink>
+                                        <DropdownLink :href="route('maestros.index')" :active="route().current('maestros.*')">
+                                            Maestros
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
+                                            Coordinadores
+                                        </DropdownLink>
                                         <DropdownLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
                                             Membresías
-                                        </DropdownLink>
-                                        <DropdownLink :href="route('comidas.index')" :active="route().current('comidas.*')">
-                                            Comidas
                                         </DropdownLink>
                                         <DropdownLink :href="route('libros.index')" :active="route().current('libros.*')">
                                             Libros
@@ -135,6 +132,9 @@ const toggleMobileSection = (key) => {
                                         </DropdownLink>
                                         <DropdownLink :href="route('transportes.index')" :active="route().current('transportes.*')">
                                             Transportes
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('comidas.index')" :active="route().current('comidas.*')">
+                                            Comidas
                                         </DropdownLink>
                                         <DropdownLink :href="route('imagenes.index')" :active="route().current('imagenes.*')">
                                             Imagenes
@@ -155,14 +155,19 @@ const toggleMobileSection = (key) => {
 
                                 <template #content>
                                     <DropdownLink :href="route('actividades.index')" :active="route().current('actividades.*')">
-                                        Todas los Cursos y Retiros 
+                                        Cursos y Retiros 
                                     </DropdownLink>
-                           
-                                    <DropdownLink :href="route('calendario.index')" :active="route().current('calendario.index')">
-                                        Calendario
+                                    <DropdownLink :href="route('clases.index')" :active="route().current('clases.*')">
+                                        Clases
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('oracionescantadas.index')" :active="route().current('oracionescantadas.*')">
+                                        Oraciones Cantadas
                                     </DropdownLink>
                                     <DropdownLink :href="route('tiposactividad.index')" :active="route().current('tiposactividad.*')">
                                         Tipos de Actividad
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('ciclos.index')" :active="route().current('ciclos.*')">
+                                        Ciclos
                                     </DropdownLink>
                                     <DropdownLink :href="route('descripciones.index')" :active="route().current('descripciones.*')">
                                         Descripciones
@@ -170,29 +175,20 @@ const toggleMobileSection = (key) => {
                                     <DropdownLink :href="route('programas.index')" :active="route().current('programas.*')">
                                         Programas
                                     </DropdownLink>
-                                    <DropdownLink :href="route('oracionescantadas.index')" :active="route().current('oracionescantadas.*')">
-                                        Oraciones Cantadas
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('clases.index')" :active="route().current('clases.*')">
-                                        Clases
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('asistencias.index')" :active="route().current('asistencias.*')">
-                                        Asistencias
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('ciclos.index')" :active="route().current('ciclos.*')">
-                                        Ciclos
+                                    <DropdownLink :href="route('modalidades.index')" :active="route().current('modalidades.*')">
+                                        Modalidades
                                     </DropdownLink>
                                     <DropdownLink :href="route('disponibilidades.index')" :active="route().current('disponibilidades.*')">
                                         Disponibilidades
-                                    </DropdownLink>
-                                    <DropdownLink :href="route('modalidades.index')" :active="route().current('modalidades.*')">
-                                        Modalidades
                                     </DropdownLink>
                                     <DropdownLink :href="route('streams.index')" :active="route().current('streams.*')">
                                         Streams
                                     </DropdownLink>
                                     <DropdownLink :href="route('grabaciones.index')" :active="route().current('grabaciones.*')">
                                         Grabaciones
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('asistencias.index')" :active="route().current('asistencias.*')">
+                                        Asistencias
                                     </DropdownLink>
                                 </template>
                             </Dropdown>
@@ -296,6 +292,9 @@ const toggleMobileSection = (key) => {
                                 <template #content>
                                     <DropdownLink :href="route('paginas.actividades-online')" :active="route().current('paginas.actividades-online')">
                                         Actividades Online
+                                    </DropdownLink>  
+                                    <DropdownLink :href="route('calendario.index')" :active="route().current('calendario.index')">
+                                        Calendario
                                     </DropdownLink>
                                     <DropdownLink :href="route('grid-actividades.index')" :active="route().current('grid-actividades.*')">
                                         Grilla de Cursos y Retiros Activos
@@ -573,23 +572,20 @@ const toggleMobileSection = (key) => {
                             <span class="text-lg font-bold leading-none">{{ isMobileSectionOpen('gestion') ? '-' : '+' }}</span>
                         </button>
                         <div v-if="isMobileSectionOpen('gestion')" class="space-y-1">
-                            <ResponsiveNavLink :href="route('maestros.index')" :active="route().current('maestros.*')">
-                                Maestros
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
-                                Coordinadores
-                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('entidades.index')" :active="route().current('entidades.*')">
                                 Entidades
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('lugares.index')" :active="route().current('lugares.*')">
                                 Lugares
                             </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('maestros.index')" :active="route().current('maestros.*')">
+                                Maestros
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
+                                Coordinadores
+                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
                                 Membresías
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('comidas.index')" :active="route().current('comidas.*')">
-                                Comidas
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('libros.index')" :active="route().current('libros.*')">
                                 Libros
@@ -605,6 +601,9 @@ const toggleMobileSection = (key) => {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('transportes.index')" :active="route().current('transportes.*')">
                                 Transportes
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('comidas.index')" :active="route().current('comidas.*')">
+                                Comidas
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('imagenes.index')" :active="route().current('imagenes.*')">
                                 Imagenes
@@ -624,13 +623,19 @@ const toggleMobileSection = (key) => {
                         </button>
                         <div v-if="isMobileSectionOpen('actividades')" class="space-y-1">
                             <ResponsiveNavLink :href="route('actividades.index')" :active="route().current('actividades.*')">
-                                Todas los Cursos y Retiros
+                                Cursos y Retiros
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('calendario.index')" :active="route().current('calendario.index')">
-                                Calendario
+                            <ResponsiveNavLink :href="route('clases.index')" :active="route().current('clases.*')">
+                                Clases
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('oracionescantadas.index')" :active="route().current('oracionescantadas.*')">
+                                Oraciones Cantadas
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('tiposactividad.index')" :active="route().current('tiposactividad.*')">
                                 Tipos de Actividad
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('ciclos.index')" :active="route().current('ciclos.*')">
+                                Ciclos
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('descripciones.index')" :active="route().current('descripciones.*')">
                                 Descripciones
@@ -638,29 +643,20 @@ const toggleMobileSection = (key) => {
                             <ResponsiveNavLink :href="route('programas.index')" :active="route().current('programas.*')">
                                 Programas
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('oracionescantadas.index')" :active="route().current('oracionescantadas.*')">
-                                Oraciones Cantadas
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('clases.index')" :active="route().current('clases.*')">
-                                Clases
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('asistencias.index')" :active="route().current('asistencias.*')">
-                                Asistencias
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('ciclos.index')" :active="route().current('ciclos.*')">
-                                Ciclos
+                            <ResponsiveNavLink :href="route('modalidades.index')" :active="route().current('modalidades.*')">
+                                Modalidades
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('disponibilidades.index')" :active="route().current('disponibilidades.*')">
                                 Disponibilidades
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('modalidades.index')" :active="route().current('modalidades.*')">
-                                Modalidades
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('streams.index')" :active="route().current('streams.*')">
                                 Streams
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('grabaciones.index')" :active="route().current('grabaciones.*')">
                                 Grabaciones
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('asistencias.index')" :active="route().current('asistencias.*')">
+                                Asistencias
                             </ResponsiveNavLink>
                         </div>
                     </div>
@@ -759,6 +755,9 @@ const toggleMobileSection = (key) => {
                         <div v-if="isMobileSectionOpen('paginas')" class="space-y-1">
                             <ResponsiveNavLink :href="route('paginas.actividades-online')" :active="route().current('paginas.actividades-online')">
                                 Actividades Online
+                            </ResponsiveNavLink>  
+                            <ResponsiveNavLink :href="route('calendario.index')" :active="route().current('calendario.index')">
+                                Calendario
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('grid-actividades.index')" :active="route().current('grid-actividades.*')">
                                 Grilla de Cursos y Retiros Activos
@@ -954,6 +953,5 @@ const toggleMobileSection = (key) => {
         <Footer v-if="$page.props.auth?.user" />
     </div>
 </template>
-
 
 

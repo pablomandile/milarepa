@@ -55,11 +55,13 @@ class ActividadesOnlineController extends Controller
             ->with('stream.links')
             ->orderBy('hora')
             ->orderBy('nombre')
-            ->get(['id', 'nombre', 'periodicidad', 'dia', 'dias_semana', 'hora', 'imagen', 'stream_id']);
+            ->get(['id', 'nombre', 'periodicidad', 'dia', 'dias_semana', 'hora', 'configuracion_por_mes', 'imagen', 'stream_id']);
 
         foreach ($oraciones as $oracion) {
-            $diasSemana = collect($oracion->dias_semana ?? [])->map(fn ($d) => (string) $d)->values();
-            if ($diasSemana->isNotEmpty()) {
+            $configuracion = $oracion->configuracionParaMes($monthStart);
+            $diasSemana = collect($configuracion['dias_semana'] ?? [])->map(fn ($d) => (string) $d)->values();
+
+            if ($configuracion['periodicidad'] === 'Diaria' && $diasSemana->isNotEmpty()) {
                 for ($cursor = $monthStart->copy(); $cursor->lte($monthEnd); $cursor->addDay()) {
                     $weekday = $weekdayMap[$cursor->dayOfWeekIso] ?? null;
                     if (!$weekday || !$diasSemana->contains($weekday)) {
@@ -70,7 +72,7 @@ class ActividadesOnlineController extends Controller
                         'id' => $oracion->id,
                         'nombre' => $oracion->nombre,
                         'fecha' => $cursor->toDateString(),
-                        'hora' => $oracion->hora ? Carbon::parse($oracion->hora)->format('H:i') : null,
+                        'hora' => $configuracion['hora'] ? Carbon::parse($configuracion['hora'])->format('H:i') : null,
                         'image_url' => $this->resolveImagePath($oracion->imagen),
                         'links' => $this->matchStreamLinks($oracion->nombre, $cursor, collect($oracion->stream?->links ?? [])),
                     ]);
@@ -78,15 +80,22 @@ class ActividadesOnlineController extends Controller
                 continue;
             }
 
-            // Fallback si no hay dias_semana definidos: usa dia de mes para no perder el registro.
-            $dia = (int) ($oracion->dia ?? 0);
+            if ($configuracion['periodicidad'] !== 'Mensual') {
+                continue;
+            }
+
+            $dia = (int) ($configuracion['dia'] ?? 0);
+            if ($dia === 29 && $monthStart->daysInMonth === 28) {
+                $dia = 28;
+            }
+
             if ($dia >= 1 && $dia <= $monthStart->daysInMonth) {
                 $fecha = $monthStart->copy()->day($dia);
                 $items->push([
                     'id' => $oracion->id,
                     'nombre' => $oracion->nombre,
                     'fecha' => $fecha->toDateString(),
-                    'hora' => $oracion->hora ? Carbon::parse($oracion->hora)->format('H:i') : null,
+                    'hora' => $configuracion['hora'] ? Carbon::parse($configuracion['hora'])->format('H:i') : null,
                     'image_url' => $this->resolveImagePath($oracion->imagen),
                     'links' => $this->matchStreamLinks($oracion->nombre, $fecha, collect($oracion->stream?->links ?? [])),
                 ]);

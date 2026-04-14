@@ -38,17 +38,26 @@ function computeAge(dateStr) {
     </template>
 
     <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold text-indigo-700">Datos adicionales</h2>
-        <div class="flex items-center gap-3">
-          <Link :href="route('usuarios.index')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
-            Volver
-          </Link>
-          <Link :href="route('usuarios.profile.complete.edit', userProfile.id)">
-            <PrimaryButton>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="lg:col-span-2 flex items-center">
+          <h2 class="text-2xl font-bold text-indigo-700">Datos adicionales</h2>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-4 flex flex-col sm:flex-row lg:flex-col gap-3 lg:items-stretch">
+          <Link
+            :href="route('usuarios.profile.complete.edit', userProfile.id)"
+            class="w-full"
+          >
+            <PrimaryButton class="w-full justify-center">
               <i class="pi pi-pencil mr-2"></i>
               Editar Datos
             </PrimaryButton>
+          </Link>
+          <Link
+            :href="route('usuarios.index')"
+            class="w-full text-center text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded"
+          >
+            Volver
           </Link>
         </div>
       </div>

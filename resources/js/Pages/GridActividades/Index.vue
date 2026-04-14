@@ -46,6 +46,7 @@ const props = defineProps({
 const layout = ref('grid');
 // Para controlar cuáles actividades están "giradas"
 const flippedCards = ref({}); 
+const expandedServicios = ref({});
 const actividadAInscribir = ref(null);
 const toast = useToast();
 const emailInput = ref('');
@@ -143,6 +144,20 @@ const inscripcionesIds = computed(() => {
 // Función que alterna el estado flipped
 function toggleFlip(id) {
   flippedCards.value[id] = !flippedCards.value[id];
+}
+
+function toggleServicios(id) {
+  expandedServicios.value[id] = !expandedServicios.value[id];
+}
+
+function serviciosDisponibles(actividad) {
+  return Boolean(
+    actividad?.hospedajes?.length ||
+    actividad?.comidas?.length ||
+    actividad?.transportes?.length ||
+    actividad?.grabacion ||
+    actividad?.grabacion_id
+  );
 }
 
 function obtenerFechaFinActividad(actividad) {
@@ -739,34 +754,54 @@ function renderMarkdown(value) {
                                                             <span class="font-bold text-green-700"> ${{ formatPrice(precioMembresiaUsuario(actividad, userContext)) }}</span>
                                                         </p>
                                                     </template>
-                                                    <p
-                                                      v-if="actividad.hospedajes && actividad.hospedajes.length > 0"
-                                                      class="text-xs md:text-sm text-gray-700 mb-0.5 md:mb-1 leading-tight flex items-center gap-2"
+                                                    <div
+                                                      v-if="serviciosDisponibles(actividad)"
+                                                      class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
                                                     >
-                                                      <i class="pi pi-home text-indigo-600" aria-hidden="true"></i>
-                                                      <span>Ofrece Hospedaje</span>
-                                                    </p>
-                                                    <p
-                                                      v-if="actividad.comidas && actividad.comidas.length > 0"
-                                                      class="text-xs md:text-sm text-gray-700 mb-0.5 md:mb-1 leading-tight flex items-center gap-2"
-                                                    >
-                                                      <i class="pi pi-shopping-bag text-amber-600" aria-hidden="true"></i>
-                                                      <span>Ofrece Comidas</span>
-                                                    </p>
-                                                    <p
-                                                      v-if="actividad.transportes && actividad.transportes.length > 0"
-                                                      class="text-xs md:text-sm text-gray-700 mb-0.5 md:mb-1 leading-tight flex items-center gap-2"
-                                                    >
-                                                      <i class="pi pi-car text-sky-600" aria-hidden="true"></i>
-                                                      <span>Ofrece Transporte</span>
-                                                    </p>
-                                                    <p
-                                                      v-if="actividad.grabacion || actividad.grabacion_id"
-                                                      class="text-xs md:text-sm text-gray-700 mb-0.5 md:mb-1 leading-tight flex items-center gap-2"
-                                                    >
-                                                      <i class="pi pi-headphones text-violet-600" aria-hidden="true"></i>
-                                                      <span>Ofrece Grabaciones</span>
-                                                    </p>
+                                                      <button
+                                                        type="button"
+                                                        class="flex w-full items-center justify-between gap-3 text-left text-xs md:text-sm font-medium text-slate-700"
+                                                        @click.stop="toggleServicios(actividad.id)"
+                                                      >
+                                                        <span>Más servicios...</span>
+                                                        <span class="inline-flex h-6 w-2 items-center justify-center rounded-full border border-slate-300 bg-white text-sm font-semibold text-slate-700">
+                                                          {{ expandedServicios[actividad.id] ? '-' : '+' }}
+                                                        </span>
+                                                      </button>
+                                                      <div
+                                                        v-if="expandedServicios[actividad.id]"
+                                                        class="mt-2 space-y-1 border-t border-slate-200 pt-2"
+                                                      >
+                                                        <p
+                                                          v-if="actividad.hospedajes && actividad.hospedajes.length > 0"
+                                                          class="text-xs md:text-sm text-gray-700 leading-tight flex items-center gap-2"
+                                                        >
+                                                          <i class="pi pi-home text-indigo-600" aria-hidden="true"></i>
+                                                          <span>Ofrece Hospedaje</span>
+                                                        </p>
+                                                        <p
+                                                          v-if="actividad.comidas && actividad.comidas.length > 0"
+                                                          class="text-xs md:text-sm text-gray-700 leading-tight flex items-center gap-2"
+                                                        >
+                                                          <i class="pi pi-shopping-bag text-amber-600" aria-hidden="true"></i>
+                                                          <span>Ofrece Comidas</span>
+                                                        </p>
+                                                        <p
+                                                          v-if="actividad.transportes && actividad.transportes.length > 0"
+                                                          class="text-xs md:text-sm text-gray-700 leading-tight flex items-center gap-2"
+                                                        >
+                                                          <i class="pi pi-car text-sky-600" aria-hidden="true"></i>
+                                                          <span>Ofrece Transporte</span>
+                                                        </p>
+                                                        <p
+                                                          v-if="actividad.grabacion || actividad.grabacion_id"
+                                                          class="text-xs md:text-sm text-gray-700 leading-tight flex items-center gap-2"
+                                                        >
+                                                          <i class="pi pi-headphones text-violet-600" aria-hidden="true"></i>
+                                                          <span>Ofrece Grabaciones</span>
+                                                        </p>
+                                                      </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -956,4 +991,3 @@ function renderMarkdown(value) {
   cursor: pointer;
 }
 </style>
-

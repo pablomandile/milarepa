@@ -27,6 +27,7 @@ const form = useForm({
     dias_semana: [],
     hora: '08:00',
     periodicidad: 'Mensual',
+    configuracion_por_mes: [],
     modalidad_id: null,
     stream_id: null,
     imagen: '',

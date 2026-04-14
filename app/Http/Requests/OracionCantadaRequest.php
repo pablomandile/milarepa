@@ -26,6 +26,13 @@ class OracionCantadaRequest extends FormRequest
             'dias_semana.*' => ['string', Rule::in(['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'])],
             'hora' => ['required', 'date_format:H:i'],
             'periodicidad' => ['required', Rule::in(['Diaria', 'Mensual'])],
+            'configuracion_por_mes' => ['nullable', 'array'],
+            'configuracion_por_mes.*.mes' => ['required', 'integer', 'min:1', 'max:12', 'distinct'],
+            'configuracion_por_mes.*.periodicidad' => ['required', Rule::in(['Diaria', 'Mensual'])],
+            'configuracion_por_mes.*.dia' => ['nullable', 'integer', 'min:1', 'max:31'],
+            'configuracion_por_mes.*.dias_semana' => ['nullable', 'array'],
+            'configuracion_por_mes.*.dias_semana.*' => ['string', Rule::in(['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'])],
+            'configuracion_por_mes.*.hora' => ['required', 'date_format:H:i'],
             'modalidad_id' => ['nullable', 'exists:modalidades,id'],
             'stream_id' => ['nullable', 'exists:streams,id'],
             'imagen' => ['nullable', 'string', 'max:2048'],
@@ -47,6 +54,20 @@ class OracionCantadaRequest extends FormRequest
             if ($periodicidad === 'Diaria' && count($diasSemana) === 0) {
                 $validator->errors()->add('dias_semana', 'Debe seleccionar al menos un dia de la semana para periodicidad diaria.');
             }
+
+            foreach ((array) $this->input('configuracion_por_mes', []) as $index => $configuracion) {
+                $configPeriodicidad = $configuracion['periodicidad'] ?? null;
+                $configDia = $configuracion['dia'] ?? null;
+                $configDiasSemana = array_values(array_unique((array) ($configuracion['dias_semana'] ?? [])));
+
+                if ($configPeriodicidad === 'Mensual' && blank($configDia)) {
+                    $validator->errors()->add("configuracion_por_mes.$index.dia", 'El dia es obligatorio cuando la configuracion mensual es Mensual.');
+                }
+
+                if ($configPeriodicidad === 'Diaria' && count($configDiasSemana) === 0) {
+                    $validator->errors()->add("configuracion_por_mes.$index.dias_semana", 'Debe seleccionar al menos un dia de la semana para la configuracion mensual diaria.');
+                }
+            }
         });
     }
 
@@ -63,6 +84,8 @@ class OracionCantadaRequest extends FormRequest
             'periodicidad.required' => __('La periodicidad es obligatoria'),
             'periodicidad.in' => __('La periodicidad debe ser Diaria o Mensual'),
             'dias_semana.array' => __('Los dias de la semana son invalidos'),
+            'configuracion_por_mes.*.mes.distinct' => __('No puede haber dos configuraciones personalizadas para el mismo mes'),
+            'configuracion_por_mes.*.hora.date_format' => __('La hora personalizada debe tener formato hh:mm'),
         ];
     }
 }

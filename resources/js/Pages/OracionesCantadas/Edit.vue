@@ -31,6 +31,13 @@ const form = useForm({
     dias_semana: Array.isArray(props.oracionCantada.dias_semana) ? props.oracionCantada.dias_semana : [],
     hora: props.oracionCantada.hora ? String(props.oracionCantada.hora).slice(0, 5) : '08:00',
     periodicidad: props.oracionCantada.periodicidad ?? 'Mensual',
+    configuracion_por_mes: Array.isArray(props.oracionCantada.configuracion_por_mes)
+        ? props.oracionCantada.configuracion_por_mes.map((configuracion) => ({
+            ...configuracion,
+            hora: configuracion.hora ? String(configuracion.hora).slice(0, 5) : '08:00',
+            dias_semana: Array.isArray(configuracion.dias_semana) ? configuracion.dias_semana : [],
+        }))
+        : [],
     modalidad_id: props.oracionCantada.modalidad_id ?? null,
     stream_id: props.oracionCantada.stream_id ?? null,
     imagen: props.oracionCantada.imagen ?? '',

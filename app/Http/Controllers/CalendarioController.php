@@ -164,11 +164,13 @@ class CalendarioController extends Controller
             ->where('mostrar_en_calendario', true)
             ->orderBy('hora')
             ->orderBy('nombre')
-            ->get(['id', 'nombre', 'periodicidad', 'dia', 'dias_semana', 'hora']);
+            ->get(['id', 'nombre', 'periodicidad', 'dia', 'dias_semana', 'hora', 'configuracion_por_mes']);
 
         foreach ($oraciones as $oracion) {
-            if ($oracion->periodicidad === 'Mensual') {
-                $dia = (int) ($oracion->dia ?? 0);
+            $configuracion = $oracion->configuracionParaMes($monthStart);
+
+            if ($configuracion['periodicidad'] === 'Mensual') {
+                $dia = (int) ($configuracion['dia'] ?? 0);
                 if ($dia === 29 && $monthStart->daysInMonth === 28) {
                     $dia = 28;
                 }
@@ -182,17 +184,17 @@ class CalendarioController extends Controller
                     'id' => $oracion->id,
                     'nombre' => $oracion->nombre,
                     'fecha' => $fecha->toDateString(),
-                    'hora' => $oracion->hora ? Carbon::parse($oracion->hora)->format('H:i') : null,
+                    'hora' => $configuracion['hora'] ? Carbon::parse($configuracion['hora'])->format('H:i') : null,
                     'tipo' => 'oracion',
                 ]);
                 continue;
             }
 
-            if ($oracion->periodicidad !== 'Diaria') {
+            if ($configuracion['periodicidad'] !== 'Diaria') {
                 continue;
             }
 
-            $diasSemana = collect($oracion->dias_semana ?? [])->map(fn ($d) => (string) $d)->values();
+            $diasSemana = collect($configuracion['dias_semana'] ?? [])->map(fn ($d) => (string) $d)->values();
             if ($diasSemana->isEmpty()) {
                 continue;
             }
@@ -207,7 +209,7 @@ class CalendarioController extends Controller
                     'id' => $oracion->id,
                     'nombre' => $oracion->nombre,
                     'fecha' => $cursor->toDateString(),
-                    'hora' => $oracion->hora ? Carbon::parse($oracion->hora)->format('H:i') : null,
+                    'hora' => $configuracion['hora'] ? Carbon::parse($configuracion['hora'])->format('H:i') : null,
                     'tipo' => 'oracion',
                 ]);
             }

@@ -11,7 +11,7 @@ import Swal from "sweetalert2";
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 
-defineProps({
+const props = defineProps({
     versiones: {
         type: Object,
         required: true
@@ -79,9 +79,17 @@ const deleteVersion = (id) => {
                             
                             <Column field="version" header="Versión" :sortable="true">
                                 <template #body="slotProps">
-                                    <span class="font-semibold text-lg text-indigo-700">
-                                        {{ slotProps.data.version }}
-                                    </span>
+                                    <div class="flex items-center">
+                                        <span class="font-semibold text-lg text-indigo-700">
+                                            {{ slotProps.data.version }}
+                                        </span>
+                                        <span
+                                            v-if="slotProps.data.id === props.versiones[0]?.id"
+                                            class="ml-2 inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700"
+                                        >
+                                            Actual
+                                        </span>
+                                    </div>
                                 </template>
                             </Column>
                             
