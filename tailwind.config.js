@@ -4,6 +4,13 @@ import typography from '@tailwindcss/typography';
 
 /** @type {import('tailwindcss').Config} */
 export default {
+    darkMode: 'class',
+    // PrimeFlex (importado en app.js) tiene clases utilitarias con !important
+    // (bg-white, text-*, etc.) que ganaban sobre Tailwind. Con important:true las
+    // utilidades de Tailwind también llevan !important + Tailwind se importa al
+    // final → Tailwind gana por orden de cascada.
+    important: true,
+
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './vendor/laravel/jetstream/**/*.blade.php',

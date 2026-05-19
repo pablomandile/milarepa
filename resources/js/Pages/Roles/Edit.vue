@@ -60,18 +60,18 @@ const submit = () => {
 
     <AppLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-100">
                 Editar Rol
             </h2>
         </template>
 
         <div class="max-w-6xl mx-auto py-10 sm:px-6 lg:px-8">
-            <div class="bg-white shadow-sm sm:rounded-lg">
+            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <form @submit.prevent="submit">
                         <!-- Información básica del rol -->
                         <div class="mb-6">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Información del Rol</h3>
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Información del Rol</h3>
                             
                             <div class="grid grid-cols-2 gap-4 mb-4">
                                 <div>
@@ -102,7 +102,7 @@ const submit = () => {
 
                         <!-- Gestión de permisos -->
                         <div class="mb-6">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Asignar Permisos</h3>
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Asignar Permisos</h3>
                             
                             <!-- Búsqueda -->
                             <div class="mb-4">
@@ -110,7 +110,7 @@ const submit = () => {
                                     v-model="searchQuery"
                                     type="text"
                                     placeholder="Buscar permisos..."
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
                                 />
                             </div>
 
@@ -133,7 +133,7 @@ const submit = () => {
                             </div>
 
                             <!-- Lista de permisos -->
-                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto border border-gray-200 p-4 rounded-lg">
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto border border-gray-200 dark:border-gray-700 p-4 rounded-lg">
                                 <label
                                     v-for="permission in filteredPermissions()"
                                     :key="permission.id"
@@ -145,9 +145,9 @@ const submit = () => {
                                         type="checkbox"
                                         :checked="isPermissionSelected(permission.id)"
                                         @change="togglePermission(permission.id)"
-                                        class="permission-checkbox mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                        class="permission-checkbox mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-600"
                                     />
-                                    <span class="text-sm text-gray-700 leading-tight">
+                                    <span class="text-sm text-gray-700 dark:text-gray-300 leading-tight">
                                         {{ permission.name }}
                                     </span>
                                 </label>

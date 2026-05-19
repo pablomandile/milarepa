@@ -27,18 +27,18 @@
 <template>
   <AppLayout>
     <template #header>
-      <h1 class="font-semibold text-xl text-gray-800 leading-tight">Asistencia</h1>
+      <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Asistencia</h1>
     </template>
 
-    <div class="min-h-screen bg-white">
+    <div class="min-h-screen bg-white dark:bg-gray-800">
       <div class="max-w-md mx-auto px-4 py-6 sm:px-6 text-center">
         <div class="mb-4">
           <h2 class="text-2xl font-bold text-green-600">Asistencia registrada</h2>
-          <p class="text-gray-700 mt-2">{{ actividad.nombre }}</p>
+          <p class="text-gray-700 dark:text-gray-300 mt-2">{{ actividad.nombre }}</p>
         </div>
         <p class="text-sm text-gray-500">Inscripción #{{ inscripcion.id }}</p>
         <div class="mt-6">
-          <Link :href="route('inscripciones.index')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          <Link :href="route('inscripciones.index')" class="px-4 py-2 bg-gray-200 text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300">
             Volver
           </Link>
         </div>

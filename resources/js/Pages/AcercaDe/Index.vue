@@ -35,7 +35,7 @@ const props = defineProps({
                         Volver al panel
                     </Link>
                 </div>
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
                     <!-- Header -->
                     <div class="p-6 bg-gradient-to-r from-indigo-500 to-purple-600">
                         <h1 class="text-3xl font-bold text-white flex items-center">
@@ -56,11 +56,11 @@ const props = defineProps({
                                         </div>
                                     </div>
                                     <div class="ml-4">
-                                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Versión del Sistema</h3>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Versión del Sistema</h3>
                                         <p class="text-2xl font-bold text-indigo-600 mb-2">
                                             {{ version.version || 'Sin versión disponible' }}
                                         </p>
-                                        <p class="text-sm text-gray-600">
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">
                                             <i class="fas fa-calendar-alt mr-2 text-indigo-500"></i>
                                             Última actualización: 
                                             <span class="font-semibold">{{ new Date(version.created_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }) || 'Fecha no especificada' }}</span>
@@ -80,11 +80,11 @@ const props = defineProps({
                                         />
                                     </div>
                                     <div class="ml-4">
-                                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Desarrollado por</h3>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Desarrollado por</h3>
                                         <p class="text-xl font-bold text-purple-600 mb-3">
                                             Pablo Mandile
                                         </p>
-                                        <div class="flex items-center text-gray-700">
+                                        <div class="flex items-center text-gray-700 dark:text-gray-300">
                                             <i class="fas fa-envelope mr-2 text-purple-500"></i>
                                             <a 
                                                 href="mailto:pablo.mandile@gmail.com" 

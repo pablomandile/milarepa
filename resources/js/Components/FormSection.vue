@@ -31,7 +31,7 @@ const props = defineProps({
       </div>
 
       <div class="md:col-span-2">
-        <div class="bg-white p-4 shadow sm:rounded-lg">
+        <div class="bg-white dark:bg-gray-800 p-4 shadow sm:rounded-lg">
           <slot name="form" />
           <div class="mt-6">
             <slot name="actions" />

@@ -64,11 +64,11 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Lugares de Hospedaje</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Lugares de Hospedaje</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-6xl mx-auto">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-6xl mx-auto">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create lugares_hospedaje')">
                         <Link :href="route('lugareshospedaje.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
                             NUEVA LUGARES DE HOSPEDAJE
@@ -123,28 +123,28 @@
         <template v-if="lugarHospedajeSeleccionado">
             <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 shadow-inner">
                 <!-- Nombre destacado -->
-                <div class="bg-white rounded-lg p-5 mb-4 shadow-sm border-l-4 border-indigo-500">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-5 mb-4 shadow-sm border-l-4 border-indigo-500">
                     <div class="flex items-center">
                         <i class="fas fa-hotel text-indigo-600 text-2xl mr-3"></i>
-                        <h3 class="text-xl font-bold text-gray-800">{{ lugarHospedajeSeleccionado.nombre }}</h3>
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">{{ lugarHospedajeSeleccionado.nombre }}</h3>
                     </div>
                 </div>
 
                 <!-- Descripción -->
                 <div v-if="lugarHospedajeSeleccionado.descripcion && lugarHospedajeSeleccionado.descripcion.trim() !== ''" 
-                     class="bg-white rounded-lg p-5 mb-4 shadow-sm">
+                     class="bg-white dark:bg-gray-800 rounded-lg p-5 mb-4 shadow-sm">
                     <div class="flex items-start">
                         <i class="fas fa-align-left text-indigo-600 text-lg mr-3 mt-1"></i>
                         <div>
-                            <h4 class="font-semibold text-gray-700 mb-2">Descripción</h4>
-                            <p class="text-gray-600 leading-relaxed">{{ lugarHospedajeSeleccionado.descripcion }}</p>
+                            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Descripción</h4>
+                            <p class="text-gray-600 dark:text-gray-400 leading-relaxed">{{ lugarHospedajeSeleccionado.descripcion }}</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Información de contacto -->
-                <div class="bg-white rounded-lg p-5 shadow-sm space-y-4">
-                    <h4 class="font-semibold text-gray-700 mb-3 flex items-center">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm space-y-4">
+                    <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
                         <i class="fas fa-address-card text-indigo-600 text-lg mr-2"></i>
                         Información de Contacto
                     </h4>
@@ -154,7 +154,7 @@
                         <i class="fas fa-map-marker-alt text-indigo-600 text-lg mr-3 mt-0.5"></i>
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Dirección</p>
-                            <p class="text-gray-700">{{ lugarHospedajeSeleccionado.direccion }}</p>
+                            <p class="text-gray-700 dark:text-gray-300">{{ lugarHospedajeSeleccionado.direccion }}</p>
                         </div>
                     </div>
 
@@ -164,7 +164,7 @@
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Teléfono</p>
                             <a :href="`tel:${lugarHospedajeSeleccionado.telefono}`" 
-                               class="text-gray-700 hover:text-indigo-600 transition-colors">
+                               class="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors">
                                 {{ lugarHospedajeSeleccionado.telefono }}
                             </a>
                         </div>
@@ -176,7 +176,7 @@
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Email</p>
                             <a :href="`mailto:${lugarHospedajeSeleccionado.email}`" 
-                               class="text-gray-700 hover:text-indigo-600 transition-colors">
+                               class="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors">
                                 {{ lugarHospedajeSeleccionado.email }}
                             </a>
                         </div>

@@ -41,6 +41,7 @@ class HandleInertiaRequests extends Middleware
         return array_merge(parent::share($request), [
             'user.roles' => $request->user() ? $request->user()->roles->pluck('name') : [],
             'user.permissions' => $request->user() ? $request->user()->getPermissionsViaRoles()->pluck('name') : [],
+            'auth.theme_preference' => fn () => $request->user()?->theme_preference,
             'ui' => fn () => $this->resolverUiConfig(),
             'flash' => [
                 // Mensajes tipo flash disponibles en el cliente

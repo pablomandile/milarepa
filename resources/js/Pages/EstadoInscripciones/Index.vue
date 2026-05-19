@@ -3,7 +3,7 @@
         <Toast position="top-right" />
         <template #header>
             <div class="flex justify-between items-center">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
                     <i class="fas fa-clipboard-check mr-2 text-indigo-600"></i>
                     Estado de Inscripciones
                 </h2>
@@ -12,13 +12,13 @@
 
         <div class="py-12">
             <div class="w-full p-0 sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-0 sm:p-6 text-gray-900">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-0 sm:p-6 text-gray-900 dark:text-gray-100">
                         <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center px-4 sm:px-0">
-                            <label class="text-sm font-medium text-gray-700">Filtro</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Filtro</label>
                             <select
                                 v-model="filtroPeriodo"
-                                class="rounded border border-gray-300 px-4 py-1 text-sm w-56"
+                                class="rounded border border-gray-300 dark:border-gray-600 px-4 py-1 text-sm w-56"
                             >
                                 <option value="last1">Último mes</option>
                                 <option value="all">Mostrar todo</option>
@@ -47,11 +47,11 @@
                             <div
                                 v-for="inscripcion in filtradas"
                                 :key="inscripcion.id"
-                                class="overflow-hidden border border-gray-200 bg-white shadow-sm"
+                                class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
                             >
                                 <div class="space-y-3 p-4">
                                     <div class="flex flex-col gap-1">
-                                        <span class="font-semibold text-gray-800">{{ nombreUsuario(inscripcion) }}</span>
+                                        <span class="font-semibold text-gray-800 dark:text-gray-100">{{ nombreUsuario(inscripcion) }}</span>
                                         <span
                                             class="inline-flex w-fit items-center px-2 py-1 rounded-full text-xs font-medium"
                                             :class="isInvitado(inscripcion) ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
@@ -60,12 +60,12 @@
                                         </span>
                                     </div>
 
-                                    <div class="space-y-2 text-sm text-gray-700">
+                                    <div class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                                         <div>
-                                            <p class="text-sm font-semibold text-gray-800">
+                                            <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                 {{ inscripcion.actividad?.nombre || '-' }}
                                             </p>
-                                            <p class="text-xs text-gray-600">
+                                            <p class="text-xs text-gray-600 dark:text-gray-400">
                                                 {{ inscripcion.actividad?.entidad?.nombre || '-' }}
                                             </p>
                                         </div>
@@ -81,7 +81,7 @@
                                                     type="number"
                                                     min="0"
                                                     step="0.01"
-                                                    class="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
+                                                    class="w-28 rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm"
                                                 />
                                             </template>
                                             <span v-else class="text-blue-700 font-medium">
@@ -93,7 +93,7 @@
                                             <template v-if="isEditing(inscripcion)">
                                                 <select
                                                     v-model="editForm.pago"
-                                                    class="rounded border border-gray-300 px-2 py-1 text-sm"
+                                                    class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm"
                                                 >
                                                     <option value="Saldado">Saldado</option>
                                                     <option value="Parcial">Parcial</option>
@@ -116,7 +116,7 @@
 
                                     <button
                                         type="button"
-                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50"
                                         @click="toggleCardExpanded(inscripcion.id)"
                                     >
                                         <span>{{ isCardExpanded(inscripcion.id) ? 'Ocultar detalles' : 'Ver mas detalles' }}</span>
@@ -126,8 +126,8 @@
                                         ></i>
                                     </button>
 
-                                    <div v-if="isCardExpanded(inscripcion.id)" class="rounded-md border border-gray-200 bg-gray-50 p-3">
-                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
+                                    <div v-if="isCardExpanded(inscripcion.id)" class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
+                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700 dark:text-gray-300">
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</p>
                                                 <p>{{ emailUsuario(inscripcion) }}</p>
@@ -228,7 +228,7 @@
                                     </div>
                                 </div>
 
-                                <div class="border-t border-gray-200 bg-white px-4 py-3">
+                                <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
                                     <div v-if="canEdit" class="flex flex-wrap justify-center gap-2">
                                         <template v-if="isEditing(inscripcion)">
                                             <button
@@ -241,7 +241,7 @@
                                                 <span>Guardar</span>
                                             </button>
                                             <button
-                                                class="inline-flex items-center justify-center gap-2 rounded bg-gray-200 px-3 py-2 text-xs text-gray-700 hover:bg-gray-300"
+                                                class="inline-flex items-center justify-center gap-2 rounded bg-gray-200 px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-300"
                                                 @click="cancelarEdicion"
                                                 aria-label="Cancelar"
                                                 title="Cancelar"
@@ -291,7 +291,7 @@
                                 <Column header="Nombre">
                                     <template #body="{ data }">
                                         <div class="flex flex-col gap-1">
-                                            <span class="font-semibold text-gray-800">{{ nombreUsuario(data) }}</span>
+                                            <span class="font-semibold text-gray-800 dark:text-gray-100">{{ nombreUsuario(data) }}</span>
                                             <span
                                                 class="inline-flex w-fit items-center px-2 py-1 rounded-full text-xs font-medium"
                                                 :class="isInvitado(data) ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
@@ -305,10 +305,10 @@
                                 <Column header="Actividad">
                                     <template #body="{ data }">
                                         <div>
-                                            <p class="text-sm font-semibold text-gray-800">
+                                            <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                 {{ data.actividad?.nombre || '-' }}
                                             </p>
-                                            <p class="text-xs text-gray-600">
+                                            <p class="text-xs text-gray-600 dark:text-gray-400">
                                                 {{ data.actividad?.entidad?.nombre || '-' }}
                                             </p>
                                         </div>
@@ -329,7 +329,7 @@
                                             type="number"
                                             min="0"
                                             step="0.01"
-                                            class="w-28 rounded border border-gray-300 px-2 py-1 text-sm"
+                                            class="w-28 rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm"
                                         />
                                         <span v-else class="text-sm">
                                             <span class="text-blue-700 font-medium">${{ formatearMonto(data.montoapagar) }}</span>
@@ -342,7 +342,7 @@
                                         <select
                                             v-if="isEditing(data)"
                                             v-model="editForm.pago"
-                                            class="rounded border border-gray-300 px-2 py-1 text-sm"
+                                            class="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm"
                                         >
                                             <option value="Saldado">Saldado</option>
                                             <option value="Parcial">Parcial</option>
@@ -444,7 +444,7 @@
                                                     ✓
                                                 </button>
                                                 <button
-                                                    class="inline-flex items-center justify-center rounded bg-gray-200 px-2 py-1 text-xs text-gray-700 hover:bg-gray-300"
+                                                    class="inline-flex items-center justify-center rounded bg-gray-200 px-2 py-1 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-300"
                                                     @click="cancelarEdicion"
                                                     aria-label="Cancelar"
                                                     title="Cancelar"
@@ -476,31 +476,31 @@
                                 </Column>
 
                                 <template #expansion="{ data }">
-                                    <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+                                    <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-md p-4">
                                         <div class="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-6">
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</p>
-                                                <p class="text-sm text-gray-800">{{ emailUsuario(data) }}</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ emailUsuario(data) }}</p>
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">País</p>
-                                                <p class="text-sm text-gray-800">{{ paisUsuario(data) }}</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ paisUsuario(data) }}</p>
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Provincia</p>
-                                                <p class="text-sm text-gray-800">{{ provinciaUsuario(data) }}</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ provinciaUsuario(data) }}</p>
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Municipio/Barrio</p>
-                                                <p class="text-sm text-gray-800">{{ municipioBarrioUsuario(data) }}</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ municipioBarrioUsuario(data) }}</p>
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Inscripto</p>
-                                                <p class="text-sm text-gray-800">{{ formatearFecha(data.created_at) }}</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ formatearFecha(data.created_at) }}</p>
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Modalidad</p>
-                                                <p class="text-sm text-gray-800">{{ modalidadInscripcion(data) }}</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ modalidadInscripcion(data) }}</p>
                                             </div>
                                             <div v-if="data.montoActividad !== null && data.montoActividad !== undefined">
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Monto Actividad</p>
@@ -520,11 +520,11 @@
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Auditor</p>
-                                                <p class="text-sm text-gray-800">{{ data.auditor_user?.name || '-' }}</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ data.auditor_user?.name || '-' }}</p>
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Auditado</p>
-                                                <p class="text-sm text-gray-800">{{ formatearFecha(data.auditoria_fecha) }}</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ formatearFecha(data.auditoria_fecha) }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -534,7 +534,7 @@
 
                         <div v-else class="text-center py-12">
                             <i class="fas fa-inbox text-5xl text-gray-400 mb-4"></i>
-                            <p class="text-gray-600 text-lg">No hay inscripciones activas</p>
+                            <p class="text-gray-600 dark:text-gray-400 text-lg">No hay inscripciones activas</p>
                             <p class="text-gray-500 text-sm mt-2">
                                 Las inscripciones aparecerán cuando los usuarios se registren en actividades
                             </p>
@@ -550,7 +550,7 @@
                 <div
                     v-for="(item, index) in comprobantesParaVer"
                     :key="`${item.url}-${index}`"
-                    class="rounded border border-gray-200 p-3 bg-white"
+                    class="rounded border border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800"
                 >
                     <p v-if="item.descripcion" class="text-xs text-gray-500 mb-2">
                         {{ item.descripcion }}
@@ -567,14 +567,14 @@
             header="Confirmar saldado"
             :style="{ width: '420px' }"
         >
-            <p class="text-sm text-gray-700">
+            <p class="text-sm text-gray-700 dark:text-gray-300">
                 ¿Confirmas marcar la inscripción como saldada y dejar el monto en $0?
             </p>
             <template #footer>
                 <div class="flex justify-end gap-2">
                     <button
                         type="button"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300"
                         @click="confirmSaldadoVisible = false"
                     >
                         Cancelar
@@ -596,18 +596,18 @@
             header="Subir comprobante"
             :style="{ width: '450px' }"
         >
-            <p class="text-sm text-gray-600 mb-3">
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 Subí un comprobante (PDF, JPG o PNG).
             </p>
             <div class="mb-3">
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="estado_inscripciones_comprobante_descripcion">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="estado_inscripciones_comprobante_descripcion">
                     Descripción (opcional)
                 </label>
                 <input
                     id="estado_inscripciones_comprobante_descripcion"
                     v-model="comprobanteDescripcion"
                     type="text"
-                    class="block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-700"
+                    class="block w-full rounded border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300"
                     placeholder="Ej: Transferencia febrero"
                 />
             </div>
@@ -615,13 +615,13 @@
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 @change="onComprobanteChange"
-                class="block w-full text-sm text-gray-700"
+                class="block w-full text-sm text-gray-700 dark:text-gray-300"
             />
             <template #footer>
                 <div class="flex justify-end gap-2">
                     <button
                         type="button"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300"
                         @click="comprobanteModalVisible = false"
                     >
                         Cancelar
@@ -644,14 +644,14 @@
             header="Confirmar envío"
             :style="{ width: '520px' }"
         >
-            <p class="text-sm text-gray-700">
+            <p class="text-sm text-gray-700 dark:text-gray-300">
                 Se enviarán {{ totalConfirmacionesPendientes }} confirmaciones de inscripción por correo electrónico.
             </p>
             <template #footer>
                 <div class="flex justify-end gap-2">
                     <button
                         type="button"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300"
                         :disabled="isSendingConfirmaciones"
                         @click="confirmEnviosVisible = false"
                     >
@@ -675,14 +675,14 @@
             header="Confirmar envío"
             :style="{ width: '520px' }"
         >
-            <p class="text-sm text-gray-700">
+            <p class="text-sm text-gray-700 dark:text-gray-300">
                 Se enviarán {{ totalGrabacionesPendientes }} notificaciones de grabación por correo electrónico.
             </p>
             <template #footer>
                 <div class="flex justify-end gap-2">
                     <button
                         type="button"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300"
                         :disabled="isSendingGrabaciones"
                         @click="confirmEnviosGrabacionesVisible = false"
                     >

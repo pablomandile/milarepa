@@ -2,7 +2,7 @@
     <AppLayout title="Estado de Cuenta - Membresías">
         <template #header>
             <div class="flex justify-between items-center">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
                     <i class="fas fa-receipt mr-2 text-indigo-600"></i>
                     Estado de Cuenta de Membresías
                 </h2>
@@ -11,23 +11,23 @@
 
         <div class="py-12">
             <div class="w-full p-0 sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-0 sm:p-6 text-gray-900">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-0 sm:p-6 text-gray-900 dark:text-gray-100">
                         <!-- Tabla de Estado de Cuentas -->
                         <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center px-4 sm:px-0">
-                            <label class="text-sm font-medium text-gray-700">Filtro</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Filtro</label>
                             <select
                                 v-model="filtroPeriodo"
-                                class="rounded border border-gray-300 px-4 py-1 text-sm w-56"
+                                class="rounded border border-gray-300 dark:border-gray-600 px-4 py-1 text-sm w-56"
                             >
                                 <option value="last1">Último mes</option>
                                 <option value="all">Mostrar todo</option>
                             </select>
-                            <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                                 <input
                                     v-model="mostrarExpiradas"
                                     type="checkbox"
-                                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500"
                                 >
                                 Mostrar Expiradas
                             </label>
@@ -37,19 +37,19 @@
                             <div
                                 v-for="cuenta in filtradas"
                                 :key="cuenta.id"
-                                class="overflow-hidden border border-gray-200 bg-white shadow-sm"
+                                class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
                             >
                                 <div class="space-y-3 p-4">
                                     <div class="space-y-1">
-                                        <p class="text-base font-semibold text-gray-800">{{ cuenta.user.name }}</p>
-                                        <p class="text-sm text-gray-600">{{ cuenta.user.email }}</p>
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100">{{ cuenta.user.name }}</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ cuenta.user.email }}</p>
                                     </div>
 
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between gap-3">
                                             <span class="text-sm text-gray-500">Membresia</span>
                                             <div class="text-right">
-                                                <p class="text-sm font-semibold text-gray-800">
+                                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                     {{ cuenta.membresia.nombre }}
                                                     <span
                                                         v-if="cuenta.user?.membresia_online || cuenta.user?.membresia_usuario?.membresia_online"
@@ -58,7 +58,7 @@
                                                         Online
                                                     </span>
                                                 </p>
-                                                <p class="text-xs text-gray-600">{{ cuenta.membresia.entidad.nombre }}</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-400">{{ cuenta.membresia.entidad.nombre }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-center justify-between gap-3 text-sm">
@@ -90,7 +90,7 @@
 
                                     <button
                                         type="button"
-                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50"
                                         @click="toggleCardExpanded(cuenta.id)"
                                     >
                                         <span>{{ isCardExpanded(cuenta.id) ? 'Ocultar detalles' : 'Ver mas detalles' }}</span>
@@ -100,8 +100,8 @@
                                         ></i>
                                     </button>
 
-                                    <div v-if="isCardExpanded(cuenta.id)" class="rounded-md border border-gray-200 bg-gray-50 p-3">
-                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
+                                    <div v-if="isCardExpanded(cuenta.id)" class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
+                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700 dark:text-gray-300">
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Modo</p>
                                                 <p>{{ cuenta.modo || '-' }}</p>
@@ -133,7 +133,7 @@
                                     </div>
                                 </div>
 
-                                <div class="border-t border-gray-200 bg-white px-4 py-3">
+                                <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
                                     <div class="flex flex-wrap items-center justify-center gap-2">
                                         <Link
                                             v-if="$page.props.user.permissions.includes('update estado_cuenta_membresias')"
@@ -160,34 +160,34 @@
                         </div>
 
                         <div v-if="filtradas.length > 0" class="hidden overflow-x-auto sm:block">
-                            <table class="min-w-full border-collapse border border-gray-300">
+                            <table class="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
                                 <thead class="bg-indigo-300 text-white text-sm">
                                     <tr>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Usuario</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Membresía</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Mes</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Importe</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-center">Estado</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Modo</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">
+                                        <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-left">Usuario</th>
+                                        <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-left">Membresía</th>
+                                        <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-left">Mes</th>
+                                        <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-left">Importe</th>
+                                        <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center">Estado</th>
+                                        <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-left">Modo</th>
+                                        <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-left">
                                             <i class="fas fa-calendar mr-1"></i>Pago
                                         </th>
-                                        <th class="border border-gray-300 px-2 py-2 text-center">Comprobante</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-left">Observaciones</th>
-                                        <th class="border border-gray-300 px-2 py-2 text-center">Acciones</th>
+                                        <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center">Comprobante</th>
+                                        <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-left">Observaciones</th>
+                                        <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-for="cuenta in filtradas" :key="cuenta.id" class="hover:bg-gray-50">
-                                        <td class="border border-gray-300 px-2 py-2">
+                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-2">
                                             <div>
-                                                <p class="text-sm font-semibold text-gray-800">{{ cuenta.user.name }}</p>
-                                                <p class="text-xs text-gray-600">{{ cuenta.user.email }}</p>
+                                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">{{ cuenta.user.name }}</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-400">{{ cuenta.user.email }}</p>
                                             </div>
                                         </td>
-                                        <td class="border border-gray-300 px-2 py-2">
+                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-2">
                                             <div>
-                                                <p class="text-sm font-semibold text-gray-800">
+                                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">
                                                     {{ cuenta.membresia.nombre }}
                                                     <span
                                                         v-if="cuenta.user?.membresia_online || cuenta.user?.membresia_usuario?.membresia_online"
@@ -196,16 +196,16 @@
                                                         Online
                                                     </span>
                                                 </p>
-                                                <p class="text-xs text-gray-600">{{ cuenta.membresia.entidad.nombre }}</p>
+                                                <p class="text-xs text-gray-600 dark:text-gray-400">{{ cuenta.membresia.entidad.nombre }}</p>
                                             </div>
                                         </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
+                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-sm">
                                             {{ formatearMes(cuenta.mes_pagado) }}
                                         </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
+                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-sm">
                                             ${{ parseFloat(cuenta.importe).toFixed(2) }}
                                         </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-center">
+                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center">
                                             <span v-if="cuenta.pagado" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                 <i class="fas fa-check-circle mr-1"></i>
                                                 Pagado
@@ -215,13 +215,13 @@
                                                 Pendiente
                                             </span>
                                         </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
+                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-sm">
                                             {{ cuenta.modo || '-' }}
                                         </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
+                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-sm">
                                             {{ cuenta.fecha_pago ? formatearFecha(cuenta.fecha_pago) : '-' }}
                                         </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-center">
+                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center">
                                             <button
                                                 v-if="cuenta.comprobante"
                                                 @click="abrirComprobante(cuenta.comprobante)"
@@ -232,10 +232,10 @@
                                             </button>
                                             <span v-else class="text-gray-400">-</span>
                                         </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-sm">
+                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-sm">
                                             {{ cuenta.observaciones || '-' }}
                                         </td>
-                                        <td class="border border-gray-300 px-2 py-2 text-center">
+                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center">
                                             <Link 
                                                 v-if="$page.props.user.permissions.includes('update estado_cuenta_membresias')"
                                                 :href="route('estado-cuenta-membresias.edit', cuenta.id)"
@@ -258,7 +258,7 @@
                         <!-- Mensaje si no hay datos -->
                         <div v-else class="text-center py-12">
                             <i class="fas fa-inbox text-5xl text-gray-400 mb-4"></i>
-                            <p class="text-gray-600 text-lg">No hay registros de estado de cuenta</p>
+                            <p class="text-gray-600 dark:text-gray-400 text-lg">No hay registros de estado de cuenta</p>
                             <p class="text-gray-500 text-sm mt-2">
                                 Los registros aparecerán cuando los usuarios se inscriban en membresías
                             </p>

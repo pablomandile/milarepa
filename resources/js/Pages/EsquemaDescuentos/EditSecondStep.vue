@@ -98,7 +98,7 @@ function onRowEditCancel(event) {
 <template>
     <AppLayout title="Editar Esquema de Precios">
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
                 Agregar Membresía y Precio
             </h1>
         </template>
@@ -120,7 +120,7 @@ function onRowEditCancel(event) {
                 </h2>
 
                 <!-- Formulario para AGREGAR una nueva membresía -->
-                <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg mb-6 mt-6 p-4">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg mb-6 mt-6 p-4">
                     <EsquemaMembresiaForm
                         :form="formMembresia"
                         :membresias="membresias"
@@ -156,7 +156,7 @@ function onRowEditCancel(event) {
                             optionLabel="label"
                             optionValue="id"
                             placeholder="Elige membresía"
-                            class="w-full mt-1 border border-gray-300"
+                            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                           />
                         </template>
                       </Column>
@@ -176,7 +176,7 @@ function onRowEditCancel(event) {
                             optionLabel="nombre"
                             optionValue="id"
                             placeholder="Elige moneda"
-                            class="w-full mt-1 border border-gray-300"
+                            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                           />
                         </template>
                       </Column>
@@ -194,7 +194,7 @@ function onRowEditCancel(event) {
                             optionLabel="nombre"
                             optionValue="id"
                             placeholder="Elige boton de pago"
-                            class="w-full mt-1 border border-gray-300"
+                            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                             showClear
                           />
                         </template>
@@ -212,7 +212,7 @@ function onRowEditCancel(event) {
                           <InputText
                             v-model="data.precio"
                             type="number"
-                            class="w-full mt-1 border border-gray-300"
+                            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                           />
                         </template>
                       </Column>

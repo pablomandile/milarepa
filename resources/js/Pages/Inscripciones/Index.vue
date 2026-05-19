@@ -198,7 +198,7 @@ watch(() => $page.props.flash, (flash) => {
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Mis Inscripciones</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Mis Inscripciones</h1>
         </template>
         <Toast position="top-right" />
         <div class="py-12">
@@ -221,17 +221,17 @@ watch(() => $page.props.flash, (flash) => {
                     {{ $page.props.flash.error }}
                 </div>
                 
-                <div class="bg-white border-b border-gray-200 p-0 sm:p-6">
+                <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-0 sm:p-6">
                     <div class="mt-4">
                         <div class="space-y-4 sm:hidden">
                             <div
                                 v-for="inscripcion in inscripciones"
                                 :key="inscripcion.id"
-                                class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+                                class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
                             >
                                 <Link
                                     :href="route('inscripciones.show', { inscripcion: inscripcion.id })"
-                                    class="block w-full bg-gray-100"
+                                    class="block w-full bg-gray-100 dark:bg-gray-900"
                                     title="Ver inscripción"
                                 >
                                     <img
@@ -250,15 +250,15 @@ watch(() => $page.props.flash, (flash) => {
 
                                 <div class="space-y-3 p-4">
                                     <div class="space-y-1">
-                                        <p class="text-base font-semibold text-gray-800">
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100">
                                             {{ inscripcion.actividad?.nombre || '-' }}
                                         </p>
-                                        <p class="text-sm text-gray-600">
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">
                                             {{ inscripcion.actividad?.entidad?.nombre || '-' }}
                                         </p>
                                     </div>
 
-                                    <div class="space-y-2 text-sm text-gray-700">
+                                    <div class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                                         <div class="flex items-center justify-between gap-3">
                                             <span class="text-gray-500">Fecha</span>
                                             <span class="font-medium">
@@ -333,7 +333,7 @@ watch(() => $page.props.flash, (flash) => {
 
                                     <button
                                         type="button"
-                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50"
                                         @click="toggleCardExpanded(inscripcion.id)"
                                     >
                                         <span>{{ isCardExpanded(inscripcion.id) ? 'Ocultar detalles' : 'Ver mas detalles' }}</span>
@@ -343,8 +343,8 @@ watch(() => $page.props.flash, (flash) => {
                                         ></i>
                                     </button>
 
-                                    <div v-if="isCardExpanded(inscripcion.id)" class="rounded-md border border-gray-200 bg-gray-50 p-3">
-                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
+                                    <div v-if="isCardExpanded(inscripcion.id)" class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
+                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700 dark:text-gray-300">
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Membresia</p>
                                                 <p>{{ inscripcion.membresia || '-' }}</p>
@@ -379,7 +379,7 @@ watch(() => $page.props.flash, (flash) => {
                                     </div>
                                 </div>
 
-                                <div class="border-t border-gray-200 bg-white px-4 py-3">
+                                <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
                                     <div class="flex flex-wrap items-center justify-center gap-2">
                                         <Link
                                             v-if="inscripcion.pago === 'Saldado'"
@@ -442,7 +442,7 @@ watch(() => $page.props.flash, (flash) => {
                                 <template #body="{ data }">
                                     <Link
                                         :href="route('inscripciones.show', { inscripcion: data.id })"
-                                        class="block w-16 h-16 bg-gray-100 rounded overflow-hidden"
+                                        class="block w-16 h-16 bg-gray-100 dark:bg-gray-900 rounded overflow-hidden"
                                         title="Ver inscripción"
                                     >
                                         <img
@@ -464,10 +464,10 @@ watch(() => $page.props.flash, (flash) => {
                             <Column header="Actividad">
                                 <template #body="{ data }">
                                     <div>
-                                        <p class="text-sm font-semibold text-gray-800">
+                                        <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">
                                             {{ data.actividad?.nombre || '-' }}
                                         </p>
-                                        <p class="text-xs text-gray-600">
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">
                                             {{ data.actividad?.entidad?.nombre || '-' }}
                                         </p>
                                     </div>
@@ -613,39 +613,39 @@ watch(() => $page.props.flash, (flash) => {
                             </template>
 
                             <template #expansion="{ data }">
-                                <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+                                <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-md p-4">
                                     <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-7">
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Membresía</p>
-                                            <p class="text-sm text-gray-800">{{ data.membresia || '-' }}</p>
+                                            <p class="text-sm text-gray-800 dark:text-gray-100">{{ data.membresia || '-' }}</p>
                                         </div>
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Online</p>
-                                            <p class="text-sm text-gray-800">{{ data.online ? 'Sí' : 'No' }}</p>
+                                            <p class="text-sm text-gray-800 dark:text-gray-100">{{ data.online ? 'Sí' : 'No' }}</p>
                                         </div>
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Stream</p>
-                                            <p class="text-sm text-gray-800">{{ data.envioLinkStream || '-' }}</p>
+                                            <p class="text-sm text-gray-800 dark:text-gray-100">{{ data.envioLinkStream || '-' }}</p>
                                         </div>
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Grabación</p>
-                                            <p class="text-sm text-gray-800">{{ data.envioGrabacion || '-' }}</p>
+                                            <p class="text-sm text-gray-800 dark:text-gray-100">{{ data.envioGrabacion || '-' }}</p>
                                         </div>
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Transporte</p>
-                                            <p class="text-sm text-gray-800">
+                                            <p class="text-sm text-gray-800 dark:text-gray-100">
                                                 {{ data.transporte?.descripcion || data.transporte?.nombre || '-' }}
                                             </p>
                                         </div>
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Comidas</p>
-                                            <p class="text-sm text-gray-800">
+                                            <p class="text-sm text-gray-800 dark:text-gray-100">
                                                 {{ data.comidas?.length ? data.comidas.map((comida) => comida.nombre).join(', ') : (data.comida?.nombre || '-') }}
                                             </p>
                                         </div>
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Hospedaje</p>
-                                            <p class="text-sm text-gray-800">
+                                            <p class="text-sm text-gray-800 dark:text-gray-100">
                                                 {{ data.hospedaje?.nombre || '-' }}
                                             </p>
                                         </div>
@@ -668,7 +668,7 @@ watch(() => $page.props.flash, (flash) => {
                         <i class="pi pi-exclamation-triangle text-yellow-500 text-2xl mr-3"></i>
                         <span class="text-lg">¿Está seguro de eliminar la inscripción?</span>
                     </div>
-                    <p class="text-gray-600 mb-4">
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">
                         Esta acción no se puede deshacer. Se eliminará permanentemente la inscripción.
                     </p>
                     
@@ -696,18 +696,18 @@ watch(() => $page.props.flash, (flash) => {
                     header="Informar pago"
                     :style="{ width: '450px' }"
                 >
-                    <p class="text-sm text-gray-600 mb-3">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
                         Subí un comprobante (PDF, JPG o PNG).
                     </p>
                     <div class="mb-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-1" for="inscripcion_comprobante_descripcion">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="inscripcion_comprobante_descripcion">
                             Descripción (opcional)
                         </label>
                         <input
                             id="inscripcion_comprobante_descripcion"
                             v-model="comprobanteDescripcion"
                             type="text"
-                            class="block w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-700"
+                            class="block w-full rounded border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300"
                             placeholder="Ej: Transferencia febrero"
                         />
                     </div>
@@ -715,7 +715,7 @@ watch(() => $page.props.flash, (flash) => {
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
                         @change="onComprobanteChange"
-                        class="block w-full text-sm text-gray-700"
+                        class="block w-full text-sm text-gray-700 dark:text-gray-300"
                     />
                     <template #footer>
                         <div class="flex justify-end gap-2">
@@ -743,7 +743,7 @@ watch(() => $page.props.flash, (flash) => {
                         <div
                             v-for="(item, index) in comprobantesParaVer"
                             :key="`${item.url}-${index}`"
-                            class="rounded border border-gray-200 p-3 bg-white"
+                            class="rounded border border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800"
                         >
                             <p v-if="item.descripcion" class="text-xs text-gray-500 mb-2">
                                 {{ item.descripcion }}
@@ -761,10 +761,10 @@ watch(() => $page.props.flash, (flash) => {
                     :style="{ width: '800px' }"
                 >
                     <div v-if="selectedAddress" class="space-y-3">
-                        <p class="text-sm text-gray-700">{{ selectedAddress }}</p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">{{ selectedAddress }}</p>
                         <iframe
                             :src="mapEmbedUrl"
-                            class="w-full h-[60vh] rounded border border-gray-200"
+                            class="w-full h-[60vh] rounded border border-gray-200 dark:border-gray-700"
                             loading="lazy"
                             referrerpolicy="no-referrer-when-downgrade"
                         ></iframe>

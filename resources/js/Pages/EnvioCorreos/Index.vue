@@ -84,34 +84,34 @@ const formatFecha = (fecha) => {
 <template>
     <AppLayout title="Histórico de Envíos">
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Histórico de Envíos</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Histórico de Envíos</h1>
         </template>
 
         <div class="py-12">
             <div class="max-w-[110rem] mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Destinatario</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Destinatario</label>
                             <InputText
                                 v-model="formFilters.destinatario"
-                                class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                class="w-full border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                                 placeholder="Buscar destinatario"
                             />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Motivo</label>
                             <InputText
                                 v-model="formFilters.motivo"
-                                class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                class="w-full border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                                 placeholder="Buscar motivo"
                             />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha</label>
                             <select
                                 v-model="formFilters.fecha"
-                                class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                class="w-full border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                             >
                                 <option value="">Todas</option>
                                 <option v-for="fecha in fechasDisponibles" :key="fecha" :value="fecha">
@@ -120,10 +120,10 @@ const formatFecha = (fecha) => {
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
                             <select
                                 v-model="formFilters.tipo"
-                                class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                class="w-full border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                             >
                                 <option value="">Todos</option>
                                 <option v-for="tipo in tipos" :key="tipo" :value="tipo">
@@ -137,7 +137,7 @@ const formatFecha = (fecha) => {
                         <button
                             type="button"
                             @click="clearFilters"
-                            class="text-gray-700 bg-gray-200 hover:bg-gray-300 py-2 px-4 rounded"
+                            class="text-gray-700 dark:text-gray-300 bg-gray-200 hover:bg-gray-300 py-2 px-4 rounded"
                         >
                             Limpiar
                         </button>

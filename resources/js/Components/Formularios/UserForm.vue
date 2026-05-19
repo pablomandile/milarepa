@@ -100,7 +100,7 @@ const formatRoleName = (roleName) => {
                     :optionLabel="role => formatRoleName(role.name)"
                     placeholder="Seleccionar rol"
                     class="w-full mt-1"
-                    input-class="border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    input-class="border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 />
                 <InputError :message="$page.props.errors.roles" class="mt-2" />
             </div>

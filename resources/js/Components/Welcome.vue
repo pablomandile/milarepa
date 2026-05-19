@@ -1,11 +1,9 @@
 <script setup>
 
 import { ref, onMounted } from 'vue';
+import LogoUrl from '/resources/images/lotus-art-logo.webp';
 
-const logo = ref(null);
-import('../../images/lotus-art-logo.svg').then((module) => {
-    logo.value = module.default;
-});
+const logo = ref(LogoUrl);
 
 // Manejo de opacidad
 const logoOpacity = ref(1);
@@ -101,12 +99,12 @@ onMounted(() => {
 <template>
     <div class="flex-grow flex flex-col justify-between min-h-[calc(100vh-4rem)]">
       <div class="flex flex-col items-center mt-10">
-          <h1 class="font-semibold text-xl text-gray-800 leading-tight">
+          <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
             SISTEMA DE INSCRIPCIONES
           </h1>
    
       
-          <h1 class="font-semibold text-xl text-gray-800 leading-tight">
+          <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
             {{ $page.props.entidad_principal?.nombre }}
 
           </h1>
@@ -133,7 +131,7 @@ onMounted(() => {
         </div>
 
       <div class="flex justify-center mt-4 mb-4">
-        <h1 class="text-2xl" style="font-family: 'Parisienne', serif; font-weight: 400; font-style: normal;">¡Todos son Bienvenidos!</h1>
+        <h1 class="text-2xl dark:text-white" style="font-family: 'Parisienne', serif; font-weight: 400; font-style: normal;">¡Todos son Bienvenidos!</h1>
       </div>
         <!-- {{ $page.props }} -->
     </div>  

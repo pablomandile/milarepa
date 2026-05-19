@@ -201,13 +201,13 @@ function renderInfoMarkdown(value) {
         }
 
         if (line.startsWith('### ')) {
-            html.push(`<h5 class="text-sm font-semibold text-gray-900 mt-2">${formatInlineMarkdown(line.slice(4).trim())}</h5>`);
+            html.push(`<h5 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-2">${formatInlineMarkdown(line.slice(4).trim())}</h5>`);
         } else if (line.startsWith('## ')) {
-            html.push(`<h4 class="text-base font-semibold text-gray-900 mt-2">${formatInlineMarkdown(line.slice(3).trim())}</h4>`);
+            html.push(`<h4 class="text-base font-semibold text-gray-900 dark:text-gray-100 mt-2">${formatInlineMarkdown(line.slice(3).trim())}</h4>`);
         } else if (line.startsWith('# ')) {
-            html.push(`<h3 class="text-lg font-bold text-gray-900 mt-2">${formatInlineMarkdown(line.slice(2).trim())}</h3>`);
+            html.push(`<h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mt-2">${formatInlineMarkdown(line.slice(2).trim())}</h3>`);
         } else {
-            html.push(`<p class="text-xs text-gray-700 leading-relaxed mt-1">${formatInlineMarkdown(line)}</p>`);
+            html.push(`<p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed mt-1">${formatInlineMarkdown(line)}</p>`);
         }
     }
 
@@ -273,7 +273,7 @@ async function subirComprobante() {
                         Volver al panel
                     </Link>
                 </div>
-                <div class="bg-white shadow-1 rounded-none sm:rounded-lg">
+                <div class="bg-white dark:bg-gray-800 shadow-1 rounded-none sm:rounded-lg">
                     <div class="p-0 sm:p-6 border-bottom-1 border-200">
                         <div class="px-4 sm:px-0 flex justify-content-between align-items-center mb-4">
                             <div>
@@ -344,11 +344,11 @@ async function subirComprobante() {
                                             :key="membresia.id"
                                             class="col-12 md:col-6 xl:col-4 p-0 sm:p-2"
                                         >
-                                            <div class="p-card w-full bg-white border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300">
+                                            <div class="p-card w-full bg-white dark:bg-gray-800 border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300">
                                                 <div class="p-card-body p-4">
                                                     <div class="flex flex-col h-full">
                                                         <div
-                                                            class="mb-3 overflow-hidden rounded border border-gray-200 bg-gray-50 flip-card-container cursor-pointer"
+                                                            class="mb-3 overflow-hidden rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flip-card-container cursor-pointer"
                                                             :class="{ flipped: flippedCards[membresia.id] }"
                                                             @click="toggleFlip(membresia.id)"
                                                             :title="flippedCards[membresia.id] ? 'Ver imagen' : 'Ver info'"
@@ -362,7 +362,7 @@ async function subirComprobante() {
                                                                     />
                                                                 </div>
                                                                 <div class="flip-card-back">
-                                                                    <div class="h-full w-full overflow-y-auto rounded border border-gray-200 bg-white p-2">
+                                                                    <div class="h-full w-full overflow-y-auto rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2">
                                                                         <div v-html="renderInfoMarkdown(membresia.info || 'Sin info cargada.')"></div>
                                                                     </div>
                                                                 </div>
@@ -414,13 +414,13 @@ async function subirComprobante() {
                                         <div
                                             v-for="(membresia, index) in slotProps.items"
                                             :key="membresia.id"
-                                            class="col-12 p-card bg-white border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300"
+                                            class="col-12 p-card bg-white dark:bg-gray-800 border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300"
                                         >
                                             <div class="p-card-body p-4">
                                                 <div class="flex flex-col md:flex-row md:align-items-center md:justify-between">
                                                     <div class="flex-1">
                                                         <div
-                                                            class="mb-3 overflow-hidden rounded border border-gray-200 bg-gray-50 flip-card-container cursor-pointer"
+                                                            class="mb-3 overflow-hidden rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flip-card-container cursor-pointer"
                                                             :class="{ flipped: flippedCards[membresia.id] }"
                                                             @click="toggleFlip(membresia.id)"
                                                             :title="flippedCards[membresia.id] ? 'Ver imagen' : 'Ver info'"
@@ -434,7 +434,7 @@ async function subirComprobante() {
                                                                     />
                                                                 </div>
                                                                 <div class="flip-card-back">
-                                                                    <div class="h-full w-full overflow-y-auto rounded border border-gray-200 bg-white p-2">
+                                                                    <div class="h-full w-full overflow-y-auto rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2">
                                                                         <div v-html="renderInfoMarkdown(membresia.info || 'Sin info cargada.')"></div>
                                                                     </div>
                                                                 </div>
@@ -483,7 +483,7 @@ async function subirComprobante() {
 
                                 <template #empty>
                                     <div class="text-center py-8 px-4">
-                                        <div class="bg-gray-50 border-round p-6 border-1 border-dashed border-300">
+                                        <div class="bg-gray-50 dark:bg-gray-800/50 border-round p-6 border-1 border-dashed border-300">
                                             <i class="pi pi-info-circle text-4xl text-400 mb-4 block"></i>
                                             <h3 class="text-xl font-medium text-700 mb-2">No hay membresÃ­as disponibles</h3>
                                             <p class="text-600 m-0">En este momento no tenemos membresÃ­as activas.</p>
@@ -508,18 +508,18 @@ async function subirComprobante() {
     >
         <template v-if="membresiaPendiente">
             <div class="flex flex-col gap-4">
-                <p v-if="userMembresia" class="text-sm text-gray-700">
+                <p v-if="userMembresia" class="text-sm text-gray-700 dark:text-gray-300">
                     Ud cambiarÃ¡ de membresÃ­a, actual: <strong>{{ userMembresia.nombre }}</strong>
                 </p>
 
                 <div>
-                    <p class="text-sm font-semibold text-gray-800 mb-2">Modalidad</p>
+                    <p class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">Modalidad</p>
                     <div class="flex items-center gap-4">
-                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                             <input type="radio" value="PRESENCIAL" v-model="modalidad" />
                             PRESENCIAL
                         </label>
-                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                             <input type="radio" value="ONLINE" v-model="modalidad" />
                             ONLINE
                         </label>
@@ -527,13 +527,13 @@ async function subirComprobante() {
                 </div>
 
                 <div v-if="modalidad === 'ONLINE'">
-                    <label class="block text-sm font-semibold text-gray-800 mb-2">
+                    <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">
                         Â¿Puedes comentarnos el impedimento para concurrir presencialmente?
                     </label>
                     <input
                         v-model="motivoOnline"
                         type="text"
-                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                        class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                         placeholder="Escribe tu motivo"
                     />
                 </div>
@@ -566,12 +566,12 @@ async function subirComprobante() {
     >
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     ¿A qué mes imputar el pago?
                 </label>
                 <select
                     v-model="mesImputar"
-                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    class="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
                 >
                     <option value="" disabled>Selecciona un mes</option>
                     <option v-for="mes in mesesDisponibles" :key="mes.value" :value="mes.value">
@@ -584,7 +584,7 @@ async function subirComprobante() {
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Comprobante (PDF, JPG, PNG)
                 </label>
                 <input type="file" accept=".pdf,.jpg,.jpeg,.png" @change="seleccionarComprobante" />
@@ -594,9 +594,9 @@ async function subirComprobante() {
                     id="pago_efectivo"
                     v-model="pagoEfectivo"
                     type="checkbox"
-                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500"
                 />
-                <label for="pago_efectivo" class="text-sm text-gray-700">Pagué en efectivo</label>
+                <label for="pago_efectivo" class="text-sm text-gray-700 dark:text-gray-300">Pagué en efectivo</label>
             </div>
         </div>
         <template #footer>

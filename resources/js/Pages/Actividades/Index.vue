@@ -196,12 +196,12 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Cursos, Retiros y Eventos especiales</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Cursos, Retiros y Eventos especiales</h1>
         </template>
         <Toast position="top-right" />
         <div class="py-12">
             <div class="max-w-[110rem] mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white border-b border-gray-200 max-w-[108rem] mx-auto p-0 sm:p-6">
+                <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-[108rem] mx-auto p-0 sm:p-6">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create actividades')">
                         <Link :href="route('actividades.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
                             NUEVA ACTIVIDAD
@@ -212,7 +212,7 @@
                             <div class="flex flex-col gap-2">
                                 <select
                                     v-model="filtroFechaInicio"
-                                    class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
+                                    class="rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
                                 >
                                     <option value="mes_actual">Mes actual en adelante</option>
                                     <option value="ultimo_mes">Ultimo mes</option>
@@ -230,11 +230,11 @@
                             <div
                                 v-for="actividad in actividadesFiltradasMobile"
                                 :key="actividad.id"
-                                class="overflow-hidden border border-gray-200 bg-white shadow-sm"
+                                class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
                             >
                                 <button
                                     type="button"
-                                    class="block w-full bg-gray-100"
+                                    class="block w-full bg-gray-100 dark:bg-gray-900"
                                     title="Ver imagen"
                                     @click="verImagen(actividad)"
                                 >
@@ -254,15 +254,15 @@
 
                                 <div class="space-y-3 p-4">
                                     <div class="space-y-1">
-                                        <p class="text-base font-semibold text-gray-800">
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100">
                                             {{ actividad.nombre || '-' }}
                                         </p>
-                                        <p class="text-sm text-gray-600">
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">
                                             {{ actividad.tipo_actividad?.abreviacion || '-' }}
                                         </p>
                                     </div>
 
-                                    <div class="space-y-2 text-sm text-gray-700">
+                                    <div class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                                         <div class="flex items-center justify-between gap-3">
                                             <span class="text-gray-500">Lugar</span>
                                             <span>{{ actividad.entidad?.abreviacion || actividad.lugar?.abreviacion || '-' }}</span>
@@ -294,7 +294,7 @@
 
                                     <button
                                         type="button"
-                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50"
                                         @click="toggleCardExpanded(actividad.id)"
                                     >
                                         <span>{{ isCardExpanded(actividad.id) ? 'Ocultar detalles' : 'Ver mas detalles' }}</span>
@@ -304,12 +304,12 @@
                                         ></i>
                                     </button>
 
-                                    <div v-if="isCardExpanded(actividad.id)" class="rounded-md border border-gray-200 bg-gray-50 p-3">
-                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
+                                    <div v-if="isCardExpanded(actividad.id)" class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
+                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700 dark:text-gray-300">
                                             <div v-if="actividad.entidad">
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Lugar</p>
                                                 <p>{{ actividad.lugar?.nombre || actividad.entidad.abreviacion }}</p>
-                                                <p v-if="direccionActividad(actividad)" class="text-xs text-gray-600">
+                                                <p v-if="direccionActividad(actividad)" class="text-xs text-gray-600 dark:text-gray-400">
                                                     {{ direccionActividad(actividad) }}
                                                 </p>
                                             </div>
@@ -420,7 +420,7 @@
                                     </div>
                                 </div>
 
-                                <div class="border-t border-gray-200 bg-white px-4 py-3">
+                                <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
                                     <div class="flex flex-wrap items-center justify-center gap-2">
                                         <Link
                                             :href="`${route('grid-actividades.show-public', actividad.id)}?return_url=${encodeURIComponent(route('actividades.index'))}`"
@@ -475,7 +475,7 @@
                                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
                                     <select
                                         v-model="filtroFechaInicio"
-                                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
+                                        class="rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
                                     >
                                         <option value="mes_actual">Mes actual en adelante</option>
                                         <option value="ultimo_mes">Ultimo mes</option>
@@ -570,38 +570,38 @@
                                 </template>
                             </Column>
                             <template #expansion="{ data }">
-                                <div class="p-4 bg-gray-50">
+                                <div class="p-4 bg-gray-50 dark:bg-gray-800/50">
                                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         <!-- Lugar -->
                                         <div v-if="data.entidad">
-                                            <span class="font-semibold text-gray-700">Lugar:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Lugar:</span>
                                             <span class="ml-2">{{ data.lugar?.nombre || data.entidad.abreviacion }}</span>
-                                            <div v-if="direccionActividad(data)" class="text-sm text-gray-600 ml-2">
+                                            <div v-if="direccionActividad(data)" class="text-sm text-gray-600 dark:text-gray-400 ml-2">
                                                 {{ direccionActividad(data) }}
                                             </div>
                                         </div>
 
                                         <!-- Descripción -->
                                         <div v-if="data.descripcion" class="md:col-span-2">
-                                            <span class="font-semibold text-gray-700">Descripción:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Descripción:</span>
                                             <p class="ml-2 text-sm">{{ data.descripcion.descripcion }}</p>
                                         </div>
 
                                         <!-- Observaciones -->
                                         <div v-if="data.observaciones" class="md:col-span-2">
-                                            <span class="font-semibold text-gray-700">Observaciones:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Observaciones:</span>
                                             <p class="ml-2 text-sm">{{ data.observaciones }}</p>
                                         </div>
 
                                         <!-- Disponibilidad -->
                                         <div v-if="data.disponibilidad">
-                                            <span class="font-semibold text-gray-700">Disponibilidad:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Disponibilidad:</span>
                                             <span class="ml-2">{{ data.disponibilidad.descripcion }}</span>
                                         </div>
 
                                         <!-- Maestros -->
                                         <div v-if="data.maestros && data.maestros.length > 0">
-                                            <span class="font-semibold text-gray-700">Maestros:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Maestros:</span>
                                             <div class="ml-2">
                                                 <span v-for="(maestro, index) in data.maestros" :key="maestro.id" class="text-sm">
                                                     {{ maestro.nombre }}<span v-if="index < data.maestros.length - 1">, </span>
@@ -611,7 +611,7 @@
 
                                         <!-- Coordinadores -->
                                         <div v-if="data.coordinadores && data.coordinadores.length > 0">
-                                            <span class="font-semibold text-gray-700">Coordinadores:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Coordinadores:</span>
                                             <div class="ml-2">
                                                 <span v-for="(coordinador, index) in data.coordinadores" :key="coordinador.id" class="text-sm">
                                                     {{ coordinador.nombre }}<span v-if="index < data.coordinadores.length - 1">, </span>
@@ -621,7 +621,7 @@
 
                                         <!-- Programa -->
                                         <div v-if="data.programa" class="flex items-center">
-                                            <span class="font-semibold text-gray-700">Programa:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Programa:</span>
                                             <span class="ml-2">{{ data.programa.nombre }}</span>
                                             <button 
                                                 @click="verPrograma(data.programa)" 
@@ -635,7 +635,7 @@
 
                                         <!-- Esquema de Precios -->
                                         <div v-if="data.esquema_precio" class="flex items-center">
-                                            <span class="font-semibold text-gray-700">Esquema de precios:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Esquema de precios:</span>
                                             <span class="ml-2">{{ data.esquema_precio.nombre }}</span>
                                             <button 
                                                 @click="verEsquemaPrecio(data.esquema_precio)" 
@@ -649,13 +649,13 @@
 
                                         <!-- Esquema de Descuentos -->
                                         <div v-if="data.esquema_descuento">
-                                            <span class="font-semibold text-gray-700">Esquema Descuentos:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Esquema Descuentos:</span>
                                             <span class="ml-2">{{ data.esquema_descuento.nombre }}</span>
                                         </div>
 
                                         <!-- Lugares de Hospedajes -->
                                         <div v-if="data.hospedajes && data.hospedajes.length > 0">
-                                            <span class="font-semibold text-gray-700">Hospedajes:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Hospedajes:</span>
                                             <div class="ml-2">
                                                 <span v-for="(hospedaje, index) in data.hospedajes" :key="hospedaje.id" class="text-sm">
                                                     {{ hospedaje.nombre }}<span v-if="index < data.hospedajes.length - 1">, </span>
@@ -665,7 +665,7 @@
 
                                         <!-- Hospedajes -->
                                         <div v-if="data.hospedajes && data.hospedajes.length > 0">
-                                            <span class="font-semibold text-gray-700">Hospedajes:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Hospedajes:</span>
                                             <div class="ml-2">
                                                 <span v-for="(hospedaje, index) in data.hospedajes" :key="hospedaje.id" class="text-sm">
                                                     {{ hospedaje.nombre }}<span v-if="index < data.hospedajes.length - 1">, </span>
@@ -675,7 +675,7 @@
 
                                         <!-- Comidas -->
                                         <div v-if="data.comidas && data.comidas.length > 0">
-                                            <span class="font-semibold text-gray-700">Comidas:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Comidas:</span>
                                             <div class="ml-2">
                                                 <span v-for="(comida, index) in data.comidas" :key="comida.id" class="text-sm">
                                                     {{ comida.nombre }}<span v-if="index < data.comidas.length - 1">, </span>
@@ -685,7 +685,7 @@
 
                                         <!-- Transportes -->
                                         <div v-if="data.transportes && data.transportes.length > 0">
-                                            <span class="font-semibold text-gray-700">Transportes:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Transportes:</span>
                                             <div class="ml-2">
                                                 <span v-for="(transporte, index) in data.transportes" :key="transporte.id" class="text-sm">
                                                     {{ transporte.descripcion }}<span v-if="index < data.transportes.length - 1">, </span>
@@ -695,43 +695,43 @@
 
                                         <!-- Stream -->
                                         <div v-if="data.stream">
-                                            <span class="font-semibold text-gray-700">Stream:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Stream:</span>
                                             <span class="ml-2">{{ data.stream.titulo || 'Disponible' }}</span>
                                         </div>
 
                                         <!-- Grabación -->
                                         <div v-if="data.grabacion">
-                                            <span class="font-semibold text-gray-700">Grabación:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Grabación:</span>
                                             <span class="ml-2">{{ data.grabacion.titulo || 'Disponible' }}</span>
                                         </div>
 
                                         <!-- Fecha Fin -->
                                         <div v-if="data.fecha_fin">
-                                            <span class="font-semibold text-gray-700">Fecha Fin:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Fecha Fin:</span>
                                             <span class="ml-2">{{ new Date(data.fecha_fin).toLocaleDateString('es-AR') }}</span>
                                         </div>
 
                                         <!-- Hora Fin -->
                                         <div v-if="data.fecha_fin">
-                                            <span class="font-semibold text-gray-700">Hora Fin:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Hora Fin:</span>
                                             <span class="ml-2">{{ new Date(data.fecha_fin).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false }) }} hs.</span>
                                         </div>
 
                                         <!-- Pago Anticipado -->
                                         <div v-if="data.pagoAmticipado">
-                                            <span class="font-semibold text-gray-700">Fecha Pago Anticipado:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Fecha Pago Anticipado:</span>
                                             <span class="ml-2">{{ new Date(data.pagoAmticipado).toLocaleDateString('es-AR') }}</span>
                                         </div>
 
                                         <!-- Tipo de actividad -->
                                         <div v-if="data.tipo_actividad.nombre">
-                                            <span class="font-semibold text-gray-700">Tipo de Actividad:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Tipo de Actividad:</span>
                                             <span class="ml-2">{{ data.tipo_actividad.nombre }}</span>
                                         </div>
 
                                         <!-- Métodos de Pago -->
                                         <div v-if="data.metodos_pago && data.metodos_pago.length > 0" class="md:col-span-2">
-                                            <span class="font-semibold text-gray-700">Métodos de Pago:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Métodos de Pago:</span>
                                             <div class="ml-2 flex flex-wrap gap-2 mt-1">
                                                 <Tag v-for="metodo in data.metodos_pago" :key="metodo.id" severity="info" :value="metodo.nombre"></Tag>
                                             </div>
@@ -744,7 +744,7 @@
 
                                         <!-- Link Web -->
                                         <div v-if="data.link_web" class="md:col-span-2">
-                                            <span class="font-semibold text-gray-700">Link Web:</span>
+                                            <span class="font-semibold text-gray-700 dark:text-gray-300">Link Web:</span>
                                             <a :href="data.link_web" target="_blank" class="ml-2 text-blue-500 hover:underline text-sm">{{ data.link_web }}</a>
                                         </div>
                                     </div>

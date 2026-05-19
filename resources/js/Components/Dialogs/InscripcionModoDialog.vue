@@ -229,7 +229,7 @@ function cancelDialog() {
     :breakpoints="breakpoints"
   >
     <div class="space-y-4">
-      <h2 class="text-xl font-semibold text-gray-900">{{ title }}</h2>
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ title }}</h2>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <button
@@ -237,7 +237,7 @@ function cancelDialog() {
           class="px-3 py-2 rounded-md font-medium transition-colors"
           :class="isModeActive('nuevo')
             ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+            : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200'"
           @click="emit('select-mode', 'nuevo')"
         >
           Soy nuevo
@@ -247,7 +247,7 @@ function cancelDialog() {
           class="px-3 py-2 rounded-md font-medium transition-colors"
           :class="isModeActive('registrado')
             ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+            : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200'"
           @click="emit('select-mode', 'registrado')"
         >
           Ya estoy Registrado
@@ -257,7 +257,7 @@ function cancelDialog() {
           class="px-3 py-2 rounded-md font-medium transition-colors"
           :class="isModeActive('login')
             ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+            : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200'"
           @click="emit('select-mode', 'login')"
         >
           Iniciar sesion
@@ -285,7 +285,7 @@ function cancelDialog() {
       <div v-else-if="mode === 'registrado'">
         <slot v-if="$slots.registrado" name="registrado" />
         <div v-else :class="registeredContainerClass">
-          <label class="text-sm font-medium text-gray-700" :for="registeredInputId">Email</label>
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-300" :for="registeredInputId">Email</label>
           <input
             :id="registeredInputId"
             v-model="emailValue"
@@ -301,7 +301,7 @@ function cancelDialog() {
         <slot v-if="$slots.login" name="login" />
         <div v-else :class="loginContainerClass">
           <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700" :for="loginEmailId">Email</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" :for="loginEmailId">Email</label>
             <input
               :id="loginEmailId"
               v-model="loginEmailValue"
@@ -311,7 +311,7 @@ function cancelDialog() {
             />
           </div>
           <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-700" :for="loginPasswordId">Contraseña</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" :for="loginPasswordId">Contraseña</label>
             <input
               :id="loginPasswordId"
               v-model="loginPasswordValue"

@@ -97,7 +97,7 @@ watch(
             <div class="col-span-6 sm:col-span-6">
                 <InputLabel for="descripcion" value="Descripción" :required="true"/>
                 <Textarea id="descripcion" v-model="form.descripcion" autoResize rows="5" cols="30" 
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />
             </div>
             
@@ -117,7 +117,7 @@ watch(
                         optionLabel="name"
                         optionValue="id"
                         placeholder="Seleccione un responsable"
-                        class="w-full mt-1 md:w-14rem border border-gray-300"
+                        class="w-full mt-1 md:w-14rem border border-gray-300 dark:border-gray-600"
                     />
                     <InputError :message="$page.props.errors.responsable_id" class="mt-2" />
                 </div>
@@ -132,7 +132,7 @@ watch(
                         optionLabel="estado"
                         optionValue="id"
                         placeholder="Seleccione un estado"
-                        class="w-full mt-1 md:w-14rem border border-gray-300"
+                        class="w-full mt-1 md:w-14rem border border-gray-300 dark:border-gray-600"
                         :disabled="disableEstadoDropdown"
                     />
                     <InputError :message="$page.props.errors.estado_ticket_id" class="mt-2" />

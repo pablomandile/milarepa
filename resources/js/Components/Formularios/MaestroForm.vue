@@ -114,18 +114,18 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
             </div>
             <div class="col-span-6 sm:col-span-6 mt-3">
                 <InputLabel for="sobre_maestro" value="Sobre el maestr@" :required="false"/>
-                <div class="mt-1 mb-2 w-full flex items-center gap-2 rounded-md border border-gray-300 bg-gray-50 p-2">
-                    <button type="button" class="h-9 w-12 rounded border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-100" title="Título (#, ##, ###)" aria-label="Título" @click="applyTitle">T</button>
-                    <button type="button" class="h-9 w-12 rounded border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-100" title="Negrita (**texto**)" aria-label="Negrita" @click="applyBold">N</button>
-                    <button type="button" class="h-9 w-12 rounded border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-100 italic" title="Cursiva (*texto*)" aria-label="Cursiva" @click="applyItalic">C</button>
-                    <button type="button" class="h-9 w-12 rounded border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-100" title="Lista (- item)" aria-label="Lista" @click="applyList">L</button>
+                <div class="mt-1 mb-2 w-full flex items-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 p-2">
+                    <button type="button" class="h-9 w-12 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100" title="Título (#, ##, ###)" aria-label="Título" @click="applyTitle">T</button>
+                    <button type="button" class="h-9 w-12 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100" title="Negrita (**texto**)" aria-label="Negrita" @click="applyBold">N</button>
+                    <button type="button" class="h-9 w-12 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 italic" title="Cursiva (*texto*)" aria-label="Cursiva" @click="applyItalic">C</button>
+                    <button type="button" class="h-9 w-12 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100" title="Lista (- item)" aria-label="Lista" @click="applyList">L</button>
                 </div>
                 <textarea
                     ref="sobreTextarea"
                     id="sobre_maestro"
                     v-model="form.sobre_maestro"
                     rows="5"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     placeholder="Agrega una descripcion del maestr@..."
                 ></textarea>
                 <InputError :message="$page.props.errors.sobre_maestro" class="mt-2" />
@@ -146,7 +146,7 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
                         <img
                             :src="imagenPreviewUrl"
                             alt="Imagen actual"
-                            class="h-16 w-16 rounded border border-gray-200 object-cover"
+                            class="h-16 w-16 rounded border border-gray-200 dark:border-gray-700 object-cover"
                         />
                         <span class="text-sm text-gray-500">Actual</span>
                     </div>

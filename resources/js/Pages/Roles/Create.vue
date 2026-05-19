@@ -25,7 +25,7 @@ const submit = () => {
 
     <AppLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-100">
                 Crear Rol
             </h2>
         </template>
@@ -34,10 +34,10 @@ const submit = () => {
             <FormSection @submitted="submit">
                 <template #title>
                     <SectionTitle>
-                        <h3 class="text-lg font-medium text-gray-900">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                             Nuevo Rol
                         </h3>
-                        <p class="mt-1 text-sm text-gray-600">
+                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                             Agregando un nuevo rol al sistema.
                         </p>
                     </SectionTitle>

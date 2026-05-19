@@ -61,7 +61,7 @@ function deleteLine(line) {
 <template>
     <AppLayout title="Editar Grabación">
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
                 Agregar Link
             </h1>
         </template>
@@ -83,7 +83,7 @@ function deleteLine(line) {
                 </h2>
 
                 <!-- Formulario para AGREGAR un nuevo link -->
-                <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg mb-6 mt-6 p-4">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg mb-6 mt-6 p-4">
                     <GrabacionLinkForm
                         :form="formLink"
                         @submit="handleAddLink"
@@ -113,7 +113,7 @@ function deleteLine(line) {
                           <InputText
                             v-model="data.nombre"
                             type="text"
-                            class="w-full mt-1 border border-gray-300"
+                            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                           />
                         </template>
                       </Column>
@@ -130,7 +130,7 @@ function deleteLine(line) {
                           <InputText
                             v-model="data.link"
                             type="text"
-                            class="w-full mt-1 border border-gray-300"
+                            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                           />
                         </template>
                       </Column>

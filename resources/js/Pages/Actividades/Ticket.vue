@@ -30,13 +30,13 @@ const formatDateTime = (fecha, fallback) => {
 <template>
   <AppLayout>
     <template #header>
-      <h1 class="font-semibold text-xl text-gray-800 leading-tight">Ticket</h1>
+      <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Ticket</h1>
     </template>
 
-    <div class="min-h-screen bg-white">
+    <div class="min-h-screen bg-white dark:bg-gray-800">
       <div class="max-w-md mx-auto px-4 py-6 sm:px-6">
         <!-- Imagen principal -->
-        <div class="w-full aspect-[3/2] bg-gray-100 rounded-lg overflow-hidden mb-4">
+        <div class="w-full aspect-[3/2] bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden mb-4">
           <img
             v-if="actividad?.imagen"
             :src="'/storage/' + actividad.imagen.ruta"
@@ -52,7 +52,7 @@ const formatDateTime = (fecha, fallback) => {
         </div>
 
         <!-- Título -->
-        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 text-center">
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 text-center">
           {{ actividad.nombre }}
         </h2>
         
@@ -63,7 +63,7 @@ const formatDateTime = (fecha, fallback) => {
 
         <!-- Acciones -->
         <div class="flex justify-center gap-3">
-          <Link :href="route('inscripciones.index')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          <Link :href="route('inscripciones.index')" class="px-4 py-2 bg-gray-200 text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300">
             Volver
           </Link>
         </div>

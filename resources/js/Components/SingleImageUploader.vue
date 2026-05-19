@@ -1,5 +1,5 @@
 <template>
-    <div class="max-w-sm p-2 bg-white border rounded shadow">
+    <div class="max-w-sm p-2 bg-white dark:bg-gray-800 border rounded shadow">
   
       <!-- Botón Elegir Archivo -->
       <div>

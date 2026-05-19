@@ -71,7 +71,7 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
                     id="info"
                     v-model="form.info"
                     rows="5"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     placeholder="Informacion adicional de la membresia"
                 ></textarea>
                 <InputError :message="$page.props.errors.info" class="mt-2" />
@@ -85,7 +85,7 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
                     optionLabel="nombre"
                     optionValue="id"
                     placeholder="Seleccione un lugar"
-                    class="w-full mt-1 md:w-14rem border border-gray-300"
+                    class="w-full mt-1 md:w-14rem border border-gray-300 dark:border-gray-600"
                 />
                 <InputError :message="$page.props.errors.lugar_hospedaje_id" class="mt-2" />
             </div>
@@ -98,7 +98,7 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
                     optionLabel="nombre"
                     optionValue="id"
                     placeholder="Seleccione un botón de pago"
-                    class="w-full mt-1 md:w-14rem border border-gray-300"
+                    class="w-full mt-1 md:w-14rem border border-gray-300 dark:border-gray-600"
                     showClear
                 />
                 <InputError :message="$page.props.errors.botonpago_id" class="mt-2" />
@@ -106,7 +106,7 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
             <div class="col-span-6 sm:col-span-6 mt-3">
                 <InputLabel for="valor" value="Valor (ARS)" :required="true"/>
                 <div class="mt-1 flex rounded-md shadow-sm">
-                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">$</span>
+                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 text-gray-500">$</span>
                     <TextInput
                         id="valor"
                         v-model.number="form.valor"
@@ -129,7 +129,7 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
                         <img
                             :src="imagenPreviewUrl"
                             alt="Imagen actual"
-                            class="h-16 w-16 rounded border border-gray-200 object-cover"
+                            class="h-16 w-16 rounded border border-gray-200 dark:border-gray-700 object-cover"
                         />
                         <span class="text-sm text-gray-500">Actual</span>
                     </div>

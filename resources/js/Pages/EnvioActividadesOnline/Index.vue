@@ -23,15 +23,15 @@ defineProps({
 <template>
     <AppLayout title="Envío Actividades Online">
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Envío Actividades Online</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Envío Actividades Online</h1>
         </template>
 
         <div class="py-12">
             <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 sm:rounded-lg space-y-6">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sm:rounded-lg space-y-6">
                     <div>
                         <p class="text-sm font-medium text-gray-500">Mes de actividades a enviar</p>
-                        <p class="mt-1 text-2xl font-semibold text-gray-900">{{ mesActual }}</p>
+                        <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ mesActual }}</p>
                     </div>
 
                     <div>

@@ -135,7 +135,7 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Centro de Ayuda</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Centro de Ayuda</h1>
         </template>
         <div class="py-5">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -147,7 +147,7 @@
                         Volver al panel
                     </Link>
                 </div>
-                <div class="p-6 bg-white border-b border-gray-200 max-w-4xl mx-auto">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-4xl mx-auto">
                     <p><i class="pi pi-question-circle text-3xl"><span class="text-xl ml-2">Consulta la documentación para encontrar la solución a tu consulta</span></i></p>
                     <p class="text-xl ml-10">o abre un <span class="text-indigo-500"><strong>Ticket</strong></span> para ser atendido a la brevedad por alguien de nuestro equipo.</p>
                 </div>
@@ -155,8 +155,8 @@
         </div>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-4xl mx-auto mb-10">
-                    <h1 class="font-semibold text-xl text-gray-800 leading-tight mb-6">Listado de tickets activos</h1>
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-4xl mx-auto mb-10">
+                    <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight mb-6">Listado de tickets activos</h1>
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create tickets')">
                         <Link :href="route('centroayuda.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded mb-4" > 
                             NUEVO TICKET
@@ -247,10 +247,10 @@
 >
     <template v-if="ticketSeleccionado">
         <div class="flex flex-col items-center justify-center w-2/3 mx-auto bg-indigo-100 text-black border rounded-md mb-4 h-52">
-            <hr class="w-full border-gray-300 mb-2" />
+            <hr class="w-full border-gray-300 dark:border-gray-600 mb-2" />
             <i class="pi pi-exclamation-triangle" style="font-size: 2.5rem"></i>
             <strong class="mb-1">{{ ticketSeleccionado.asunto }}</strong>
-            <hr class="w-full border-gray-300 mb-2" />
+            <hr class="w-full border-gray-300 dark:border-gray-600 mb-2" />
             <p 
                 class="text-center mt-3"
                 v-if="ticketSeleccionado.descripcion && ticketSeleccionado.descripcion.trim() !== ''"
@@ -291,7 +291,7 @@
         optionLabel="name"
         optionValue="id"
         placeholder="Seleccione responsable"
-        class="w-full mb-10 border-solid border-2 border-gray-300 shadow-sm bg-gray-100"
+        class="w-full mb-10 border-solid border-2 border-gray-300 dark:border-gray-600 shadow-sm bg-gray-100 dark:bg-gray-900"
         />
 
         <div class="flex justify-end space-x-2">

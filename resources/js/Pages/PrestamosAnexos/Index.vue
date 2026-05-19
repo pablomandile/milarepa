@@ -116,18 +116,18 @@ const cancelarEliminacion = () => {
     <AppLayout>
         <Toast position="top-right" />
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Prestamos Anexos</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Prestamos Anexos</h1>
         </template>
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-6xl mx-auto">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-6xl mx-auto">
                     <div class="flex justify-between flex-wrap gap-2">
                         <div class="flex gap-2">
                             <Link :href="route('inventario-libros.prestamos-anexos.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
                                 NUEVO PRESTAMO
                             </Link>
-                            <Link :href="route('inventario-libros.index')" class="text-gray-800 bg-slate-200 hover:bg-slate-300 py-2 px-4 rounded">
+                            <Link :href="route('inventario-libros.index')" class="text-gray-800 dark:text-gray-100 bg-slate-200 hover:bg-slate-300 py-2 px-4 rounded">
                                 VOLVER
                             </Link>
                         </div>
@@ -135,13 +135,13 @@ const cancelarEliminacion = () => {
 
                     <div class="mt-4">
                         <div class="mb-4 max-w-sm">
-                            <label for="receptora_filtro" class="block text-sm font-medium text-gray-700 mb-1">
+                            <label for="receptora_filtro" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Filtrar por receptora
                             </label>
                             <select
                                 id="receptora_filtro"
                                 v-model="receptoraFiltro"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             >
                                 <option :value="null">Todas</option>
                                 <option v-for="receptora in receptorasDisponibles" :key="receptora.id" :value="receptora.id">
@@ -220,7 +220,7 @@ const cancelarEliminacion = () => {
         :style="{ width: '34rem' }"
         :breakpoints="{ '1199px': '80vw', '575px': '95vw' }"
     >
-        <div class="text-sm text-gray-700">
+        <div class="text-sm text-gray-700 dark:text-gray-300">
             ¿Desea eliminar este préstamo anexo?
         </div>
 

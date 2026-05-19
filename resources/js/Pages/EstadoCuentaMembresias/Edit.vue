@@ -1,14 +1,14 @@
 ﻿<template>
     <AppLayout title="Editar Estado de Cuenta">
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
                 Editar Estado de Cuenta
             </h2>
         </template>
 
         <div class="py-12">
             <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <EstadoCuentaMembresiaForm
                         :estado-cuenta="estadoCuenta"
                         :form="form"

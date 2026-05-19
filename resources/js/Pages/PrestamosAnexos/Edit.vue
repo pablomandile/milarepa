@@ -32,12 +32,12 @@ const props = defineProps({
 
     <AppLayout title="Editar Prestamo">
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Editar Prestamo</h2>
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Editar Prestamo</h2>
         </template>
 
         <div class="py-8">
             <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-4 sm:p-6">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-4 sm:p-6">
                     <PrestamoLibroForm
                         :prestamo="props.prestamo"
                         :entidades="props.entidades"

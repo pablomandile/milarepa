@@ -57,12 +57,12 @@ const deletePermiso = (id) => {
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Permisos</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Permisos</h1>
         </template>
 
         <div class="py-12">
             <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg p-6">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg p-6">
                     <div class="flex justify-between mb-6">
                         <Link
                             :href="route('perfiles.index')"
@@ -73,7 +73,7 @@ const deletePermiso = (id) => {
                     </div>
 
                     <div class="mb-8">
-                        <h2 class="text-lg font-semibold text-gray-800 mb-3">Editar Permiso</h2>
+                        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">Editar Permiso</h2>
                         <form @submit.prevent="submit" class="space-y-4">
                             <div>
                                 <InputLabel for="name" value="Nombre" :required="true" />
@@ -89,7 +89,7 @@ const deletePermiso = (id) => {
                     </div>
 
                     <div>
-                        <h3 class="text-md font-semibold text-gray-800 mb-3">Permisos existentes</h3>
+                        <h3 class="text-md font-semibold text-gray-800 dark:text-gray-100 mb-3">Permisos existentes</h3>
                         <DataTable :value="permissions" stripedRows paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="name" header="Nombre"></Column>
                             <Column header="Acciones" class="text-center" style="width: 10%">

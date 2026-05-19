@@ -85,13 +85,13 @@ const filteredPermissions = computed(() => {
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Permisos</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Permisos</h1>
         </template>
         <Toast position="top-right" />
 
         <div class="py-12">
             <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg p-6">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg p-6">
                     <div class="flex justify-between mb-6">
                         <Link
                             :href="route('perfiles.index')"
@@ -102,7 +102,7 @@ const filteredPermissions = computed(() => {
                     </div>
 
                     <div class="mb-8">
-                        <h2 class="text-lg font-semibold text-gray-800 mb-3">Nuevo Permiso</h2>
+                        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">Nuevo Permiso</h2>
                         <form @submit.prevent="submit" class="space-y-4">
                             <div>
                                 <InputLabel for="name" value="Nombre" :required="true" />
@@ -118,9 +118,9 @@ const filteredPermissions = computed(() => {
                     </div>
 
                     <div>
-                        <h3 class="text-md font-semibold text-gray-800 mb-3">Permisos existentes</h3>
+                        <h3 class="text-md font-semibold text-gray-800 dark:text-gray-100 mb-3">Permisos existentes</h3>
                         <div class="mb-3 flex items-center gap-3">
-                            <span class="text-sm text-gray-600">Filtrar por acción:</span>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Filtrar por acción:</span>
                             <Dropdown
                                 v-model="actionFilter"
                                 :options="actionOptions"

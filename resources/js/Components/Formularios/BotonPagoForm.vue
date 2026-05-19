@@ -69,7 +69,7 @@ defineEmits(['submit'])
                     optionLabel="nombre"
                     optionValue="id"
                     placeholder="Seleccione método de pago"
-                    class="w-full mt-1 border border-gray-300"
+                    class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                 />
                 <InputError :message="$page.props.errors.metodo_pago_id" class="mt-2" />
             </div>

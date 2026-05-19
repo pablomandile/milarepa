@@ -37,13 +37,13 @@ const formatPercent = (value) => {
 <template>
     <AppLayout title="Inscripciones por Actividad">
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Inscripciones por Actividad</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Inscripciones por Actividad</h1>
         </template>
 
         <div class="py-12">
             <div class="px-4 sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6 text-gray-900 dark:text-gray-100">
                         <div class="mb-6 flex justify-center">
                             <div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:w-auto xl:grid-cols-6">
                             <div class="rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 p-4 text-center text-white shadow-sm">

@@ -69,7 +69,7 @@ defineEmits(['submit']);
                     placeholder="+54 9 11 1234 5678"
                     slotChar="_"
                     :unmask="true"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                 />
                 <InputError :message="$page.props.errors.telefono" class="mt-2" />
             </div>
@@ -83,7 +83,7 @@ defineEmits(['submit']);
                     placeholder="+54 9 11 1234 5678"
                     slotChar="_"
                     :unmask="true"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                 />
                 <InputError :message="$page.props.errors.whatsapp" class="mt-2" />
             </div>

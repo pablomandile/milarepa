@@ -48,7 +48,7 @@ const closeModal = () => {
         </template>
 
         <template #content>
-            <div class="max-w-xl text-sm text-gray-600">
+            <div class="max-w-xl text-sm text-gray-600 dark:text-gray-400">
                 Una vez que su cuenta sea eliminada, todos sus recursos y datos serán permanentemente eliminados. Antes de eliminar su cuenta, por favor descargue cualquier dato o información que desee retener.
             </div>
 

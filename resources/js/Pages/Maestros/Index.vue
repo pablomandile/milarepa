@@ -62,11 +62,11 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Maestr@s</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Maestr@s</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-5xl mx-auto">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-5xl mx-auto">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create maestros')">
                         <Link :href="route('maestros.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
                             NUEV@ MAESTR@
@@ -96,9 +96,9 @@
                                             <img
                                                 :src="'/storage/' + slotProps.data.imagen.ruta"
                                                 alt="Foto maestro"
-                                                class="h-12 w-12 rounded object-cover border border-gray-200"
+                                                class="h-12 w-12 rounded object-cover border border-gray-200 dark:border-gray-700"
                                             />
-                                            <span class="absolute -top-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-indigo-600 border border-indigo-200 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                                            <span class="absolute -top-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-gray-800 text-indigo-600 border border-indigo-200 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                                                 <i class="pi pi-search-plus" style="font-size: 11px;"></i>
                                             </span>
                                         </button>
@@ -130,9 +130,9 @@
                                 </template>
                             </Column>
                             <template #expansion="{ data }">
-                                <div class="p-4 bg-gray-50">
-                                    <div class="text-sm font-semibold text-gray-700 mb-1">Sobre el maestr@</div>
-                                    <p class="text-sm text-gray-700 whitespace-pre-line">
+                                <div class="p-4 bg-gray-50 dark:bg-gray-800/50">
+                                    <div class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Sobre el maestr@</div>
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
                                         {{ data.sobre_maestro || 'Sin descripción cargada.' }}
                                     </p>
                                 </div>

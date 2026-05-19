@@ -76,21 +76,21 @@ const form = useForm({
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Nueva Clase</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Nueva Clase</h1>
         </template>
         <div class="py-12">
             <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
                     <div class="flex justify-end mr-5 mb-6 mt-3">
                         <Link :href="route('clases.index')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
                             Volver
                         </Link>
                     </div>
-                    <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
-                        <div class="p-6 bg-white border-b border-gray-200">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
+                        <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                             <div class="mb-6">
                                 <h2 class="text-2xl font-semibold text-indigo-600">Nueva Clase</h2>
-                                <p class="text-sm text-gray-600 mt-1">Completa los datos para registrar una nueva clase.</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Completa los datos para registrar una nueva clase.</p>
                             </div>
 
                             <ClaseForm

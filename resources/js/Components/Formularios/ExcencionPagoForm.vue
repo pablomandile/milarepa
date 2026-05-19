@@ -78,7 +78,7 @@ const actividadesOptions = computed(() => {
                     optionLabel="label"
                     optionValue="id"
                     placeholder="Seleccione un usuario"
-                    class="w-full mt-1 border border-gray-300"
+                    class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                     filter
                     filterPlaceholder="Buscar por nombre"
                     showClear
@@ -94,7 +94,7 @@ const actividadesOptions = computed(() => {
                     optionLabel="label"
                     optionValue="id"
                     placeholder="Seleccione una actividad"
-                    class="w-full mt-1 border border-gray-300"
+                    class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                     filter
                     filterPlaceholder="Buscar por actividad"
                     showClear

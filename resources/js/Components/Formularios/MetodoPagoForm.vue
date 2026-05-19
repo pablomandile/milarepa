@@ -61,7 +61,7 @@ defineEmits(['submit'])
                 <select
                     id="tipo_de_pago"
                     v-model="form.tipo_de_pago"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     required
                 >
                     <option value="" disabled>Seleccionar tipo</option>
@@ -81,7 +81,7 @@ defineEmits(['submit'])
                         <img
                             :src="imagenPreviewUrl"
                             alt="Imagen actual"
-                            class="h-16 w-16 rounded border border-gray-200 object-cover"
+                            class="h-16 w-16 rounded border border-gray-200 dark:border-gray-700 object-cover"
                         />
                         <span class="text-sm text-gray-500">Actual</span>
                     </div>

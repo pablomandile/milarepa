@@ -220,7 +220,7 @@ watch(
                     v-model="form.descripcion"
                     rows="4"
                     autoResize
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 />
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />
             </div>
@@ -234,7 +234,7 @@ watch(
                     optionLabel="label"
                     optionValue="value"
                     placeholder="Seleccione una periodicidad"
-                    class="mt-1 w-full border border-gray-300"
+                    class="mt-1 w-full border border-gray-300 dark:border-gray-600"
                 />
                 <InputError :message="$page.props.errors.periodicidad" class="mt-2" />
             </div>
@@ -252,7 +252,7 @@ watch(
                     v-model="form.hora"
                     type="time"
                     step="60"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 />
                 <InputError :message="$page.props.errors.hora" class="mt-2" />
             </div>
@@ -266,7 +266,7 @@ watch(
                     optionLabel="nombre"
                     optionValue="id"
                     placeholder="Seleccione una modalidad"
-                    class="mt-1 w-full border border-gray-300"
+                    class="mt-1 w-full border border-gray-300 dark:border-gray-600"
                     showClear
                 />
                 <InputError :message="$page.props.errors.modalidad_id" class="mt-2" />
@@ -281,7 +281,7 @@ watch(
                     optionLabel="nombre"
                     optionValue="id"
                     placeholder="Seleccione un stream"
-                    class="mt-1 w-full border border-gray-300"
+                    class="mt-1 w-full border border-gray-300 dark:border-gray-600"
                     showClear
                 />
                 <InputError :message="$page.props.errors.stream_id" class="mt-2" />
@@ -294,15 +294,15 @@ watch(
                     <label
                         v-for="diaOption in diasSemanaOptions"
                         :key="diaOption.value"
-                        class="flex items-center gap-2 rounded border border-gray-200 px-3 py-2"
+                        class="flex items-center gap-2 rounded border border-gray-200 dark:border-gray-700 px-3 py-2"
                     >
                         <input
                             v-model="form.dias_semana"
                             type="checkbox"
                             :value="diaOption.value"
-                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                            class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500"
                         />
-                        <span class="text-sm text-gray-700">{{ diaOption.label }}</span>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ diaOption.label }}</span>
                     </label>
                 </div>
 
@@ -310,7 +310,7 @@ watch(
                     <input
                         v-model="allDaysChecked"
                         type="checkbox"
-                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                        class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500"
                     />
                     <span class="text-sm font-medium text-indigo-700">Todos los dias</span>
                 </label>
@@ -321,8 +321,8 @@ watch(
             <div class="col-span-6 sm:col-span-6 mt-6 rounded-lg border border-indigo-100 bg-indigo-50/40 p-4">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h3 class="text-sm font-semibold text-gray-800">Configuracion personalizada por mes</h3>
-                        <p class="mt-1 text-sm text-gray-600">
+                        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Configuracion personalizada por mes</h3>
+                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                             Si un mes no tiene configuracion personalizada, se usa la configuracion general.
                         </p>
                     </div>
@@ -336,17 +336,17 @@ watch(
                     </button>
                 </div>
 
-                <div v-if="configuracionesPorMes.length === 0" class="mt-4 rounded border border-dashed border-indigo-200 bg-white px-3 py-3 text-sm text-gray-500">
+                <div v-if="configuracionesPorMes.length === 0" class="mt-4 rounded border border-dashed border-indigo-200 bg-white dark:bg-gray-800 px-3 py-3 text-sm text-gray-500">
                     No hay meses personalizados.
                 </div>
 
                 <div
                     v-for="(configuracion, index) in configuracionesPorMes"
                     :key="index"
-                    class="mt-4 rounded-lg border border-gray-200 bg-white p-4"
+                    class="mt-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4"
                 >
                     <div class="flex items-center justify-between gap-3">
-                        <h4 class="text-sm font-semibold text-gray-700">Mes personalizado {{ index + 1 }}</h4>
+                        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Mes personalizado {{ index + 1 }}</h4>
                         <button
                             type="button"
                             class="rounded bg-red-100 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-200"
@@ -366,7 +366,7 @@ watch(
                                 optionLabel="label"
                                 optionValue="value"
                                 placeholder="Seleccione mes"
-                                class="mt-1 w-full border border-gray-300"
+                                class="mt-1 w-full border border-gray-300 dark:border-gray-600"
                             />
                             <InputError :message="$page.props.errors[`configuracion_por_mes.${index}.mes`]" class="mt-2" />
                         </div>
@@ -380,7 +380,7 @@ watch(
                                 optionLabel="label"
                                 optionValue="value"
                                 placeholder="Seleccione periodicidad"
-                                class="mt-1 w-full border border-gray-300"
+                                class="mt-1 w-full border border-gray-300 dark:border-gray-600"
                             />
                             <InputError :message="$page.props.errors[`configuracion_por_mes.${index}.periodicidad`]" class="mt-2" />
                         </div>
@@ -392,7 +392,7 @@ watch(
                                 v-model="configuracion.hora"
                                 type="time"
                                 step="60"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             />
                             <InputError :message="$page.props.errors[`configuracion_por_mes.${index}.hora`]" class="mt-2" />
                         </div>
@@ -417,15 +417,15 @@ watch(
                             <label
                                 v-for="diaOption in diasSemanaOptions"
                                 :key="`${index}-${diaOption.value}`"
-                                class="flex items-center gap-2 rounded border border-gray-200 px-3 py-2"
+                                class="flex items-center gap-2 rounded border border-gray-200 dark:border-gray-700 px-3 py-2"
                             >
                                 <input
                                     v-model="configuracion.dias_semana"
                                     type="checkbox"
                                     :value="diaOption.value"
-                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                    class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500"
                                 />
-                                <span class="text-sm text-gray-700">{{ diaOption.label }}</span>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ diaOption.label }}</span>
                             </label>
                         </div>
                         <InputError :message="$page.props.errors[`configuracion_por_mes.${index}.dias_semana`]" class="mt-2" />
@@ -436,7 +436,7 @@ watch(
             <div class="col-span-6 sm:col-span-6 mt-3">
                 <InputLabel for="imagen" value="Imagen (URL o direccion)" :required="false" />
 
-                <div class="mt-2 rounded-lg border border-gray-200 p-3">
+                <div class="mt-2 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <label class="inline-flex cursor-pointer items-center rounded bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700">
                             Seleccionar imagen
@@ -455,19 +455,19 @@ watch(
                         <button
                             v-if="selectedImageFile"
                             type="button"
-                            class="inline-flex items-center rounded bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
+                            class="inline-flex items-center rounded bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-300"
                             @click="clearSelectedImage"
                         >
                             Cancelar seleccion
                         </button>
                     </div>
 
-                    <div v-if="selectedImageFile" class="mt-3 text-sm text-gray-600">
+                    <div v-if="selectedImageFile" class="mt-3 text-sm text-gray-600 dark:text-gray-400">
                         Archivo: <span class="font-medium">{{ selectedImageFile.name }}</span>
                     </div>
 
                     <div v-if="currentImagePreview" class="mt-3 flex items-center gap-3">
-                        <img :src="currentImagePreview" alt="Vista previa" class="h-16 w-16 rounded border border-gray-200 object-cover" />
+                        <img :src="currentImagePreview" alt="Vista previa" class="h-16 w-16 rounded border border-gray-200 dark:border-gray-700 object-cover" />
                         <div class="text-xs text-gray-500 break-all">
                             {{ form.imagen ? 'Imagen cargada' : 'Vista previa local (pendiente de subir)' }}
                         </div>

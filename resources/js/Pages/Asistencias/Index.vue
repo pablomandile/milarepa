@@ -164,12 +164,12 @@ onBeforeUnmount(() => {
     <AppLayout>
         <Toast position="top-right" />
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Asistencias</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Asistencias</h1>
         </template>
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-6xl mx-auto">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-6xl mx-auto">
                     <div class="mb-4">
                         <button
                             type="button"
@@ -180,9 +180,9 @@ onBeforeUnmount(() => {
                         </button>
                     </div>
 
-                    <div v-if="mostrarFormularioAsistencia" class="mb-6 rounded-md border border-gray-200 bg-gray-50 p-4">
-                        <h2 class="text-base font-semibold text-gray-800">Escaneo de Ticket</h2>
-                        <p class="mt-1 text-sm text-gray-600">Use el botón para abrir la cámara y leer el QR del ticket.</p>
+                    <div v-if="mostrarFormularioAsistencia" class="mb-6 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4">
+                        <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">Escaneo de Ticket</h2>
+                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Use el botón para abrir la cámara y leer el QR del ticket.</p>
 
                         <div class="mt-3 flex flex-wrap gap-2">
                             <button
@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
                             {{ errorQr }}
                         </div>
 
-                        <div v-if="leyendoQr" class="mt-4 overflow-hidden rounded-lg border border-gray-300 bg-black">
+                        <div v-if="leyendoQr" class="mt-4 overflow-hidden rounded-lg border border-gray-300 dark:border-gray-600 bg-black">
                             <video ref="videoRef" class="w-full max-h-80 object-cover" autoplay muted playsinline></video>
                         </div>
                     </div>

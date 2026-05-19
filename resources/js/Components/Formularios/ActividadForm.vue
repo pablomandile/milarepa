@@ -453,7 +453,7 @@ watch(
           <h2 class="text-2xl font-semibold text-indigo-600">
             {{ updating ? 'Actualizar Actividad' : 'Nueva Actividad' }}
           </h2>
-          <p class="text-sm text-gray-600 mt-1">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
             {{ updating
                ? 'Edita la información de la actividad seleccionada.'
                : 'Completa los datos para registrar una nueva actividad.' }}
@@ -476,7 +476,7 @@ watch(
               optionLabel="nombre"      
               optionValue="id"
               placeholder="Seleccione tipo"
-              class="grow border border-gray-300"
+              class="grow border border-gray-300 dark:border-gray-600"
             />
             
             <!-- Botón nuevo (Redirecciona al create de Tipos de Actividad) -->
@@ -537,7 +537,7 @@ watch(
               optionLabel="nombre"
               optionValue="id"
               placeholder="Seleccione Descripción"
-              class="grow border border-gray-300 my-dropdown"
+              class="grow border border-gray-300 dark:border-gray-600 my-dropdown"
             />
 
             <!-- Botón ver -->
@@ -582,7 +582,7 @@ watch(
             v-model="form.observaciones"
             type="text"
             autocomplete="off"
-            class="mt-1 block w-full border border-gray-300 rounded"
+            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded"
           />
           <InputError :message="$page.props.errors.observaciones" class="mt-2" />
         </div>
@@ -600,7 +600,7 @@ watch(
             :options="maestrosOrdenados"
             optionLabel="nombre"
             optionValue="id"
-            class="w-full mt-1 border border-gray-300"
+            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             placeholder="Seleccione maestro/s"
           />
           <InputError :message="$page.props.errors.maestros_ids" class="mt-2" />
@@ -619,7 +619,7 @@ watch(
             :options="coordinadoresOrdenados"
             optionLabel="nombre"
             optionValue="id"
-            class="w-full mt-1 border border-gray-300"
+            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             placeholder="Seleccione coordinador/es"
           />
           <InputError :message="$page.props.errors.coordinadores_ids" class="mt-2" />
@@ -689,7 +689,7 @@ watch(
               optionLabel="nombre_corto"
               optionValue="id"
               placeholder="Seleccione Entidad"
-              class="w-full mt-1 border border-gray-300"
+              class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <!-- Botón ver -->
             <button
@@ -740,7 +740,7 @@ watch(
               optionValue="id"
               placeholder="Seleccione Lugar (opcional)"
               showClear
-              class="w-full mt-1 border border-gray-300"
+              class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <button
               type="button"
@@ -788,7 +788,7 @@ watch(
             optionLabel="nombre"
             optionValue="id"
             placeholder="Seleccione la modalidad"
-            class="w-full mt-1 border border-gray-300"
+            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
           />
           <InputError :message="$page.props.errors.modalidad_id" class="mt-2" />
         </div>
@@ -807,7 +807,7 @@ watch(
             optionLabel="descripcion"
             optionValue="id"
             placeholder="Seleccione la Disponibilidad"
-            class="w-full mt-1 border border-gray-300"
+            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
           />
           <InputError :message="$page.props.errors.disponibilidad_id" class="mt-2" />
         </div>
@@ -827,7 +827,7 @@ watch(
               optionLabel="nombre"
               optionValue="id"
               placeholder="Seleccione un esquema"
-              class="w-full mt-1 border border-gray-300"
+              class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <!-- Botón ver -->
             <button
@@ -874,7 +874,7 @@ watch(
               id="con_descuento_anticipado"
               v-model="conDescuentoAnticipado"
             />
-            <span class="text-sm text-gray-600">
+            <span class="text-sm text-gray-600 dark:text-gray-400">
               {{ conDescuentoAnticipado ? 'Activo' : 'Inactivo' }}
             </span>
           </div>
@@ -918,7 +918,7 @@ watch(
               optionLabel="nombre"
               optionValue="id"
               placeholder="Seleccione el esquema de desc."
-              class="w-full mt-1 border border-gray-300"
+              class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <!-- Botón ver -->
             <button
@@ -986,7 +986,7 @@ watch(
               optionLabel="nombre"
               optionValue="id"
               placeholder="Seleccione un programa"
-              class="w-full mt-1 border border-gray-300"
+              class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <!-- Botón ver -->
             <button
@@ -1034,7 +1034,7 @@ watch(
             :options="metodosPagoOrdenados"
             optionLabel="nombre"
             optionValue="id"
-            class="w-full mt-1 border border-gray-300"
+            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             placeholder="Seleccione métodos"
           />
           <InputError :message="$page.props.errors.metodos_pago_ids" class="mt-2" />
@@ -1097,7 +1097,7 @@ watch(
                 optionLabel="nombre"
                 optionValue="id"
                 placeholder="Seleccione Grabación"
-                class="w-full mt-1 border border-gray-300"
+                class="w-full mt-1 border border-gray-300 dark:border-gray-600"
               />
               <button
                 type="button"
@@ -1146,7 +1146,7 @@ watch(
               optionLabel="nombre"
               optionValue="id"
               placeholder="Seleccione Stream"
-              class="w-full mt-1 border border-gray-300"
+              class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <!-- Botón ver -->
             <button
@@ -1195,7 +1195,7 @@ watch(
             optionLabel="nombre"
             optionValue="id"
             placeholder="Seleccione un lugar"
-            class="w-full mt-1 border border-gray-300"
+            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
           />
           <InputError :message="$page.props.errors.lugar_hospedaje_id" class="mt-2" />
         </div>
@@ -1212,7 +1212,7 @@ watch(
             :options="filteredHospedajes"
             optionLabel="nombre"
             optionValue="id"
-            class="w-full mt-1 border border-gray-300"
+            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             placeholder="Seleccione hospedajes"
           />
           <InputError :message="$page.props.errors.hospedajes_ids" class="mt-2" />
@@ -1230,7 +1230,7 @@ watch(
             :options="comidasOrdenadas"
             optionLabel="nombre"
             optionValue="id"
-            class="w-full mt-1 border border-gray-300"
+            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             placeholder="Seleccione comidas"
           />
           <InputError :message="$page.props.errors.comidas_ids" class="mt-2" />
@@ -1248,7 +1248,7 @@ watch(
             :options="transportesOrdenados"
             optionLabel="descripcion"
             optionValue="id"
-            class="w-full mt-1 border border-gray-300"
+            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             placeholder="Seleccione transportes"
           />
           <InputError :message="$page.props.errors.transportes_ids" class="mt-2" />
@@ -1274,7 +1274,7 @@ watch(
               <img
                 :src="imagenPreviewUrl"
                 alt="Imagen actual"
-                class="h-16 w-16 mt-0 pt-0 rounded border border-gray-200 object-cover"
+                class="h-16 w-16 mt-0 pt-0 rounded border border-gray-200 dark:border-gray-700 object-cover"
               />
               <span class="text-xs text-gray-500">Actual</span>
             </div>
@@ -1300,7 +1300,7 @@ watch(
             optionLabel="label"
             optionValue="value"
             placeholder="Seleccione el estado"
-            class="w-full mt-1 border border-gray-300"
+            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
           />
           <InputError :message="$page.props.errors.estado" class="mt-2" />
         </div>
@@ -1317,7 +1317,7 @@ watch(
               id="boton_pago_unico"
               v-model="botonPagoUnico"
             />
-            <span class="text-sm text-gray-600">
+            <span class="text-sm text-gray-600 dark:text-gray-400">
               {{ botonPagoUnico ? 'Activo' : 'Inactivo' }}
             </span>
           </div>
@@ -1336,7 +1336,7 @@ watch(
             optionLabel="nombre"
             optionValue="id"
             placeholder="Seleccione un botón de pago"
-            class="w-full mt-1 border border-gray-300"
+            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             showClear
           />
           <InputError :message="$page.props.errors.botonpago_id" class="mt-2" />
@@ -1363,7 +1363,7 @@ watch(
     <template v-if="detalleSeleccionado">
       <!-- Aquí muestras la info según sea la data. Por ejemplo: -->
       <h3 class="text-xl font-bold mb-2">{{ detalleSeleccionado.nombre }}</h3>
-      <p class="text-sm text-gray-600 whitespace-pre-wrap">
+      <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
         <!-- Muestra 'contenido' o 'descripcion' o 'info', depende de tu objeto -->
         {{ detalleSeleccionado.contenido || detalleSeleccionado.descripcion }}
       </p>

@@ -2,7 +2,7 @@
     <AppLayout title="Registrar Membresía">
         <template #header>
             <div class="flex justify-between items-center">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
                     Membresías Disponibles
                 </h2>
             </div>
@@ -14,23 +14,23 @@
                     <div 
                         v-for="membresia in membresias" 
                         :key="membresia.id"
-                        class="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition"
+                        class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition"
                     >
                         <div class="p-6">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">
                                 {{ membresia.nombre }}
                             </h3>
-                            <p class="text-sm text-gray-600 mb-4">
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
                                 <i class="fas fa-building mr-2"></i>
                                 {{ membresia.entidad.nombre }}
                             </p>
-                            <p class="text-gray-700 mb-6 text-sm">
+                            <p class="text-gray-700 dark:text-gray-300 mb-6 text-sm">
                                 {{ membresia.descripcion || 'Sin descripción disponible' }}
                             </p>
                             
                             <!-- Precio si existe -->
                             <div v-if="membresia.esquemaPrecioMembresias && membresia.esquemaPrecioMembresias.length > 0" class="mb-6">
-                                <p class="text-sm text-gray-600 mb-2">Precio Mensual:</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Precio Mensual:</p>
                                 <p class="text-2xl font-bold text-indigo-600">
                                     ${{ parseFloat(membresia.esquemaPrecioMembresias[0].precio).toFixed(2) }}
                                 </p>
@@ -47,10 +47,10 @@
                     </div>
                 </div>
 
-                <div v-else class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div v-else class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-center">
                         <i class="fas fa-inbox text-5xl text-gray-400 mb-4"></i>
-                        <p class="text-gray-600 text-lg">No hay membresías disponibles en este momento</p>
+                        <p class="text-gray-600 dark:text-gray-400 text-lg">No hay membresías disponibles en este momento</p>
                     </div>
                 </div>
             </div>

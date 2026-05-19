@@ -86,13 +86,13 @@ const getColorClasses = (procesoKey) => {
 <template>
     <AppLayout title="Configuración de Envíos">
         <template #header>
-            <h1 class="font-extrabold text-2xl text-gray-900 leading-tight tracking-tight">Configuración de Envíos</h1>
+            <h1 class="font-extrabold text-2xl text-gray-900 dark:text-gray-100 leading-tight tracking-tight">Configuración de Envíos</h1>
         </template>
 
         <div class="py-12">
             <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 sm:rounded-lg">
-                    <p class="text-lg text-gray-700 mb-6">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sm:rounded-lg">
+                    <p class="text-lg text-gray-700 dark:text-gray-300 mb-6">
                         Configura qué plantilla se usa en cada uno de los procesos de envío de emails.
                     </p>
 
@@ -109,10 +109,10 @@ const getColorClasses = (procesoKey) => {
                             </div>
 
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Plantilla Email</label>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Plantilla Email</label>
                                 <select
                                     v-model="proceso.selected.plantilla_archivo"
-                                    class="w-full border-gray-300 rounded-md shadow-sm"
+                                    class="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm"
                                     :class="getColorClasses(proceso.proceso_key).foco"
                                 >
                                     <option

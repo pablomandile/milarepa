@@ -32,7 +32,7 @@ function computeAge(dateStr) {
 <template>
   <AppLayout title="Perfil del usuario">
     <template #header>
-      <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+      <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
         Perfil de {{ userProfile?.name || 'Usuario' }}
       </h2>
     </template>
@@ -43,7 +43,7 @@ function computeAge(dateStr) {
           <h2 class="text-2xl font-bold text-indigo-700">Datos adicionales</h2>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md p-4 flex flex-col sm:flex-row lg:flex-col gap-3 lg:items-stretch">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex flex-col sm:flex-row lg:flex-col gap-3 lg:items-stretch">
           <Link
             :href="route('usuarios.profile.complete.edit', userProfile.id)"
             class="w-full"
@@ -78,35 +78,35 @@ function computeAge(dateStr) {
                 <i class="pi pi-globe text-indigo-500 mr-2 mt-1"></i>
                 <div>
                   <p class="text-xs text-gray-500">País</p>
-                  <p class="font-semibold text-gray-800">{{ userProfile?.pais?.nombre ?? 'No especificado' }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ userProfile?.pais?.nombre ?? 'No especificado' }}</p>
                 </div>
               </div>
               <div class="flex items-start">
                 <i class="pi pi-building text-indigo-500 mr-2 mt-1"></i>
                 <div>
                   <p class="text-xs text-gray-500">Provincia</p>
-                  <p class="font-semibold text-gray-800">{{ userProfile?.provincia?.nombre ?? 'No especificado' }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ userProfile?.provincia?.nombre ?? 'No especificado' }}</p>
                 </div>
               </div>
               <div class="flex items-start" v-if="userProfile?.municipio">
                 <i class="pi pi-map text-indigo-500 mr-2 mt-1"></i>
                 <div>
                   <p class="text-xs text-gray-500">Municipio</p>
-                  <p class="font-semibold text-gray-800">{{ userProfile?.municipio?.nombre }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ userProfile?.municipio?.nombre }}</p>
                 </div>
               </div>
               <div class="flex items-start" v-if="userProfile?.barrio">
                 <i class="pi pi-home text-indigo-500 mr-2 mt-1"></i>
                 <div>
                   <p class="text-xs text-gray-500">Barrio</p>
-                  <p class="font-semibold text-gray-800">{{ userProfile?.barrio?.nombre }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ userProfile?.barrio?.nombre }}</p>
                 </div>
               </div>
               <div class="flex items-start">
                 <i class="pi pi-directions text-indigo-500 mr-2 mt-1"></i>
                 <div>
                   <p class="text-xs text-gray-500">Dirección</p>
-                  <p class="font-semibold text-gray-800">{{ userProfile?.direccion ?? 'No especificado' }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ userProfile?.direccion ?? 'No especificado' }}</p>
                 </div>
               </div>
             </div>
@@ -128,25 +128,25 @@ function computeAge(dateStr) {
                 <i class="pi pi-mobile text-green-600 mr-2 mt-1 text-lg"></i>
                 <div>
                   <p class="text-xs text-gray-500">Teléfono</p>
-                  <p class="font-semibold text-gray-800">{{ userProfile?.telefono ?? 'No especificado' }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ userProfile?.telefono ?? 'No especificado' }}</p>
                 </div>
               </div>
               <div class="flex items-start">
                 <i class="pi pi-whatsapp text-green-600 mr-2 mt-1 text-lg"></i>
                 <div>
                   <p class="text-xs text-gray-500">WhatsApp</p>
-                  <p class="font-semibold text-gray-800">{{ userProfile?.whatsapp ?? 'No especificado' }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ userProfile?.whatsapp ?? 'No especificado' }}</p>
                 </div>
               </div>
               <div class="bg-green-50 p-3 rounded-lg">
                 <div class="flex items-center justify-between">
-                  <span class="text-sm text-gray-700 mr-3">Info por WhatsApp</span>
+                  <span class="text-sm text-gray-700 dark:text-gray-300 mr-3">Info por WhatsApp</span>
                   <i :class="userProfile?.msgxwapp ? 'pi pi-check-circle text-green-600' : 'pi pi-times-circle text-gray-400'" class="text-xl"></i>
                 </div>
               </div>
               <div class="bg-blue-50 p-3 rounded-lg">
                 <div class="flex items-center justify-between">
-                  <span class="text-sm text-gray-700 mr-3">Info por Email</span>
+                  <span class="text-sm text-gray-700 dark:text-gray-300 mr-3">Info por Email</span>
                   <i :class="userProfile?.msgxmail ? 'pi pi-check-circle text-blue-600' : 'pi pi-times-circle text-gray-400'" class="text-xl"></i>
                 </div>
               </div>
@@ -169,35 +169,35 @@ function computeAge(dateStr) {
                 <i class="pi pi-users text-purple-600 mr-2 mt-1"></i>
                 <div>
                   <p class="text-xs text-gray-500">Sexo</p>
-                  <p class="font-semibold text-gray-800">{{ userProfile?.sexo?.sexo ?? 'No especificado' }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ userProfile?.sexo?.sexo ?? 'No especificado' }}</p>
                 </div>
               </div>
               <div class="flex items-start">
                 <i class="pi pi-calendar text-purple-600 mr-2 mt-1"></i>
                 <div>
                   <p class="text-xs text-gray-500">Edad</p>
-                  <p class="font-semibold text-gray-800">{{ computeAge(userProfile?.fecha_nacimiento) }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ computeAge(userProfile?.fecha_nacimiento) }}</p>
                 </div>
               </div>
               <div class="flex items-start">
                 <i class="pi pi-id-card text-purple-600 mr-2 mt-1"></i>
                 <div>
                   <p class="text-xs text-gray-500">Membresía</p>
-                  <p class="font-semibold text-gray-800">{{ userProfile?.membresia?.nombre ?? userProfile?.membresia_usuario?.membresia?.nombre ?? 'No especificado' }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ userProfile?.membresia?.nombre ?? userProfile?.membresia_usuario?.membresia?.nombre ?? 'No especificado' }}</p>
                 </div>
               </div>
               <div class="flex items-start">
                 <i class="pi pi-building text-purple-600 mr-2 mt-1"></i>
                 <div>
                   <p class="text-xs text-gray-500">Asiste a</p>
-                  <p class="font-semibold text-gray-800">{{ userProfile?.membresia?.entidad?.nombre ?? userProfile?.membresia_usuario?.entidad?.nombre ?? 'No especificado' }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ userProfile?.membresia?.entidad?.nombre ?? userProfile?.membresia_usuario?.entidad?.nombre ?? 'No especificado' }}</p>
                 </div>
               </div>
               <div class="flex items-start">
                 <i class="pi pi-book text-purple-600 mr-2 mt-1"></i>
                 <div>
                   <p class="text-xs text-gray-500">Programa de estudio</p>
-                  <p class="font-semibold text-gray-800">{{ userProfile?.programa_estudio?.nombre ?? (userProfile?.programa_estudio_id ? 'ID ' + userProfile.programa_estudio_id : 'No especificado') }}</p>
+                  <p class="font-semibold text-gray-800 dark:text-gray-100">{{ userProfile?.programa_estudio?.nombre ?? (userProfile?.programa_estudio_id ? 'ID ' + userProfile.programa_estudio_id : 'No especificado') }}</p>
                 </div>
               </div>
             </div>
@@ -218,8 +218,8 @@ function computeAge(dateStr) {
               <div class="flex items-start">
                 <i class="pi pi-info-circle text-yellow-600 mr-3 mt-1 text-2xl"></i>
                 <div>
-                  <p class="text-sm font-semibold text-gray-700 mb-1">Detalle de necesidad especial:</p>
-                  <p class="text-gray-800">{{ userProfile?.accesibilidad_desc ?? 'No especificado' }}</p>
+                  <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Detalle de necesidad especial:</p>
+                  <p class="text-gray-800 dark:text-gray-100">{{ userProfile?.accesibilidad_desc ?? 'No especificado' }}</p>
                 </div>
               </div>
             </div>

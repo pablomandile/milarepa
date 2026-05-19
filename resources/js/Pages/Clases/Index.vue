@@ -233,12 +233,12 @@ const updateEstado = (row, nuevoEstado) => {
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Clases</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Clases</h1>
         </template>
         <Toast position="top-right" />
         <div class="py-12">
             <div class="max-w-[110rem] mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white border-b border-gray-200 max-w-[108rem] mx-auto p-0 sm:p-6">
+                <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-[108rem] mx-auto p-0 sm:p-6">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create clases')">
                         <Link :href="route('clases.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
                             NUEVA CLASE
@@ -249,7 +249,7 @@ const updateEstado = (row, nuevoEstado) => {
                             <div class="flex flex-col gap-2">
                                 <select
                                     v-model="filtroMesReferencia"
-                                    class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
+                                    class="rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
                                 >
                                     <option value="mes_actual">Mes actual en adelante</option>
                                     <option value="ultimo_mes">Ultimo mes</option>
@@ -285,11 +285,11 @@ const updateEstado = (row, nuevoEstado) => {
                             <div
                                 v-for="clase in clasesFiltradasMobile"
                                 :key="clase.id"
-                                class="overflow-hidden border border-gray-200 bg-white shadow-sm"
+                                class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
                             >
                                 <button
                                     type="button"
-                                    class="block w-full bg-gray-100"
+                                    class="block w-full bg-gray-100 dark:bg-gray-900"
                                     title="Ver imagen"
                                     @click="openImageDialog(clase.imagen ? '/storage/' + clase.imagen.ruta : '')"
                                 >
@@ -309,15 +309,15 @@ const updateEstado = (row, nuevoEstado) => {
 
                                 <div class="space-y-3 p-4">
                                     <div class="space-y-1">
-                                        <p class="text-base font-semibold text-gray-800">
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100">
                                             {{ clase.nombre || '-' }}
                                         </p>
-                                        <p class="text-sm text-gray-600">
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">
                                             {{ clase.ciclo?.nombre || '-' }}
                                         </p>
                                     </div>
 
-                                    <div class="space-y-2 text-sm text-gray-700">
+                                    <div class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                                         <div class="flex items-center justify-between gap-3">
                                             <span class="text-gray-500">Mes</span>
                                             <span>{{ formatMes(clase.mes_referencia) }}</span>
@@ -365,7 +365,7 @@ const updateEstado = (row, nuevoEstado) => {
 
                                     <button
                                         type="button"
-                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50"
                                         @click="toggleCardExpanded(clase.id)"
                                     >
                                         <span>{{ isCardExpanded(clase.id) ? 'Ocultar detalles' : 'Ver mas detalles' }}</span>
@@ -375,8 +375,8 @@ const updateEstado = (row, nuevoEstado) => {
                                         ></i>
                                     </button>
 
-                                    <div v-if="isCardExpanded(clase.id)" class="rounded-md border border-gray-200 bg-gray-50 p-3">
-                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700">
+                                    <div v-if="isCardExpanded(clase.id)" class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
+                                        <div class="grid grid-cols-1 gap-3 text-sm text-gray-700 dark:text-gray-300">
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Coordinador</p>
                                                 <p>{{ clase.coordinador?.nombre || '-' }}</p>
@@ -389,7 +389,7 @@ const updateEstado = (row, nuevoEstado) => {
                                     </div>
                                 </div>
 
-                                <div class="border-t border-gray-200 bg-white px-4 py-3">
+                                <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
                                     <div class="flex flex-wrap items-center justify-center gap-2">
                                         <Link
                                             :href="`${route('clases.show-public', { clase: parseInt(clase.id) })}?return_url=${encodeURIComponent(route('clases.index'))}`"
@@ -444,7 +444,7 @@ const updateEstado = (row, nuevoEstado) => {
                                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
                                     <select
                                         v-model="filtroMesReferencia"
-                                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
+                                        class="rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
                                     >
                                         <option value="mes_actual">Mes actual en adelante</option>
                                         <option value="ultimo_mes">Ultimo mes</option>
@@ -471,7 +471,7 @@ const updateEstado = (row, nuevoEstado) => {
                                             <img
                                                 :src="'/storage/' + slotProps.data.imagen.ruta"
                                                 alt="Imagen de clase"
-                                                class="h-12 w-12 rounded object-cover border border-gray-200"
+                                                class="h-12 w-12 rounded object-cover border border-gray-200 dark:border-gray-700"
                                             />
                                         </button>
                                         <span v-else class="text-sm text-gray-400">Sin imagen</span>
@@ -583,15 +583,15 @@ const updateEstado = (row, nuevoEstado) => {
                                 </template>
                             </Column>
                             <template #expansion="{ data }">
-                                <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+                                <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-md p-4">
                                     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Coordinador</p>
-                                            <p class="text-sm text-gray-800">{{ data.coordinador?.nombre || '-' }}</p>
+                                            <p class="text-sm text-gray-800 dark:text-gray-100">{{ data.coordinador?.nombre || '-' }}</p>
                                         </div>
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Esquema de precios</p>
-                                            <p class="text-sm text-gray-800">{{ data.esquema_precio?.nombre || '-' }}</p>
+                                            <p class="text-sm text-gray-800 dark:text-gray-100">{{ data.esquema_precio?.nombre || '-' }}</p>
                                         </div>
                                     </div>
                                 </div>

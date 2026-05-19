@@ -39,6 +39,7 @@ class User extends Authenticatable
         'password',
         'google_id',
         'avatar',
+        'theme_preference',
         'accesibilidad',
         'accesibilidad_desc',
         'direccion',

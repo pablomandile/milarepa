@@ -68,7 +68,7 @@ function resolveLinkUrl(link) {
 <template>
     <AppLayout title="Editar Stream">
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
                 Agregar Link
             </h1>
         </template>
@@ -90,7 +90,7 @@ function resolveLinkUrl(link) {
                 </h2>
 
                 <!-- Formulario para AGREGAR una nueva membresía -->
-                <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg mb-6 mt-6 p-4">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg mb-6 mt-6 p-4">
                     <StreamLinkForm
                         :form="formLink"
                         @submit="handleAddLink"
@@ -120,7 +120,7 @@ function resolveLinkUrl(link) {
                           <InputText
                             v-model="data.nombre"
                             type="text"
-                            class="w-full mt-1 border border-gray-300"
+                            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                           />
                         </template>
                       </Column>
@@ -137,7 +137,7 @@ function resolveLinkUrl(link) {
                           <InputText
                             v-model="data.link"
                             type="text"
-                            class="w-full mt-1 border border-gray-300"
+                            class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                           />
                         </template>
                       </Column>

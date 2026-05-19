@@ -73,7 +73,7 @@ import Dropdown from 'primevue/dropdown';
                     optionLabel="nombre"
                     optionValue="id"
                     placeholder="Seleccione un botón de pago"
-                    class="w-full mt-1 md:w-14rem border border-gray-300"
+                    class="w-full mt-1 md:w-14rem border border-gray-300 dark:border-gray-600"
                     showClear
                 />
                 <InputError :message="$page.props.errors.botonpago_id" class="mt-2" />
@@ -93,7 +93,7 @@ import Dropdown from 'primevue/dropdown';
                     optionLabel="nombre"
                     optionValue="id"
                     placeholder="Seleccione un lugar"
-                    class="w-full mt-1 md:w-14rem border border-gray-300"
+                    class="w-full mt-1 md:w-14rem border border-gray-300 dark:border-gray-600"
                 />
                 <InputError :message="$page.props.errors.lugar_hospedaje_id" class="mt-2" />
             </div>

@@ -49,14 +49,14 @@ const formatDate = (value) => {
 
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Venta de Libros</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Venta de Libros</h1>
         </template>
 
         <div class="py-12">
             <div class="max-w-[110rem] mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-[108rem] mx-auto">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-[108rem] mx-auto">
                     <div class="flex justify-between flex-wrap gap-2 mb-4">
-                        <Link :href="route('inventario-libros.index')" class="text-gray-800 bg-slate-200 hover:bg-slate-300 py-2 px-4 rounded">
+                        <Link :href="route('inventario-libros.index')" class="text-gray-800 dark:text-gray-100 bg-slate-200 hover:bg-slate-300 py-2 px-4 rounded">
                             VOLVER
                         </Link>
                     </div>
@@ -64,7 +64,7 @@ const formatDate = (value) => {
                     <VentaLibroForm :entidades="entidades" :modos-pago="modosPago" />
 
                     <div class="mt-8">
-                        <h2 class="text-lg font-semibold text-gray-800 mb-3">Ventas realizadas</h2>
+                        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">Ventas realizadas</h2>
                         <DataTable
                             :value="ventas"
                             stripedRows

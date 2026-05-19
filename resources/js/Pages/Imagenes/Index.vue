@@ -65,11 +65,11 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Galería de Imágenes</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Galería de Imágenes</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-7xl mx-auto">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-7xl mx-auto">
                     <!-- Componente personalizado para subir imágenes -->
                     <div class="flex justify-between mb-6" v-if="$page.props.user.permissions.includes('create entidades')">
                         <ImageUploader />
@@ -154,7 +154,7 @@
                                 'px-4 py-2 rounded transition',
                                 link.active 
                                     ? 'bg-indigo-600 text-white' 
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
+                                    : 'bg-gray-200 text-gray-700 dark:text-gray-300 hover:bg-gray-300',
                                 !link.url && 'opacity-50 cursor-not-allowed'
                             ]"
                             v-html="link.label"
@@ -176,7 +176,7 @@
                     :alt="selectedImage.nombre"
                     style="max-width: 100%; height: auto;"
                 />
-                <p class="mt-2 font-semibold text-gray-700">
+                <p class="mt-2 font-semibold text-gray-700 dark:text-gray-300">
                     {{ selectedImage.nombre }}
                 </p>
                 </div>

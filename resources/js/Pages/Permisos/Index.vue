@@ -113,25 +113,25 @@ const hasMorePermissions = (permissions) => permissions.length > 20;
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Roles y Permisos</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Roles y Permisos</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex justify-end" v-if="$page.props.user.permissions.includes('create permisos')">
                         <Link :href="route('permisos.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
                             NUEVO PERMISO
                         </Link>
                     </div>
                     <div class="mb-4">
-                        <h2 class="text-lg font-semibold text-gray-800">Roles y sus Permisos</h2>
-                        <p class="text-sm text-gray-600 mt-1">Visualiza los permisos asignados a cada rol del sistema.</p>
+                        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Roles y sus Permisos</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Visualiza los permisos asignados a cada rol del sistema.</p>
                     </div>
                     <div class="mt-6">
                         <DataTable :value="roles" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                             <Column field="name" header="Rol" style="width: 15%">
                                 <template #body="slotProps">
-                                    <span class="font-semibold text-gray-800">{{ formatRoleName(slotProps.data.name) }}</span>
+                                    <span class="font-semibold text-gray-800 dark:text-gray-100">{{ formatRoleName(slotProps.data.name) }}</span>
                                 </template>
                             </Column>
                             <Column header="Módulos / Permisos" style="width: 85%">
@@ -142,7 +142,7 @@ const hasMorePermissions = (permissions) => permissions.length > 20;
                                             :key="resource.name"
                                             class="flex items-start gap-2"
                                         >
-                                            <span class="text-gray-700 min-w-[150px]">
+                                            <span class="text-gray-700 dark:text-gray-300 min-w-[150px]">
                                                 {{ formatResourceName(resource.name) }}:
                                             </span>
                                             <div class="flex flex-wrap gap-1">
@@ -165,7 +165,7 @@ const hasMorePermissions = (permissions) => permissions.length > 20;
                                         <button
                                             v-if="hasMoreResources(slotProps.data.permissions)"
                                             @click="toggleExpanded(slotProps.data.id)"
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer mt-2"
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700 dark:text-gray-300 hover:bg-gray-300 cursor-pointer mt-2"
                                         >
                                             {{ isExpanded(slotProps.data.id) ? '- Ver menos' : `+ Ver más (${groupPermissionsByResource(slotProps.data.permissions).length - 10})` }}
                                         </button>

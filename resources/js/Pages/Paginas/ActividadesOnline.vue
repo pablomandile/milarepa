@@ -306,17 +306,17 @@ const isClaseRowExpanded = (claseId, fh) => {
 <template>
     <AppLayout title="Actividades Online">
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Actividades Online</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Actividades Online</h1>
         </template>
 
         <div class="py-10">
             <div class="w-full sm:px-6 lg:px-8">
-                <div class="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+                <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
                     <div v-if="headerImageUrl" class="px-0 sm:px-6 pt-5 mb-5">
                         <img
                             :src="headerImageUrl"
                             alt="Encabezado Actividades Online"
-                            class="w-full h-auto rounded-lg border border-gray-200 object-contain"
+                            class="w-full h-auto rounded-lg border border-gray-200 dark:border-gray-700 object-contain"
                         />
                     </div>
                     <div v-if="weekdayNavigation.length > 0" class="px-0 sm:px-6 pt-5">
@@ -387,18 +387,18 @@ const isClaseRowExpanded = (claseId, fh) => {
                                         v-for="(weekdayGroup, gIdx) in groupFechasByWeekday(item.fechas)"
                                         :key="`oracion-${item.id}-weekday-card-${gIdx}`"
                                         :id="getWeekdayGroupAnchorId('oraciones', item.id, weekdayGroup.weekday)"
-                                        class="activity-card scroll-mt-28 mt-8 mb-10 first:mt-0 last:mb-0 rounded-lg border border-gray-200 p-3"
+                                        class="activity-card scroll-mt-28 mt-8 mb-10 first:mt-0 last:mb-0 rounded-lg border border-gray-200 dark:border-gray-700 p-3"
                                     >
                                         <div class="activity-image-col">
                                             <img
                                                 :src="item.image_url || fallbackImage"
                                                 :alt="item.nombre"
-                                                class="activity-card-image h-auto rounded object-contain border border-gray-200"
+                                                class="activity-card-image h-auto rounded object-contain border border-gray-200 dark:border-gray-700"
                                             />
                                         </div>
                                         <div class="activity-right-col">
                                         <h4
-                                            class="text-2xl font-semibold text-gray-800 mb-5 mt-2 leading-tight whitespace-pre-line break-words"
+                                            class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-5 mt-2 leading-tight whitespace-pre-line break-words"
                                         >
                                             {{ item.nombre }}
                                         </h4>
@@ -443,18 +443,18 @@ const isClaseRowExpanded = (claseId, fh) => {
                                 <article
                                     v-for="item in clasesAgrupadas"
                                     :key="`clase-${item.id}`"
-                                    class="activity-card mt-8 mb-10 first:mt-0 last:mb-0 rounded-lg border border-gray-200 p-3"
+                                    class="activity-card mt-8 mb-10 first:mt-0 last:mb-0 rounded-lg border border-gray-200 dark:border-gray-700 p-3"
                                 >
                                     <div class="activity-image-col">
                                         <img
                                             :src="item.image_url || fallbackImage"
                                             :alt="item.nombre"
-                                            class="activity-card-image h-auto rounded object-contain border border-gray-200"
+                                            class="activity-card-image h-auto rounded object-contain border border-gray-200 dark:border-gray-700"
                                         />
                                     </div>
                                     <div class="activity-right-col">
                                         <h4
-                                            class="text-2xl font-semibold text-gray-800 mb-8 mt-2 leading-tight whitespace-pre-line break-words"
+                                            class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-8 mt-2 leading-tight whitespace-pre-line break-words"
                                         >
                                             {{ item.nombre }}
                                         </h4>
@@ -480,7 +480,7 @@ const isClaseRowExpanded = (claseId, fh) => {
                                                                 <td class="px-3 py-4 text-slate-600">
                                                                     <button
                                                                         type="button"
-                                                                        class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                                        class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white dark:bg-gray-800 px-2 py-1 text-slate-700 hover:bg-slate-100"
                                                                         @click="toggleClaseRow(item.id, fh)"
                                                                     >
                                                                         <i :class="isClaseRowExpanded(item.id, fh) ? 'pi pi-minus' : 'pi pi-plus'"></i>
@@ -519,17 +519,17 @@ const isClaseRowExpanded = (claseId, fh) => {
                                 <article
                                     v-for="item in section.items"
                                     :key="`${section.key}-${item.id}-${item.fecha || item.fecha_inicio || ''}`"
-                                    class="activity-card mt-8 mb-10 first:mt-0 last:mb-0 rounded-lg border border-gray-200 p-3"
+                                    class="activity-card mt-8 mb-10 first:mt-0 last:mb-0 rounded-lg border border-gray-200 dark:border-gray-700 p-3"
                                 >
                                     <div class="activity-image-col">
                                         <img
                                             :src="item.image_url || fallbackImage"
                                             :alt="item.nombre"
-                                            class="activity-card-image h-auto rounded object-contain border border-gray-200"
+                                            class="activity-card-image h-auto rounded object-contain border border-gray-200 dark:border-gray-700"
                                         />
                                     </div>
                                     <div class="activity-right-col">
-                                        <h4 class="text-2xl font-semibold text-gray-800 mb-5 mt-2 leading-tight whitespace-pre-line break-words">
+                                        <h4 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-5 mt-2 leading-tight whitespace-pre-line break-words">
                                             {{ item.nombre }}
                                         </h4>
                                         <div class="overflow-hidden rounded-lg border border-slate-200">

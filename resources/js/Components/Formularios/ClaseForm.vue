@@ -206,7 +206,7 @@ watch(
                     <h2 class="text-2xl font-semibold text-indigo-600">
                         {{ updating ? 'Actualizar Clase' : 'Nueva Clase' }}
                     </h2>
-                    <p class="text-sm text-gray-600 mt-1">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
                         {{ updating ? 'Edita la informacion de la clase seleccionada.' : 'Completa los datos para registrar una nueva clase.' }}
                     </p>
                 </div>
@@ -227,7 +227,7 @@ watch(
                             optionLabel="nombre"
                             optionValue="id"
                             placeholder="Seleccione un ciclo"
-                            class="w-full border border-gray-300"
+                            class="w-full border border-gray-300 dark:border-gray-600"
                         />
                         <a
                             :href="route('ciclos.create')"
@@ -260,7 +260,7 @@ watch(
                             optionLabel="nombre"
                             optionValue="id"
                             placeholder="Seleccione una entidad"
-                            class="w-full border border-gray-300"
+                            class="w-full border border-gray-300 dark:border-gray-600"
                         />
                         <a
                             :href="route('entidades.create')"
@@ -289,7 +289,7 @@ watch(
                         id="mes_referencia"
                         v-model="form.mes_referencia"
                         type="month"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
                     <p v-if="mesReferenciaLabel" class="mt-1 text-xs text-gray-500">
                         Seleccionado: {{ mesReferenciaLabel }}
@@ -299,7 +299,7 @@ watch(
 
                 <div class="w-full col-span-6 sm:col-span-6">
                     <InputLabel for="descripcion" class="text-indigo-400" value="Descripcion" />
-                    <Textarea id="descripcion" v-model="form.descripcion" rows="4" class="mt-1 block w-full border border-gray-300 rounded" />
+                    <Textarea id="descripcion" v-model="form.descripcion" rows="4" class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded" />
                     <InputError :message="$page.props.errors.descripcion" class="mt-2" />
                 </div>
 
@@ -316,7 +316,7 @@ watch(
                             <img
                                 :src="imagenPreviewUrl"
                                 alt="Imagen actual"
-                                class="h-16 w-16 rounded border border-gray-200 object-cover"
+                                class="h-16 w-16 rounded border border-gray-200 dark:border-gray-700 object-cover"
                             />
                             <span class="text-xs text-gray-500">Actual</span>
                         </div>
@@ -331,15 +331,15 @@ watch(
                         <label
                             v-for="diaOption in diasSemanaOptions"
                             :key="diaOption.value"
-                            class="flex items-center gap-2 rounded border border-gray-200 px-3 py-2"
+                            class="flex items-center gap-2 rounded border border-gray-200 dark:border-gray-700 px-3 py-2"
                         >
                             <input
                                 v-model="form.dias_semana"
                                 type="checkbox"
                                 :value="diaOption.value"
-                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500"
                             />
-                            <span class="text-sm text-gray-700">{{ diaOption.label }}</span>
+                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ diaOption.label }}</span>
                         </label>
                     </div>
 
@@ -347,7 +347,7 @@ watch(
                         <input
                             v-model="allDaysChecked"
                             type="checkbox"
-                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                            class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500"
                         />
                         <span class="text-sm font-medium text-indigo-700">Todos los dias</span>
                     </label>
@@ -358,16 +358,16 @@ watch(
                 <div v-if="generatedSessionDates.length > 0" class="col-span-1 md:col-span-3">
                     <div class="rounded-lg border border-indigo-200 bg-indigo-50/40 p-4">
                         <InputLabel class="text-indigo-500" value="Titulos por fecha" :required="true" />
-                        <p class="mt-1 text-xs text-gray-600">
+                        <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">
                             Se detectaron {{ generatedSessionDates.length }} clase(s) en el mes seleccionado.
                         </p>
                         <div class="mt-3 space-y-2">
                             <div
                                 v-for="sessionDate in generatedSessionDates"
                                 :key="sessionDate.key"
-                                class="grid grid-cols-1 gap-2 sm:grid-cols-3 items-center rounded border border-gray-200 bg-white p-2"
+                                class="grid grid-cols-1 gap-2 sm:grid-cols-3 items-center rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2"
                             >
-                                <span class="text-sm text-gray-700 sm:col-span-1">{{ sessionDate.label }}</span>
+                                <span class="text-sm text-gray-700 dark:text-gray-300 sm:col-span-1">{{ sessionDate.label }}</span>
                                 <div class="sm:col-span-2">
                                     <TextInput
                                         v-model="form.titulos_por_fecha[sessionDate.key]"
@@ -389,7 +389,7 @@ watch(
                         v-model="form.horario_desde"
                         type="time"
                         step="60"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
                     <InputError :message="$page.props.errors.horario_desde" class="mt-2" />
                 </div>
@@ -401,7 +401,7 @@ watch(
                         v-model="form.horario_hasta"
                         type="time"
                         step="60"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
                     <InputError :message="$page.props.errors.horario_hasta" class="mt-2" />
                 </div>
@@ -415,7 +415,7 @@ watch(
                         optionLabel="nombre"
                         optionValue="id"
                         placeholder="Seleccione uno o mas maestros"
-                        class="w-full mt-1 border border-gray-300"
+                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                         :filter="true"
                         display="chip"
                         :maxSelectedLabels="3"
@@ -432,7 +432,7 @@ watch(
                         optionLabel="nombre"
                         optionValue="id"
                         placeholder="Seleccione un coordinador"
-                        class="w-full mt-1 border border-gray-300"
+                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                         showClear
                     />
                     <InputError :message="$page.props.errors.coordinador_id" class="mt-2" />
@@ -447,7 +447,7 @@ watch(
                         optionLabel="nombre"
                         optionValue="id"
                         placeholder="Seleccione un esquema"
-                        class="w-full mt-1 border border-gray-300"
+                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                         showClear
                     />
                     <InputError :message="$page.props.errors.esquema_precio_id" class="mt-2" />
@@ -462,7 +462,7 @@ watch(
                         optionLabel="nombre"
                         optionValue="id"
                         placeholder="Seleccione una modalidad"
-                        class="w-full mt-1 border border-gray-300"
+                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                         showClear
                     />
                     <InputError :message="$page.props.errors.modalidad_id" class="mt-2" />
@@ -477,7 +477,7 @@ watch(
                         optionLabel="nombre"
                         optionValue="id"
                         placeholder="Seleccione un stream"
-                        class="w-full mt-1 border border-gray-300"
+                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                         showClear
                     />
                     <InputError :message="$page.props.errors.stream_id" class="mt-2" />

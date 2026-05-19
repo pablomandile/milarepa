@@ -184,13 +184,13 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Agregar datos a tu Perfil</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight" >Agregar datos a tu Perfil</h1>
         </template>
         <div class="py-12">
             <div class="w-full md:w-[70%] mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
-                    <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
-                        <div class="px-0 py-6 md:p-6 bg-white border-b border-gray-200">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
+                        <div class="px-0 py-6 md:p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                             <CompleteProfileForm 
                             :updating="updating"
                             :membresias="membresias"

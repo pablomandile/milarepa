@@ -1,41 +1,41 @@
 <template>
     <AppLayout title="Registrar Membresía">
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
                 Registrar Membresía
             </h2>
         </template>
 
         <div class="py-12">
             <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6 text-gray-900 dark:text-gray-100">
                         <form @submit.prevent="submitForm">
                             <!-- Información de la Membresía Seleccionada -->
-                            <div v-if="membresiaSeleccionada" class="mb-8 pb-8 border-b border-gray-200">
-                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Membresía Seleccionada</h3>
+                            <div v-if="membresiaSeleccionada" class="mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+                                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Membresía Seleccionada</h3>
                                 <div class="bg-indigo-50 p-4 rounded-lg">
-                                    <p class="text-sm text-gray-600">Nombre</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Nombre</p>
                                     <p class="text-lg font-semibold text-indigo-600 mb-3">{{ membresiaSeleccionada.nombre }}</p>
                                     
-                                    <p class="text-sm text-gray-600">Entidad</p>
-                                    <p class="text-lg font-semibold text-gray-800 mb-3">{{ membresiaSeleccionada.entidad.nombre }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Entidad</p>
+                                    <p class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">{{ membresiaSeleccionada.entidad.nombre }}</p>
                                     
-                                    <p class="text-sm text-gray-600">Descripción</p>
-                                    <p class="text-gray-700">{{ membresiaSeleccionada.descripcion || 'Sin descripción' }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Descripción</p>
+                                    <p class="text-gray-700 dark:text-gray-300">{{ membresiaSeleccionada.descripcion || 'Sin descripción' }}</p>
                                 </div>
                             </div>
 
                             <!-- Fecha de Inicio -->
                             <div class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     <i class="fas fa-calendar-alt mr-2"></i>
                                     Fecha de Inicio
                                 </label>
                                 <input 
                                     type="date" 
                                     v-model="form.fecha_inicio"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                     required
                                 >
                                 <p v-if="errors.fecha_inicio" class="text-red-600 text-sm mt-1">
@@ -45,7 +45,7 @@
 
                             <!-- Cantidad de Meses -->
                             <div class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     <i class="fas fa-hourglass-end mr-2"></i>
                                     Cantidad de Meses
                                 </label>
@@ -54,10 +54,10 @@
                                     v-model.number="form.cantidad_meses"
                                     min="1"
                                     max="36"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                     required
                                 >
-                                <p class="text-sm text-gray-600 mt-1">Mínimo 1 mes, máximo 36 meses</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Mínimo 1 mes, máximo 36 meses</p>
                                 <p v-if="errors.cantidad_meses" class="text-red-600 text-sm mt-1">
                                     {{ errors.cantidad_meses[0] }}
                                 </p>
@@ -65,7 +65,7 @@
 
                             <!-- Importe (Opcional) -->
                             <div class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     <i class="fas fa-dollar-sign mr-2"></i>
                                     Importe Mensual (Opcional)
                                 </label>
@@ -75,7 +75,7 @@
                                     min="0"
                                     step="0.01"
                                     placeholder="Si no ingresa, se usará el precio configurado"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                 >
                                 <p v-if="errors.importe" class="text-red-600 text-sm mt-1">
                                     {{ errors.importe[0] }}
@@ -108,7 +108,7 @@
                                 </button>
                                 <Link 
                                     href="/registromembresias"
-                                    class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium"
+                                    class="px-6 py-2 bg-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 transition font-medium"
                                 >
                                     <i class="fas fa-times mr-2"></i>
                                     Cancelar

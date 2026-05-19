@@ -63,11 +63,11 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Entidades</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Entidades</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-7xl mx-auto">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-7xl mx-auto">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
                         <Link :href="route('entidades.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
                             NUEVA ENTIDAD
@@ -123,12 +123,12 @@
         <template v-if="entidadSeleccionada">
             <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 shadow-inner">
                 <!-- Logo y nombre destacado -->
-                <div class="bg-white rounded-lg p-5 mb-4 shadow-sm border-l-4 border-indigo-500">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-5 mb-4 shadow-sm border-l-4 border-indigo-500">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center flex-1">
                             <i class="fas fa-building text-indigo-600 text-2xl mr-3"></i>
                             <div>
-                                <h3 class="text-xl font-bold text-gray-800">{{ entidadSeleccionada.nombre }}</h3>
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">{{ entidadSeleccionada.nombre }}</h3>
                                 <p v-if="entidadSeleccionada.abreviacion && entidadSeleccionada.abreviacion.trim() !== ''" 
                                    class="text-sm text-gray-500 mt-1">
                                     {{ entidadSeleccionada.abreviacion }}
@@ -151,20 +151,20 @@
 
                 <!-- Descripción -->
                 <div v-if="entidadSeleccionada.descripcion && entidadSeleccionada.descripcion.trim() !== ''" 
-                     class="bg-white rounded-lg p-5 mb-4 shadow-sm">
+                     class="bg-white dark:bg-gray-800 rounded-lg p-5 mb-4 shadow-sm">
                     <div class="flex items-start">
                         <i class="fas fa-align-left text-indigo-600 text-lg mr-3 mt-1"></i>
                         <div>
-                            <h4 class="font-semibold text-gray-700 mb-2">Descripción</h4>
-                            <p class="text-gray-600 leading-relaxed">{{ entidadSeleccionada.descripcion }}</p>
+                            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Descripción</h4>
+                            <p class="text-gray-600 dark:text-gray-400 leading-relaxed">{{ entidadSeleccionada.descripcion }}</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Información de contacto -->
-                    <div class="bg-white rounded-lg p-5 shadow-sm">
-                        <h4 class="font-semibold text-gray-700 mb-4 flex items-center">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm">
+                        <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
                             <i class="fas fa-address-card text-indigo-600 text-lg mr-2"></i>
                             Contacto
                         </h4>
@@ -175,7 +175,7 @@
                                 <i class="fas fa-map-marker-alt text-indigo-600 mr-3 mt-0.5"></i>
                                 <div class="flex-1">
                                     <p class="text-xs text-gray-500 mb-0.5">Dirección</p>
-                                    <p class="text-gray-700 text-sm">{{ entidadSeleccionada.direccion }}</p>
+                                    <p class="text-gray-700 dark:text-gray-300 text-sm">{{ entidadSeleccionada.direccion }}</p>
                                 </div>
                             </div>
 
@@ -185,7 +185,7 @@
                                 <div class="flex-1">
                                     <p class="text-xs text-gray-500 mb-0.5">Teléfono</p>
                                     <a :href="`tel:${entidadSeleccionada.telefono}`" 
-                                       class="text-gray-700 hover:text-indigo-600 transition-colors text-sm">
+                                       class="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors text-sm">
                                         {{ entidadSeleccionada.telefono }}
                                     </a>
                                 </div>
@@ -198,7 +198,7 @@
                                     <p class="text-xs text-gray-500 mb-0.5">WhatsApp</p>
                                     <a :href="`https://wa.me/${entidadSeleccionada.whatsapp.replace(/[^0-9]/g, '')}`" 
                                        target="_blank"
-                                       class="text-gray-700 hover:text-indigo-600 transition-colors text-sm">
+                                       class="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors text-sm">
                                         {{ entidadSeleccionada.whatsapp }}
                                     </a>
                                 </div>
@@ -210,7 +210,7 @@
                                 <div class="flex-1">
                                     <p class="text-xs text-gray-500 mb-0.5">Email</p>
                                     <a :href="`mailto:${entidadSeleccionada.email1}`" 
-                                       class="text-gray-700 hover:text-indigo-600 transition-colors text-sm break-all">
+                                       class="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors text-sm break-all">
                                         {{ entidadSeleccionada.email1 }}
                                     </a>
                                 </div>
@@ -222,7 +222,7 @@
                                 <div class="flex-1">
                                     <p class="text-xs text-gray-500 mb-0.5">Email 2</p>
                                     <a :href="`mailto:${entidadSeleccionada.email2}`" 
-                                       class="text-gray-700 hover:text-indigo-600 transition-colors text-sm break-all">
+                                       class="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors text-sm break-all">
                                         {{ entidadSeleccionada.email2 }}
                                     </a>
                                 </div>
@@ -231,8 +231,8 @@
                     </div>
 
                     <!-- Redes sociales y web -->
-                    <div class="bg-white rounded-lg p-5 shadow-sm">
-                        <h4 class="font-semibold text-gray-700 mb-4 flex items-center">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm">
+                        <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
                             <i class="fas fa-share-nodes text-indigo-600 text-lg mr-2"></i>
                             Redes y Web
                         </h4>

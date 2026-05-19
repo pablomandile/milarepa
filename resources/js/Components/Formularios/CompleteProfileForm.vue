@@ -199,7 +199,7 @@ onBeforeUnmount(() => {
                         optionLabel="nombre"
                         optionValue="id"
                         placeholder="Seleccione un país"
-                        class="w-full mt-1 border border-gray-300"
+                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                     />
                     <InputError :message="$page.props.errors.pais_id" class="mt-2" />
                 </div>
@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
                         optionLabel="nombre"
                         optionValue="id"
                         placeholder="Seleccione una provincia"
-                        class="w-full mt-1 border border-gray-300"
+                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                     />
                     <InputError :message="$page.props.errors.provincia_id" class="mt-2" />
                 </div>
@@ -228,7 +228,7 @@ onBeforeUnmount(() => {
                         optionLabel="nombre"
                         optionValue="id"
                         placeholder="Seleccione un municipio"
-                        class="w-full mt-1 border border-gray-300"
+                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                     />
                     <InputError :message="$page.props.errors.municipio_id" class="mt-2" />
                 </div>
@@ -241,7 +241,7 @@ onBeforeUnmount(() => {
                         optionLabel="nombre"
                         optionValue="id"
                         placeholder="Seleccione un barrio"
-                        class="w-full mt-1 border border-gray-300"
+                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                     />
                     <InputError :message="$page.props.errors.barrio_id" class="mt-2" />
                 </div>
@@ -271,7 +271,7 @@ onBeforeUnmount(() => {
                         placeholder="+549 11 1234 5678"
                         slotChar="_"
                         :unmask="true"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                     />
                     <InputError :message="$page.props.errors.telefono" class="mt-2" />
                 </div>
@@ -293,7 +293,7 @@ onBeforeUnmount(() => {
                         placeholder="+549 11 1234 5678"
                         slotChar="_"
                         :unmask="true"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                     />
                     <InputError :message="$page.props.errors.whatsapp" class="mt-2" />
                 </div>
@@ -307,7 +307,7 @@ onBeforeUnmount(() => {
                         dateFormat="dd/mm/yy"
                         placeholder="Seleccione su fecha de nacimiento"
                         :showIcon="true"
-                        class="w-full mt-1 border border-gray-300 rounded-md"
+                        class="w-full mt-1 border border-gray-300 dark:border-gray-600 rounded-md"
                         inputClass="rounded-md border border-gray-300"
                     />
                     <InputError :message="$page.props.errors.fecha_nacimiento" class="mt-2" />
@@ -321,7 +321,7 @@ onBeforeUnmount(() => {
                         optionLabel="sexo"
                         optionValue="id"
                         placeholder="Seleccione Sexo"
-                        class="w-full mt-1 border border-gray-300"
+                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                     />
                     <InputError :message="$page.props.errors.sexo_id" class="mt-2" />
                 </div>
@@ -334,7 +334,7 @@ onBeforeUnmount(() => {
                         optionLabel="nombre"
                         optionValue="id"
                         placeholder="Seleccione un programa de estudio"
-                        class="w-full mt-1 border border-gray-300"
+                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
                     />
                     <InputError :message="$page.props.errors.programa_estudio_id" class="mt-2" />
                 </div>
@@ -396,7 +396,7 @@ onBeforeUnmount(() => {
                     optionLabel="label"
                     optionValue="id"
                     placeholder="Seleccione membresia"
-                    class="w-full mt-1 md:w-14rem border border-gray-300"
+                    class="w-full mt-1 md:w-14rem border border-gray-300 dark:border-gray-600"
                 />
                 <InputError :message="$page.props.errors.es_maestro" class="mt-2" />
             </div> -->
@@ -404,13 +404,13 @@ onBeforeUnmount(() => {
         <template #actions>
             <PrimaryButton
                 :disabled="!isDirty"
-                :class="!isDirty ? 'bg-gray-300 text-gray-600 hover:bg-gray-300 cursor-not-allowed' : ''"
+                :class="!isDirty ? 'bg-gray-300 text-gray-600 dark:text-gray-400 hover:bg-gray-300 cursor-not-allowed' : ''"
             >
                 {{ updating ? 'Actualizar' : 'Guardar' }}
             </PrimaryButton>
             <button
                 type="button"
-                class="ml-3 bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300"
+                class="ml-3 bg-gray-200 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md hover:bg-gray-300"
                 @click="() => { updating ? router.visit(route('profile.show')) : window.history.back(); }"
             >
                 Volver

@@ -1,5 +1,4 @@
 import './bootstrap';
-import '../css/app.css';
 import '@fortawesome/fontawesome-free/css/all.min.css'; // Font Awesome
 
 import { createApp, h } from 'vue';
@@ -8,13 +7,21 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import PrimeVue from 'primevue/config';
 import 'primevue/resources/primevue.min.css'; // Estilos base de PrimeVue
-import 'primevue/resources/themes/lara-light-blue/theme.css'; // O el tema que prefieras
+import { applyPrimeVueTheme, preloadPrimeVueThemes } from './theme-loader';
 import 'primeicons/primeicons.css'; // Iconos
 import Tooltip from 'primevue/tooltip';
 import ToastService from 'primevue/toastservice';
 import Toast from 'primevue/toast'
 import ConfirmationService from 'primevue/confirmationservice';
 import 'primeflex/primeflex.css';
+
+// Tailwind se importa AL FINAL para que sus utilidades ganen por orden de cascada
+// frente a PrimeFlex (que tiene reglas con !important para bg-white, text-*, etc.)
+import '../css/app.css';
+
+// Aplicar el tema PrimeVue según .dark en <html> (ya seteado por el script anti-FOUC en app.blade.php)
+applyPrimeVueTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+preloadPrimeVueThemes();
 
 
 

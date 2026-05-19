@@ -108,13 +108,13 @@ const direccionActividad = computed(() => {
 <template>
   <AppLayout>
     <template #header>
-      <h1 class="font-semibold text-xl text-gray-800 leading-tight">Actividades</h1>
+      <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Actividades</h1>
     </template>
 
     <div class="py-12">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Tarjeta principal -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8" style="background: linear-gradient(135deg, #ffffff 0%, #ddd6fe 100%);">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden mb-8" style="background: linear-gradient(135deg, #ffffff 0%, #ddd6fe 100%);">
           <div class="p-8">
             <!-- Imagen reducida -->
             <div class="w-full max-w-md mx-auto mb-6 rounded-lg overflow-hidden bg-transparent">
@@ -133,14 +133,14 @@ const direccionActividad = computed(() => {
             </div>
 
             <!-- Título -->
-            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4 text-center">
               {{ actividad.nombre }}
             </h1>
 
             <!-- Descripción principal debajo del título -->
-            <div class="bg-white bg-opacity-90 rounded-lg p-5 mb-6 border border-indigo-50">
-              <h2 class="text-lg font-semibold text-gray-900 mb-2">Descripción</h2>
-              <p class="text-gray-700 leading-relaxed text-base whitespace-pre-line">
+            <div class="bg-white dark:bg-gray-800 bg-opacity-90 rounded-lg p-5 mb-6 border border-indigo-50">
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Descripción</h2>
+              <p class="text-gray-700 dark:text-gray-300 leading-relaxed text-base whitespace-pre-line">
                 {{ truncatedDescription }}
               </p>
               <div v-if="hasMoreDescription" class="mt-3 text-right">
@@ -155,35 +155,35 @@ const direccionActividad = computed(() => {
 
             <!-- Cards de información -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              <div class="bg-white rounded-lg shadow-md p-5 flex items-start gap-3">
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 flex items-start gap-3">
                 <i class="pi pi-calendar text-indigo-600 text-2xl"></i>
                 <div>
-                  <h3 class="text-sm font-semibold text-gray-800">Fecha y Hora</h3>
-                  <p class="text-gray-700 text-base">{{ actividad.fecha_inicio_formateada || 'No especificado' }}</p>
+                  <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Fecha y Hora</h3>
+                  <p class="text-gray-700 dark:text-gray-300 text-base">{{ actividad.fecha_inicio_formateada || 'No especificado' }}</p>
                 </div>
               </div>
 
-              <div class="bg-white rounded-lg shadow-md p-5 flex items-start gap-3">
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 flex items-start gap-3">
                 <i class="pi pi-map-marker text-indigo-600 text-2xl"></i>
                 <div>
-                  <h3 class="text-sm font-semibold text-gray-800">Lugar</h3>
-                  <p class="text-gray-700 text-base">{{ direccionActividad }}</p>
+                  <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Lugar</h3>
+                  <p class="text-gray-700 dark:text-gray-300 text-base">{{ direccionActividad }}</p>
                 </div>
               </div>
 
-              <div class="bg-white rounded-lg shadow-md p-5 flex items-start gap-3">
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 flex items-start gap-3">
                 <i class="pi pi-video text-indigo-600 text-2xl"></i>
                 <div>
-                  <h3 class="text-sm font-semibold text-gray-800">Modalidad</h3>
-                  <p class="text-gray-700 text-base">{{ actividad.modalidad?.nombre || 'No especificado' }}</p>
+                  <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Modalidad</h3>
+                  <p class="text-gray-700 dark:text-gray-300 text-base">{{ actividad.modalidad?.nombre || 'No especificado' }}</p>
                 </div>
               </div>
 
-              <div class="bg-white rounded-lg shadow-md p-5 flex items-start gap-3">
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 flex items-start gap-3">
                 <i class="pi pi-user text-indigo-600 text-2xl"></i>
                 <div>
-                  <h3 class="text-sm font-semibold text-gray-800">Maestro</h3>
-                  <p class="text-gray-700 text-base">
+                  <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Maestro</h3>
+                  <p class="text-gray-700 dark:text-gray-300 text-base">
                     <span v-if="actividad.maestros && actividad.maestros.length > 0">
                       {{ actividad.maestros.map(m => m.nombre).join(', ') }}
                     </span>
@@ -192,11 +192,11 @@ const direccionActividad = computed(() => {
                 </div>
               </div>
 
-              <div class="bg-white rounded-lg shadow-md p-5 flex items-start gap-3">
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 flex items-start gap-3">
                 <i class="pi pi-dollar text-indigo-600 text-2xl"></i>
                 <div>
-                  <h3 class="text-sm font-semibold text-gray-800">Valor</h3>
-                  <p class="text-gray-700 text-base">
+                  <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Valor</h3>
+                  <p class="text-gray-700 dark:text-gray-300 text-base">
                     <strong>General:</strong> 
                     <span :class="user?.membresia && user.membresia?.nombre !== 'Sin membresía' ? 'line-through text-gray-400' : 'font-bold'">
                       ${{ formatPrice(actividad.esquema_precio?.membresias?.find(epm => epm.membresia?.nombre === 'Sin membresía')?.precio || 0) }}
@@ -223,7 +223,7 @@ const direccionActividad = computed(() => {
                 :disabled="esInscrito"
                 @click="inscribir"
                 class="flex-1 px-4 py-3 rounded-lg transition-colors font-semibold flex items-center justify-center gap-2"
-                :class="esInscrito ? 'bg-gray-200 text-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
+                :class="esInscrito ? 'bg-gray-200 text-gray-700 dark:text-gray-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
               >
                 <i v-if="esInscrito" class="pi pi-heart-fill"></i>
                 {{ esInscrito ? 'Inscripto' : 'Inscribirme' }}

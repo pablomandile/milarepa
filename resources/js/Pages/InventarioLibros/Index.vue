@@ -37,12 +37,12 @@ const portadaUrl = (inventario) => {
 
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Inventario Libros</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Inventario Libros</h1>
         </template>
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-6xl mx-auto">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-6xl mx-auto">
                     <div class="flex justify-between flex-wrap gap-2">
                         <div class="flex gap-2">
                             <Link :href="route('inventario-libros.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
@@ -74,7 +74,7 @@ const portadaUrl = (inventario) => {
                         >
                         <Column header="Portada" style="width: 110px">
                             <template #body="{ data }">
-                                <div class="h-16 w-12 rounded border border-gray-200 bg-white flex items-center justify-center overflow-hidden">
+                                <div class="h-16 w-12 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden">
                                     <img
                                         :src="portadaUrl(data)"
                                         :alt="`Portada de ${data.libro?.titulo || 'libro'}`"

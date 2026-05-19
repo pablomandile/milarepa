@@ -72,11 +72,11 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Descripciones</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Descripciones</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-4xl mx-auto">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-4xl mx-auto">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create descripciones')">
                         <Link :href="route('descripciones.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
                             NUEVA DESCRIPCIÓN
@@ -89,7 +89,7 @@
                                 <div class="flex justify-end">
                                     <IconField 
                                         iconPosition="left"
-                                        class="border border-gray-300 rounded-md px-3 py-2 flex items-center">
+                                        class="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 flex items-center">
                                         <InputIcon class="text-gray-400">
                                             <i class="pi pi-search" />
                                         </InputIcon>

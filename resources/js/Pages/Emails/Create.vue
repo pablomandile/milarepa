@@ -34,44 +34,44 @@ const selectTemplate = (file) => {
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Nuevo Email</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Nuevo Email</h1>
         </template>
         <div class="py-12">
             <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
                     <div class="flex justify-end mr-5 mb-6 mt-3">
                         <Link :href="route('emails.index')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
                             Volver
                         </Link>
                     </div>
-                    <div class="p-6 bg-white border-b border-gray-200">
+                    <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                         <form @submit.prevent="form.post(route('emails.store'))" class="space-y-6">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Nombre</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
                                 <input
                                     v-model="form.nombre"
                                     type="text"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                 />
                                 <p v-if="form.errors.nombre" class="text-sm text-red-600 mt-1">{{ form.errors.nombre }}</p>
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Descripcion</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descripcion</label>
                                 <textarea
                                     v-model="form.descripcion"
                                     rows="4"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                 />
                                 <p v-if="form.errors.descripcion" class="text-sm text-red-600 mt-1">{{ form.errors.descripcion }}</p>
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Plantilla (views/emails)</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Plantilla (views/emails)</label>
                                 <div class="mt-1 flex gap-2">
                                     <select
                                         v-model="form.plantilla_archivo"
-                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                     >
                                         <option value="">Seleccionar plantilla</option>
                                         <option v-for="file in props.templateFiles" :key="file" :value="file">
@@ -80,7 +80,7 @@ const selectTemplate = (file) => {
                                     </select>
                                     <button
                                         type="button"
-                                        class="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                        class="px-4 py-2 rounded bg-gray-200 text-gray-700 dark:text-gray-300 hover:bg-gray-300"
                                         @click="showTemplates = true"
                                     >
                                         Explorar
@@ -110,7 +110,7 @@ const selectTemplate = (file) => {
                     v-for="file in props.templateFiles"
                     :key="file"
                     type="button"
-                    class="w-full text-left px-3 py-2 rounded border border-gray-200 hover:bg-gray-50"
+                    class="w-full text-left px-3 py-2 rounded border border-gray-200 dark:border-gray-700 hover:bg-gray-50"
                     @click="selectTemplate(file)"
                 >
                     {{ file }}

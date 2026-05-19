@@ -57,14 +57,14 @@ const verEmail6 = () => {
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Previsualización de Emails</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Previsualización de Emails</h1>
         </template>
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Card 1: Inscripción Confirmada -->
-                    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-indigo-600 to-purple-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">📧 Inscripción Registrada</h2>
                             <p class="opacity-90 text-sm">Email de confirmación de registro</p>
@@ -79,7 +79,7 @@ const verEmail6 = () => {
                             </Link>
 
                             <div class="border-t pt-4">
-                                <label class="block text-xs font-medium text-gray-700 mb-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     ID de Inscripción:
                                 </label>
                                 <div class="flex gap-2">
@@ -87,7 +87,7 @@ const verEmail6 = () => {
                                         v-model="inscripcionId"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
                                         @keyup.enter="verInscripcion"
                                     />
                                     <button
@@ -103,7 +103,7 @@ const verEmail6 = () => {
                     </div>
 
                     <!-- Card 2: Confirmación de Pago -->
-                    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-green-600 to-emerald-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">💳 Confirmación de Pago</h2>
                             <p class="opacity-90 text-sm">Email de confirmación de pago recibido</p>
@@ -118,7 +118,7 @@ const verEmail6 = () => {
                             </Link>
 
                             <div class="border-t pt-4">
-                                <label class="block text-xs font-medium text-gray-700 mb-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     ID de Inscripción:
                                 </label>
                                 <div class="flex gap-2">
@@ -126,7 +126,7 @@ const verEmail6 = () => {
                                         v-model="pagoId"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
                                         @keyup.enter="verPago"
                                     />
                                     <button
@@ -142,7 +142,7 @@ const verEmail6 = () => {
                     </div>
 
                     <!-- Card 3: Grabación Disponible -->
-                    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-orange-600 to-red-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">🎬 Grabación Disponible</h2>
                             <p class="opacity-90 text-sm">Email con link de grabación</p>
@@ -157,7 +157,7 @@ const verEmail6 = () => {
                             </Link>
 
                             <div class="border-t pt-4">
-                                <label class="block text-xs font-medium text-gray-700 mb-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     ID de Inscripción:
                                 </label>
                                 <div class="flex gap-2">
@@ -165,7 +165,7 @@ const verEmail6 = () => {
                                         v-model="grabacionId"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
+                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
                                         @keyup.enter="verGrabacion"
                                     />
                                     <button
@@ -187,7 +187,7 @@ const verEmail6 = () => {
             <div class="max-w-7xl mx-auto px-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Card 4 -->
-                    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-blue-600 to-cyan-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">💳 Tarjetas Kadampa</h2>
                             <p class="opacity-90 text-sm">Información de membresías</p>
@@ -202,7 +202,7 @@ const verEmail6 = () => {
                             </Link>
 
                             <div class="border-t pt-4">
-                                <label class="block text-xs font-medium text-gray-700 mb-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     ID:
                                 </label>
                                 <div class="flex gap-2">
@@ -210,7 +210,7 @@ const verEmail6 = () => {
                                         v-model="email4Id"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
                                         @keyup.enter="verEmail4"
                                     />
                                     <button
@@ -226,7 +226,7 @@ const verEmail6 = () => {
                     </div>
 
                     <!-- Card 5 -->
-                    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-pink-600 to-rose-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">📧 Inscripción TK Registrada</h2>
                             <p class="opacity-90 text-sm">Email de registro de Tarjeta Kadampa</p>
@@ -241,7 +241,7 @@ const verEmail6 = () => {
                             </Link>
 
                             <div class="border-t pt-4">
-                                <label class="block text-xs font-medium text-gray-700 mb-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     ID:
                                 </label>
                                 <div class="flex gap-2">
@@ -249,7 +249,7 @@ const verEmail6 = () => {
                                         v-model="email5Id"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
                                         @keyup.enter="verEmail5"
                                     />
                                     <button
@@ -265,7 +265,7 @@ const verEmail6 = () => {
                     </div>
 
                     <!-- Card 6 -->
-                    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-violet-600 to-purple-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">📧 Actividades Online</h2>
                             <p class="opacity-90 text-sm">Bienvenida + enlace a clases online</p>
@@ -280,7 +280,7 @@ const verEmail6 = () => {
                             </Link>
 
                             <div class="border-t pt-4">
-                                <label class="block text-xs font-medium text-gray-700 mb-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     ID:
                                 </label>
                                 <div class="flex gap-2">
@@ -288,7 +288,7 @@ const verEmail6 = () => {
                                         v-model="email6Id"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-600"
+                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-600"
                                         @keyup.enter="verEmail6"
                                     />
                                     <button
@@ -304,7 +304,7 @@ const verEmail6 = () => {
                     </div>
 
                     <!-- Card 6 -->
-                    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-teal-600 to-cyan-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">📧 Reporte semanal por actividad</h2>
                             <p class="opacity-90 text-sm">Resumen de inscripciones por actividad</p>
@@ -321,7 +321,7 @@ const verEmail6 = () => {
                     </div>
 
                     <!-- Card 6 -->
-                    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-fuchsia-600 to-pink-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">📧 Email 8</h2>
                             <p class="opacity-90 text-sm">Plantilla de email personalizada</p>
@@ -336,7 +336,7 @@ const verEmail6 = () => {
                             </Link>
 
                             <div class="border-t pt-4">
-                                <label class="block text-xs font-medium text-gray-700 mb-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     ID:
                                 </label>
                                 <div class="flex gap-2">
@@ -344,7 +344,7 @@ const verEmail6 = () => {
                                         v-model="email6Id"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-600"
+                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-600"
                                         @keyup.enter="verEmail6"
                                     />
                                     <button
@@ -360,7 +360,7 @@ const verEmail6 = () => {
                     </div>
 
                     <!-- Card 6 -->
-                    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
                         <div class="p-6 bg-gradient-to-br from-yellow-600 to-amber-700 text-white text-center">
                             <h2 class="text-xl font-bold mb-2">📧 Email 9</h2>
                             <p class="opacity-90 text-sm">Plantilla de email personalizada</p>
@@ -375,7 +375,7 @@ const verEmail6 = () => {
                             </Link>
 
                             <div class="border-t pt-4">
-                                <label class="block text-xs font-medium text-gray-700 mb-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     ID:
                                 </label>
                                 <div class="flex gap-2">
@@ -383,7 +383,7 @@ const verEmail6 = () => {
                                         v-model="email6Id"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
                                         @keyup.enter="verEmail6"
                                     />
                                     <button

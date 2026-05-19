@@ -69,6 +69,7 @@ use App\Http\Controllers\InventarioPorEntidadController;
 use App\Http\Controllers\DevolucionesAnexosController;
 use App\Http\Controllers\VentasLibrosController;
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\ThemePreferenceController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -176,6 +177,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         ->name('profile.complete.edit'); // Modo "editar" (updating=true)
     Route::put('/complete-profile', [ProfileCompletionController::class, 'update'])
         ->name('profile.complete.update');
+
+    Route::get('/mi-camino-budista', fn () => inertia('MiCaminoBudista/Index'))
+        ->name('camino-budista.index');
+
+    Route::put('/user/theme-preference', [ThemePreferenceController::class, 'update'])
+        ->name('user.theme-preference.update');
 
     Route::get('/dashboard', function () {
         $user = auth()->user();

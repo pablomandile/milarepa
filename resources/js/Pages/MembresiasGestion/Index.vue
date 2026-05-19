@@ -1,7 +1,7 @@
 <template>
     <AppLayout title="Gestionar Membresías - Usuarios">
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
                 <i class="fas fa-users-cog mr-2 text-indigo-600"></i>
                 Gestión de Membresías de Usuarios
             </h2>
@@ -15,8 +15,8 @@
                     {{ $page.props.flash.success }}
                 </div>
 
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6 text-gray-900 dark:text-gray-100">
                         <!-- Tabla de Usuarios -->
                         <div v-if="usuarios.length > 0" class="overflow-x-auto">
                             <DataTable
@@ -42,7 +42,7 @@
                                             />
                                             <select
                                                 v-model="filtroMembresia"
-                                                class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                             >
                                                 <option value="con_membresia">Con membresia</option>
                                                 <option value="todos">Mostrar todos</option>
@@ -61,7 +61,7 @@
                                 </template>
                                 <Column field="name" header="Usuario" :showFilterMatchModes="false">
                                     <template #body="{ data }">
-                                        <p class="font-semibold text-gray-800">{{ data.name }}</p>
+                                        <p class="font-semibold text-gray-800 dark:text-gray-100">{{ data.name }}</p>
                                     </template>
                                     <template #filter="{ filterModel }">
                                         <InputText v-model="filterModel.value" type="text" placeholder="Buscar por usuario" class="p-column-filter" />
@@ -79,7 +79,7 @@
                                             {{ data.membresia.nombre }}
                                             <span v-if="data.membresia_online" class="ml-2 text-xs font-semibold text-indigo-600">Online</span>
                                         </span>
-                                        <span v-else class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+                                        <span v-else class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400">
                                             Sin membresía
                                         </span>
                                     </template>
@@ -89,7 +89,7 @@
                                 </Column>
                                 <Column field="membresia_inscripcion_fecha" header="Fecha de Inscripción" :showFilterMatchModes="false">
                                     <template #body="{ data }">
-                                        <span v-if="tieneMembresiaReal(data) && data.membresia_inscripcion_fecha" class="text-sm text-gray-700">
+                                        <span v-if="tieneMembresiaReal(data) && data.membresia_inscripcion_fecha" class="text-sm text-gray-700 dark:text-gray-300">
                                             {{ formatearFecha(data.membresia_inscripcion_fecha) }}
                                         </span>
                                         <span v-else class="text-sm text-gray-500">-</span>
@@ -100,7 +100,7 @@
                                 </Column>
                                 <Column field="modalidad_texto" header="Modalidad" :showFilterMatchModes="false">
                                     <template #body="{ data }">
-                                        <span v-if="tieneMembresiaReal(data)" class="text-sm text-gray-700">
+                                        <span v-if="tieneMembresiaReal(data)" class="text-sm text-gray-700 dark:text-gray-300">
                                             {{ modalidadTexto(data) }}
                                         </span>
                                         <span v-else class="text-sm text-gray-500">-</span>
@@ -136,7 +136,7 @@
                         <!-- Mensaje si no hay usuarios -->
                         <div v-else class="text-center py-12">
                             <i class="fas fa-inbox text-5xl text-gray-400 mb-4"></i>
-                            <p class="text-gray-600 text-lg">No hay usuarios registrados</p>
+                            <p class="text-gray-600 dark:text-gray-400 text-lg">No hay usuarios registrados</p>
                         </div>
 
                     </div>
@@ -146,19 +146,19 @@
 
         <!-- Modal para asignar membresía -->
         <div v-if="mostrarModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
                     Asignar Membresía a {{ usuarioSeleccionado?.name }}
                 </h3>
 
                 <form @submit.prevent="asignarMembresia">
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Seleccionar Membresía
                         </label>
                         <select 
                             v-model="formMembresiaId"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                             required
                         >
                             <option value="">-- Selecciona una membresía --</option>
@@ -168,12 +168,12 @@
                         </select>
                     </div>
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Modalidad
                         </label>
                         <select
                             v-model="formMembresiaOnline"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                             required
                         >
                             <option value="presencial">Presencial</option>
@@ -192,7 +192,7 @@
                         <button 
                             type="button"
                             @click="cerrarModal"
-                            class="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium"
+                            class="flex-1 px-4 py-2 bg-gray-300 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 transition font-medium"
                         >
                             <i class="fas fa-times mr-2"></i>
                             Cancelar

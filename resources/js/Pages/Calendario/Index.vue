@@ -199,7 +199,7 @@ function isVisibleItem(item) {
 
     <div class="min-h-screen bg-slate-50 py-6">
       <div class="mx-auto w-full max-w-7xl px-3 sm:px-6">
-        <div class="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="mb-4 rounded-2xl border border-slate-200 bg-white dark:bg-gray-800 p-4 shadow-sm">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 class="text-2xl font-semibold text-slate-900">Calendario</h1>
@@ -258,7 +258,7 @@ function isVisibleItem(item) {
             <div class="flex items-center gap-2">
               <Link
                 :href="`${route('calendario.index')}?month=${calendar.prevMonth}`"
-                class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                class="rounded-lg border border-slate-300 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
               >
                 Anterior
               </Link>
@@ -267,7 +267,7 @@ function isVisibleItem(item) {
               </div>
               <Link
                 :href="`${route('calendario.index')}?month=${calendar.nextMonth}`"
-                class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                class="rounded-lg border border-slate-300 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
               >
                 Siguiente
               </Link>
@@ -275,7 +275,7 @@ function isVisibleItem(item) {
           </div>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white dark:bg-gray-800 shadow-sm">
           <div class="calendar-grid min-w-[980px] border-b border-slate-200 bg-slate-100">
             <div
               v-for="diaSemana in diasSemana"
@@ -291,7 +291,7 @@ function isVisibleItem(item) {
               v-for="cell in calendarCells"
               :key="cell.key"
               class="calendar-cell overflow-hidden border-r border-b border-slate-200 p-2"
-              :class="cell.empty ? 'bg-slate-50' : 'bg-white'"
+              :class="cell.empty ? 'bg-slate-50' : 'bg-white dark:bg-gray-800'"
             >
               <template v-if="!cell.empty">
                 <div class="flex h-full flex-col">

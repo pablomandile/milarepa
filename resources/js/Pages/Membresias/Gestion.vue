@@ -66,11 +66,11 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Gestión de Membresías</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Gestión de Membresías</h1>
         </template>
         <div class="py-12">
             <div class="w-full p-4 sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-fullo">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-fullo">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create membresias')">
                         <Link :href="route('membresias.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" >
                             NUEVA MEMBRESÍA
@@ -95,7 +95,7 @@
                                         v-if="imagenMembresiaSrc(slotProps.data)"
                                         :src="imagenMembresiaSrc(slotProps.data)"
                                         :alt="`Imagen de ${slotProps.data.nombre}`"
-                                        class="h-12 w-20 object-contain rounded border border-gray-200 bg-gray-50"
+                                        class="h-12 w-20 object-contain rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
                                     />
                                     <span v-else class="text-xs text-gray-500">Sin imagen</span>
                                 </template>
@@ -133,9 +133,9 @@
                                 </template>
                             </Column>
                             <template #expansion="slotProps">
-                                <div class="p-4 bg-gray-50 border border-gray-200 rounded-md">
-                                    <p class="text-sm font-semibold text-gray-800 mb-2">Info</p>
-                                    <p class="text-sm text-gray-700 whitespace-pre-line">
+                                <div class="p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-md">
+                                    <p class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">Info</p>
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
                                         {{ slotProps.data.info || 'Sin info cargada.' }}
                                     </p>
                                 </div>

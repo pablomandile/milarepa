@@ -67,7 +67,7 @@ import Dropdown from 'primevue/dropdown';
                     optionLabel="nombre"
                     optionValue="id"
                     placeholder="Seleccione un boton de pago"
-                    class="w-full mt-1 md:w-14rem border border-gray-300"
+                    class="w-full mt-1 md:w-14rem border border-gray-300 dark:border-gray-600"
                     showClear
                 />
                 <InputError :message="$page.props.errors.botonpago_id" class="mt-2" />

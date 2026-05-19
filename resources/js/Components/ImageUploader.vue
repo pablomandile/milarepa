@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full max-w-sm mx-auto p-4 bg-white rounded shadow">
+    <div class="w-full max-w-sm mx-auto p-4 bg-white dark:bg-gray-800 rounded shadow">
       <h2 class="text-lg font-semibold mb-4">Subir Imagen</h2>
   
       <!-- Botón para elegir archivo -->

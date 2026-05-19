@@ -13,7 +13,7 @@
                 <textarea
                     id="descripcion"
                     v-model="form.descripcion"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     rows="4"
                 />
                 <InputError class="mt-2" :message="form.errors.descripcion" />
@@ -51,7 +51,7 @@
                         folder="img/libros"
                     />
                     <div v-if="imagenPreviewUrl" class="flex items-center gap-2">
-                        <div class="h-16 w-16 rounded border border-gray-200 bg-white flex items-center justify-center overflow-hidden">
+                        <div class="h-16 w-16 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden">
                             <img
                                 :src="imagenPreviewUrl"
                                 alt="Imagen actual"

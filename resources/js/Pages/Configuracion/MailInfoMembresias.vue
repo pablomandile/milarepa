@@ -41,15 +41,15 @@ const quitarImagen = () => {
 <template>
     <AppLayout title="Mail Info Membresías">
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Mail Info Membresías</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Mail Info Membresías</h1>
         </template>
 
         <div class="py-12">
             <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 space-y-6">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 space-y-6">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900">Imagen para email "Info de Tarjetas Kadampa"</h2>
-                        <p class="mt-2 text-sm text-gray-600">
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Imagen para email "Info de Tarjetas Kadampa"</h2>
+                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                             Subí una imagen y luego guardá la selección para usarla en la plantilla.
                             El archivo se almacena en storage/img/membresias.
                         </p>
@@ -60,19 +60,19 @@ const quitarImagen = () => {
                         folder="img/membresias"
                     />
 
-                    <div v-if="imagenActual" class="border border-gray-200 rounded-lg p-4">
-                        <p class="text-sm font-medium text-gray-800 mb-3">Imagen actualmente guardada</p>
+                    <div v-if="imagenActual" class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <p class="text-sm font-medium text-gray-800 dark:text-gray-100 mb-3">Imagen actualmente guardada</p>
                         <img
                             :src="imagenActual"
                             alt="Imagen guardada para Mail Info Membresías"
-                            class="max-h-56 rounded border border-gray-200 object-contain"
+                            class="max-h-56 rounded border border-gray-200 dark:border-gray-700 object-contain"
                         />
                     </div>
 
                     <div class="flex flex-wrap gap-3 justify-end">
                         <button
                             type="button"
-                            class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 disabled:opacity-50"
+                            class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest hover:bg-gray-50 disabled:opacity-50"
                             :disabled="form.processing"
                             @click="quitarImagen"
                         >

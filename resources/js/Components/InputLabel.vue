@@ -1,6 +1,6 @@
 <!-- InputLabel.vue -->
 <template>
-    <label :for="hfor" class="block text-sm font-medium text-gray-700">
+    <label :for="hfor" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
       {{ value }}
       <span v-if="required" class="text-red-500 text-xs align-top">*</span>
     </label>

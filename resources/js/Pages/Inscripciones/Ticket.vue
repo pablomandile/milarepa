@@ -40,12 +40,12 @@
 <template>
   <AppLayout>
     <template #header>
-      <h1 class="font-semibold text-xl text-gray-800 leading-tight">Ticket</h1>
+      <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Ticket</h1>
     </template>
 
-    <div class="min-h-screen bg-gray-50">
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-800/50">
       <div id="ticket-print" class="max-w-md mx-auto px-4 py-6 sm:px-6">
-        <div class="relative border border-gray-200 shadow-lg rounded-xl p-6 overflow-hidden bg-white">
+        <div class="relative border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl p-6 overflow-hidden bg-white dark:bg-gray-800">
           <div
             aria-hidden="true"
                 class="absolute inset-0 pointer-events-none opacity-25 z-0"
@@ -79,20 +79,20 @@
                 </div>
 
                 <!-- Título -->
-                <h2 class="text-2xl sm:text-xl font-bold text-gray-900 mb-2 text-center">
+                <h2 class="text-2xl sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 text-center">
                   {{ actividad.nombre }}
                 </h2>
             
                 <!-- Fecha y hora -->
-                <p class="text-center text-gray-600 font-medium mb-4">
+                <p class="text-center text-gray-600 dark:text-gray-400 font-medium mb-4">
                   {{ formatDateTime(actividad.fecha_inicio, actividad.fecha_inicio_formateada) }}
                 </p>
 
                 <!-- QR para asistencia -->
                 <div class="mt-4">
-                  <h3 class="text-center text-gray-800 font-semibold mb-2">Presenta este QR al ingresar</h3>
+                  <h3 class="text-center text-gray-800 dark:text-gray-100 font-semibold mb-2">Presenta este QR al ingresar</h3>
                   <div class="flex justify-center">
-                    <div class="bg-white p-3 rounded-lg shadow-sm">
+                    <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
                       <img :src="route('inscripciones.ticketQr', { inscripcion: inscripcion.id })" alt="QR Asistencia" class="w-48 h-48" />
                     </div>
                   </div>
@@ -105,7 +105,7 @@
           <button type="button" @click="printTicket" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
             Descargar PDF
           </button>
-          <Link :href="route('inscripciones.index')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+          <Link :href="route('inscripciones.index')" class="px-4 py-2 bg-gray-200 text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300">
             Volver
           </Link>
         </div>

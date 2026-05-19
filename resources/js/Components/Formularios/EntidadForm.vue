@@ -67,14 +67,14 @@ defineEmits(['submit'])
                 <InputLabel for="telefono" class="text-indigo-400" value="Teléfono" :required="true"/>
                 <InputMask id="telefono" v-model="form.telefono" mask="+99 9 99 9999 9999" 
                 placeholder="+54 9 11 1234 5678" slotChar="_" :unmask="true"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
                 <InputError :message="$page.props.errors.telefono" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6 mt-3">
                 <InputLabel for="whatsapp" class="text-indigo-400" value="WhatsApp" :required="false"/>
                 <InputMask id="whatsapp" v-model="form.whatsapp" mask="+99 9 99 9999 9999" 
                 placeholder="+54 9 11 1234 5678" slotChar="_" :unmask="true"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"/>
                 <InputError :message="$page.props.errors.whatsapp" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6 mt-3">

@@ -53,7 +53,7 @@ const closeModal = () => {
         </template>
 
         <template #content>
-            <div class="max-w-xl text-sm text-gray-600">
+            <div class="max-w-xl text-sm text-gray-600 dark:text-gray-400">
                 Si es necesario, puede salir de todas sus sesiones en navegadores en todos sus dispositivos. Algunas de sus sesiones recientes están listadas debajo; De todos modos, esta lista puede no ser exahustiva. Si cree que su Cuenta ha sido compormetida, debería además actualizar su contraseña.
             </div>
 
@@ -71,7 +71,7 @@ const closeModal = () => {
                     </div>
 
                     <div class="ms-3">
-                        <div class="text-sm text-gray-600">
+                        <div class="text-sm text-gray-600 dark:text-gray-400">
                             {{ session.agent.platform ? session.agent.platform : 'Unknown' }} - {{ session.agent.browser ? session.agent.browser : 'Unknown' }}
                         </div>
 

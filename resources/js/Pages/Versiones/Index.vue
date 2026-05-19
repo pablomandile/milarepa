@@ -44,15 +44,15 @@ const deleteVersion = (id) => {
 <template>
     <AppLayout title="Versiones del Sistema">
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Versiones del Sistema</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Versiones del Sistema</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                    <div class="p-6 bg-white border-b border-gray-200">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg">
+                    <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                         <!-- Header con botón de crear -->
                         <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-2xl font-bold text-gray-800">
+                            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">
                                 <i class="fas fa-code-branch mr-2 text-indigo-600"></i>
                                 Gestión de Versiones
                             </h2>
@@ -95,7 +95,7 @@ const deleteVersion = (id) => {
                             
                             <Column field="created_at" header="Fecha de Creación" :sortable="true">
                                 <template #body="slotProps">
-                                    <div class="flex items-center text-gray-600">
+                                    <div class="flex items-center text-gray-600 dark:text-gray-400">
                                         <i class="fas fa-calendar-alt mr-2 text-indigo-500"></i>
                                         {{ new Date(slotProps.data.created_at).toLocaleDateString('es-ES', { 
                                             year: 'numeric', 

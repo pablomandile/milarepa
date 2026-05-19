@@ -19,11 +19,11 @@ const submit = () => {
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight" >Agregar Nuevo Esquema de descuentos</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight" >Agregar Nuevo Esquema de descuentos</h1>
         </template>
         <div class="py-12">
             <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
                     <!-- Botón de Volver -->
                     <div class="flex justify-end mr-5 mb-6 mt-3">
                         <Link 
@@ -32,8 +32,8 @@ const submit = () => {
                             Volver
                         </Link>
                     </div>
-                    <div class="bg-white overflow-hidden shadow-soft-indigo sm:rounded-lg">
-                        <div class="p-6 bg-white border-b border-gray-200">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
+                        <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                             <EsquemaDescuentoForm 
                                 :updating="false"
                                 :form="form" 

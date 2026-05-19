@@ -19,7 +19,7 @@
                     id="user_id"
                     :model-value="authUser?.name ?? 'Usuario actual'"
                     type="text"
-                    class="mt-1 block w-full bg-gray-100"
+                    class="mt-1 block w-full bg-gray-100 dark:bg-gray-900"
                     disabled
                 />
                 <InputError class="mt-2" :message="form.errors.user_id" />
@@ -30,7 +30,7 @@
                 <select
                     id="prestadora_id"
                     v-model="form.prestadora_id"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     disabled
                     required
                 >
@@ -46,7 +46,7 @@
                 <select
                     id="receptora_id"
                     v-model="form.receptora_id"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     required
                 >
                     <option :value="null">Seleccionar entidad</option>
@@ -62,7 +62,7 @@
                 <select
                     id="libro_id"
                     v-model="form.libro_id"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     required
                 >
                     <option :value="null">Seleccionar libro</option>

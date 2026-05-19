@@ -46,7 +46,7 @@ defineEmits(['submit']);
                     id="mes_referencia"
                     v-model="form.mes_referencia"
                     type="month"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 />
                 <InputError :message="$page.props.errors.mes_referencia" class="mt-2" />
             </div>
@@ -62,7 +62,7 @@ defineEmits(['submit']);
                         <img
                             :src="imagenPreviewUrl"
                             alt="Imagen encabezado actual"
-                            class="h-16 w-16 rounded border border-gray-200 object-cover"
+                            class="h-16 w-16 rounded border border-gray-200 dark:border-gray-700 object-cover"
                         />
                         <span class="text-xs text-gray-500">Actual</span>
                     </div>

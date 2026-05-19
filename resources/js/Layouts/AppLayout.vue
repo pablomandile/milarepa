@@ -8,6 +8,7 @@ import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import Footer from '@/Components/Footer.vue';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
 
 const props = defineProps({
   title: {
@@ -55,7 +56,7 @@ const toggleMobileSection = (key) => {
 </script>
 
 <template>
-    <div class="flex flex-col min-h-screen bg-gray-100">
+    <div class="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
         <Head>
             <title>{{ title }}</title>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -65,7 +66,7 @@ const toggleMobileSection = (key) => {
 
         <Banner />
 
-        <nav v-if="$page.props.auth?.user" class="bg-white border-b border-gray-100">
+        <nav v-if="$page.props.auth?.user" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
             <!-- Primary Navigation Menu -->
             <div class="px-4 sm:px-6 lg:px-4 xl:px-8">
                 <div class="flex justify-between h-16">
@@ -94,7 +95,7 @@ const toggleMobileSection = (key) => {
                             <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                                 <Dropdown>
                                     <template #trigger>
-                                        <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                        <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                             Gestión
                                             <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -145,7 +146,7 @@ const toggleMobileSection = (key) => {
                             <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Actividades
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -196,7 +197,7 @@ const toggleMobileSection = (key) => {
                         <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Inscripciones
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -223,7 +224,7 @@ const toggleMobileSection = (key) => {
                         <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Membresías
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -247,7 +248,7 @@ const toggleMobileSection = (key) => {
                         <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Pagos
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -281,7 +282,7 @@ const toggleMobileSection = (key) => {
                         <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Páginas
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -308,7 +309,7 @@ const toggleMobileSection = (key) => {
                         <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Emails
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -336,7 +337,7 @@ const toggleMobileSection = (key) => {
                         <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Configuración
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -372,7 +373,7 @@ const toggleMobileSection = (key) => {
                         <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                             <Dropdown>
                                 <template #trigger>
-                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                    <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                         Ayuda
                                         <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -390,7 +391,7 @@ const toggleMobileSection = (key) => {
                                     <DropdownLink :href="route('versiones.index')" :active="route().current('versiones.*')">
                                         Versiones
                                     </DropdownLink>
-                                    <div class="border-t border-gray-200" />
+                                    <div class="border-t border-gray-200 dark:border-gray-700" />
                                     <DropdownLink :href="route('acercade.index')" :active="route().current('acercade.*')">
                                         <i class="fas fa-info-circle mr-1" style="color: slateblue"></i>
                                         Acerca de
@@ -409,7 +410,7 @@ const toggleMobileSection = (key) => {
                             <Dropdown v-if="!isAsistant && $page.props.jetstream.hasTeamFeatures" align="right" width="60">
                                 <template #trigger>
                                     <span class="inline-flex rounded-md">
-                                        <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
+                                        <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-200 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-700 active:bg-gray-50 transition ease-in-out duration-150">
                                             {{ $page.props.auth.user.current_team.name }}
 
                                             <svg class="ms-2 -me-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -437,7 +438,7 @@ const toggleMobileSection = (key) => {
 
                                         <!-- Team Switcher -->
                                         <template v-if="$page.props.auth.user.all_teams.length > 1">
-                                            <div class="border-t border-gray-200" />
+                                            <div class="border-t border-gray-200 dark:border-gray-700" />
 
                                             <div class="block px-4 py-2 text-xs text-gray-400">
                                                 Switch Teams
@@ -469,7 +470,7 @@ const toggleMobileSection = (key) => {
                                     <button
                                         v-if="$page.props.jetstream.managesProfilePhotos"
                                         type="button"
-                                        class="inline-flex items-center px-2 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-900 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150"
+                                        class="inline-flex items-center px-2 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-700 active:bg-gray-50 transition ease-in-out duration-150"
                                     >
                                         <img class="w-2rem h-2rem border-circle object-cover me-2 shrink-0" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
                                         ¡Bienvenido {{ $page.props.auth.user.name }}!
@@ -479,7 +480,7 @@ const toggleMobileSection = (key) => {
                                     </button>
 
                                     <span v-else class="inline-flex rounded-md">
-                                        <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-900 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
+                                        <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-700 active:bg-gray-50 transition ease-in-out duration-150">
                                             ¡Bienvenido {{ $page.props.auth.user.name }}!
 
                                             <svg class="ms-2 -me-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -491,20 +492,20 @@ const toggleMobileSection = (key) => {
 
                                 <template #content>
                                     <!-- Account Management -->
-                                    <div class="block px-4 py-2 text-xs text-gray-400">
+                                    <div class="block px-4 py-2 text-xs text-gray-400 dark:text-gray-400">
                                         Administrar cuenta
                                     </div>
-                                    <div class="block px-4 py-2 text-xs text-gray-600">
+                                    <div class="block px-4 py-2 text-xs text-gray-600 dark:text-gray-300">
                                         {{ $page.props.auth.user.email }}
                                     </div>
-                                    <div class="mb-2 border-t border-gray-200" />
+                                    <div class="mb-2 border-t border-gray-200 dark:border-gray-700" />
                                     <DropdownLink :href="route('profile.show')">
                                         Mi Perfil
                                     </DropdownLink>
                                     <DropdownLink :href="route('membresias.index')" :active="route().current('membresias.*')">
                                         Mi Membresía
                                     </DropdownLink>
-                                    <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
+                                    <DropdownLink :href="route('camino-budista.index')" :active="route().current('camino-budista.*')">
                                         Mi camino Budista
                                     </DropdownLink>
 
@@ -512,7 +513,11 @@ const toggleMobileSection = (key) => {
                                         API Tokens
                                     </DropdownLink>
 
-                                    <div class="mt-2 border-t border-gray-200" />
+                                    <div class="mt-2 border-t border-gray-200 dark:border-gray-700" />
+
+                                    <ThemeToggle variant="dropdown" />
+
+                                    <div class="border-t border-gray-200 dark:border-gray-700" />
 
                                     <!-- Authentication -->
                                     <form @submit.prevent="logout">
@@ -555,7 +560,7 @@ const toggleMobileSection = (key) => {
             </div>
 
             <!-- Responsive Navigation Menu -->
-            <div :class="{'block': showingNavigationDropdown, 'hidden': ! showingNavigationDropdown}" class="sm:hidden">
+            <div :class="{'block': showingNavigationDropdown, 'hidden': ! showingNavigationDropdown}" class="sm:hidden bg-white dark:bg-gray-800">
                 <div v-if="!isAsistant" class="pt-2 pb-3 space-y-4">
                     <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                         Inicio
@@ -564,7 +569,7 @@ const toggleMobileSection = (key) => {
                     <div class="space-y-1">
                         <button
                             type="button"
-                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                             :aria-expanded="isMobileSectionOpen('gestion')"
                             @click="toggleMobileSection('gestion')"
                         >
@@ -614,7 +619,7 @@ const toggleMobileSection = (key) => {
                     <div class="space-y-1">
                         <button
                             type="button"
-                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                             :aria-expanded="isMobileSectionOpen('actividades')"
                             @click="toggleMobileSection('actividades')"
                         >
@@ -664,7 +669,7 @@ const toggleMobileSection = (key) => {
                     <div class="space-y-1">
                         <button
                             type="button"
-                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                             :aria-expanded="isMobileSectionOpen('inscripciones')"
                             @click="toggleMobileSection('inscripciones')"
                         >
@@ -690,7 +695,7 @@ const toggleMobileSection = (key) => {
                     <div class="space-y-1">
                         <button
                             type="button"
-                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                             :aria-expanded="isMobileSectionOpen('membresias')"
                             @click="toggleMobileSection('membresias')"
                         >
@@ -713,7 +718,7 @@ const toggleMobileSection = (key) => {
                     <div class="space-y-1">
                         <button
                             type="button"
-                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                             :aria-expanded="isMobileSectionOpen('pagos')"
                             @click="toggleMobileSection('pagos')"
                         >
@@ -745,7 +750,7 @@ const toggleMobileSection = (key) => {
                     <div class="space-y-1">
                         <button
                             type="button"
-                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                             :aria-expanded="isMobileSectionOpen('paginas')"
                             @click="toggleMobileSection('paginas')"
                         >
@@ -771,7 +776,7 @@ const toggleMobileSection = (key) => {
                     <div class="space-y-1">
                         <button
                             type="button"
-                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                             :aria-expanded="isMobileSectionOpen('emails')"
                             @click="toggleMobileSection('emails')"
                         >
@@ -797,7 +802,7 @@ const toggleMobileSection = (key) => {
                     <div class="space-y-1">
                         <button
                             type="button"
-                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                             :aria-expanded="isMobileSectionOpen('configuracion')"
                             @click="toggleMobileSection('configuracion')"
                         >
@@ -832,7 +837,7 @@ const toggleMobileSection = (key) => {
                     <div class="space-y-1">
                         <button
                             type="button"
-                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                            class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                             :aria-expanded="isMobileSectionOpen('ayuda')"
                             @click="toggleMobileSection('ayuda')"
                         >
@@ -857,17 +862,17 @@ const toggleMobileSection = (key) => {
                 </div>
 
                 <!-- Responsive Settings Options -->
-                <div v-if="$page.props.auth?.user" class="pt-4 pb-1 border-t border-gray-200">
+                <div v-if="$page.props.auth?.user" class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-700">
                     <div class="flex items-center px-4">
                         <div v-if="$page.props.jetstream.managesProfilePhotos" class="shrink-0 me-3">
                             <img class="w-2rem h-2rem border-circle object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
                         </div>
 
                         <div>
-                            <div class="font-medium text-base text-gray-800">
+                            <div class="font-medium text-base text-gray-800 dark:text-gray-100">
                                 {{ $page.props.auth.user.name }}
                             </div>
-                            <div class="font-medium text-sm text-gray-500">
+                            <div class="font-medium text-sm text-gray-500 dark:text-gray-400">
                                 {{ $page.props.auth.user.email }}
                             </div>
                         </div>
@@ -880,13 +885,15 @@ const toggleMobileSection = (key) => {
                         <ResponsiveNavLink :href="route('membresias.index')" :active="route().current('membresias.*')">
                             Mi Membresia
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('monedas.index')" :active="route().current('monedas.*')">
+                        <ResponsiveNavLink :href="route('camino-budista.index')" :active="route().current('camino-budista.*')">
                             Mi camino Budista
                         </ResponsiveNavLink>
 
                         <ResponsiveNavLink v-if="!isAsistant && $page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')" :active="route().current('api-tokens.index')">
                             API Tokens
                         </ResponsiveNavLink>
+
+                        <ThemeToggle variant="responsive" />
 
                         <!-- Authentication -->
                         <form method="POST" @submit.prevent="logout">
@@ -940,7 +947,7 @@ const toggleMobileSection = (key) => {
         </nav>
 
         <!-- Page Heading -->
-        <header v-if="$slots.header" class="bg-white shadow">
+        <header v-if="$slots.header" class="bg-white dark:bg-gray-800 shadow">
             <div class="w-full py-4 px-4 sm:px-6 lg:px-4 xl:px-8">
                 <slot name="header" />
             </div>

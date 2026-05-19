@@ -62,11 +62,11 @@
 <template>
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 leading-tight">Acomodaciones de Hospedaje</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Acomodaciones de Hospedaje</h1>
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white border-b border-gray-200 max-w-6xl mx-auto">
+                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-6xl mx-auto">
                     <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create hospedajes')">
                         <Link :href="route('hospedajes.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
                             NUEVA ACOMODACIÓN
@@ -139,12 +139,12 @@
         <template v-if="hospedajeSeleccionado">
             <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 shadow-inner">
                 <!-- Nombre y Precio destacados -->
-                <div class="bg-white rounded-lg p-5 mb-4 shadow-sm border-l-4 border-indigo-500">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-5 mb-4 shadow-sm border-l-4 border-indigo-500">
                     <div class="flex items-start justify-between">
                         <div class="flex-1">
                             <div class="flex items-center mb-2">
                                 <i class="fas fa-bed text-indigo-600 text-xl mr-3"></i>
-                                <h3 class="text-xl font-bold text-gray-800">{{ hospedajeSeleccionado.nombre }}</h3>
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">{{ hospedajeSeleccionado.nombre }}</h3>
                             </div>
                             <div class="flex items-center mt-3 bg-green-50 rounded-md px-3 py-2 w-fit">
                                 <i class="fas fa-dollar-sign text-green-600 text-lg mr-2"></i>
@@ -158,24 +158,24 @@
 
                 <!-- DescripciÃ³n -->
                 <div v-if="hospedajeSeleccionado.descripcion && hospedajeSeleccionado.descripcion.trim() !== ''" 
-                     class="bg-white rounded-lg p-5 mb-4 shadow-sm">
+                     class="bg-white dark:bg-gray-800 rounded-lg p-5 mb-4 shadow-sm">
                     <div class="flex items-start">
                         <i class="fas fa-align-left text-indigo-600 text-lg mr-3 mt-1"></i>
                         <div>
-                            <h4 class="font-semibold text-gray-700 mb-2">DescripciÃ³n</h4>
-                            <p class="text-gray-600 leading-relaxed">{{ hospedajeSeleccionado.descripcion }}</p>
+                            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">DescripciÃ³n</h4>
+                            <p class="text-gray-600 dark:text-gray-400 leading-relaxed">{{ hospedajeSeleccionado.descripcion }}</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Lugar de Hospedaje -->
                 <div v-if="hospedajeSeleccionado.lugar_hospedaje" 
-                     class="bg-white rounded-lg p-5 shadow-sm">
+                     class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm">
                     <div class="flex items-center">
                         <i class="fas fa-map-marker-alt text-indigo-600 text-lg mr-3"></i>
                         <div>
-                            <h4 class="font-semibold text-gray-700 mb-1">Lugar de Hospedaje</h4>
-                            <p class="text-gray-600">{{ hospedajeSeleccionado.lugar_hospedaje.nombre }}</p>
+                            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-1">Lugar de Hospedaje</h4>
+                            <p class="text-gray-600 dark:text-gray-400">{{ hospedajeSeleccionado.lugar_hospedaje.nombre }}</p>
                         </div>
                     </div>
                 </div>

@@ -47,7 +47,7 @@ defineEmits(['submit'])
                     id="descripcion"
                     v-model="form.descripcion"
                     rows="4"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 resize-y"
+                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 resize-y"
                 ></textarea>
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />
             </div>

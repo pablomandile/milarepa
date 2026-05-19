@@ -103,7 +103,7 @@ watch(
                 placeholder="+549 11 1234 5678"
                 slotChar="_"
                 :unmask="true"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
             <InputError :message="getError('telefono')" class="mt-2" />
         </div>
@@ -116,7 +116,7 @@ watch(
                 placeholder="+549 11 1234 5678"
                 slotChar="_"
                 :unmask="true"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
             <InputError :message="getError('whatsapp')" class="mt-2" />
         </div>
@@ -131,7 +131,7 @@ watch(
                 optionLabel="nombre"
                 optionValue="id"
                 placeholder="Seleccione un país"
-                class="w-full mt-1 border border-gray-300"
+                class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <InputError :message="getError('pais_id')" class="mt-2" />
         </div>
@@ -144,7 +144,7 @@ watch(
                 optionLabel="nombre"
                 optionValue="id"
                 placeholder="Seleccione una provincia"
-                class="w-full mt-1 border border-gray-300"
+                class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <InputError :message="getError('provincia_id')" class="mt-2" />
         </div>
@@ -159,7 +159,7 @@ watch(
                 optionLabel="nombre"
                 optionValue="id"
                 placeholder="Seleccione un municipio"
-                class="w-full mt-1 border border-gray-300"
+                class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <InputError :message="getError('municipio_id')" class="mt-2" />
         </div>
@@ -172,7 +172,7 @@ watch(
                 optionLabel="nombre"
                 optionValue="id"
                 placeholder="Seleccione un barrio"
-                class="w-full mt-1 border border-gray-300"
+                class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <InputError :message="getError('barrio_id')" class="mt-2" />
         </div>
