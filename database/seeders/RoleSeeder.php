@@ -160,6 +160,19 @@ class RoleSeeder extends Seeder
         $permission_create_permisos = Permission::firstOrCreate(['name' => 'read permisos']);
         $permission_create_permisos = Permission::firstOrCreate(['name' => 'delete permisos']);
 
+        Permission::firstOrCreate(['name' => 'create botonpago']);
+        Permission::firstOrCreate(['name' => 'update botonpago']);
+        Permission::firstOrCreate(['name' => 'read botonpago']);
+        Permission::firstOrCreate(['name' => 'delete botonpago']);
+
+        Permission::firstOrCreate(['name' => 'create excencionpago']);
+        Permission::firstOrCreate(['name' => 'update excencionpago']);
+        Permission::firstOrCreate(['name' => 'read excencionpago']);
+        Permission::firstOrCreate(['name' => 'delete excencionpago']);
+
+        Permission::firstOrCreate(['name' => 'read paginasconfiguracion']);
+        Permission::firstOrCreate(['name' => 'update paginasconfiguracion']);
+
         $permissions_admin = [
             'create roles',
             'read roles',
@@ -274,9 +287,18 @@ class RoleSeeder extends Seeder
             'update permisos',
             'read permisos',
             'delete permisos',
-                                    
+            'create botonpago',
+            'update botonpago',
+            'read botonpago',
+            'delete botonpago',
+            'create excencionpago',
+            'update excencionpago',
+            'read excencionpago',
+            'delete excencionpago',
+            'read paginasconfiguracion',
+            'update paginasconfiguracion',
         ];
-        
+
         $permissions_editor = [
             'create entidades',
             'update entidades',
@@ -381,6 +403,14 @@ class RoleSeeder extends Seeder
             'update estado_cuenta_membresias',
             'read estado_cuenta_membresias',
             'delete estado_cuenta_membresias',
+            'create botonpago',
+            'update botonpago',
+            'read botonpago',
+            'delete botonpago',
+            'create excencionpago',
+            'update excencionpago',
+            'read excencionpago',
+            'delete excencionpago',
         ];
 
         $permissions_asistant = [

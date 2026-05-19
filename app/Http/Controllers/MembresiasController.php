@@ -20,6 +20,7 @@ use App\Models\EnvioMail;
 use App\Models\EmailEnvioConfiguracion;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 
 class MembresiasController extends Controller
@@ -147,7 +148,9 @@ class MembresiasController extends Controller
 
         if (auth()->check()) {
             $selectedUserId = auth()->id();
-        } elseif (request()->filled('user_id')) {
+        } elseif (request()->filled('user_id') && request()->hasValidSignature()) {
+            // Solo aceptar user_id si la URL fue firmada por subscribePublic.
+            // Bloquea enumeración pública de membresías por iteración de IDs.
             $selectedUserId = (int) request()->query('user_id');
         }
 
@@ -293,14 +296,15 @@ class MembresiasController extends Controller
             'motivo_online' => ['nullable', 'string', 'max:255'],
             'comprobante' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
             'modo_pago' => ['nullable', 'in:Efectivo,Transferencia'],
-            'user_id' => ['nullable', 'exists:users,id'],
+            // Token opaco emitido por lookupEmail (reemplaza user_id numérico).
+            'user_lookup_token' => ['nullable', 'string'],
             'guest' => ['nullable', 'array'],
-            'guest.name' => ['required_without:user_id', 'string', 'max:255'],
-            'guest.email' => ['required_without:user_id', 'email', 'max:255'],
+            'guest.name' => ['required_without:user_lookup_token', 'string', 'max:255'],
+            'guest.email' => ['required_without:user_lookup_token', 'email', 'max:255'],
             'guest.telefono' => ['nullable', 'string', 'max:50'],
             'guest.whatsapp' => ['nullable', 'string', 'max:50'],
-            'guest.pais_id' => ['required_without:user_id', 'exists:paises,id'],
-            'guest.provincia_id' => ['required_without:user_id', 'exists:provincias,id'],
+            'guest.pais_id' => ['required_without:user_lookup_token', 'exists:paises,id'],
+            'guest.provincia_id' => ['required_without:user_lookup_token', 'exists:provincias,id'],
             'guest.municipio_id' => ['nullable', 'exists:municipios,id'],
             'guest.barrio_id' => ['nullable', 'exists:barrios,id'],
             'guest.direccion' => ['nullable', 'string', 'max:255'],
@@ -312,9 +316,20 @@ class MembresiasController extends Controller
             'guest.registrar_datos' => ['nullable', 'boolean'],
         ]);
 
+        // Resolver user_id desde el token (si lo hay) antes del resto de la lógica.
+        $tokenUserId = null;
+        if (!empty($validated['user_lookup_token'])) {
+            $tokenUserId = \App\Support\UserLookupToken::resolveUserId($validated['user_lookup_token']);
+            if (!$tokenUserId) {
+                throw ValidationException::withMessages([
+                    'user_lookup_token' => ['Token de identificación inválido o vencido. Volvé a verificar tu email.'],
+                ]);
+            }
+        }
+
         $guest = $validated['guest'] ?? null;
         $registrarDatos = (bool) ($guest['registrar_datos'] ?? false);
-        if (!$validated['user_id'] && $registrarDatos && !empty($guest['email']) && User::where('email', $guest['email'])->exists()) {
+        if (!$tokenUserId && $registrarDatos && !empty($guest['email']) && User::where('email', $guest['email'])->exists()) {
             throw ValidationException::withMessages([
                 'guest.email' => ['Este correo electrónico ya está registrado. Elegí "Ya estoy registrado" o iniciá sesión.'],
             ]);
@@ -323,8 +338,8 @@ class MembresiasController extends Controller
         $user = null;
         if (auth()->check()) {
             $user = auth()->user();
-        } elseif (!empty($validated['user_id'])) {
-            $user = User::findOrFail($validated['user_id']);
+        } elseif ($tokenUserId) {
+            $user = User::findOrFail($tokenUserId);
         } else {
             $guest = $validated['guest'] ?? [];
             $user = User::firstOrCreate(
@@ -404,6 +419,13 @@ class MembresiasController extends Controller
             'ok' => true,
             'message' => 'Te has inscrito correctamente a la membresia.',
             'user_id' => $user->id,
+            // URL firmada (30 días) para que el usuario recién suscripto pueda
+            // ver su membresía sin exponer enumeración pública por user_id.
+            'redirect_url' => URL::temporarySignedRoute(
+                'membresias.public.index',
+                now()->addDays(30),
+                ['user_id' => $user->id]
+            ),
         ]);
     }
 

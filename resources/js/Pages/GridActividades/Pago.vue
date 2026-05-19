@@ -412,8 +412,12 @@ async function terminar() {
       }
       if (registrado && canViewPrivate) {
         window.location.href = route('inscripciones.show', { inscripcion: inscripcionId });
+      } else if (response.data?.public_url) {
+        // URL firmada generada por el backend (válida 180 días). No reconstruir
+        // la URL con route() porque la ruta exige firma y devolvería 403.
+        window.location.href = response.data.public_url;
       } else {
-        window.location.href = route('grid-actividades.inscripcion', { inscripcion: inscripcionId });
+        window.location.href = route('grid-actividades.index');
       }
       return;
     }

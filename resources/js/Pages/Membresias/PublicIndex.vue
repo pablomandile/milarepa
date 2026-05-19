@@ -257,17 +257,22 @@ async function confirmarSuscripcion() {
     } else if (inscripcionMode.value === 'registrado') {
       const user = await obtenerUsuarioPorModoRegistrado();
       if (!user) return;
-      payload.user_id = user.id;
+      // Token opaco (TTL 15 min) emitido por lookup-email. Reemplaza user_id
+      // numérico para evitar IDOR.
+      payload.user_lookup_token = user.lookup_token;
     } else if (inscripcionMode.value === 'login') {
       const loginOk = await iniciarSesionModoLogin();
       if (!loginOk) return;
       emailInput.value = loginForm.value.email.trim();
       const user = await obtenerUsuarioPorModoRegistrado();
       if (!user) return;
-      payload.user_id = user.id;
-    } else if (selectedUserId.value) {
-      payload.user_id = selectedUserId.value;
+      // Aunque el user esté logueado tras iniciarSesionModoLogin, mandamos
+      // el token igualmente — el backend usa auth()->id() y lo ignora.
+      payload.user_lookup_token = user.lookup_token;
     } else {
+      // Rama anterior `else if (selectedUserId.value)` eliminada: si está
+      // logueado, el backend usa auth()->id() sin necesidad de payload.
+      // Si no está logueado y no eligió modo, cae como guest.
       payload.guest = { ...guestForm.value };
     }
 
@@ -297,8 +302,8 @@ function construirFormDataSuscripcion() {
     data.append('motivo_online', payload.motivo_online);
   }
 
-  if (payload.user_id) {
-    data.append('user_id', payload.user_id);
+  if (payload.user_lookup_token) {
+    data.append('user_lookup_token', payload.user_lookup_token);
   }
 
   if (payload.guest && typeof payload.guest === 'object') {
@@ -330,15 +335,15 @@ async function terminarSuscripcion() {
     const response = await axios.post(route('membresias.public.subscribe'), data, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    const newUserId = response?.data?.user_id || selectedUserId.value;
-
     showPagoDialog.value = false;
     showDialog.value = false;
     Swal.fire('Exito', 'Te has inscrito correctamente a la membresia.', 'success');
 
-    const destino = newUserId
-      ? `${route('membresias.public.index')}?user_id=${encodeURIComponent(newUserId)}`
-      : route('membresias.public.index');
+    // URL firmada generada por el backend (TTL 30 días). No reconstruir la URL
+    // con route() porque el controller exige hasValidSignature() para mostrar
+    // la membresía del usuario. Fallback: catálogo público sin user_id.
+    const destino = response?.data?.redirect_url
+      || route('membresias.public.index');
     router.visit(destino);
   } catch (error) {
     const mensaje = error?.response?.data?.message || 'No se pudo completar la suscripcion.';
@@ -392,7 +397,13 @@ async function buscarUsuarioPorEmail(email) {
     lookupError.value = 'No encontramos un usuario con ese email.';
     return null;
   } catch (error) {
-    lookupError.value = 'No se pudo validar el email. Probá de nuevo.';
+    if (error?.response?.status === 429) {
+      const retryAfter = error.response.headers?.['retry-after'];
+      const segundos = retryAfter ? ` (esperá ${retryAfter}s)` : '';
+      lookupError.value = `Demasiados intentos${segundos}. Probá de nuevo en un minuto.`;
+    } else {
+      lookupError.value = 'No se pudo validar el email. Probá de nuevo.';
+    }
     return null;
   } finally {
     isLookingUp.value = false;
@@ -401,7 +412,11 @@ async function buscarUsuarioPorEmail(email) {
 
 async function obtenerUsuarioPorModoRegistrado() {
   if (selectedUserId.value && !emailInput.value.trim()) {
-    return { id: selectedUserId.value };
+    // Caso usuario logueado: backend resuelve con auth()->id(), no
+    // necesita lookup_token. Para anónimos con selected_user_id (que
+    // llegaron via URL firmada de publicIndex), el backend rechazará
+    // sin token y deberán re-ingresar el email.
+    return { id: selectedUserId.value, lookup_token: null };
   }
   return buscarUsuarioPorEmail(emailInput.value);
 }

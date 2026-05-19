@@ -413,7 +413,13 @@ async function buscarPorEmail() {
       return null;
     }
   } catch (error) {
-    lookupError.value = 'No se pudo validar el email. Probá de nuevo.';
+    if (error?.response?.status === 429) {
+      const retryAfter = error.response.headers?.['retry-after'];
+      const segundos = retryAfter ? ` (esperá ${retryAfter}s)` : '';
+      lookupError.value = `Demasiados intentos${segundos}. Probá de nuevo en un minuto.`;
+    } else {
+      lookupError.value = 'No se pudo validar el email. Probá de nuevo.';
+    }
     return null;
   } finally {
     isLookingUp.value = false;
@@ -463,7 +469,9 @@ async function continuarUsuarioRegistrado() {
 
   await axios.post(route('grid-actividades.pago.prepare'), {
     actividad_id: props.actividad.id,
-    user_id: user.id,
+    // Token opaco (TTL 15 min) emitido por lookup-email. Reemplaza user_id
+    // numérico para que el backend no acepte ids ajenos vía IDOR.
+    user_lookup_token: user.lookup_token,
   });
 
   guestModalVisible.value = false;

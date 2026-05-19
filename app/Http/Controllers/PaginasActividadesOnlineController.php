@@ -12,7 +12,7 @@ class PaginasActividadesOnlineController extends Controller
         $paginas = PaginaActividadOnline::with('imagen')
             ->orderByDesc('mes_referencia')
             ->orderByDesc('created_at')
-            ->paginate(15);
+            ->get();
 
         return inertia('PaginasActividadesOnline/Index', [
             'paginas' => $paginas,

@@ -264,22 +264,6 @@
                             </p>
                         </div>
 
-                        <!-- Paginación -->
-                        <div v-if="filtroPeriodo === 'all' && estadoCuentas.links.length > 3" class="mt-6 flex justify-center gap-2">
-                            <Link 
-                                v-for="link in estadoCuentas.links" 
-                                :key="link.label"
-                                :href="link.url || '#'"
-                                :class="[
-                                    'px-4 py-2 rounded transition',
-                                    link.active 
-                                        ? 'bg-indigo-600 text-white' 
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
-                                    !link.url && 'opacity-50 cursor-not-allowed'
-                                ]"
-                                v-html="link.label"
-                            />
-                        </div>
                     </div>
                 </div>
             </div>
@@ -300,19 +284,19 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import Dialog from 'primevue/dialog';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
-    estadoCuentas: Object
+    estadoCuentas: Array
 });
 
 const filtroPeriodo = ref('last1');
 const mostrarExpiradas = ref(false);
 
 const filtradas = computed(() => {
-    const data = props.estadoCuentas?.data || [];
+    const data = props.estadoCuentas || [];
     const base = mostrarExpiradas.value
         ? data
         : data.filter((cuenta) => String(cuenta.estado || '').toLowerCase() !== 'expirada');

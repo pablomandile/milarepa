@@ -18,13 +18,16 @@
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <!-- Tabla de Usuarios -->
-                        <div v-if="usuarios.data.length > 0" class="overflow-x-auto">
+                        <div v-if="usuarios.length > 0" class="overflow-x-auto">
                             <DataTable
                                 v-model:filters="filters"
                                 :value="usuariosFiltrados"
                                 filterDisplay="menu"
                                 :globalFilterFields="['name', 'email', 'membresia_nombre', 'modalidad_texto', 'membresia_inscripcion_fecha']"
                                 stripedRows
+                                paginator
+                                :rows="20"
+                                :rowsPerPageOptions="[10, 20, 50, 100]"
                                 tableStyle="min-width: 50rem"
                             >
                                 <template #header>
@@ -136,22 +139,6 @@
                             <p class="text-gray-600 text-lg">No hay usuarios registrados</p>
                         </div>
 
-                        <!-- Paginación -->
-                        <div v-if="usuarios.links.length > 3" class="mt-6 flex justify-center gap-2">
-                            <Link 
-                                v-for="link in usuarios.links" 
-                                :key="link.label"
-                                :href="link.url || '#'"
-                                :class="[
-                                    'px-4 py-2 rounded transition',
-                                    link.active 
-                                        ? 'bg-indigo-600 text-white' 
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
-                                    !link.url && 'opacity-50 cursor-not-allowed'
-                                ]"
-                                v-html="link.label"
-                            />
-                        </div>
                     </div>
                 </div>
             </div>
@@ -219,7 +206,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { Link, useForm } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Swal from 'sweetalert2';
 import DataTable from 'primevue/datatable';
@@ -231,14 +218,14 @@ import InputIcon from 'primevue/inputicon';
 import { FilterMatchMode } from 'primevue/api';
 
 const props = defineProps({
-    usuarios: Object,
+    usuarios: Array,
     membresias: Array
 });
 
 const filtroMembresia = ref('con_membresia');
 
 const usuariosConMembresia = computed(() =>
-    props.usuarios.data.map((usuario) => ({
+    props.usuarios.map((usuario) => ({
         ...usuario,
         membresia_nombre: usuario.membresia && usuario.membresia.nombre ? usuario.membresia.nombre : '',
         modalidad_texto: usuario.membresia && Number(usuario.membresia.id) !== 1

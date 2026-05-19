@@ -15,7 +15,7 @@ import { ref } from 'vue';
 
 const { paginas } = defineProps({
     paginas: {
-        type: Object,
+        type: Array,
         required: true
     }
 });
@@ -75,7 +75,7 @@ const formatMes = (mesReferencia) => {
 
                     <div class="mt-4">
                         <DataTable
-                            :value="paginas.data"
+                            :value="paginas"
                             stripedRows
                             paginator
                             :rows="10"

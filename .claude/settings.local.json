@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\laragon\\\\www\\\\milarepa\" -Force)",
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem -Path \"c:\\\\laragon\\\\www\\\\milarepa\" -Type Directory)",
+      "Bash(Select-Object -ExpandProperty Name)",
+      "Bash(dir c:\\\\laragon\\\\www\\\\milarepa /B)",
+      "Bash(Get-ChildItem -Path \"c:\\\\laragon\\\\www\\\\milarepa\\\\app\\\\Http\\\\Controllers\" -Recurse -Filter \"*.php\")",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(/c/laragon/bin/mysql/mysql-8.0.30-winx64/bin/mysql.exe -u root -h 127.0.0.1 -e \"USE milarepa; SHOW TABLES;\")",
+      "Bash(/c/laragon/bin/mysql/mysql-5.7*/bin/mysql.exe -u root -h 127.0.0.1 -e \"USE milarepa; SHOW TABLES;\")",
+      "Bash(mysql -u root -h 127.0.0.1 -e \"USE milarepa; SHOW TABLES;\")",
+      "Bash(/c/laragon/bin/mysql/mysql-8.0.30-winx64/bin/mysql.exe -u root -h 127.0.0.1 -e \"USE milarepa; SELECT migration FROM migrations ORDER BY id;\")",
+      "Bash(ls /c/laragon/www/milarepa/database/migrations/)",
+      "Read(//tmp/**)",
+      "Bash(Get-ChildItem -Path \"c:\\\\laragon\\\\www\\\\milarepa\" -Directory)"
+    ]
+  }
+}

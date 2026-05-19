@@ -8,6 +8,7 @@
 .env
 .env.backup
 .env.production
+.env.testing
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml
@@ -17,3 +18,11 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Docs internos (no publicar en repo público).
+# Contienen threat model, lógica de negocio sensible y snapshots operacionales.
+# Si el repo se cambia a privado, se pueden quitar de esta lista.
+SECURITY_AUDIT.md
+BUSINESS_RULES.md
+ARCHITECTURE.md
+CONTEXTO.md

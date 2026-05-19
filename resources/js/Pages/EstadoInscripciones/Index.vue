@@ -281,6 +281,9 @@
                                 dataKey="id"
                                 v-model:expandedRows="expandedRows"
                                 responsiveLayout="scroll"
+                                paginator
+                                :rows="20"
+                                :rowsPerPageOptions="[10, 20, 50, 100]"
                                 class="p-datatable-sm"
                             >
                                 <Column expander style="width: 3rem" />
@@ -537,21 +540,6 @@
                             </p>
                         </div>
 
-                        <div v-if="filtroPeriodo === 'all' && inscripciones.links.length > 3" class="mt-6 flex justify-center gap-2">
-                            <Link
-                                v-for="link in inscripciones.links"
-                                :key="link.label"
-                                :href="link.url || '#'"
-                                :class="[
-                                    'px-4 py-2 rounded transition',
-                                    link.active
-                                        ? 'bg-indigo-600 text-white'
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
-                                    !link.url && 'opacity-50 cursor-not-allowed'
-                                ]"
-                                v-html="link.label"
-                            />
-                        </div>
                     </div>
                 </div>
             </div>
@@ -716,7 +704,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { Link, usePage, router } from '@inertiajs/vue3';
+import { usePage, router } from '@inertiajs/vue3';
 import { useToast } from 'primevue/usetoast';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import DataTable from 'primevue/datatable';
@@ -724,7 +712,7 @@ import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
 
 const props = defineProps({
-    inscripciones: Object
+    inscripciones: Array
 });
 
 const toast = useToast();
@@ -1103,7 +1091,7 @@ const enviarGrabaciones = async () => {
 };
 
 const filtradas = computed(() => {
-    const data = props.inscripciones?.data || [];
+    const data = props.inscripciones || [];
     if (filtroPeriodo.value === 'all') return data;
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);

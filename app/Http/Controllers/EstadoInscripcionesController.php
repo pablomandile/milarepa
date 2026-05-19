@@ -33,8 +33,7 @@ class EstadoInscripcionesController extends Controller
             'comprobantes',
             ])
             ->orderBy('created_at', 'desc')
-            ->paginate(15)
-            ->withQueryString();
+            ->get();
 
         return Inertia::render('EstadoInscripciones/Index', [
             'inscripciones' => $inscripciones,

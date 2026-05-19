@@ -80,32 +80,21 @@ Route::get('/welcome', function () {
     ]);
 })->name('welcome');
 
-// Rutas públicas para preview de emails
+// Rutas públicas para preview de emails (sin {id}: usan datos dummy, no exponen PII)
+// Las versiones con {id} están dentro del grupo auth + role check (más abajo)
 Route::get('/email-preview', [EmailPreviewController::class, 'landing'])->name('email.preview.landing');
 Route::get('/email-preview/inscripcion', [EmailPreviewController::class, 'inscripcionRegistrada'])
     ->name('preview.email.inscripcion');
-Route::get('/email-preview/inscripcion/{id}', [EmailPreviewController::class, 'inscripcionRegistrada'])
-    ->name('preview.email.inscripcion.id');
 Route::get('/email-preview/inscripcion-confirmada', [EmailPreviewController::class, 'inscripcionConfirmada'])
     ->name('preview.email.inscripcion-confirmada');
-Route::get('/email-preview/inscripcion-confirmada/{id}', [EmailPreviewController::class, 'inscripcionConfirmada'])
-    ->name('preview.email.inscripcion-confirmada.id');
 Route::get('/email-preview/grabacion', [EmailPreviewController::class, 'grabacionDisponible'])
     ->name('preview.email.grabacion');
-Route::get('/email-preview/grabacion/{id}', [EmailPreviewController::class, 'grabacionDisponible'])
-    ->name('preview.email.grabacion.id');
 Route::get('/email-preview/informacion-membresias', [EmailPreviewController::class, 'informacionMembresias'])
     ->name('preview.email.informacion-membresias');
-Route::get('/email-preview/informacion-membresias/{id}', [EmailPreviewController::class, 'informacionMembresias'])
-    ->name('preview.email.informacion-membresias.id');
 Route::get('/email-preview/inscripcion-tk-registrada', [EmailPreviewController::class, 'inscripcionTkRegistrada'])
     ->name('preview.email.inscripcion-tk-registrada');
-Route::get('/email-preview/inscripcion-tk-registrada/{id}', [EmailPreviewController::class, 'inscripcionTkRegistrada'])
-    ->name('preview.email.inscripcion-tk-registrada.id');
 Route::get('/email-preview/actividades-online', [EmailPreviewController::class, 'envioActividadesOnline'])
     ->name('preview.email.actividades-online');
-Route::get('/email-preview/actividades-online/{id}', [EmailPreviewController::class, 'envioActividadesOnline'])
-    ->name('preview.email.actividades-online.id');
 Route::get('/email-preview/reporte-semanal-inscripciones-actividad', [EmailPreviewController::class, 'reporteSemanalInscripcionesPorActividad'])
     ->name('preview.email.reporte-semanal-inscripciones-actividad');
 
@@ -122,28 +111,54 @@ Route::get('/actividades-online', [ActividadesOnlineController::class, 'index'])
     ->name('paginas.actividades-online');
 Route::get('/grid-actividades/{actividad}/public', [GridActividadesController::class, 'showPublicActividad'])
     ->name('grid-actividades.show-public');
+// Rate limit: 5 req/min por IP. Mitiga enumeración masiva desde una única fuente.
+// Para defender contra botnets distribuidos ver tarea 2.1c (Turnstile) en backlog.
 Route::post('/grid-actividades/lookup-email', [GridActividadesController::class, 'lookupEmail'])
-    ->name('grid-actividades.lookup-email');
+    ->name('grid-actividades.lookup-email')
+    ->middleware('throttle:5,1');
 Route::post('/grid-actividades/inscribir', [GridActividadesController::class, 'inscribir'])
-    ->name('grid-actividades.inscribir');
+    ->name('grid-actividades.inscribir')
+    ->middleware('throttle:public-write');
 Route::post('/grid-actividades/inscribir-guest', [GridActividadesController::class, 'inscribirGuest'])
-    ->name('grid-actividades.inscribir-guest');
+    ->name('grid-actividades.inscribir-guest')
+    ->middleware('throttle:public-write');
 Route::post('/grid-actividades/pago/prepare', [GridActividadesController::class, 'preparePago'])
-    ->name('grid-actividades.pago.prepare');
+    ->name('grid-actividades.pago.prepare')
+    ->middleware('throttle:public-write');
 Route::get('/grid-actividades/pago/{actividad}', [GridActividadesController::class, 'pago'])
     ->name('grid-actividades.pago');
 Route::post('/grid-actividades/pago/comprobante', [GridActividadesController::class, 'uploadComprobante'])
-    ->name('grid-actividades.pago.comprobante');
+    ->name('grid-actividades.pago.comprobante')
+    ->middleware('throttle:public-write');
 Route::post('/grid-actividades/pago/finalizar', [GridActividadesController::class, 'finalizarPago'])
-    ->name('grid-actividades.pago.finalizar');
+    ->name('grid-actividades.pago.finalizar')
+    ->middleware('throttle:public-write');
+// URL firmada (signed): solo accesible con la firma generada por finalizarPago
 Route::get('/grid-actividades/inscripcion/{inscripcion}', [GridActividadesController::class, 'showPublic'])
-    ->name('grid-actividades.inscripcion');
+    ->name('grid-actividades.inscripcion')
+    ->middleware('signed');
 Route::get('/membresias/public', [MembresiasController::class, 'publicIndex'])
     ->name('membresias.public.index');
 Route::post('/membresias/public/subscribe', [MembresiasController::class, 'subscribePublic'])
-    ->name('membresias.public.subscribe');
+    ->name('membresias.public.subscribe')
+    ->middleware('throttle:public-write');
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
+    // Previews de email con {id}: requieren auth + role (admin/editor).
+    // El controller hace abort_unless adicional como defensa en profundidad.
+    Route::get('/email-preview/inscripcion/{id}', [EmailPreviewController::class, 'inscripcionRegistrada'])
+        ->name('preview.email.inscripcion.id');
+    Route::get('/email-preview/inscripcion-confirmada/{id}', [EmailPreviewController::class, 'inscripcionConfirmada'])
+        ->name('preview.email.inscripcion-confirmada.id');
+    Route::get('/email-preview/grabacion/{id}', [EmailPreviewController::class, 'grabacionDisponible'])
+        ->name('preview.email.grabacion.id');
+    Route::get('/email-preview/informacion-membresias/{id}', [EmailPreviewController::class, 'informacionMembresias'])
+        ->name('preview.email.informacion-membresias.id');
+    Route::get('/email-preview/inscripcion-tk-registrada/{id}', [EmailPreviewController::class, 'inscripcionTkRegistrada'])
+        ->name('preview.email.inscripcion-tk-registrada.id');
+    Route::get('/email-preview/actividades-online/{id}', [EmailPreviewController::class, 'envioActividadesOnline'])
+        ->name('preview.email.actividades-online.id');
+
     Route::get('/complete-profile', [ProfileCompletionController::class, 'create'])
         ->name('profile.complete');
     Route::post('/complete-profile', [ProfileCompletionController::class, 'store'])
@@ -200,13 +215,39 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/grid-actividades', GridActividadesController::class, [
         'parameters' => ['grid-actividades' => 'grid-actividad'],
     ])->except(['index']);
+    // ----- Usuarios (administración) -----
+    // Requieren permisos granulares de Spatie. Las rutas /complete-profile sin {user}
+    // (líneas previas, sin {user}) son para el usuario sobre sí mismo y siguen sin permisos.
     Route::get('/usuarios/{user}/perfil', [UsuariosController::class, 'profileShow'])
+        ->middleware('permission:read usuarios')
         ->name('usuarios.profile.show');
     Route::get('/usuarios/{user}/complete-profile/edit', [ProfileCompletionController::class, 'editUser'])
+        ->middleware('permission:update usuarios')
         ->name('usuarios.profile.complete.edit');
     Route::put('/usuarios/{user}/complete-profile', [ProfileCompletionController::class, 'updateUser'])
+        ->middleware('permission:update usuarios')
         ->name('usuarios.profile.complete.update');
-    Route::resource('/usuarios', UsuariosController::class);
+    Route::get('/usuarios', [UsuariosController::class, 'index'])
+        ->middleware('permission:read usuarios')
+        ->name('usuarios.index');
+    Route::get('/usuarios/create', [UsuariosController::class, 'create'])
+        ->middleware('permission:create usuarios')
+        ->name('usuarios.create');
+    Route::post('/usuarios', [UsuariosController::class, 'store'])
+        ->middleware('permission:create usuarios')
+        ->name('usuarios.store');
+    Route::get('/usuarios/{user}', [UsuariosController::class, 'show'])
+        ->middleware('permission:read usuarios')
+        ->name('usuarios.show');
+    Route::get('/usuarios/{user}/edit', [UsuariosController::class, 'edit'])
+        ->middleware('permission:update usuarios')
+        ->name('usuarios.edit');
+    Route::match(['put', 'patch'], '/usuarios/{user}', [UsuariosController::class, 'update'])
+        ->middleware('permission:update usuarios')
+        ->name('usuarios.update');
+    Route::delete('/usuarios/{user}', [UsuariosController::class, 'destroy'])
+        ->middleware('permission:delete usuarios')
+        ->name('usuarios.destroy');
     Route::resource('/perfiles', PerfilesController::class);
     Route::resource('/roles', RolesController::class);
     Route::resource('/permisos', PermisosController::class, [
@@ -225,9 +266,15 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/membresias', MembresiasController::class);
     Route::get('/membresias-gestion', [MembresiasController::class, 'gestion'])->name('membresias.gestion');
     Route::post('/membresias/subscribe', [MembresiasController::class, 'subscribe'])->name('membresias.subscribe');
-    Route::get('/membresias-gestion-usuarios', [MembresiasGestionController::class, 'index'])->name('membresias.gestion-usuarios');
-    Route::put('/membresias-gestion-usuarios/{user}/asignar', [MembresiasGestionController::class, 'asignar'])->name('membresias.asignar');
-    Route::delete('/membresias-gestion-usuarios/{user}/eliminar', [MembresiasGestionController::class, 'eliminar'])->name('membresias.eliminar');
+    Route::get('/membresias-gestion-usuarios', [MembresiasGestionController::class, 'index'])
+        ->middleware('permission:read membresias')
+        ->name('membresias.gestion-usuarios');
+    Route::put('/membresias-gestion-usuarios/{user}/asignar', [MembresiasGestionController::class, 'asignar'])
+        ->middleware('permission:update membresias')
+        ->name('membresias.asignar');
+    Route::delete('/membresias-gestion-usuarios/{user}/eliminar', [MembresiasGestionController::class, 'eliminar'])
+        ->middleware('permission:delete membresias')
+        ->name('membresias.eliminar');
     Route::resource('/comidas', ComidasController::class);
     Route::resource('/libros', LibrosController::class)->except(['show']);
     Route::resource('/inventario-libros', InventarioLibrosController::class, [
@@ -321,8 +368,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         'parameters' => ['paginas-actividades-online' => 'paginas_actividades_online'],
     ]);
     Route::get('/paginas/configuracion', [PaginasConfiguracionController::class, 'index'])
+        ->middleware('permission:read paginasconfiguracion')
         ->name('paginas.configuracion');
     Route::put('/paginas/configuracion', [PaginasConfiguracionController::class, 'update'])
+        ->middleware('permission:update paginasconfiguracion')
         ->name('paginas.configuracion.update');
     Route::get('/configuracion/mail-info-membresias', [MailInfoMembresiasController::class, 'index'])
         ->name('mail-info-membresias.index');
@@ -372,10 +421,51 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::resource('/grabaciones', GrabacionesController::class, [
         'parameters' => ['grabaciones' => 'grabacion'],]);
-    Route::resource('/botonespago', BotonesPagoController::class, [
-        'parameters' => ['botonespago' => 'botonpago'],]);
-    Route::resource('/excencionpago', ExcencionPagoController::class, [
-        'parameters' => ['excencionpago' => 'excencionpago'],]);
+    // ----- Botones de pago -----
+    Route::get('/botonespago', [BotonesPagoController::class, 'index'])
+        ->middleware('permission:read botonpago')
+        ->name('botonespago.index');
+    Route::get('/botonespago/create', [BotonesPagoController::class, 'create'])
+        ->middleware('permission:create botonpago')
+        ->name('botonespago.create');
+    Route::post('/botonespago', [BotonesPagoController::class, 'store'])
+        ->middleware('permission:create botonpago')
+        ->name('botonespago.store');
+    Route::get('/botonespago/{botonpago}', [BotonesPagoController::class, 'show'])
+        ->middleware('permission:read botonpago')
+        ->name('botonespago.show');
+    Route::get('/botonespago/{botonpago}/edit', [BotonesPagoController::class, 'edit'])
+        ->middleware('permission:update botonpago')
+        ->name('botonespago.edit');
+    Route::match(['put', 'patch'], '/botonespago/{botonpago}', [BotonesPagoController::class, 'update'])
+        ->middleware('permission:update botonpago')
+        ->name('botonespago.update');
+    Route::delete('/botonespago/{botonpago}', [BotonesPagoController::class, 'destroy'])
+        ->middleware('permission:delete botonpago')
+        ->name('botonespago.destroy');
+
+    // ----- Exención de pago -----
+    Route::get('/excencionpago', [ExcencionPagoController::class, 'index'])
+        ->middleware('permission:read excencionpago')
+        ->name('excencionpago.index');
+    Route::get('/excencionpago/create', [ExcencionPagoController::class, 'create'])
+        ->middleware('permission:create excencionpago')
+        ->name('excencionpago.create');
+    Route::post('/excencionpago', [ExcencionPagoController::class, 'store'])
+        ->middleware('permission:create excencionpago')
+        ->name('excencionpago.store');
+    Route::get('/excencionpago/{excencionpago}', [ExcencionPagoController::class, 'show'])
+        ->middleware('permission:read excencionpago')
+        ->name('excencionpago.show');
+    Route::get('/excencionpago/{excencionpago}/edit', [ExcencionPagoController::class, 'edit'])
+        ->middleware('permission:update excencionpago')
+        ->name('excencionpago.edit');
+    Route::match(['put', 'patch'], '/excencionpago/{excencionpago}', [ExcencionPagoController::class, 'update'])
+        ->middleware('permission:update excencionpago')
+        ->name('excencionpago.update');
+    Route::delete('/excencionpago/{excencionpago}', [ExcencionPagoController::class, 'destroy'])
+        ->middleware('permission:delete excencionpago')
+        ->name('excencionpago.destroy');
     Route::get('/grabaciones/{grabacion}/links', [GrabacionesController::class, 'editLinks'])
     ->name('grabaciones.links');
     Route::post('/grabaciones/{id}/links', [GrabacionesController::class, 'storeLink'])
@@ -387,10 +477,24 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     
     Route::resource('/registromembresias', RegistroMembresiasController::class);
 
-    Route::resource('/estado-cuenta-membresias', EstadoCuentaMembresiasController::class, [
-        'parameters' => ['estado-cuenta-membresias' => 'estadoCuentaMembresia'],
-        'except' => ['create', 'store']
-    ]);
+    // ----- Estado de cuenta de membresías (vista administrativa) -----
+    Route::get('/estado-cuenta-membresias', [EstadoCuentaMembresiasController::class, 'index'])
+        ->middleware('permission:read estado_cuenta_membresias')
+        ->name('estado-cuenta-membresias.index');
+    Route::get('/estado-cuenta-membresias/{estadoCuentaMembresia}', [EstadoCuentaMembresiasController::class, 'show'])
+        ->middleware('permission:read estado_cuenta_membresias')
+        ->name('estado-cuenta-membresias.show');
+    Route::get('/estado-cuenta-membresias/{estadoCuentaMembresia}/edit', [EstadoCuentaMembresiasController::class, 'edit'])
+        ->middleware('permission:update estado_cuenta_membresias')
+        ->name('estado-cuenta-membresias.edit');
+    Route::match(['put', 'patch'], '/estado-cuenta-membresias/{estadoCuentaMembresia}', [EstadoCuentaMembresiasController::class, 'update'])
+        ->middleware('permission:update estado_cuenta_membresias')
+        ->name('estado-cuenta-membresias.update');
+    Route::delete('/estado-cuenta-membresias/{estadoCuentaMembresia}', [EstadoCuentaMembresiasController::class, 'destroy'])
+        ->middleware('permission:delete estado_cuenta_membresias')
+        ->name('estado-cuenta-membresias.destroy');
+    // uploadComprobante NO lleva permission: es para que el propio usuario suba su
+    // comprobante de membresía. El controller filtra internamente por $request->user()->id.
     Route::post('/estado-cuenta-membresias/comprobante', [EstadoCuentaMembresiasController::class, 'uploadComprobante'])
         ->name('estado-cuenta-membresias.comprobante');
 

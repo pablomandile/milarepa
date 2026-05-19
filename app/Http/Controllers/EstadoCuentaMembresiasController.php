@@ -20,7 +20,7 @@ class EstadoCuentaMembresiasController extends Controller
         $estadoCuentas = EstadoCuentaMembresia::with(['user.membresiaUsuario', 'membresia', 'membresia.entidad'])
             ->orderBy('mes_pagado', 'desc')
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->get();
 
         return inertia('EstadoCuentaMembresias/Index', [
             'estadoCuentas' => $estadoCuentas

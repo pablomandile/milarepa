@@ -233,6 +233,14 @@ class EmailPreviewController extends Controller
     private function obtenerInscripcionParaPreview($id = null)
     {
         if ($id) {
+            // Defensa en profundidad: cargar una inscripción real requiere admin/editor.
+            // El middleware de ruta ya lo aplica, pero replicamos acá por si se reusa el helper.
+            abort_unless(
+                auth()->check() && auth()->user()->hasAnyRole(['admin', 'editor']),
+                403,
+                'No autorizado a previsualizar inscripciones reales.'
+            );
+
             $inscripcion = Inscripcion::with([
                 'actividad.entidad',
                 'actividad.imagen',

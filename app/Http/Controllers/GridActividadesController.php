@@ -22,6 +22,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use App\Mail\InscripcionConfirmada;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
@@ -181,7 +182,10 @@ class GridActividadesController extends Controller
         return response()->json([
             'found' => true,
             'user' => [
-                'id' => $user->id,
+                // Token opaco con TTL 15 min en lugar del id numérico.
+                // El consumidor (preparePago / subscribePublic) lo descifra
+                // con APP_KEY. Evita enumeración de IDs y IDOR ajeno.
+                'lookup_token' => \App\Support\UserLookupToken::issue($user->id),
                 'name' => $user->name,
                 'email' => $user->email,
                 'membresia' => $membresiaRespuesta ? [
@@ -200,7 +204,8 @@ class GridActividadesController extends Controller
     {
         $data = $request->validate([
             'actividad_id' => ['required', 'exists:actividades,id'],
-            'user_id' => ['nullable', 'exists:users,id'],
+            // Token opaco emitido por lookupEmail (reemplaza user_id numérico).
+            'user_lookup_token' => ['nullable', 'string'],
             'guest' => ['nullable', 'array'],
             'guest.name' => ['required_with:guest', 'string', 'max:255'],
             'guest.email' => ['required_with:guest', 'email', 'max:255'],
@@ -227,9 +232,18 @@ class GridActividadesController extends Controller
             ]);
         }
 
-        $resolvedUserId = $data['user_id'] ?? null;
-        if (empty($resolvedUserId) && empty($data['guest']) && auth()->check()) {
+        $resolvedUserId = null;
+        if (auth()->check() && empty($data['guest'])) {
+            // Usuario logueado: ignora token, usa su propia sesión.
             $resolvedUserId = auth()->id();
+        } elseif (!empty($data['user_lookup_token'])) {
+            $resolvedUserId = \App\Support\UserLookupToken::resolveUserId($data['user_lookup_token']);
+            if (!$resolvedUserId) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Token de identificación inválido o vencido. Volvé a verificar tu email.',
+                ], 422);
+            }
         }
 
         $request->session()->put('grid_pago', [
@@ -687,6 +701,11 @@ class GridActividadesController extends Controller
             'inscripcion_id' => $inscripcion->id,
             'registered' => $registrado,
             'can_view_private' => auth()->check(),
+            'public_url' => URL::temporarySignedRoute(
+                'grid-actividades.inscripcion',
+                now()->addDays(180),
+                ['inscripcion' => $inscripcion->id]
+            ),
         ]);
     }
 

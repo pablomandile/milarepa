@@ -15,7 +15,7 @@ class MembresiasGestionController extends Controller
     {
         $usuarios = User::with(['membresia', 'membresiaUsuario'])
             ->orderBy('name')
-            ->paginate(15);
+            ->get();
 
         $membresias = Membresia::with('entidad')
             ->select('id', 'nombre', 'entidad_id')
