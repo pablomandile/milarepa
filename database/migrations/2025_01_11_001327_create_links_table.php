@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('links', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre', 100);
+            $table->string('nombre', 150);
             $table->string('link');
             $table->foreignId('stream_id')->constrained('streams')->onDelete('cascade');
             $table->timestamps();

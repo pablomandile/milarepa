@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('streams', function (Blueprint $table) {
-            $table->string('nombre', 150)->change();
+        Schema::create('provincias', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('nombre', 100)->nullable();
+            $table->unsignedBigInteger('pais_id')->nullable();
         });
     }
 
     public function down(): void
     {
-        Schema::table('streams', function (Blueprint $table) {
-            $table->string('nombre', 50)->change();
-        });
+        Schema::dropIfExists('provincias');
     }
 };

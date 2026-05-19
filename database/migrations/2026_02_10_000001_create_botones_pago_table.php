@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nombre');
             $table->string('descripcion')->nullable();
             $table->string('link');
-            $table->string('plataforma');
+            $table->foreignId('metodo_pago_id')->nullable()->constrained('metodos_pago')->nullOnDelete();
             $table->timestamps();
         });
     }

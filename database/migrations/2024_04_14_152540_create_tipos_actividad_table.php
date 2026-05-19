@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('tipos_actividad', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 50);
+            $table->string('abreviacion', 20)->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

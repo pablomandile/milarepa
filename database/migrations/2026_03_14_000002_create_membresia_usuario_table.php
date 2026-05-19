@@ -18,8 +18,15 @@ return new class extends Migration
             $table->string('membresia_online_motivo')->nullable();
             $table->boolean('info_tarjetas_kadampa')->default(false);
             $table->dateTime('envioInfoTk')->nullable();
+            $table->date('envioActOnline')->nullable();
             $table->timestamps();
         });
+
+        // Data migration from legacy users columns. Skip if cols don't exist
+        // (post-consolidation: create_users no longer includes these cols).
+        if (!Schema::hasColumn('users', 'membresia_id')) {
+            return;
+        }
 
         DB::table('users')
             ->select([

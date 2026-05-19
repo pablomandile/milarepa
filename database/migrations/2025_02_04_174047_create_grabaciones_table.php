@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('grabaciones', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 50);
+            $table->foreignId('botonpago_id')->nullable();
+            $table->decimal('valor', 10, 2)->default(0);
             $table->timestamps();
         });
     }

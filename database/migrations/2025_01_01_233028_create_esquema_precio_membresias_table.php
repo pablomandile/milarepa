@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('esquema_precio_id')->constrained()->onDelete('cascade');
             $table->foreignId('membresia_id')->constrained()->onDelete('cascade');
+            $table->foreignId('botonpago_id')->nullable();
             $table->foreignId('moneda_id')->constrained()->onDelete('restrict');
             $table->decimal('precio', 10, 2);
             $table->timestamps();

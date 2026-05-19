@@ -14,7 +14,9 @@
       "Bash(/c/laragon/bin/mysql/mysql-8.0.30-winx64/bin/mysql.exe -u root -h 127.0.0.1 -e \"USE milarepa; SELECT migration FROM migrations ORDER BY id;\")",
       "Bash(ls /c/laragon/www/milarepa/database/migrations/)",
       "Read(//tmp/**)",
-      "Bash(Get-ChildItem -Path \"c:\\\\laragon\\\\www\\\\milarepa\" -Directory)"
+      "Bash(Get-ChildItem -Path \"c:\\\\laragon\\\\www\\\\milarepa\" -Directory)",
+      "PowerShell(mysql -u root milarepa -e \"SHOW COLUMNS FROM tipos_actividad\" 2>$null)",
+      "PowerShell(mysql -u root milarepa -e \"SHOW COLUMNS FROM grabaciones\" 2>$null)"
     ]
   }
 }

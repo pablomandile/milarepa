@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->dateTime('fecha');
             $table->foreignId('libro_id')->constrained('libros')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('entidad_id')->nullable()->constrained('entidades')->cascadeOnUpdate()->nullOnDelete();
+            $table->unsignedInteger('cantidad_total')->default(0);
             $table->unsignedInteger('cantidad_inicial');
             $table->unsignedInteger('cantidad_vendida');
             $table->unsignedInteger('cantidad_final');
@@ -25,6 +27,7 @@ return new class extends Migration
 
             $table->index('fecha');
             $table->index('vendedor_id');
+            $table->index('entidad_id');
         });
     }
 

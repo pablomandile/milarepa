@@ -14,8 +14,11 @@ return new class extends Migration
             $table->text('descripcion');
             $table->unsignedTinyInteger('dia')->nullable();
             $table->json('dias_semana')->nullable();
-            $table->time('hora');
+            $table->time('hora')->nullable();
             $table->string('periodicidad', 20);
+            $table->json('configuracion_por_mes')->nullable();
+            $table->foreignId('modalidad_id')->nullable()->constrained('modalidades')->cascadeOnUpdate()->nullOnDelete();
+            $table->foreignId('stream_id')->nullable()->constrained('streams')->cascadeOnUpdate()->nullOnDelete();
             $table->string('imagen')->nullable();
             $table->boolean('mostrar_en_calendario')->default(false);
             $table->timestamps();

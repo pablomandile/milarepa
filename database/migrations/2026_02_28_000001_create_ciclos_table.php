@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('ciclos', function (Blueprint $table) {
             $table->id();
             $table->string('nombre', 100)->unique();
+            $table->unsignedTinyInteger('mes')->nullable();
             $table->timestamps();
         });
     }

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nombre', 100);
             $table->string('descripcion', 255);
+            $table->foreignId('botonpago_id')->nullable();
             $table->float('precio');
             $table->boolean('vegano');
             $table->boolean('celiaco');

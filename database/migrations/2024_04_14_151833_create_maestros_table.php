@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('nombre', 50);
             $table->string('telefono', 50)->nullable();
             $table->string('email', 255)->nullable();
+            $table->text('sobre_maestro')->nullable();
+            $table->foreignId('imagen_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

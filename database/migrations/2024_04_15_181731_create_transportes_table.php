@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('transportes', function (Blueprint $table) {
             $table->id();
-            $table->string('descripcion', 100);
+            $table->string('descripcion', 150);
+            $table->foreignId('botonpago_id')->nullable();
             $table->float('precio');
             $table->timestamps();
             $table->softDeletes();

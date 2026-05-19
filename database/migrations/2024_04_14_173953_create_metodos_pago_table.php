@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('nombre', 30);
             $table->string('descripcion', 100);
+            $table->enum('tipo_de_pago', ['Online', 'Presencial'])->default('Presencial');
+            $table->foreignId('imagen_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

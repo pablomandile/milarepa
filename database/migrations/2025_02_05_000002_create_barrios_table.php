@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('maestros', function (Blueprint $table) {
-            $table->text('sobre_maestro')->nullable()->after('email');
+        Schema::create('barrios', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('nombre', 100)->nullable();
+            $table->unsignedBigInteger('provincia_id')->nullable();
         });
     }
 
     public function down(): void
     {
-        Schema::table('maestros', function (Blueprint $table) {
-            $table->dropColumn('sobre_maestro');
-        });
+        Schema::dropIfExists('barrios');
     }
 };

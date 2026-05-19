@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('clave')->unique();
             $table->boolean('valor')->default(false);
+            $table->text('valor_texto')->nullable();
             $table->timestamps();
         });
     }
