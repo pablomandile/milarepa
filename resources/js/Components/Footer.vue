@@ -67,7 +67,7 @@
       <hr class="my-5 sm:my-5 border-white" />
       <div
         class="flex flex-wrap items-center lg:gap-6 lg:justify-between lg:flex-nowrap">
-        <div class="grow">
+        <div class="grow flex items-center gap-4 lg:gap-6">
             <img
               v-if="footerLogoUrl"
               :src="footerLogoUrl"
@@ -75,6 +75,12 @@
               class="w-[200px] h-[200px] lg:block hidden object-contain"
             />
             <LogoMilarepa v-else class="w-[100px] h-[100px] lg:block hidden"/>
+            <h2
+                class="hidden lg:block text-2xl xl:text-3xl text-white whitespace-nowrap"
+                style="font-family: 'Parisienne', serif; font-weight: 400; font-style: normal;"
+            >
+                ¡Todos son Bienvenidos!
+            </h2>
         </div>
         <div
           class="flex flex-col justify-between w-full lg:w-auto lg:justify-start lg:flex-row lg:divide-x lg:gap-0">

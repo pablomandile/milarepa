@@ -367,6 +367,9 @@ const toggleMobileSection = (key) => {
                                     <DropdownLink :href="route('paginas.configuracion')" :active="route().current('paginas.configuracion')">
                                         Configuración General
                                     </DropdownLink>
+                                    <DropdownLink :href="route('frases-de-dharma.index')" :active="route().current('frases-de-dharma.*')">
+                                        Importar Frases de Dharma
+                                    </DropdownLink>
                                 </template>
                             </Dropdown>
                         </div>
@@ -830,6 +833,9 @@ const toggleMobileSection = (key) => {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('paginas.configuracion')" :active="route().current('paginas.configuracion')">
                                 Configuración General
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('frases-de-dharma.index')" :active="route().current('frases-de-dharma.*')">
+                                Importar Frases de Dharma
                             </ResponsiveNavLink>
                         </div>
                     </div>

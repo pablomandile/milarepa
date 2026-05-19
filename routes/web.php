@@ -70,6 +70,7 @@ use App\Http\Controllers\DevolucionesAnexosController;
 use App\Http\Controllers\VentasLibrosController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\ThemePreferenceController;
+use App\Http\Controllers\FrasesDeDharmaController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -184,6 +185,13 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::put('/user/theme-preference', [ThemePreferenceController::class, 'update'])
         ->name('user.theme-preference.update');
 
+    Route::get('/frases-de-dharma', [FrasesDeDharmaController::class, 'index'])
+        ->name('frases-de-dharma.index');
+    Route::post('/frases-de-dharma/import', [FrasesDeDharmaController::class, 'import'])
+        ->name('frases-de-dharma.import');
+    Route::delete('/frases-de-dharma/{fraseDeDharma}', [FrasesDeDharmaController::class, 'destroy'])
+        ->name('frases-de-dharma.destroy');
+
     Route::get('/dashboard', function () {
         $user = auth()->user();
         // Chequeas si el perfil está incompleto
@@ -198,7 +206,15 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         if ($user->hasRole('asistant')) {
             return redirect()->route('asistant.panel');
         }
-        return inertia('Dashboard');
+
+        $frase = \App\Models\FraseDeDharma::inRandomOrder()->first();
+
+        return inertia('Dashboard', [
+            'frase' => $frase ? [
+                'cita_textual' => $frase->cita_textual,
+                'libro' => $frase->libro,
+            ] : null,
+        ]);
     })->middleware(['auth', 'verified'])->name('dashboard');
 
     Route::get('/panel-asistant', function () {
