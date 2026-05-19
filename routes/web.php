@@ -68,9 +68,18 @@ use App\Http\Controllers\PrestamosAnexosController;
 use App\Http\Controllers\InventarioPorEntidadController;
 use App\Http\Controllers\DevolucionesAnexosController;
 use App\Http\Controllers\VentasLibrosController;
+use App\Http\Controllers\Auth\SocialAuthController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
+
+// Google OAuth (Socialite)
+Route::middleware('guest')->group(function () {
+    Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirectToGoogle'])
+        ->name('auth.google.redirect');
+    Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback'])
+        ->name('auth.google.callback');
+});
 Route::get('/welcome', function () {
     return inertia('Welcome', [
         'canLogin' => Route::has('login'),

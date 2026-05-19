@@ -134,25 +134,23 @@ const submit = () => {
 
                             <!-- Lista de permisos -->
                             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto border border-gray-200 p-4 rounded-lg">
-                                <div
+                                <label
                                     v-for="permission in filteredPermissions()"
                                     :key="permission.id"
-                                    class="flex items-center"
+                                    :for="`permission-${permission.id}`"
+                                    class="flex items-start gap-2 cursor-pointer"
                                 >
                                     <input
                                         :id="`permission-${permission.id}`"
                                         type="checkbox"
                                         :checked="isPermissionSelected(permission.id)"
                                         @change="togglePermission(permission.id)"
-                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                        class="permission-checkbox mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                                     />
-                                    <label
-                                        :for="`permission-${permission.id}`"
-                                        class="ml-2 text-sm text-gray-700 cursor-pointer"
-                                    >
+                                    <span class="text-sm text-gray-700 leading-tight">
                                         {{ permission.name }}
-                                    </label>
-                                </div>
+                                    </span>
+                                </label>
                             </div>
 
                             <div v-if="filteredPermissions().length === 0" class="text-center text-gray-500 mt-4">
@@ -180,3 +178,17 @@ const submit = () => {
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+.permission-checkbox {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+    max-width: 16px;
+    max-height: 16px;
+    box-sizing: border-box;
+    padding: 0;
+}
+</style>
