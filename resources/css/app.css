@@ -35,6 +35,11 @@ background: #090979;
 background: linear-gradient(90deg, rgba(9, 9, 121, 1) 0%, rgba(145, 123, 219, 1) 35%, rgba(85, 138, 237, 1) 100%);
 }
 
+:is(.dark) .footer-bg {
+background: #0b1026;
+background: linear-gradient(90deg, rgba(8, 8, 40, 1) 0%, rgba(30, 27, 75, 1) 35%, rgba(17, 24, 70, 1) 100%);
+}
+
 .about-bg {
   /* Ajusta la ruta del SVG */
   background-image: url('/resources/images/bgabout.svg');

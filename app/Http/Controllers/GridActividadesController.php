@@ -15,6 +15,7 @@ use App\Models\EnvioMail;
 use App\Models\EmailEnvioConfiguracion;
 use App\Models\User;
 use App\Models\EstadoCuentaMembresia;
+use App\Models\ConfiguracionSistema;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
@@ -33,7 +34,7 @@ class GridActividadesController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $with = [
             'tipoActividad',
@@ -87,6 +88,12 @@ class GridActividadesController extends Controller
             $userMembresiaActiva = $this->resolverMembresiaActivaUsuario($authUser);
         }
 
+        $gridVariante = ConfiguracionSistema::obtenerTexto('grid_actividades_variante', 'grid1');
+        $override = $request->query('grid');
+        if (in_array($override, ['grid1', 'grid2', '1', '2'], true) && auth()->check() && auth()->user()->hasRole('admin')) {
+            $gridVariante = in_array($override, ['grid2', '2'], true) ? 'grid2' : 'grid1';
+        }
+
         // dd($actividades->toArray());
         return inertia('GridActividades/Index', [
             'actividades' => $actividades->toArray(),
@@ -99,6 +106,7 @@ class GridActividadesController extends Controller
             'provincias' => $provincias,
             'municipios' => $municipios,
             'barrios' => $barrios,
+            'gridVariante' => $gridVariante,
         ]);
     }
 

@@ -28,6 +28,10 @@ const props = defineProps({
         type: String,
         default: '',
     },
+    grid_actividades_variante: {
+        type: String,
+        default: 'grid1',
+    },
 });
 
 const form = useForm({
@@ -37,6 +41,7 @@ const form = useForm({
     envio_mail_semanal_inscripciones_dia: props.envio_mail_semanal_inscripciones_dia,
     envio_mail_semanal_inscripciones_hora: props.envio_mail_semanal_inscripciones_hora,
     envio_mail_semanal_inscripciones_destinatario: props.envio_mail_semanal_inscripciones_destinatario,
+    grid_actividades_variante: props.grid_actividades_variante,
 });
 
 const guardarConfiguracion = () => {
@@ -66,6 +71,42 @@ const guardarConfiguracion = () => {
                         <div class="flex items-center justify-between gap-4 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                             <span class="text-sm font-medium text-gray-800 dark:text-gray-100">Mostrar logo de Entidad Principal en el pie de página</span>
                             <InputSwitch v-model="form.mostrar_logo_entidad_principal_footer" />
+                        </div>
+
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+                            <div>
+                                <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Diseño de la grilla pública de actividades</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Elegí el diseño con el que se muestran las actividades en la página pública <code>/grid-actividades</code>.
+                                </p>
+                            </div>
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    value="grid1"
+                                    v-model="form.grid_actividades_variante"
+                                    class="mt-1 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <span class="flex-1">
+                                    <span class="block text-sm font-medium text-gray-800 dark:text-gray-100">Grid 1 — Tarjetas en columnas</span>
+                                    <span class="block text-xs text-gray-500 dark:text-gray-400">Diseño original: dos tarjetas por fila con flip-card que muestra la descripción al hacer click.</span>
+                                </span>
+                            </label>
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    value="grid2"
+                                    v-model="form.grid_actividades_variante"
+                                    class="mt-1 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <span class="flex-1">
+                                    <span class="block text-sm font-medium text-gray-800 dark:text-gray-100">Grid 2 — Filas amplias con imagen alternada</span>
+                                    <span class="block text-xs text-gray-500 dark:text-gray-400">Una actividad por fila; imagen grande con flip que revela la descripción.</span>
+                                </span>
+                            </label>
+                            <p v-if="form.errors.grid_actividades_variante" class="text-sm text-red-600">
+                                {{ form.errors.grid_actividades_variante }}
+                            </p>
                         </div>
 
                         <div class="flex items-center justify-between gap-4 border border-gray-200 dark:border-gray-700 rounded-lg p-4">

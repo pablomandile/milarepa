@@ -7,7 +7,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import LogoMilarepa from '/resources/images/lotus-art-logo.png';
+import LogoMilarepa from '/resources/images/lotus-art-logo.webp';
 
 defineProps({
     canResetPassword: Boolean,
