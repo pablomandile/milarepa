@@ -81,7 +81,7 @@
                                                     type="number"
                                                     min="0"
                                                     step="0.01"
-                                                    class="w-28 rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm"
+                                                    class="w-28 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-2 py-1 text-sm"
                                                 />
                                             </template>
                                             <span v-else class="text-blue-700 font-medium">
@@ -241,7 +241,7 @@
                                                 <span>Guardar</span>
                                             </button>
                                             <button
-                                                class="inline-flex items-center justify-center gap-2 rounded bg-gray-200 px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-300"
+                                                class="inline-flex items-center justify-center gap-2 rounded bg-gray-200 dark:bg-gray-700 px-3 py-2 text-xs text-gray-700 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600"
                                                 @click="cancelarEdicion"
                                                 aria-label="Cancelar"
                                                 title="Cancelar"
@@ -329,7 +329,7 @@
                                             type="number"
                                             min="0"
                                             step="0.01"
-                                            class="w-28 rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm"
+                                            class="w-28 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-2 py-1 text-sm"
                                         />
                                         <span v-else class="text-sm">
                                             <span class="text-blue-700 font-medium">${{ formatearMonto(data.montoapagar) }}</span>
@@ -444,7 +444,7 @@
                                                     ✓
                                                 </button>
                                                 <button
-                                                    class="inline-flex items-center justify-center rounded bg-gray-200 px-2 py-1 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-300"
+                                                    class="inline-flex items-center justify-center rounded bg-gray-200 dark:bg-gray-700 px-2 py-1 text-xs text-gray-700 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600"
                                                     @click="cancelarEdicion"
                                                     aria-label="Cancelar"
                                                     title="Cancelar"

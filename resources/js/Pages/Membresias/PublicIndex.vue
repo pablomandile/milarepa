@@ -496,11 +496,11 @@ async function iniciarSesionModoLogin() {
               class="mb-6"
             >
               <template #grid="slotProps">
-                <div class="grid grid-nogutter">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   <div
                     v-for="membresia in slotProps.items"
                     :key="membresia.id"
-                    class="col-12 md:col-6 xl:col-4 p-0 sm:p-2"
+                    class="p-0 sm:p-2"
                   >
                     <div class="p-card w-full bg-white border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300">
                       <div class="p-card-body p-4">

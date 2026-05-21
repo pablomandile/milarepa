@@ -87,7 +87,7 @@ const verEmail6 = () => {
                                         v-model="inscripcionId"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                                        class="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
                                         @keyup.enter="verInscripcion"
                                     />
                                     <button
@@ -126,7 +126,7 @@ const verEmail6 = () => {
                                         v-model="pagoId"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
+                                        class="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"
                                         @keyup.enter="verPago"
                                     />
                                     <button
@@ -165,7 +165,7 @@ const verEmail6 = () => {
                                         v-model="grabacionId"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
+                                        class="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-600"
                                         @keyup.enter="verGrabacion"
                                     />
                                     <button
@@ -210,7 +210,7 @@ const verEmail6 = () => {
                                         v-model="email4Id"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        class="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
                                         @keyup.enter="verEmail4"
                                     />
                                     <button
@@ -249,7 +249,7 @@ const verEmail6 = () => {
                                         v-model="email5Id"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+                                        class="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
                                         @keyup.enter="verEmail5"
                                     />
                                     <button
@@ -288,7 +288,7 @@ const verEmail6 = () => {
                                         v-model="email6Id"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-600"
+                                        class="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-600"
                                         @keyup.enter="verEmail6"
                                     />
                                     <button
@@ -344,7 +344,7 @@ const verEmail6 = () => {
                                         v-model="email6Id"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-600"
+                                        class="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-600"
                                         @keyup.enter="verEmail6"
                                     />
                                     <button
@@ -383,7 +383,7 @@ const verEmail6 = () => {
                                         v-model="email6Id"
                                         type="number"
                                         placeholder="Ingresa ID"
-                                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                                        class="flex-1 px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600"
                                         @keyup.enter="verEmail6"
                                     />
                                     <button

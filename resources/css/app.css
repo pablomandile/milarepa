@@ -40,6 +40,33 @@ background: #0b1026;
 background: linear-gradient(90deg, rgba(8, 8, 40, 1) 0%, rgba(30, 27, 75, 1) 35%, rgba(17, 24, 70, 1) 100%);
 }
 
+select,
+.p-inputtext,
+.p-dropdown .p-dropdown-label,
+.p-multiselect .p-multiselect-label {
+    background-color: #ffffff !important;
+    color: rgb(17 24 39) !important; /* gray-900 */
+}
+
+:is(.dark) select,
+:is(.dark) .p-inputtext,
+:is(.dark) .p-dropdown,
+:is(.dark) .p-dropdown .p-dropdown-label,
+:is(.dark) .p-multiselect,
+:is(.dark) .p-multiselect .p-multiselect-label {
+    background-color: rgb(17 24 39) !important; /* gray-900 */
+    color: rgb(243 244 246) !important;          /* gray-100 */
+}
+
+:is(.dark) select option,
+:is(.dark) .p-dropdown-panel,
+:is(.dark) .p-dropdown-panel .p-dropdown-item,
+:is(.dark) .p-multiselect-panel,
+:is(.dark) .p-multiselect-panel .p-multiselect-item {
+    background-color: rgb(31 41 55) !important;  /* gray-800 */
+    color: rgb(243 244 246) !important;          /* gray-100 */
+}
+
 .about-bg {
   /* Ajusta la ruta del SVG */
   background-image: url('/resources/images/bgabout.svg');

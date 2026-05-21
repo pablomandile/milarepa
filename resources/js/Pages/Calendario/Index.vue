@@ -197,15 +197,15 @@ function isVisibleItem(item) {
   <AppLayout title="Calendario de Actividades">
     <Head title="Calendario" />
 
-    <div class="min-h-screen bg-slate-50 py-6">
+    <div class="min-h-screen bg-slate-50 dark:bg-gray-900 py-6">
       <div class="mx-auto w-full max-w-7xl px-3 sm:px-6">
-        <div class="mb-4 rounded-2xl border border-slate-200 bg-white dark:bg-gray-800 p-4 shadow-sm">
+        <div class="mb-4 rounded-2xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 class="text-2xl font-semibold text-slate-900">Calendario</h1>
-              <p class="text-sm text-slate-600">Actividades activas del mes</p>
+              <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Calendario</h1>
+              <p class="text-sm text-slate-600 dark:text-slate-400">Actividades activas del mes</p>
               <div class="mt-4 flex flex-wrap items-center gap-6 text-sm">
-                <label class="inline-flex items-center gap-2 px-1 py-1 text-slate-700">
+                <label class="inline-flex items-center gap-2 px-1 py-1 text-slate-700 dark:text-slate-300">
                   <input
                     v-model="showActividades"
                     type="checkbox"
@@ -213,7 +213,7 @@ function isVisibleItem(item) {
                   />
                   Cursos y retiros
                 </label>
-                <label class="inline-flex items-center gap-2 px-1 py-1 text-slate-700">
+                <label class="inline-flex items-center gap-2 px-1 py-1 text-slate-700 dark:text-slate-300">
                   <input
                     v-model="showClases"
                     type="checkbox"
@@ -221,7 +221,7 @@ function isVisibleItem(item) {
                   />
                   Clases
                 </label>
-                <label class="inline-flex items-center gap-2 px-1 py-1 text-slate-700">
+                <label class="inline-flex items-center gap-2 px-1 py-1 text-slate-700 dark:text-slate-300">
                   <input
                     v-model="showOraciones"
                     type="checkbox"
@@ -233,7 +233,7 @@ function isVisibleItem(item) {
               <div v-if="clasesEntidades.length" class="mt-3">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-700"
+                  class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                   @click="showClasesEntidadesFilters = !showClasesEntidadesFilters"
                 >
                   <span>Filtrar Clases por lugar</span>
@@ -243,7 +243,7 @@ function isVisibleItem(item) {
                   <label
                     v-for="entidad in clasesEntidades"
                     :key="entidad.id"
-                    class="inline-flex items-center gap-2 px-1 py-1 text-slate-700"
+                    class="inline-flex items-center gap-2 px-1 py-1 text-slate-700 dark:text-slate-300"
                   >
                     <input
                       v-model="clasesEntidadFilters[entidad.id]"
@@ -258,16 +258,16 @@ function isVisibleItem(item) {
             <div class="flex items-center gap-2">
               <Link
                 :href="`${route('calendario.index')}?month=${calendar.prevMonth}`"
-                class="rounded-lg border border-slate-300 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                class="rounded-lg border border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gray-600"
               >
                 Anterior
               </Link>
-              <div class="min-w-44 rounded-lg bg-slate-900 px-4 py-2 text-center text-sm font-medium text-white">
+              <div class="min-w-44 rounded-lg bg-slate-900 dark:bg-gray-700 px-4 py-2 text-center text-sm font-medium text-white">
                 {{ calendar.monthLabel }}
               </div>
               <Link
                 :href="`${route('calendario.index')}?month=${calendar.nextMonth}`"
-                class="rounded-lg border border-slate-300 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                class="rounded-lg border border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gray-600"
               >
                 Siguiente
               </Link>
@@ -275,12 +275,12 @@ function isVisibleItem(item) {
           </div>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white dark:bg-gray-800 shadow-sm">
-          <div class="calendar-grid min-w-[980px] border-b border-slate-200 bg-slate-100">
+        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+          <div class="calendar-grid min-w-[980px] border-b border-slate-200 dark:border-gray-700 bg-slate-100 dark:bg-gray-700">
             <div
               v-for="diaSemana in diasSemana"
               :key="diaSemana"
-              class="border-r border-slate-200 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-600 last:border-r-0"
+              class="border-r border-slate-200 dark:border-gray-600 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300 last:border-r-0"
             >
               {{ diaSemana }}
             </div>
@@ -290,19 +290,19 @@ function isVisibleItem(item) {
             <div
               v-for="cell in calendarCells"
               :key="cell.key"
-              class="calendar-cell overflow-hidden border-r border-b border-slate-200 p-2"
-              :class="cell.empty ? 'bg-slate-50' : 'bg-white dark:bg-gray-800'"
+              class="calendar-cell overflow-hidden border-r border-b border-slate-200 dark:border-gray-700 p-2"
+              :class="cell.empty ? 'bg-slate-50 dark:bg-gray-900' : 'bg-white dark:bg-gray-800'"
             >
               <template v-if="!cell.empty">
                 <div class="flex h-full flex-col">
                   <div class="mb-2 flex items-center justify-between">
                     <span
                       class="inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold"
-                      :class="cell.isToday ? 'bg-emerald-600 text-white' : 'text-slate-800'"
+                      :class="cell.isToday ? 'bg-emerald-600 text-white' : 'text-slate-800 dark:text-slate-200'"
                     >
                       {{ cell.day }}
                     </span>
-                    <span v-if="cell.actividades.length" class="text-xs text-slate-500">
+                    <span v-if="cell.actividades.length" class="text-xs text-slate-500 dark:text-slate-400">
                       {{ cell.actividades.length }}
                     </span>
                   </div>
@@ -311,7 +311,7 @@ function isVisibleItem(item) {
                     <template v-for="actividad in cell.actividades" :key="`${cell.date}-${actividad.tipo || 'actividad'}-${actividad.id}`">
                       <div
                         v-if="actividad.esClase"
-                        class="block rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs leading-tight text-amber-900"
+                        class="block rounded-md border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 text-xs leading-tight text-amber-900 dark:text-amber-200"
                         :title="itemLabel(actividad)"
                       >
                         <Link
@@ -324,7 +324,7 @@ function isVisibleItem(item) {
                       <Link
                         v-else-if="!actividad.esOracionCantada"
                         :href="actividadHref(actividad.id)"
-                        class="block rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs leading-tight text-emerald-900 hover:bg-emerald-100"
+                        class="block rounded-md border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 text-xs leading-tight text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100 dark:hover:bg-emerald-900/50"
                         :title="itemLabel(actividad)"
                       >
                         {{ itemLabel(actividad) }}
@@ -332,7 +332,7 @@ function isVisibleItem(item) {
                       <Link
                         v-else
                         :href="oracionCantadaHref(actividad.id)"
-                        class="block rounded-md border border-sky-200 bg-sky-50 px-2 py-1 text-xs leading-tight text-sky-900"
+                        class="block rounded-md border border-sky-200 dark:border-sky-700 bg-sky-50 dark:bg-sky-900/30 px-2 py-1 text-xs leading-tight text-sky-900 dark:text-sky-200"
                         :title="itemLabel(actividad)"
                       >
                         {{ itemLabel(actividad) }}

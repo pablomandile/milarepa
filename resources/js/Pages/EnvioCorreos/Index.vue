@@ -137,7 +137,7 @@ const formatFecha = (fecha) => {
                         <button
                             type="button"
                             @click="clearFilters"
-                            class="text-gray-700 dark:text-gray-300 bg-gray-200 hover:bg-gray-300 py-2 px-4 rounded"
+                            class="text-gray-700 dark:text-gray-100 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 py-2 px-4 rounded"
                         >
                             Limpiar
                         </button>
