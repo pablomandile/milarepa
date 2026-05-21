@@ -794,7 +794,7 @@ onMounted(() => {
                 :disabled="esInscrito"
                 @click="inscribir"
                 class="flex-1 px-4 py-3 rounded-lg transition-colors font-semibold flex items-center justify-center gap-2"
-                :class="esInscrito ? 'bg-gray-200 text-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
+                :class="esInscrito ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
               >
                 <i v-if="esInscrito" class="pi pi-heart-fill"></i>
                 {{ esInscrito ? 'Inscripto' : 'Inscribirme' }}

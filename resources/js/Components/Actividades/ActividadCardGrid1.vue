@@ -192,7 +192,7 @@ const emit = defineEmits(['toggle-flip', 'toggle-servicios', 'inscribir', 'mas-i
                     <button
                         :disabled="actividadSinInscripcionDisponible(actividad, inscripcionesIds)"
                         class="py-2 px-3 rounded text-sm flex-1 transition-colors flex items-center justify-center gap-1"
-                        :class="actividadSinInscripcionDisponible(actividad, inscripcionesIds) ? 'bg-gray-200 text-gray-700 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
+                        :class="actividadSinInscripcionDisponible(actividad, inscripcionesIds) ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
                         @click="emit('inscribir', actividad)"
                     >
                         <i v-if="esInscrito(actividad.id, inscripcionesIds)" class="pi pi-heart-fill"></i>

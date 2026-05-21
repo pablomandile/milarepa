@@ -38,7 +38,7 @@
         </div>
         <p class="text-sm text-gray-500">Inscripción #{{ inscripcion.id }}</p>
         <div class="mt-6">
-          <Link :href="route('inscripciones.index')" class="px-4 py-2 bg-gray-200 text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300">
+          <Link :href="route('inscripciones.index')" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">
             Volver
           </Link>
         </div>

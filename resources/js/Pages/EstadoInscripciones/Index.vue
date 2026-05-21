@@ -574,7 +574,7 @@
                 <div class="flex justify-end gap-2">
                     <button
                         type="button"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300"
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
                         @click="confirmSaldadoVisible = false"
                     >
                         Cancelar
@@ -621,7 +621,7 @@
                 <div class="flex justify-end gap-2">
                     <button
                         type="button"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300"
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
                         @click="comprobanteModalVisible = false"
                     >
                         Cancelar
@@ -651,7 +651,7 @@
                 <div class="flex justify-end gap-2">
                     <button
                         type="button"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300"
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
                         :disabled="isSendingConfirmaciones"
                         @click="confirmEnviosVisible = false"
                     >
@@ -682,7 +682,7 @@
                 <div class="flex justify-end gap-2">
                     <button
                         type="button"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300"
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
                         :disabled="isSendingGrabaciones"
                         @click="confirmEnviosGrabacionesVisible = false"
                     >

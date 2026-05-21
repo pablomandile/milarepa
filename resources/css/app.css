@@ -6,6 +6,58 @@
     display: none;
 }
 
+/*
+ * Defaults para inputs nativos. Van en @layer base para que cualquier utility
+ * de Tailwind (text-gray-100, bg-white, etc.) las pise sin necesidad de !important.
+ * Cubre los casos donde la pagina solo declara border y olvida bg/text en dark.
+ */
+@layer base {
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"],
+    input[type="month"],
+    input[type="week"],
+    textarea {
+        background-color: #ffffff;
+        color: rgb(17 24 39); /* gray-900 */
+    }
+
+    :is(.dark) input[type="text"],
+    :is(.dark) input[type="number"],
+    :is(.dark) input[type="email"],
+    :is(.dark) input[type="password"],
+    :is(.dark) input[type="search"],
+    :is(.dark) input[type="tel"],
+    :is(.dark) input[type="url"],
+    :is(.dark) input[type="date"],
+    :is(.dark) input[type="time"],
+    :is(.dark) input[type="datetime-local"],
+    :is(.dark) input[type="month"],
+    :is(.dark) input[type="week"],
+    :is(.dark) textarea {
+        background-color: rgb(55 65 81); /* gray-700 */
+        color: rgb(243 244 246);          /* gray-100 */
+    }
+
+    /* Placeholder por defecto, mas tenue en dark */
+    input::placeholder,
+    textarea::placeholder {
+        color: rgb(156 163 175); /* gray-400 */
+    }
+
+    :is(.dark) input::placeholder,
+    :is(.dark) textarea::placeholder {
+        color: rgb(107 114 128); /* gray-500 */
+    }
+}
+
 * {
     font-family: "Montserrat", serif;
     font-optical-sizing: auto;

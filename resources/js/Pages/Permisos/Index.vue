@@ -165,7 +165,7 @@ const hasMorePermissions = (permissions) => permissions.length > 20;
                                         <button
                                             v-if="hasMoreResources(slotProps.data.permissions)"
                                             @click="toggleExpanded(slotProps.data.id)"
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700 dark:text-gray-300 hover:bg-gray-300 cursor-pointer mt-2"
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer mt-2"
                                         >
                                             {{ isExpanded(slotProps.data.id) ? '- Ver menos' : `+ Ver más (${groupPermissionsByResource(slotProps.data.permissions).length - 10})` }}
                                         </button>

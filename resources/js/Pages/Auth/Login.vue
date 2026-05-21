@@ -56,9 +56,9 @@ const submit = () => {
         </a>
 
         <div class="my-4 flex items-center gap-3">
-            <div class="h-px flex-1 bg-gray-200"></div>
+            <div class="h-px flex-1 bg-gray-200 dark:bg-gray-700"></div>
             <span class="text-xs uppercase text-gray-500">o</span>
-            <div class="h-px flex-1 bg-gray-200"></div>
+            <div class="h-px flex-1 bg-gray-200 dark:bg-gray-700"></div>
         </div>
 
         <form @submit.prevent="submit">

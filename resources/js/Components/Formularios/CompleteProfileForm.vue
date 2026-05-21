@@ -410,7 +410,7 @@ onBeforeUnmount(() => {
             </PrimaryButton>
             <button
                 type="button"
-                class="ml-3 bg-gray-200 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md hover:bg-gray-300"
+                class="ml-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-100 px-4 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
                 @click="() => { updating ? router.visit(route('profile.show')) : window.history.back(); }"
             >
                 Volver
