@@ -184,13 +184,13 @@ function renderInfoMarkdown(value) {
     }
 
     if (line.startsWith('### ')) {
-      html.push(`<h5 class="text-sm font-semibold text-gray-900 mt-2">${formatInlineMarkdown(line.slice(4).trim())}</h5>`);
+      html.push(`<h5 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-2">${formatInlineMarkdown(line.slice(4).trim())}</h5>`);
     } else if (line.startsWith('## ')) {
-      html.push(`<h4 class="text-base font-semibold text-gray-900 mt-2">${formatInlineMarkdown(line.slice(3).trim())}</h4>`);
+      html.push(`<h4 class="text-base font-semibold text-gray-900 dark:text-gray-100 mt-2">${formatInlineMarkdown(line.slice(3).trim())}</h4>`);
     } else if (line.startsWith('# ')) {
-      html.push(`<h3 class="text-lg font-bold text-gray-900 mt-2">${formatInlineMarkdown(line.slice(2).trim())}</h3>`);
+      html.push(`<h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mt-2">${formatInlineMarkdown(line.slice(2).trim())}</h3>`);
     } else {
-      html.push(`<p class="text-xs text-gray-700 leading-relaxed mt-1">${formatInlineMarkdown(line)}</p>`);
+      html.push(`<p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed mt-1">${formatInlineMarkdown(line)}</p>`);
     }
   }
 
@@ -461,7 +461,7 @@ async function iniciarSesionModoLogin() {
   <AppLayout>
     <div class="py-12">
       <div class="px-0 sm:px-6 lg:px-8">
-        <div class="bg-white shadow-1 rounded-none sm:rounded-lg">
+        <div class="bg-white dark:bg-gray-800 shadow-1 rounded-none sm:rounded-lg">
           <div class="p-0 sm:p-6 border-bottom-1 border-200">
             <div class="px-4 sm:px-0 flex justify-content-between align-items-center mb-4">
               <div>
@@ -502,11 +502,11 @@ async function iniciarSesionModoLogin() {
                     :key="membresia.id"
                     class="p-0 sm:p-2"
                   >
-                    <div class="p-card w-full bg-white border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300">
+                    <div class="p-card w-full bg-white dark:bg-gray-800 border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300">
                       <div class="p-card-body p-4">
                         <div class="flex flex-col h-full">
                           <div
-                            class="mb-3 overflow-hidden rounded border border-gray-200 bg-gray-50 flip-card-container cursor-pointer"
+                            class="mb-3 overflow-hidden rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flip-card-container cursor-pointer"
                             :class="{ flipped: flippedCards[membresia.id] }"
                             @click="toggleFlip(membresia.id)"
                             :title="flippedCards[membresia.id] ? 'Ver imagen' : 'Ver info'"
@@ -520,7 +520,7 @@ async function iniciarSesionModoLogin() {
                                 />
                               </div>
                               <div class="flip-card-back">
-                                <div class="h-full w-full overflow-y-auto rounded border border-gray-200 bg-white p-2">
+                                <div class="h-full w-full overflow-y-auto rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2">
                                   <div v-html="renderInfoMarkdown(membresia.info || 'Sin info cargada.')"></div>
                                 </div>
                               </div>
@@ -570,13 +570,13 @@ async function iniciarSesionModoLogin() {
                   <div
                     v-for="membresia in slotProps.items"
                     :key="membresia.id"
-                    class="col-12 p-card bg-white border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300"
+                    class="col-12 p-card bg-white dark:bg-gray-800 border-1 surface-border border-round shadow-2 hover:shadow-4 transition-all transition-duration-300"
                   >
                     <div class="p-card-body p-4">
                       <div class="flex flex-col md:flex-row md:align-items-center md:justify-between">
                         <div class="flex-1">
                           <div
-                            class="mb-3 overflow-hidden rounded border border-gray-200 bg-gray-50 flip-card-container cursor-pointer"
+                            class="mb-3 overflow-hidden rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flip-card-container cursor-pointer"
                             :class="{ flipped: flippedCards[membresia.id] }"
                             @click="toggleFlip(membresia.id)"
                             :title="flippedCards[membresia.id] ? 'Ver imagen' : 'Ver info'"
@@ -590,7 +590,7 @@ async function iniciarSesionModoLogin() {
                                 />
                               </div>
                               <div class="flip-card-back">
-                                <div class="h-full w-full overflow-y-auto rounded border border-gray-200 bg-white p-2">
+                                <div class="h-full w-full overflow-y-auto rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-2">
                                   <div v-html="renderInfoMarkdown(membresia.info || 'Sin info cargada.')"></div>
                                 </div>
                               </div>
@@ -666,19 +666,19 @@ async function iniciarSesionModoLogin() {
       :municipios="municipios"
       :barrios="barrios"
       :guest-form-extra-props="{ mostrarRegistrarDatos: false, forzarRegistrarDatos: true }"
-      guest-container-class="border-t border-gray-200 pt-4 max-h-[55vh] overflow-y-auto pr-2"
+      guest-container-class="border-t border-gray-200 dark:border-gray-700 pt-4 max-h-[55vh] overflow-y-auto pr-2"
       :email="emailInput"
       :registered-error="lookupError"
-      registered-container-class="space-y-2 border-t border-gray-200 pt-4"
+      registered-container-class="space-y-2 border-t border-gray-200 dark:border-gray-700 pt-4"
       registered-input-id="email-registrado-membresias-public"
-      registered-input-class="w-full rounded-md border border-gray-300 px-3 py-2"
+      registered-input-class="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 px-3 py-2"
       :login-email="loginForm.email"
       :login-password="loginForm.password"
       :login-error="loginError"
-      login-container-class="space-y-2 border-t border-gray-200 pt-4"
+      login-container-class="space-y-2 border-t border-gray-200 dark:border-gray-700 pt-4"
       login-email-id="login-email-membresias-public"
       login-password-id="login-password-membresias-public"
-      login-input-class="block w-full rounded-md border border-gray-300 px-3 py-2"
+      login-input-class="block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 px-3 py-2"
       @update:email="emailInput = $event"
       @update:login-email="loginForm.email = $event"
       @update:login-password="loginForm.password = $event"
@@ -689,13 +689,13 @@ async function iniciarSesionModoLogin() {
     >
       <template #afterModeButtons>
         <div>
-          <p class="text-sm font-semibold text-gray-800 mb-2">Modalidad</p>
+          <p class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">Modalidad</p>
           <div class="flex items-center gap-4">
-            <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+            <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
               <input type="radio" value="PRESENCIAL" v-model="modalidad" />
               PRESENCIAL
             </label>
-            <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+            <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
               <input type="radio" value="ONLINE" v-model="modalidad" />
               ONLINE
             </label>
@@ -703,13 +703,13 @@ async function iniciarSesionModoLogin() {
         </div>
 
         <div v-if="modalidad === 'ONLINE'">
-          <label class="block text-sm font-semibold text-gray-800 mb-2">
+          <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">
             Motivo de modalidad online
           </label>
           <input
             v-model="motivoOnline"
             type="text"
-            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            class="w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 px-3 py-2 text-sm"
             placeholder="Escribe tu motivo"
           />
         </div>
@@ -724,33 +724,33 @@ async function iniciarSesionModoLogin() {
       :breakpoints="{ '1199px': '90vw', '575px': '95vw' }"
     >
       <div class="space-y-4">
-        <div class="rounded-lg border border-indigo-100 bg-indigo-50/40 p-4">
-          <p class="text-sm text-gray-700 mb-1">Membresia elegida</p>
-          <p class="text-lg font-semibold text-gray-900">{{ membresiaPendiente?.nombre || '-' }}</p>
-          <p class="text-sm text-gray-600 mt-2">
+        <div class="rounded-lg border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/40 dark:bg-indigo-900/20 p-4">
+          <p class="text-sm text-gray-700 dark:text-gray-300 mb-1">Membresia elegida</p>
+          <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ membresiaPendiente?.nombre || '-' }}</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
             Total a abonar:
-            <span class="font-semibold text-gray-900">{{ formatCurrency(membresiaSeleccionadaValor) }}</span>
+            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ formatCurrency(membresiaSeleccionadaValor) }}</span>
           </p>
         </div>
 
-        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <p class="text-sm text-gray-700">
+        <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4">
+          <p class="text-sm text-gray-700 dark:text-gray-300">
             🔹 Las membresías se abonan por mes calendario el 1 de cada mes con suscripción mensual en Mercado Pago
             (con tarjeta de crédito, débito o efectivo en cuenta según tu elección).
           </p>
-          <p class="text-sm text-gray-700 mt-3">
+          <p class="text-sm text-gray-700 dark:text-gray-300 mt-3">
             Las suscripciones pueden darse de baja en cualquier momento de manera muy sencilla.
           </p>
         </div>
 
-        <div class="rounded-lg border border-gray-200 p-4">
-          <p class="text-sm font-semibold text-gray-800 mb-3">Boton de pago</p>
+        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+          <p class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Boton de pago</p>
           <a
             v-if="botonPagoLink && imagenMetodoPago"
             :href="botonPagoLink"
             target="_blank"
             rel="noopener"
-            class="inline-flex rounded-xl border border-indigo-100 bg-white p-3 shadow-sm transition hover:shadow-md"
+            class="inline-flex rounded-xl border border-indigo-100 dark:border-indigo-900/40 bg-white dark:bg-gray-800 p-3 shadow-sm transition hover:shadow-md"
           >
             <img
               :src="imagenMetodoPago"
@@ -767,15 +767,15 @@ async function iniciarSesionModoLogin() {
           >
             Pagar
           </a>
-          <p v-else class="text-sm text-amber-700">
+          <p v-else class="text-sm text-amber-700 dark:text-amber-400">
             Esta membresía no tiene botón de pago configurado.
           </p>
         </div>
 
-        <div class="rounded-lg border border-gray-200 p-4">
+        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
           <button
             type="button"
-            class="w-full inline-flex items-center justify-between rounded-md bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition-colors"
+            class="w-full inline-flex items-center justify-between rounded-md bg-slate-100 dark:bg-gray-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-gray-200 hover:bg-slate-200 dark:hover:bg-gray-600 transition-colors"
             @click="showNoMercadoPagoInfo = !showNoMercadoPagoInfo"
           >
             <span>No tengo MercadoPago</span>
@@ -783,18 +783,18 @@ async function iniciarSesionModoLogin() {
           </button>
 
           <div v-if="showNoMercadoPagoInfo" class="mt-3 space-y-3">
-            <p class="text-sm text-gray-700">Puedes abonar también de estas maneras:</p>
+            <p class="text-sm text-gray-700 dark:text-gray-300">Puedes abonar también de estas maneras:</p>
 
-            <div class="rounded-md border border-gray-200 bg-white p-3">
-              <p class="text-sm font-semibold text-gray-800">Efectivo</p>
-              <p class="text-sm text-gray-700 mt-1">
+            <div class="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+              <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Efectivo</p>
+              <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">
                 {{ descripcionEfectivo || 'Disponible para abonar en efectivo.' }}
               </p>
             </div>
 
-            <div class="rounded-md border border-gray-200 bg-white p-3">
-              <p class="text-sm font-semibold text-gray-800">Transferencia</p>
-              <p class="text-sm text-gray-700 mt-1">
+            <div class="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+              <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Transferencia</p>
+              <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">
                 {{ descripcionTransferencia || 'Disponible para abonar por transferencia.' }}
               </p>
             </div>
@@ -811,17 +811,17 @@ async function iniciarSesionModoLogin() {
           </div>
         </div>
 
-        <div class="rounded-lg border border-gray-200 p-4 space-y-3">
-          <p class="text-sm font-semibold text-gray-800">Subir comprobante</p>
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png" @change="seleccionarComprobante" />
-          <label class="inline-flex items-center gap-2 text-sm text-gray-700 ml-2">
+        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+          <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">Subir comprobante</p>
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png" @change="seleccionarComprobante" class="text-sm text-gray-700 dark:text-gray-300" />
+          <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 ml-2">
             <input v-model="pagoEfectivo" type="checkbox" />
             Pagaré más tarde
           </label>
-          <p v-if="requiereComprobante" class="text-xs text-gray-500">
+          <p v-if="requiereComprobante" class="text-xs text-gray-500 dark:text-gray-400">
             Para finalizar, subi un comprobante o indica pago en efectivo.
           </p>
-          <p v-else class="text-xs text-gray-500">
+          <p v-else class="text-xs text-gray-500 dark:text-gray-400">
             Esta membresia no requiere comprobante porque el total es 0.
           </p>
         </div>

@@ -332,9 +332,9 @@ const isClaseRowExpanded = (claseId, fh) => {
                             <div
                                 v-for="(dayRow, idx) in weekdayNavigation"
                                 :key="`weekday-nav-mobile-${idx}`"
-                                class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3"
+                                class="rounded-lg border border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700 px-3 py-3"
                             >
-                                <div class="mb-2 font-semibold text-slate-700">{{ dayRow.weekday }}</div>
+                                <div class="mb-2 font-semibold text-slate-700 dark:text-gray-100">{{ dayRow.weekday }}</div>
                                 <div class="flex flex-col gap-2">
                                     <a
                                         v-for="(btn, bIdx) in dayRow.buttons"
@@ -347,16 +347,16 @@ const isClaseRowExpanded = (claseId, fh) => {
                                 </div>
                             </div>
                         </div>
-                        <div class="hidden sm:block overflow-x-auto rounded-lg border border-slate-200">
+                        <div class="hidden sm:block overflow-x-auto rounded-lg border border-slate-200 dark:border-gray-600">
                             <table class="w-full min-w-[700px]">
                                 <tbody>
-                                    <tr class="bg-slate-50">
+                                    <tr class="bg-slate-50 dark:bg-gray-700">
                                         <td
                                             v-for="(dayRow, idx) in weekdayNavigation"
                                             :key="`weekday-nav-desktop-${idx}`"
-                                            class="align-top border-r border-slate-200 px-3 py-3 last:border-r-0"
+                                            class="align-top border-r border-slate-200 dark:border-gray-600 px-3 py-3 last:border-r-0"
                                         >
-                                            <div class="mb-2 font-semibold text-slate-700">{{ dayRow.weekday }}</div>
+                                            <div class="mb-2 font-semibold text-slate-700 dark:text-gray-100">{{ dayRow.weekday }}</div>
                                             <div class="flex flex-col gap-2">
                                                 <a
                                                     v-for="(btn, bIdx) in dayRow.buttons"
@@ -402,8 +402,8 @@ const isClaseRowExpanded = (claseId, fh) => {
                                         >
                                             {{ item.nombre }}
                                         </h4>
-                                            <div class="overflow-hidden rounded-lg border border-slate-200">
-                                                <div class="bg-slate-100 px-3 py-2 text-left font-semibold text-slate-700">
+                                            <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-gray-600">
+                                                <div class="bg-slate-100 dark:bg-gray-600 px-3 py-2 text-left font-semibold text-slate-700 dark:text-gray-100">
                                                     {{ weekdayGroup.weekday }}
                                                 </div>
                                                 <table class="w-full text-lg">
@@ -411,11 +411,11 @@ const isClaseRowExpanded = (claseId, fh) => {
                                                         <tr
                                                             v-for="(fh, idx) in weekdayGroup.items"
                                                             :key="`oracion-${item.id}-fh-${gIdx}-${idx}`"
-                                                            class="border-t border-slate-100 odd:bg-white even:bg-slate-50"
+                                                            class="border-t border-slate-100 dark:border-gray-700 odd:bg-white dark:odd:bg-gray-700 even:bg-slate-50 dark:even:bg-gray-800"
                                                         >
-                                                            <td class="px-3 py-2 text-slate-700">{{ formatMonthDay(fh.fecha) }}</td>
-                                                            <td class="px-3 py-2 text-slate-600">{{ formatItemTime(fh) }}</td>
-                                                            <td class="px-3 py-2 text-slate-600">
+                                                            <td class="px-3 py-2 text-slate-700 dark:text-gray-200">{{ formatMonthDay(fh.fecha) }}</td>
+                                                            <td class="px-3 py-2 text-slate-600 dark:text-gray-300">{{ formatItemTime(fh) }}</td>
+                                                            <td class="px-3 py-2 text-slate-600 dark:text-gray-300">
                                                                 <div v-if="fh.links && fh.links.length > 0" class="flex flex-wrap items-center gap-2">
                                                                     <a
                                                                         v-for="link in fh.links"
@@ -463,9 +463,9 @@ const isClaseRowExpanded = (claseId, fh) => {
                                                 v-for="(weekdayGroup, gIdx) in groupFechasByWeekday(item.fechas)"
                                                 :key="`clase-${item.id}-weekday-${gIdx}`"
                                                 :id="getWeekdayGroupAnchorId('clases', item.id, weekdayGroup.weekday)"
-                                                class="scroll-mt-28 mt-8 mb-10 first:mt-0 last:mb-0 overflow-hidden rounded-lg border border-slate-200"
+                                                class="scroll-mt-28 mt-8 mb-10 first:mt-0 last:mb-0 overflow-hidden rounded-lg border border-slate-200 dark:border-gray-600"
                                             >
-                                                <div class="bg-slate-100 px-3 py-2 text-left text-lg font-semibold text-slate-700">
+                                                <div class="bg-slate-100 dark:bg-gray-600 px-3 py-2 text-left text-lg font-semibold text-slate-700 dark:text-gray-100">
                                                     {{ weekdayGroup.weekday }} de {{ monthLabel }}
                                                 </div>
                                                 <table class="w-full text-lg">
@@ -474,20 +474,20 @@ const isClaseRowExpanded = (claseId, fh) => {
                                                             v-for="(fh, idx) in weekdayGroup.items"
                                                             :key="`clase-${item.id}-fh-group-${gIdx}-${idx}`"
                                                         >
-                                                            <tr class="border-t border-slate-100 odd:bg-white even:bg-slate-50">
-                                                                <td class="px-3 py-4 text-slate-700">{{ formatMonthDay(fh.fecha) }}</td>
-                                                                <td class="px-3 py-4 text-slate-600">{{ formatItemTime(fh) }}</td>
-                                                                <td class="px-3 py-4 text-slate-600">
+                                                            <tr class="border-t border-slate-100 dark:border-gray-700 odd:bg-white dark:odd:bg-gray-700 even:bg-slate-50 dark:even:bg-gray-800">
+                                                                <td class="px-3 py-4 text-slate-700 dark:text-gray-200">{{ formatMonthDay(fh.fecha) }}</td>
+                                                                <td class="px-3 py-4 text-slate-600 dark:text-gray-300">{{ formatItemTime(fh) }}</td>
+                                                                <td class="px-3 py-4 text-slate-600 dark:text-gray-300">
                                                                     <button
                                                                         type="button"
-                                                                        class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white dark:bg-gray-800 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                                        class="inline-flex items-center justify-center rounded-md border border-slate-300 dark:border-gray-500 bg-white dark:bg-gray-700 px-2 py-1 text-slate-700 dark:text-gray-200 hover:bg-slate-100 dark:hover:bg-gray-600"
                                                                         @click="toggleClaseRow(item.id, fh)"
                                                                     >
                                                                         <i :class="isClaseRowExpanded(item.id, fh) ? 'pi pi-minus' : 'pi pi-plus'"></i>
                                                                     </button>
                                                                 </td>
                                                             </tr>
-                                                            <tr v-if="isClaseRowExpanded(item.id, fh)" class="bg-slate-50 border-t border-slate-100">
+                                                            <tr v-if="isClaseRowExpanded(item.id, fh)" class="bg-slate-50 dark:bg-gray-800 border-t border-slate-100 dark:border-gray-700">
                                                                 <td colspan="3" class="px-3 py-3">
                                                                     <div v-if="fh.links && fh.links.length > 0" class="flex flex-wrap gap-2">
                                                                         <a
@@ -503,7 +503,7 @@ const isClaseRowExpanded = (claseId, fh) => {
                                                                             <span>{{ fh.button_text }}</span>
                                                                         </a>
                                                                     </div>
-                                                                    <span v-else class="text-sm text-slate-500">Sin links para esta fecha.</span>
+                                                                    <span v-else class="text-sm text-slate-500 dark:text-gray-400">Sin links para esta fecha.</span>
                                                                 </td>
                                                             </tr>
                                                         </template>
@@ -532,11 +532,11 @@ const isClaseRowExpanded = (claseId, fh) => {
                                         <h4 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-5 mt-2 leading-tight whitespace-pre-line break-words">
                                             {{ item.nombre }}
                                         </h4>
-                                        <div class="overflow-hidden rounded-lg border border-slate-200">
+                                        <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-gray-600">
                                             <table class="w-full text-lg">
                                                 <tbody>
-                                                    <tr class="border-t border-slate-100 odd:bg-white even:bg-slate-50">
-                                                        <td class="px-3 py-2 text-slate-700">
+                                                    <tr class="border-t border-slate-100 dark:border-gray-700 odd:bg-white dark:odd:bg-gray-700 even:bg-slate-50 dark:even:bg-gray-800">
+                                                        <td class="px-3 py-2 text-slate-700 dark:text-gray-200">
                                                             <div class="flex items-start gap-2">
                                                                 <i class="pi pi-users mt-1 text-indigo-600"></i>
                                                                 <div>
@@ -557,8 +557,8 @@ const isClaseRowExpanded = (claseId, fh) => {
                                                             </div>
                                                         </td>
                                                     </tr>
-                                                    <tr class="border-t border-slate-100 odd:bg-white even:bg-slate-50">
-                                                        <td class="px-3 py-2 text-slate-700">
+                                                    <tr class="border-t border-slate-100 dark:border-gray-700 odd:bg-white dark:odd:bg-gray-700 even:bg-slate-50 dark:even:bg-gray-800">
+                                                        <td class="px-3 py-2 text-slate-700 dark:text-gray-200">
                                                             <div class="flex items-center gap-2">
                                                                 <i class="pi pi-calendar text-indigo-600"></i>
                                                                 <span class="font-semibold">Día:</span>
@@ -566,8 +566,8 @@ const isClaseRowExpanded = (claseId, fh) => {
                                                             </div>
                                                         </td>
                                                     </tr>
-                                                    <tr class="border-t border-slate-100 odd:bg-white even:bg-slate-50">
-                                                        <td class="px-3 py-2 text-slate-700">
+                                                    <tr class="border-t border-slate-100 dark:border-gray-700 odd:bg-white dark:odd:bg-gray-700 even:bg-slate-50 dark:even:bg-gray-800">
+                                                        <td class="px-3 py-2 text-slate-700 dark:text-gray-200">
                                                             <div class="flex items-center gap-2">
                                                                 <i class="pi pi-clock text-indigo-600"></i>
                                                                 <span class="font-semibold">Hora:</span>
@@ -575,8 +575,8 @@ const isClaseRowExpanded = (claseId, fh) => {
                                                             </div>
                                                         </td>
                                                     </tr>
-                                                    <tr class="border-t border-slate-100 odd:bg-white even:bg-slate-50">
-                                                        <td class="px-3 py-2 text-slate-700">
+                                                    <tr class="border-t border-slate-100 dark:border-gray-700 odd:bg-white dark:odd:bg-gray-700 even:bg-slate-50 dark:even:bg-gray-800">
+                                                        <td class="px-3 py-2 text-slate-700 dark:text-gray-200">
                                                             <a
                                                                 :href="route('grid-actividades.show-public', item.id)"
                                                                 class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
