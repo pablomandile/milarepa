@@ -14,6 +14,7 @@ use App\Http\Controllers\MonedasController;
 use App\Http\Controllers\MetodosPagoController;
 use App\Http\Controllers\EsquemaDescuentosController;
 use App\Http\Controllers\EsquemaPreciosController;
+use App\Http\Controllers\PrecioGruposController;
 use App\Http\Controllers\PerfilesController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\UsuariosController;
@@ -59,6 +60,9 @@ use App\Http\Controllers\PaginasActividadesOnlineController;
 use App\Http\Controllers\PaginasConfiguracionController;
 use App\Http\Controllers\ActividadesOnlineController;
 use App\Http\Controllers\MailInfoMembresiasController;
+use App\Http\Controllers\ImportarMembresiasController;
+use App\Http\Controllers\ProgramaEstudiosController;
+use App\Http\Controllers\ProgramaGrabacionController;
 use App\Http\Controllers\AsistenciasController;
 use App\Http\Controllers\InscripcionesClasesController;
 use App\Http\Controllers\LibrosController;
@@ -304,6 +308,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::put('/membresias-gestion-usuarios/{user}/asignar', [MembresiasGestionController::class, 'asignar'])
         ->middleware('permission:update membresias')
         ->name('membresias.asignar');
+    Route::put('/membresias-gestion-usuarios/{user}/editar', [MembresiasGestionController::class, 'editar'])
+        ->middleware('permission:update membresias')
+        ->name('membresias.editar');
     Route::delete('/membresias-gestion-usuarios/{user}/eliminar', [MembresiasGestionController::class, 'eliminar'])
         ->middleware('permission:delete membresias')
         ->name('membresias.eliminar');
@@ -393,6 +400,29 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/descripciones', DescripcionesController::class, [
         'parameters' => ['descripciones' => 'descripcion'],]);
     Route::resource('/programas', ProgramasController::class);
+
+    // Grabaciones MP3 por Programa de Estudio.
+    Route::get('/programa-grabaciones', [ProgramaGrabacionController::class, 'index'])
+        ->middleware('permission:read programa-grabaciones')
+        ->name('programa-grabaciones.index');
+    Route::post('/programa-grabaciones', [ProgramaGrabacionController::class, 'store'])
+        ->middleware('permission:create programa-grabaciones')
+        ->name('programa-grabaciones.store');
+    Route::delete('/programa-grabaciones/{programaGrabacion}', [ProgramaGrabacionController::class, 'destroy'])
+        ->middleware('permission:delete programa-grabaciones')
+        ->name('programa-grabaciones.destroy');
+
+    // Asignacion de programa de estudio a usuarios (debe ir ANTES del resource para evitar conflicto con {programaEstudio}).
+    Route::get('/programa-estudios/asignacion-usuarios', [ProgramaEstudiosController::class, 'asignacionUsuarios'])
+        ->middleware('permission:update programa-estudios')
+        ->name('programa-estudios.asignacion-usuarios');
+    Route::patch('/programa-estudios/asignacion-usuarios/{user}', [ProgramaEstudiosController::class, 'actualizarAsignacionUsuario'])
+        ->middleware('permission:update programa-estudios')
+        ->name('programa-estudios.asignacion-usuarios.update');
+
+    Route::resource('/programa-estudios', ProgramaEstudiosController::class, [
+        'parameters' => ['programa-estudios' => 'programaEstudio'],
+    ]);
     Route::resource('/oracionescantadas', OracionesCantadasController::class, [
         'parameters' => ['oracionescantadas' => 'oracionCantada'],
     ]);
@@ -409,6 +439,16 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         ->name('mail-info-membresias.index');
     Route::put('/configuracion/mail-info-membresias', [MailInfoMembresiasController::class, 'update'])
         ->name('mail-info-membresias.update');
+
+    // Importación de membresías desde CSV (solo admin).
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/configuracion/importar-membresias', [ImportarMembresiasController::class, 'index'])
+            ->name('configuracion.importar-membresias');
+        Route::post('/configuracion/importar-membresias/preview', [ImportarMembresiasController::class, 'preview'])
+            ->name('configuracion.importar-membresias.preview');
+        Route::post('/configuracion/importar-membresias/confirmar', [ImportarMembresiasController::class, 'store'])
+            ->name('configuracion.importar-membresias.confirmar');
+    });
     Route::resource('/ciclos', CiclosController::class, [
         'parameters' => ['ciclos' => 'ciclo'],
     ]);
@@ -442,6 +482,17 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     ->name('esquemadescuentos.updateMembresia');
     Route::delete('/esquema-descuentos/membresias/{membershipLineId}', [EsquemaDescuentosController::class, 'destroyMembresia'])
     ->name('esquemadescuentos.destroyMembresia');
+
+    Route::resource('/precio-grupos', PrecioGruposController::class)->except(['show', 'update']);
+    Route::post('/precio-grupos/{id}/membresias', [PrecioGruposController::class, 'storeMembresia'])
+        ->name('precio-grupos.storeMembresia');
+    Route::put('/precio-grupos/membresias/{lineaId}', [PrecioGruposController::class, 'updateMembresia'])
+        ->name('precio-grupos.updateMembresia');
+    Route::delete('/precio-grupos/membresias/{lineaId}', [PrecioGruposController::class, 'destroyMembresia'])
+        ->name('precio-grupos.destroyMembresia');
+    Route::post('/precio-grupos/{precioGrupo}/aplicar', [PrecioGruposController::class, 'aplicar'])
+        ->middleware('permission:update precio-grupos')
+        ->name('precio-grupos.aplicar');
 
     Route::resource('/streams', StreamsController::class);
     Route::post('/streams/{id}/links', [StreamsController::class, 'storeLink'])
@@ -529,6 +580,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     // comprobante de membresía. El controller filtra internamente por $request->user()->id.
     Route::post('/estado-cuenta-membresias/comprobante', [EstadoCuentaMembresiasController::class, 'uploadComprobante'])
         ->name('estado-cuenta-membresias.comprobante');
+    Route::post('/estado-cuenta-membresias/generar', [EstadoCuentaMembresiasController::class, 'generar'])
+        ->middleware('permission:update estado_cuenta_membresias')
+        ->name('estado-cuenta-membresias.generar');
+    Route::post('/estado-cuenta-membresias/revertir', [EstadoCuentaMembresiasController::class, 'revertir'])
+        ->middleware('permission:update estado_cuenta_membresias')
+        ->name('estado-cuenta-membresias.revertir');
 
     Route::resource('/imagenes', ImagenesController::class, [
         'parameters' => ['imagenes' => 'imagen'],]);

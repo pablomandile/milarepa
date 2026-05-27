@@ -1,5 +1,6 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import AuthenticationCard from '@/Components/AuthenticationCard.vue';
 import AuthenticationCardLogo from '@/Components/AuthenticationCardLogo.vue';
 import Checkbox from '@/Components/Checkbox.vue';
@@ -15,6 +16,10 @@ const form = useForm({
     password_confirmation: '',
     terms: false,
 });
+
+const emailYaRegistrado = computed(() =>
+    Boolean(form.errors.email && form.errors.email.toLowerCase().includes('ya está registrado'))
+);
 
 const submit = () => {
     form.post(route('register'), {
@@ -33,7 +38,7 @@ const submit = () => {
 
         <a
             :href="route('auth.google.redirect')"
-            class="w-full inline-flex justify-center items-center gap-3 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
+            class="w-full inline-flex justify-center items-center gap-3 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
         >
             <svg class="w-5 h-5" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                 <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z"/>
@@ -76,6 +81,33 @@ const submit = () => {
                     autocomplete="username"
                 />
                 <InputError class="mt-2" :message="form.errors.email" />
+
+                <div
+                    v-if="emailYaRegistrado"
+                    class="mt-2 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded text-sm text-blue-800 dark:text-blue-200"
+                >
+                    <p class="font-semibold mb-1">¿Ya tenés una cuenta con este email?</p>
+                    <ul class="space-y-1 ml-1">
+                        <li>
+                            →
+                            <Link :href="route('password.request')" class="underline hover:text-blue-900 dark:hover:text-blue-100">
+                                Recuperar mi contraseña
+                            </Link>
+                        </li>
+                        <li>
+                            →
+                            <a :href="route('auth.google.redirect')" class="underline hover:text-blue-900 dark:hover:text-blue-100">
+                                Entrar con Google
+                            </a>
+                        </li>
+                        <li>
+                            →
+                            <Link :href="route('login')" class="underline hover:text-blue-900 dark:hover:text-blue-100">
+                                Iniciar sesión con email y contraseña
+                            </Link>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
             <div class="mt-4">

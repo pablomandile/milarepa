@@ -5,7 +5,6 @@ namespace App\Console;
 use App\Console\Commands\EnviarReporteSemanalInscripcionesActividad;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use App\Console\Commands\RenovarMembresiasMensual;
 use App\Models\ConfiguracionSistema;
 
 class Kernel extends ConsoleKernel
@@ -15,11 +14,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Genera/renueva la inscripción de membresía al iniciar cada mes (2 AM)
-        $schedule->command(RenovarMembresiasMensual::class)
-            ->monthlyOn(1, '02:00')
-            ->withoutOverlapping();
-
         $schedule->command(EnviarReporteSemanalInscripcionesActividad::class)
             ->weeklyOn($this->obtenerDiaSemanaReporte(), $this->obtenerHoraReporte())
             ->when(function () {

@@ -13,6 +13,54 @@
             <div class="w-full p-0 sm:px-6 lg:px-8">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-0 sm:p-6 text-gray-900 dark:text-gray-100">
+                        <!-- Generar estados del mes próximo -->
+                        <div
+                            v-if="puedeGenerar && mesProximo"
+                            class="mb-4 mx-4 sm:mx-0 flex flex-col md:flex-row md:items-center gap-3 p-4 rounded-md border"
+                            :class="hayDesfase
+                                ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700'
+                                : 'bg-gray-50 dark:bg-gray-700/40 border-gray-200 dark:border-gray-600'"
+                        >
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-700 dark:text-gray-300">
+                                    <span class="text-gray-500 dark:text-gray-400">Último generado:</span>
+                                    <span class="ml-1 font-medium text-gray-900 dark:text-gray-100 capitalize">
+                                        {{ ultimoMesLabel || '— (sin estados aún)' }}
+                                    </span>
+                                </p>
+                                <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                                    Próximo a generar:
+                                    <span class="ml-1 font-semibold text-gray-900 dark:text-gray-100 capitalize">
+                                        {{ mesProximoLabel }}
+                                    </span>
+                                    <span v-if="hayDesfase" class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-200 text-amber-900">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                                        Hay meses pendientes
+                                    </span>
+                                </p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Crea un estado de cuenta por cada usuario con membresía activa. Los suscriptores quedan pagados automáticamente.
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button
+                                    @click="generarEstados"
+                                    :disabled="generando || revirtiendo"
+                                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50">
+                                    {{ generando ? 'Generando…' : 'Generar estados de cuenta' }}
+                                </button>
+                                <button
+                                    v-if="ultimoMesGenerado"
+                                    @click="revertirUltima"
+                                    :disabled="generando || revirtiendo"
+                                    v-tooltip="`Revertir última generación (${ultimoMesLabel})`"
+                                    class="inline-flex items-center justify-center px-3 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50">
+                                    <i class="fas fa-rotate-left mr-1"></i>
+                                    {{ revirtiendo ? 'Revirtiendo…' : 'Revertir' }}
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Tabla de Estado de Cuentas -->
                         <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center px-4 sm:px-0">
                             <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Filtro</label>
@@ -20,17 +68,9 @@
                                 v-model="filtroPeriodo"
                                 class="rounded border border-gray-300 dark:border-gray-600 px-4 py-1 text-sm w-56"
                             >
-                                <option value="last1">Último mes</option>
+                                <option value="last1">Mes actual</option>
                                 <option value="all">Mostrar todo</option>
                             </select>
-                            <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                                <input
-                                    v-model="mostrarExpiradas"
-                                    type="checkbox"
-                                    class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500"
-                                >
-                                Mostrar Expiradas
-                            </label>
                         </div>
 
                         <div v-if="filtradas.length > 0" class="space-y-4 sm:hidden">
@@ -90,7 +130,7 @@
 
                                     <button
                                         type="button"
-                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50"
+                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                                         @click="toggleCardExpanded(cuenta.id)"
                                     >
                                         <span>{{ isCardExpanded(cuenta.id) ? 'Ocultar detalles' : 'Ver mas detalles' }}</span>
@@ -154,6 +194,16 @@
                                             <i class="fas fa-edit"></i>
                                             <span>Editar</span>
                                         </span>
+                                        <button
+                                            v-if="$page.props.user.permissions.includes('delete estado_cuenta_membresias')"
+                                            @click="eliminarEstado(cuenta)"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-600 text-white px-3 text-xs font-semibold hover:bg-red-700 transition"
+                                            title="Borrar"
+                                            aria-label="Borrar"
+                                        >
+                                            <i class="fas fa-trash"></i>
+                                            <span>Borrar</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -178,7 +228,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="cuenta in filtradas" :key="cuenta.id" class="hover:bg-gray-50">
+                                    <tr v-for="cuenta in filtradas" :key="cuenta.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                         <td class="border border-gray-300 dark:border-gray-600 px-2 py-2">
                                             <div>
                                                 <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">{{ cuenta.user.name }}</p>
@@ -236,18 +286,27 @@
                                             {{ cuenta.observaciones || '-' }}
                                         </td>
                                         <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center">
-                                            <Link 
-                                                v-if="$page.props.user.permissions.includes('update estado_cuenta_membresias')"
-                                                :href="route('estado-cuenta-membresias.edit', cuenta.id)"
-                                                class="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition"
-                                            >
-                                                <i class="fas fa-edit mr-1"></i>
-                                                Editar
-                                            </Link>
-                                            <span v-else class="inline-flex items-center px-3 py-1 bg-gray-300 text-gray-500 text-sm font-semibold rounded-md cursor-not-allowed">
-                                                <i class="fas fa-edit mr-1"></i>
-                                                Editar
-                                            </span>
+                                            <div class="flex items-center justify-center gap-2">
+                                                <Link
+                                                    v-if="$page.props.user.permissions.includes('update estado_cuenta_membresias')"
+                                                    :href="route('estado-cuenta-membresias.edit', cuenta.id)"
+                                                    v-tooltip="'Editar'"
+                                                    class="inline-flex items-center px-2 py-1 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition"
+                                                >
+                                                    <i class="fas fa-edit"></i>
+                                                </Link>
+                                                <span v-else v-tooltip="'Editar'" class="inline-flex items-center px-2 py-1 bg-gray-300 text-gray-500 text-sm font-semibold rounded-md cursor-not-allowed">
+                                                    <i class="fas fa-edit"></i>
+                                                </span>
+                                                <button
+                                                    v-if="$page.props.user.permissions.includes('delete estado_cuenta_membresias')"
+                                                    @click="eliminarEstado(cuenta)"
+                                                    v-tooltip="'Borrar'"
+                                                    class="inline-flex items-center px-2 py-1 bg-red-600 text-white text-sm font-semibold rounded-md hover:bg-red-700 transition"
+                                                >
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                 
                                     </tr>
@@ -284,33 +343,114 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import Dialog from 'primevue/dialog';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import Swal from 'sweetalert2';
 
 const props = defineProps({
-    estadoCuentas: Array
+    estadoCuentas: Array,
+    mesProximo: {
+        type: String,
+        default: ''
+    },
+    ultimoMesGenerado: {
+        type: String,
+        default: null
+    }
 });
 
-const filtroPeriodo = ref('last1');
-const mostrarExpiradas = ref(false);
+const page = usePage();
+const generando = ref(false);
+const revirtiendo = ref(false);
 
+const puedeGenerar = computed(() => {
+    const permisos = page.props.user?.permissions || [];
+    return permisos.includes('update estado_cuenta_membresias');
+});
+
+const formatYearMonth = (yearMonth) => {
+    if (!yearMonth) return '';
+    const [year, month] = yearMonth.split('-');
+    const fecha = new Date(Number(year), Number(month) - 1, 1);
+    return fecha.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
+};
+
+const mesProximoLabel = computed(() => formatYearMonth(props.mesProximo));
+const ultimoMesLabel = computed(() => formatYearMonth(props.ultimoMesGenerado));
+
+const hayDesfase = computed(() => {
+    if (!props.mesProximo) return false;
+    const ahora = new Date();
+    const mesActualYm = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+    return props.mesProximo <= mesActualYm;
+});
+
+const generarEstados = () => {
+    if (!props.mesProximo) return;
+    Swal.fire({
+        title: '¿Generar estados de cuenta?',
+        html: `Se creará un estado de cuenta para <strong>${mesProximoLabel.value}</strong> por cada usuario con membresía activa.<br><br>Los usuarios con <strong>suscripción</strong> quedarán como Pagados automáticamente con modo "Suscripción".`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, generar',
+        cancelButtonText: 'Cancelar',
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+        generando.value = true;
+        router.post(route('estado-cuenta-membresias.generar'), {
+            mes_pagado: props.mesProximo,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                Swal.fire('¡Listo!', 'Estados de cuenta generados correctamente.', 'success');
+            },
+            onError: () => {
+                Swal.fire('Error', 'No se pudieron generar los estados.', 'error');
+            },
+            onFinish: () => {
+                generando.value = false;
+            },
+        });
+    });
+};
+
+const revertirUltima = () => {
+    if (!props.ultimoMesGenerado) return;
+    Swal.fire({
+        title: '¿Revertir la última generación?',
+        html: `Se eliminarán los estados de <strong>${ultimoMesLabel.value}</strong> que NO hayan sido modificados manualmente (sin pagos verificados, comprobantes ni ediciones).<br><br>Los estados del mes anterior se restaurarán a <strong>Activa</strong>.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, revertir',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#d97706',
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+        revirtiendo.value = true;
+        router.post(route('estado-cuenta-membresias.revertir'), {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                Swal.fire('¡Listo!', 'Última generación revertida.', 'success');
+            },
+            onError: () => {
+                Swal.fire('Error', 'No se pudo revertir.', 'error');
+            },
+            onFinish: () => {
+                revirtiendo.value = false;
+            },
+        });
+    });
+};
+
+const filtroPeriodo = ref('last1');
 const filtradas = computed(() => {
     const data = props.estadoCuentas || [];
-    const base = mostrarExpiradas.value
-        ? data
-        : data.filter((cuenta) => String(cuenta.estado || '').toLowerCase() !== 'expirada');
-
-    if (filtroPeriodo.value === 'all') return base;
+    if (filtroPeriodo.value === 'all') return data;
 
     const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    return base.filter((cuenta) => {
-        if (!cuenta.mes_pagado) return false;
-        const [year, month] = String(cuenta.mes_pagado).split('-');
-        const fecha = new Date(Number(year), Number(month) - 1, 1);
-        return fecha >= start;
-    });
+    const mesActualYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    return data.filter((cuenta) => String(cuenta.mes_pagado || '') === mesActualYm);
 });
 
 const formatearMes = (mesPagado) => {
@@ -346,6 +486,31 @@ const toggleCardExpanded = (id) => {
 const abrirComprobante = (path) => {
     comprobantePath.value = path;
     comprobanteModal.value = true;
+};
+
+const eliminarEstado = (cuenta) => {
+    const mes = cuenta.mes_pagado ? formatearMes(cuenta.mes_pagado) : '—';
+    const usuario = cuenta.user?.name || 'usuario';
+    Swal.fire({
+        title: '¿Borrar este estado de cuenta?',
+        html: `Se eliminará el estado de <strong>${usuario}</strong> correspondiente a <strong>${mes}</strong>. Esta acción no se puede deshacer.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, borrar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#dc2626',
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+        router.delete(route('estado-cuenta-membresias.destroy', cuenta.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                Swal.fire('¡Eliminado!', 'El estado de cuenta fue borrado.', 'success');
+            },
+            onError: () => {
+                Swal.fire('Error', 'No se pudo borrar el estado.', 'error');
+            },
+        });
+    });
 };
 </script>
 

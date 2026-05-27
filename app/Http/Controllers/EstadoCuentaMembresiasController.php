@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EstadoCuentaMembresia;
+use App\Services\GeneradorEstadosCuentaMembresiaService;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Membresia;
 use Illuminate\Http\Request;
@@ -22,9 +23,52 @@ class EstadoCuentaMembresiasController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $ultimoMesGenerado = EstadoCuentaMembresia::max('mes_pagado');
+        $mesActual = Carbon::now()->format('Y-m');
+
+        if ($ultimoMesGenerado) {
+            $siguienteAlUltimo = Carbon::createFromFormat('Y-m', $ultimoMesGenerado)
+                ->addMonth()
+                ->format('Y-m');
+            $mesProximo = max($siguienteAlUltimo, $mesActual);
+        } else {
+            $mesProximo = $mesActual;
+        }
+
         return inertia('EstadoCuentaMembresias/Index', [
-            'estadoCuentas' => $estadoCuentas
+            'estadoCuentas' => $estadoCuentas,
+            'mesProximo' => $mesProximo,
+            'ultimoMesGenerado' => $ultimoMesGenerado,
         ]);
+    }
+
+    public function generar(Request $request, GeneradorEstadosCuentaMembresiaService $service)
+    {
+        $validated = $request->validate([
+            'mes_pagado' => ['required', 'regex:/^\d{4}-\d{2}$/'],
+        ]);
+
+        $stats = $service->generarParaMes($validated['mes_pagado'], auth()->id());
+
+        $mensaje = sprintf(
+            'Mes %s generado: %d creados, %d actualizados por suscripción, %d expirados (%d usuarios procesados).',
+            $validated['mes_pagado'],
+            $stats['creados'],
+            $stats['actualizados'],
+            $stats['expirados'],
+            $stats['usuarios_procesados']
+        );
+
+        return redirect()->back()->with('success', $mensaje);
+    }
+
+    public function revertir(GeneradorEstadosCuentaMembresiaService $service)
+    {
+        $resultado = $service->revertirUltimaGeneracion();
+
+        $tipo = $resultado['ok'] ? 'success' : 'error';
+
+        return redirect()->back()->with($tipo, $resultado['mensaje']);
     }
 
     /**

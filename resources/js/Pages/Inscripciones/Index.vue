@@ -333,7 +333,7 @@ watch(() => $page.props.flash, (flash) => {
 
                                     <button
                                         type="button"
-                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50"
+                                        class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                                         @click="toggleCardExpanded(inscripcion.id)"
                                     >
                                         <span>{{ isCardExpanded(inscripcion.id) ? 'Ocultar detalles' : 'Ver mas detalles' }}</span>

@@ -64,6 +64,29 @@ class MembresiasGestionController extends Controller
             ->with('success', 'Membresía asignada correctamente a ' . $user->name);
     }
 
+    public function editar(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'membresia_id' => 'required|exists:membresias,id',
+            'membresia_inscripcion_fecha' => 'nullable|date',
+            'membresia_online' => 'required|boolean',
+            'suscripcion' => 'nullable|boolean',
+        ]);
+
+        $user->updateMembresiaUsuario([
+            'membresia_id' => $validated['membresia_id'],
+            'suscripcion' => (bool) ($validated['suscripcion'] ?? false),
+            'membresia_inscripcion_fecha' => $validated['membresia_inscripcion_fecha'] ?? $user->membresiaUsuario?->membresia_inscripcion_fecha,
+            'membresia_online' => (bool) $validated['membresia_online'],
+            'membresia_online_motivo' => $user->membresiaUsuario?->membresia_online_motivo,
+            'info_tarjetas_kadampa' => (bool) ($user->info_tarjetas_kadampa ?? false),
+            'envioInfoTk' => $user->envioInfoTk,
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Membresía de ' . $user->name . ' actualizada correctamente.');
+    }
+
     public function eliminar(User $user)
     {
         $membresiaIdActual = $user->membresiaUsuario?->membresia_id ?? $user->membresia_id;

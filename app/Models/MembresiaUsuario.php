@@ -12,6 +12,7 @@ class MembresiaUsuario extends Model
     protected $fillable = [
         'user_id',
         'membresia_id',
+        'suscripcion',
         'membresia_inscripcion_fecha',
         'membresia_online',
         'membresia_online_motivo',
@@ -21,6 +22,7 @@ class MembresiaUsuario extends Model
     ];
 
     protected $casts = [
+        'suscripcion' => 'boolean',
         'membresia_online' => 'boolean',
         'info_tarjetas_kadampa' => 'boolean',
         'membresia_inscripcion_fecha' => 'date',

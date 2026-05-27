@@ -72,7 +72,7 @@ const quitarImagen = () => {
                     <div class="flex flex-wrap gap-3 justify-end">
                         <button
                             type="button"
-                            class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest hover:bg-gray-50 disabled:opacity-50"
+                            class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                             :disabled="form.processing"
                             @click="quitarImagen"
                         >

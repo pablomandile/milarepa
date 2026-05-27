@@ -48,6 +48,7 @@ class User extends Authenticatable
         'municipio_id',
         'barrio_id',
         'programa_estudio_id',
+        'programa_a_distancia',
         'telefono',
         'whatsapp',
         'fecha_nacimiento',
@@ -198,6 +199,7 @@ class User extends Authenticatable
     {
         $defaults = [
             'membresia_id' => null,
+            'suscripcion' => false,
             'membresia_inscripcion_fecha' => null,
             'membresia_online' => false,
             'membresia_online_motivo' => null,
@@ -210,6 +212,7 @@ class User extends Authenticatable
 
         $hasData =
             !is_null($payload['membresia_id'])
+            || (bool) $payload['suscripcion']
             || !is_null($payload['membresia_inscripcion_fecha'])
             || (bool) $payload['membresia_online']
             || !is_null($payload['membresia_online_motivo'])
@@ -220,6 +223,7 @@ class User extends Authenticatable
         if ($hasData) {
             $this->membresiaUsuario()->updateOrCreate([], [
                 'membresia_id' => $payload['membresia_id'],
+                'suscripcion' => (bool) $payload['suscripcion'],
                 'membresia_inscripcion_fecha' => $payload['membresia_inscripcion_fecha'],
                 'membresia_online' => (bool) $payload['membresia_online'],
                 'membresia_online_motivo' => $payload['membresia_online_motivo'],

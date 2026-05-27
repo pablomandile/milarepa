@@ -13,6 +13,7 @@ class Membresia extends Model
 
     protected $fillable = [
         'nombre',
+        'abreviacion',
         'descripcion',
         'info',
         'entidad_id',

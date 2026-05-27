@@ -61,6 +61,22 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
                 <InputError :message="$page.props.errors.nombre" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6 mt-3">
+                <InputLabel for="abreviacion" value="Abreviación" :required="false"/>
+                <TextInput
+                    id="abreviacion"
+                    v-model="form.abreviacion"
+                    type="text"
+                    maxlength="10"
+                    autocomplete="off"
+                    placeholder="Ej: CLA, COR, BEN"
+                    class="mt-1 block w-full uppercase"
+                />
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Código corto único (hasta 10 caracteres). Se usa al importar membresías desde CSV para identificar a cuál corresponde cada fila.
+                </p>
+                <InputError :message="$page.props.errors.abreviacion" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6 mt-3">
                 <InputLabel for="descripcion" value="Descripción" :required="false"/>
                 <TextInput id="descripcion" v-model="form.descripcion" type="text" autocomplete="descripcion" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />

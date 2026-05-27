@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Membresia;
+use App\Models\PrecioGrupo;
 use App\Http\Requests\MembresiaRequest;
 use Inertia\Inertia;
 use App\Models\Entidad;
@@ -260,7 +261,14 @@ class MembresiasController extends Controller
     {
         $membresias = Membresia::with(['entidad', 'botonPago', 'imagen'])->get();
 
-        return inertia('Membresias/Gestion', ['membresias' => $membresias]);
+        $precioGrupos = PrecioGrupo::orderBy('fecha_desde', 'desc')
+            ->orderBy('id', 'desc')
+            ->get(['id', 'nombre', 'fecha_desde']);
+
+        return inertia('Membresias/Gestion', [
+            'membresias' => $membresias,
+            'precioGrupos' => $precioGrupos,
+        ]);
     }
 
     /**

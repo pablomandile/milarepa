@@ -110,7 +110,7 @@ const selectTemplate = (file) => {
                     v-for="file in props.templateFiles"
                     :key="file"
                     type="button"
-                    class="w-full text-left px-3 py-2 rounded border border-gray-200 dark:border-gray-700 hover:bg-gray-50"
+                    class="w-full text-left px-3 py-2 rounded border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                     @click="selectTemplate(file)"
                 >
                     {{ file }}

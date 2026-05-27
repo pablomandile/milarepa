@@ -74,7 +74,14 @@
                                 </Column>
                                 <Column field="membresia_nombre" header="Membresía Actual" :showFilterMatchModes="false">
                                     <template #body="{ data }">
-                                        <span v-if="tieneMembresiaReal(data)" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                        <select
+                                            v-if="editandoUserId === data.id"
+                                            v-model="editForm.membresia_id"
+                                            class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-900"
+                                        >
+                                            <option v-for="m in membresias" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+                                        </select>
+                                        <span v-else-if="tieneMembresiaReal(data)" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                                             <i class="fas fa-crown mr-1"></i>
                                             {{ data.membresia.nombre }}
                                             <span v-if="data.membresia_online" class="ml-2 text-xs font-semibold text-indigo-600">Online</span>
@@ -89,8 +96,14 @@
                                 </Column>
                                 <Column field="membresia_inscripcion_fecha" header="Fecha de Inscripción" :showFilterMatchModes="false">
                                     <template #body="{ data }">
-                                        <span v-if="tieneMembresiaReal(data) && data.membresia_inscripcion_fecha" class="text-sm text-gray-700 dark:text-gray-300">
-                                            {{ formatearFecha(data.membresia_inscripcion_fecha) }}
+                                        <input
+                                            v-if="editandoUserId === data.id"
+                                            type="date"
+                                            v-model="editForm.membresia_inscripcion_fecha"
+                                            class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-900"
+                                        />
+                                        <span v-else-if="tieneMembresiaReal(data) && fechaInscripcion(data)" class="text-sm text-gray-700 dark:text-gray-300">
+                                            {{ formatearFecha(fechaInscripcion(data)) }}
                                         </span>
                                         <span v-else class="text-sm text-gray-500">-</span>
                                     </template>
@@ -100,33 +113,102 @@
                                 </Column>
                                 <Column field="modalidad_texto" header="Modalidad" :showFilterMatchModes="false">
                                     <template #body="{ data }">
-                                        <span v-if="tieneMembresiaReal(data)" class="text-sm text-gray-700 dark:text-gray-300">
+                                        <select
+                                            v-if="editandoUserId === data.id"
+                                            v-model="editForm.membresia_online"
+                                            class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-900"
+                                        >
+                                            <option :value="false">Presencial</option>
+                                            <option :value="true">Online</option>
+                                        </select>
+                                        <span v-else-if="tieneMembresiaReal(data)" class="text-sm text-gray-700 dark:text-gray-300">
                                             {{ modalidadTexto(data) }}
                                         </span>
                                         <span v-else class="text-sm text-gray-500">-</span>
                                     </template>
                                     <template #filter="{ filterModel }">
-                                        <InputText v-model="filterModel.value" type="text" placeholder="Buscar por modalidad" class="p-column-filter" />
+                                        <Dropdown
+                                            v-model="filterModel.value"
+                                            :options="modalidadOptions"
+                                            optionLabel="label"
+                                            optionValue="value"
+                                            placeholder="Todas"
+                                            class="p-column-filter w-full"
+                                            showClear
+                                        />
                                     </template>
                                 </Column>
-                                <Column header="Acciones">
+                                <Column header="Suscripción" style="width: 8rem">
+                                    <template #body="{ data }">
+                                        <div v-if="editandoUserId === data.id" class="flex items-center justify-center">
+                                            <input
+                                                type="checkbox"
+                                                v-model="editForm.suscripcion"
+                                                class="h-5 w-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                            />
+                                        </div>
+                                        <div v-else-if="tieneMembresiaReal(data)" class="flex items-center justify-center">
+                                            <i
+                                                v-if="data.membresia_usuario?.suscripcion"
+                                                class="fas fa-check text-emerald-600 text-lg"
+                                                v-tooltip="'Suscrito'"
+                                            ></i>
+                                            <span v-else class="text-sm text-gray-400">—</span>
+                                        </div>
+                                        <span v-else class="text-sm text-gray-500">-</span>
+                                    </template>
+                                </Column>
+                                <Column header="Acciones" style="width: 11rem">
                                     <template #body="{ data }">
                                         <div class="flex justify-center gap-2">
-                                            <button 
-                                                @click="abrirModalAsignar(data)"
-                                                class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition text-sm"
-                                                title="Asignar membresía" aria-label="Asignar membresía"
-                                            >
-                                                <i class="fas fa-plus-circle"></i>
-                                            </button>
-                                            <button 
-                                                v-if="tieneMembresiaReal(data)"
-                                                @click="eliminarMembresia(data)"
-                                                class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm"
-                                                title="Eliminar membresía" aria-label="Eliminar membresía"
-                                            >
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            <!-- Modo edición -->
+                                            <template v-if="editandoUserId === data.id">
+                                                <button
+                                                    type="button"
+                                                    @click="guardarEdicion(data)"
+                                                    :disabled="guardando"
+                                                    class="px-3 py-1 bg-emerald-500 text-white rounded hover:bg-emerald-600 disabled:opacity-50 transition text-sm"
+                                                    title="Guardar" aria-label="Guardar"
+                                                >
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    @click="cancelarEdicion"
+                                                    :disabled="guardando"
+                                                    class="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 transition text-sm"
+                                                    title="Cancelar" aria-label="Cancelar"
+                                                >
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </template>
+                                            <!-- Modo normal -->
+                                            <template v-else>
+                                                <button
+                                                    v-if="tieneMembresiaReal(data)"
+                                                    @click="iniciarEdicion(data)"
+                                                    class="px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition text-sm"
+                                                    title="Editar membresía" aria-label="Editar membresía"
+                                                >
+                                                    <i class="fas fa-pen-to-square"></i>
+                                                </button>
+                                                <button
+                                                    v-else
+                                                    @click="abrirModalAsignar(data)"
+                                                    class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition text-sm"
+                                                    title="Asignar membresía" aria-label="Asignar membresía"
+                                                >
+                                                    <i class="fas fa-plus-circle"></i>
+                                                </button>
+                                                <button
+                                                    v-if="tieneMembresiaReal(data)"
+                                                    @click="eliminarMembresia(data)"
+                                                    class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm"
+                                                    title="Eliminar membresía" aria-label="Eliminar membresía"
+                                                >
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </template>
                                         </div>
                                     </template>
                                 </Column>
@@ -205,17 +287,23 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { computed, ref, reactive } from 'vue';
+import { useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Swal from 'sweetalert2';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
+import Dropdown from 'primevue/dropdown';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import { FilterMatchMode } from 'primevue/api';
+
+const modalidadOptions = [
+    { label: 'Presencial', value: 'Presencial' },
+    { label: 'Online', value: 'Online' },
+];
 
 const props = defineProps({
     usuarios: Array,
@@ -249,7 +337,8 @@ const filters = ref({
     name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     email: { value: null, matchMode: FilterMatchMode.CONTAINS },
     membresia_nombre: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    membresia_inscripcion_fecha: { value: null, matchMode: FilterMatchMode.CONTAINS }
+    membresia_inscripcion_fecha: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    modalidad_texto: { value: null, matchMode: FilterMatchMode.EQUALS },
 });
 
 const clearFilters = () => {
@@ -258,7 +347,8 @@ const clearFilters = () => {
         name: { value: null, matchMode: FilterMatchMode.CONTAINS },
         email: { value: null, matchMode: FilterMatchMode.CONTAINS },
         membresia_nombre: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        membresia_inscripcion_fecha: { value: null, matchMode: FilterMatchMode.CONTAINS }
+        membresia_inscripcion_fecha: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        modalidad_texto: { value: null, matchMode: FilterMatchMode.EQUALS },
     };
     filtroMembresia.value = 'con_membresia';
 };
@@ -267,6 +357,56 @@ const mostrarModal = ref(false);
 const usuarioSeleccionado = ref(null);
 const formMembresiaId = ref('');
 const formMembresiaOnline = ref('presencial');
+
+const editandoUserId = ref(null);
+const guardando = ref(false);
+const editForm = reactive({
+    membresia_id: null,
+    membresia_inscripcion_fecha: '',
+    membresia_online: false,
+    suscripcion: false,
+});
+
+function iniciarEdicion(usuario) {
+    editandoUserId.value = usuario.id;
+    const mu = usuario.membresia_usuario || {};
+    editForm.membresia_id = mu.membresia_id ?? usuario.membresia?.id ?? null;
+    const fecha = mu.membresia_inscripcion_fecha ?? usuario.membresia_inscripcion_fecha ?? '';
+    editForm.membresia_inscripcion_fecha = fecha ? String(fecha).substring(0, 10) : '';
+    editForm.membresia_online = !!(mu.membresia_online ?? usuario.membresia_online);
+    editForm.suscripcion = !!mu.suscripcion;
+}
+
+function cancelarEdicion() {
+    editandoUserId.value = null;
+    editForm.membresia_id = null;
+    editForm.membresia_inscripcion_fecha = '';
+    editForm.membresia_online = false;
+    editForm.suscripcion = false;
+}
+
+function guardarEdicion(usuario) {
+    if (guardando.value) return;
+    guardando.value = true;
+    router.put(
+        route('membresias.editar', usuario.id),
+        {
+            membresia_id: editForm.membresia_id,
+            membresia_inscripcion_fecha: editForm.membresia_inscripcion_fecha || null,
+            membresia_online: !!editForm.membresia_online,
+            suscripcion: !!editForm.suscripcion,
+        },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                cancelarEdicion();
+            },
+            onFinish: () => {
+                guardando.value = false;
+            },
+        }
+    );
+}
 
 const tieneMembresiaReal = (usuario) => {
     return usuario.membresia && usuario.membresia.id !== 1;
@@ -279,11 +419,17 @@ const modalidadTexto = (usuario) => {
 };
 
 const formatearFecha = (fecha) => {
-    return new Date(fecha).toLocaleDateString('es-ES', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+    return new Date(fecha).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
     });
+};
+
+const fechaInscripcion = (usuario) => {
+    return usuario.membresia_usuario?.membresia_inscripcion_fecha
+        ?? usuario.membresia_inscripcion_fecha
+        ?? null;
 };
 
 const abrirModalAsignar = (usuario) => {

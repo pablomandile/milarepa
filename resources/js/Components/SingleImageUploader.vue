@@ -177,6 +177,7 @@ const props = defineProps({
   </script>
   
   <style scoped>
-  /* Ajustes de estilo a gusto */
+  /* Placeholder para evitar que Vite genere un CSS de 0 bytes que en server da 404 */
+  .single-image-uploader-marker { display: contents; }
   </style>
   

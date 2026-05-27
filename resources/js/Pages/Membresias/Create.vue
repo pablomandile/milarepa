@@ -23,6 +23,7 @@
 
     const form = useForm({
         nombre: '',
+        abreviacion: '',
         descripcion: '',
         info: '',
         entidad_id: '',

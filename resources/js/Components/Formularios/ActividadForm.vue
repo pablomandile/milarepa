@@ -562,7 +562,7 @@ watch(
               <i class="pi pi-file-plus"></i>
             </a>
 
-            <button type="button" class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white" @click="onClickRefresh" v-tooltip="'Refrescar'">
+            <button type="button" class="ml-2 px-2 py-1 bg-indigo-500 rounded text-white" @click="onClickRefresh('descripciones')" v-tooltip="'Refrescar descripciones'">
               <i class="pi pi-refresh "></i>
             </button>
           </div>

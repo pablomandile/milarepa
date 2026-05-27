@@ -140,6 +140,13 @@ const toggleMobileSection = (key) => {
                                         <DropdownLink :href="route('imagenes.index')" :active="route().current('imagenes.*')">
                                             Imagenes
                                         </DropdownLink>
+                                        <DropdownLink
+                                            v-if="$page.props.user?.permissions?.includes('read programa-estudios')"
+                                            :href="route('programa-estudios.index')"
+                                            :active="route().current('programa-estudios.*')"
+                                        >
+                                            Programas de estudio
+                                        </DropdownLink>
                                     </template>
                                 </Dropdown>
                             </div>
@@ -269,6 +276,9 @@ const toggleMobileSection = (key) => {
                                     <DropdownLink :href="route('esquemadescuentos.index')" :active="route().current('esquemadescuentos.*')">
                                         Esquema de Descuentos
                                     </DropdownLink>
+                                    <DropdownLink :href="route('precio-grupos.index')" :active="route().current('precio-grupos.*')">
+                                        Precios Membresías
+                                    </DropdownLink>
                                     <DropdownLink :href="route('botonespago.index')" :active="route().current('botonespago.*')">
                                         Botones de Pago
                                     </DropdownLink>
@@ -369,6 +379,13 @@ const toggleMobileSection = (key) => {
                                     </DropdownLink>
                                     <DropdownLink :href="route('frases-de-dharma.index')" :active="route().current('frases-de-dharma.*')">
                                         Importar Frases de Dharma
+                                    </DropdownLink>
+                                    <DropdownLink
+                                        v-if="$page.props.user.roles?.includes('admin')"
+                                        :href="route('configuracion.importar-membresias')"
+                                        :active="route().current('configuracion.importar-membresias*')"
+                                    >
+                                        Importar Membresías (CSV)
                                     </DropdownLink>
                                 </template>
                             </Dropdown>
@@ -616,6 +633,13 @@ const toggleMobileSection = (key) => {
                             <ResponsiveNavLink :href="route('imagenes.index')" :active="route().current('imagenes.*')">
                                 Imagenes
                             </ResponsiveNavLink>
+                            <ResponsiveNavLink
+                                v-if="$page.props.user?.permissions?.includes('read programa-estudios')"
+                                :href="route('programa-estudios.index')"
+                                :active="route().current('programa-estudios.*')"
+                            >
+                                Programas de estudio
+                            </ResponsiveNavLink>
                         </div>
                     </div>
 
@@ -741,6 +765,9 @@ const toggleMobileSection = (key) => {
                             <ResponsiveNavLink :href="route('esquemadescuentos.index')" :active="route().current('esquemadescuentos.*')">
                                 Esquema de Descuentos
                             </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('precio-grupos.index')" :active="route().current('precio-grupos.*')">
+                                Precios Membresías
+                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('botonespago.index')" :active="route().current('botonespago.*')">
                                 Botones de Pago
                             </ResponsiveNavLink>
@@ -836,6 +863,13 @@ const toggleMobileSection = (key) => {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('frases-de-dharma.index')" :active="route().current('frases-de-dharma.*')">
                                 Importar Frases de Dharma
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink
+                                v-if="$page.props.user.roles?.includes('admin')"
+                                :href="route('configuracion.importar-membresias')"
+                                :active="route().current('configuracion.importar-membresias*')"
+                            >
+                                Importar Membresías (CSV)
                             </ResponsiveNavLink>
                         </div>
                     </div>

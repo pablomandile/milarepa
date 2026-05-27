@@ -22,8 +22,14 @@ class MembresiaRequest extends FormRequest
      */
     public function rules(): array
     {
+        $membresiaId = $this->route('membresia');
+        if (is_object($membresiaId)) {
+            $membresiaId = $membresiaId->id ?? null;
+        }
+
         return [
             'nombre' => ['required', 'string', 'max:20'],
+            'abreviacion' => ['nullable', 'string', 'max:10', Rule::unique('membresias', 'abreviacion')->ignore($membresiaId)->whereNull('deleted_at')],
             'descripcion' => ['nullable', 'string', 'max:150'],
             'info' => ['nullable', 'string'],
             'entidad_id' => ['required', 'exists:entidades,id'],
@@ -31,6 +37,16 @@ class MembresiaRequest extends FormRequest
             'imagen_id' => ['nullable', 'exists:imagenes,id'],
             'valor' => ['required', 'numeric', 'min:0'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('abreviacion')) {
+            $abreviacion = trim((string) $this->input('abreviacion'));
+            $this->merge([
+                'abreviacion' => $abreviacion === '' ? null : strtoupper($abreviacion),
+            ]);
+        }
     }
 
     public function messages():array {

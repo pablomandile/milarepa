@@ -32,6 +32,7 @@
 
     const form = useForm({
         nombre: props.membresia.nombre,
+        abreviacion: props.membresia.abreviacion || '',
         descripcion: props.membresia.descripcion,
         info: props.membresia.info || '',
         entidad_id: props.membresia.entidad_id,

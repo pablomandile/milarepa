@@ -13,6 +13,13 @@ class ProgramaEstudio extends Model
 
     protected $fillable = [
         'nombre',
-        'descripcion'
+        'abreviacion',
+        'descripcion',
+        'compromisos_pdf',
     ];
+
+    public function programaGrabaciones()
+    {
+        return $this->hasMany(ProgramaGrabacion::class, 'programa_estudio_id');
+    }
 }

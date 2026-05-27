@@ -114,6 +114,21 @@ class RoleSeeder extends Seeder
         $permission_create_modalidades = Permission::firstOrCreate(['name' => 'read modalidades']);
         $permission_create_modalidades = Permission::firstOrCreate(['name' => 'delete modalidades']);
 
+        $permission_create_programa_estudios = Permission::firstOrCreate(['name' => 'create programa-estudios']);
+        $permission_create_programa_estudios = Permission::firstOrCreate(['name' => 'update programa-estudios']);
+        $permission_create_programa_estudios = Permission::firstOrCreate(['name' => 'read programa-estudios']);
+        $permission_create_programa_estudios = Permission::firstOrCreate(['name' => 'delete programa-estudios']);
+
+        $permission_create_programa_grabaciones = Permission::firstOrCreate(['name' => 'create programa-grabaciones']);
+        $permission_create_programa_grabaciones = Permission::firstOrCreate(['name' => 'update programa-grabaciones']);
+        $permission_create_programa_grabaciones = Permission::firstOrCreate(['name' => 'read programa-grabaciones']);
+        $permission_create_programa_grabaciones = Permission::firstOrCreate(['name' => 'delete programa-grabaciones']);
+
+        $permission_create_precio_grupos = Permission::firstOrCreate(['name' => 'create precio-grupos']);
+        $permission_create_precio_grupos = Permission::firstOrCreate(['name' => 'update precio-grupos']);
+        $permission_create_precio_grupos = Permission::firstOrCreate(['name' => 'read precio-grupos']);
+        $permission_create_precio_grupos = Permission::firstOrCreate(['name' => 'delete precio-grupos']);
+
         $permission_create_tickets = Permission::firstOrCreate(['name' => 'create tickets']);
         $permission_create_tickets = Permission::firstOrCreate(['name' => 'update tickets']);
         $permission_create_tickets = Permission::firstOrCreate(['name' => 'read tickets']);
@@ -250,6 +265,18 @@ class RoleSeeder extends Seeder
             'update modalidades',
             'read modalidades',
             'delete modalidades',
+            'create programa-estudios',
+            'update programa-estudios',
+            'read programa-estudios',
+            'delete programa-estudios',
+            'create programa-grabaciones',
+            'update programa-grabaciones',
+            'read programa-grabaciones',
+            'delete programa-grabaciones',
+            'create precio-grupos',
+            'update precio-grupos',
+            'read precio-grupos',
+            'delete precio-grupos',
             'create tickets',
             'update tickets',
             'read tickets',
@@ -372,6 +399,18 @@ class RoleSeeder extends Seeder
             'update modalidades',
             'read modalidades',
             'delete modalidades',
+            'create programa-estudios',
+            'update programa-estudios',
+            'read programa-estudios',
+            'delete programa-estudios',
+            'create programa-grabaciones',
+            'update programa-grabaciones',
+            'read programa-grabaciones',
+            'delete programa-grabaciones',
+            'create precio-grupos',
+            'update precio-grupos',
+            'read precio-grupos',
+            'delete precio-grupos',
             'create tickets',
             'update tickets',
             'read tickets',
