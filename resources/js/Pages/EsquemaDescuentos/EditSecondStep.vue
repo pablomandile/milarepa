@@ -92,6 +92,37 @@ function onRowEditCancel(event) {
   // Opcional: revertir cambios, loguear, etc.
 }
 
+const editandoNombre = ref(false);
+const nombreEditado = ref(props.esquemaDescuento.nombre);
+const guardandoNombre = ref(false);
+
+function iniciarEdicionNombre() {
+  nombreEditado.value = props.esquemaDescuento.nombre;
+  editandoNombre.value = true;
+}
+
+function cancelarEdicionNombre() {
+  editandoNombre.value = false;
+}
+
+function guardarNombre() {
+  const nuevo = (nombreEditado.value || '').trim();
+  if (!nuevo) return;
+  if (nuevo === props.esquemaDescuento.nombre) {
+    editandoNombre.value = false;
+    return;
+  }
+  guardandoNombre.value = true;
+  router.put(route('esquemadescuentos.update', props.esquemaDescuento.id), { nombre: nuevo }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      editandoNombre.value = false;
+    },
+    onFinish: () => {
+      guardandoNombre.value = false;
+    },
+  });
+}
 </script>
 
 
@@ -115,9 +146,47 @@ function onRowEditCancel(event) {
                 </div>
 
                 <!-- Mostrar el nombre del esquema -->
-                <h2 class="text-2xl font-bold mb-4">
-                    {{ esquemaDescuento.nombre }}
-                </h2>
+                <div class="flex items-center gap-2 mb-4">
+                    <template v-if="!editandoNombre">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ esquemaDescuento.nombre }}</h2>
+                        <button
+                            type="button"
+                            @click="iniciarEdicionNombre"
+                            v-tooltip="'Editar nombre'"
+                            class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        >
+                            <i class="fas fa-pen-to-square text-lg"></i>
+                        </button>
+                    </template>
+                    <template v-else>
+                        <input
+                            v-model="nombreEditado"
+                            type="text"
+                            maxlength="50"
+                            class="text-2xl font-bold border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            @keydown.enter="guardarNombre"
+                            @keydown.escape="cancelarEdicionNombre"
+                        />
+                        <button
+                            type="button"
+                            @click="guardarNombre"
+                            :disabled="guardandoNombre"
+                            v-tooltip="'Guardar'"
+                            class="text-green-600 hover:text-green-700 disabled:opacity-50"
+                        >
+                            <i class="fas fa-check text-lg"></i>
+                        </button>
+                        <button
+                            type="button"
+                            @click="cancelarEdicionNombre"
+                            :disabled="guardandoNombre"
+                            v-tooltip="'Cancelar'"
+                            class="text-red-600 hover:text-red-700 disabled:opacity-50"
+                        >
+                            <i class="fas fa-times text-lg"></i>
+                        </button>
+                    </template>
+                </div>
 
                 <!-- Formulario para AGREGAR una nueva membresía -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg mb-6 mt-6 p-4">

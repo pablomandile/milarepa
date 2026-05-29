@@ -10,13 +10,22 @@
     import Swal from "sweetalert2";
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
-    
+    import InputText from 'primevue/inputtext';
+    import IconField from 'primevue/iconfield';
+    import InputIcon from 'primevue/inputicon';
+    import { FilterMatchMode } from 'primevue/api';
+    import { ref } from 'vue';
+
     defineProps({
         coordinadores: {
             type: Array,
             required: true
         }
     })
+
+    const filters = ref({
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    });
 
     const deleteCoordinador = (id) => {
     Swal.fire({
@@ -60,8 +69,29 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="coordinadores" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
-                            <Column field="nombre" header="Nombre"></Column>
+                        <DataTable
+                            :value="coordinadores"
+                            v-model:filters="filters"
+                            :globalFilterFields="['nombre', 'telefono', 'email']"
+                            sortField="nombre"
+                            :sortOrder="1"
+                            stripedRows
+                            paginator
+                            :rows="5"
+                            :rowsPerPageOptions="[5, 10, 20, 50]"
+                            tableStyle="min-width: 50rem"
+                        >
+                            <template #header>
+                                <div class="flex justify-end">
+                                    <IconField iconPosition="right">
+                                        <InputIcon>
+                                            <i class="pi pi-search" />
+                                        </InputIcon>
+                                        <InputText v-model="filters['global'].value" placeholder="Buscar..." />
+                                    </IconField>
+                                </div>
+                            </template>
+                            <Column field="nombre" header="Nombre" sortable></Column>
                             <Column field="telefono" header="Telefono"></Column>
                             <Column field="email" header="Correo electrónico"></Column>
                             <Column header="Acciones">

@@ -427,7 +427,7 @@ class InscripcionesController extends Controller
         return back()->with('success', 'Inscripción eliminada correctamente');
     }
 
-    public function uploadComprobante(Request $request, Inscripcion $inscripcion)
+    public function uploadComprobante(Request $request, Inscripcion $inscripcion, \App\Services\OptimizadorImagenService $optimizador)
     {
         $user = $request->user();
         if (!$user) {
@@ -442,14 +442,14 @@ class InscripcionesController extends Controller
         }
 
         $request->validate([
-            'comprobante' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
+            'comprobante' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:4096'],
             'descripcion' => ['nullable', 'string', 'max:255'],
         ], [
             'comprobante.max' => 'El comprobante supera el tamaño máximo permitido (4 MB).',
-            'comprobante.mimes' => 'El comprobante debe ser PDF, JPG o PNG.',
+            'comprobante.mimes' => 'El comprobante debe ser PDF, JPG, PNG o WebP.',
         ]);
 
-        $path = $request->file('comprobante')->store('comprobantes', 'public');
+        $path = $optimizador->procesar($request->file('comprobante'), 'comprobantes');
         InscripcionComprobante::create([
             'inscripcion_id' => $inscripcion->id,
             'ruta' => $path,

@@ -6,6 +6,7 @@ use App\Models\Entidad;
 use Inertia\Inertia;
 use App\Http\Requests\EntidadRequest;
 use App\Models\Imagen;
+use App\Services\OptimizadorImagenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -28,9 +29,8 @@ class ImagenesController extends Controller
      * Store a newly created resource in storage.
      * @param \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, OptimizadorImagenService $optimizador)
     {
-        // Validar el archivo (puede ser required|image|mimes:jpeg,png ...)
         $request->validate(
             [
                 'imagen' => 'required|image|max:4096',
@@ -42,22 +42,18 @@ class ImagenesController extends Controller
             ]
         );
 
-        // Almacenar la imagen en /storage/app/public/img/actividades
-        // Retorna la ruta del archivo (por ejemplo "img/actividades/xyz.jpg")
-        $path = $request->file('imagen')->store('img/actividades', 'public');
+        $path = $optimizador->procesar($request->file('imagen'), 'img/actividades');
 
-        // Guardar en la base de datos
-        $imagen = Imagen::create([
+        Imagen::create([
             'nombre' => $request->file('imagen')->getClientOriginalName(),
-            'ruta'   => $path, // Guarda la ruta relativa
+            'ruta'   => $path,
         ]);
 
-        // Retornar a la lista de imágenes
         return redirect()->route('imagenes.index')
             ->with('success', 'Imagen subida correctamente');
     }
 
-    public function storeJson(Request $request)
+    public function storeJson(Request $request, OptimizadorImagenService $optimizador)
     {
         $request->validate(
             [
@@ -76,18 +72,16 @@ class ImagenesController extends Controller
             $folder = 'img/actividades';
         }
 
-        $path = $request->file('imagen')->store($folder, 'public');
+        $path = $optimizador->procesar($request->file('imagen'), $folder);
 
-        // Crea el registro en BD
         $img = Imagen::create([
             'nombre' => $request->file('imagen')->getClientOriginalName(),
-            'ruta'   => $path
+            'ruta'   => $path,
         ]);
 
-        // Devolver JSON con { id, path, ... }
         return response()->json([
             'id' => $img->id,
-            'path' => '/storage/' . $path,   // o $img->ruta si prefieres
+            'path' => '/storage/' . $path,
         ]);
     }
 

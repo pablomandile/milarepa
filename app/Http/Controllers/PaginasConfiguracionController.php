@@ -14,6 +14,7 @@ class PaginasConfiguracionController extends Controller
     private const CLAVE_ENVIO_SEMANAL_HORA = 'envio_mail_semanal_inscripciones_hora';
     private const CLAVE_ENVIO_SEMANAL_DESTINATARIO = 'envio_mail_semanal_inscripciones_destinatario';
     private const CLAVE_GRID_ACTIVIDADES_VARIANTE = 'grid_actividades_variante';
+    private const CLAVE_OPTIMIZAR_IMAGENES_WEBP = 'optimizar_imagenes_webp';
 
     public function index()
     {
@@ -25,6 +26,7 @@ class PaginasConfiguracionController extends Controller
             'envio_mail_semanal_inscripciones_hora' => ConfiguracionSistema::obtenerTexto(self::CLAVE_ENVIO_SEMANAL_HORA, '17:00'),
             'envio_mail_semanal_inscripciones_destinatario' => ConfiguracionSistema::obtenerTexto(self::CLAVE_ENVIO_SEMANAL_DESTINATARIO, ''),
             'grid_actividades_variante' => ConfiguracionSistema::obtenerTexto(self::CLAVE_GRID_ACTIVIDADES_VARIANTE, 'grid1'),
+            'optimizar_imagenes_webp' => ConfiguracionSistema::obtenerBoolean(self::CLAVE_OPTIMIZAR_IMAGENES_WEBP, false),
         ]);
     }
 
@@ -38,6 +40,7 @@ class PaginasConfiguracionController extends Controller
             'envio_mail_semanal_inscripciones_hora' => ['required', 'date_format:H:i'],
             'envio_mail_semanal_inscripciones_destinatario' => ['nullable', 'email:rfc,dns'],
             'grid_actividades_variante' => ['required', 'in:grid1,grid2'],
+            'optimizar_imagenes_webp' => ['required', 'boolean'],
         ]);
 
         ConfiguracionSistema::guardarBoolean(
@@ -73,6 +76,11 @@ class PaginasConfiguracionController extends Controller
         ConfiguracionSistema::guardarTexto(
             self::CLAVE_GRID_ACTIVIDADES_VARIANTE,
             (string) $data['grid_actividades_variante']
+        );
+
+        ConfiguracionSistema::guardarBoolean(
+            self::CLAVE_OPTIMIZAR_IMAGENES_WEBP,
+            (bool) $data['optimizar_imagenes_webp']
         );
 
         return back()->with('success', 'Configuración actualizada con éxito.');

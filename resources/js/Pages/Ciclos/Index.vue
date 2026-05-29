@@ -58,8 +58,15 @@ const nombreMes = (mes) => {
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable :value="ciclos" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
-                            <Column field="nombre" header="Nombre"></Column>
+                        <DataTable
+                            :value="ciclos"
+                            stripedRows
+                            paginator
+                            :rows="5"
+                            :rowsPerPageOptions="[5, 10, 20, 50]"
+                            tableStyle="min-width: 50rem"
+                        >
+                            <Column field="nombre" header="Nombre" sortable></Column>
                             <Column field="mes" header="Mes">
                                 <template #body="slotProps">
                                     {{ nombreMes(slotProps.data.mes) }}

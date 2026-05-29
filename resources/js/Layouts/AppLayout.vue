@@ -528,6 +528,9 @@ const toggleMobileSection = (key) => {
                                     <DropdownLink :href="route('camino-budista.index')" :active="route().current('camino-budista.*')">
                                         Mi camino Budista
                                     </DropdownLink>
+                                    <DropdownLink :href="route('area-estudio.index')" :active="route().current('area-estudio.*')">
+                                        Área de estudio
+                                    </DropdownLink>
 
                                     <DropdownLink v-if="!isAsistant && $page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')">
                                         API Tokens
@@ -927,6 +930,9 @@ const toggleMobileSection = (key) => {
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('camino-budista.index')" :active="route().current('camino-budista.*')">
                             Mi camino Budista
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('area-estudio.index')" :active="route().current('area-estudio.*')">
+                            Área de estudio
                         </ResponsiveNavLink>
 
                         <ResponsiveNavLink v-if="!isAsistant && $page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')" :active="route().current('api-tokens.index')">

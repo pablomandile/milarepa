@@ -402,7 +402,8 @@ class MembresiasController extends Controller
         }
 
         if ($request->hasFile('comprobante')) {
-            $estadoCuenta->comprobante = $request->file('comprobante')->store('comprobantes', 'public');
+            $estadoCuenta->comprobante = app(\App\Services\OptimizadorImagenService::class)
+                ->procesar($request->file('comprobante'), 'comprobantes');
         }
 
         if ($request->hasFile('comprobante') || $modoPago === 'Efectivo') {

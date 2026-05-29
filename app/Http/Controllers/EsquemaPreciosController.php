@@ -109,7 +109,15 @@ class EsquemaPreciosController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $esquemaPrecio = EsquemaPrecio::findOrFail($id);
+
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:50',
+        ]);
+
+        $esquemaPrecio->update($validated);
+
+        return back()->with('success', 'Nombre del esquema actualizado.');
     }
 
     public function updateMembresia(Request $request, $membresiaId)

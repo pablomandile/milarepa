@@ -102,6 +102,17 @@ class PrecioGruposController extends Controller
         return back()->with('success', 'Línea eliminada.');
     }
 
+    public function update(Request $request, PrecioGrupo $precioGrupo)
+    {
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:100',
+        ]);
+
+        $precioGrupo->update($validated);
+
+        return back()->with('success', 'Nombre del grupo actualizado.');
+    }
+
     public function destroy(PrecioGrupo $precioGrupo)
     {
         try {

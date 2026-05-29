@@ -10,7 +10,7 @@ class CiclosController extends Controller
 {
     public function index()
     {
-        $ciclos = Ciclo::orderBy('nombre')->get();
+        $ciclos = Ciclo::orderByDesc('created_at')->orderByDesc('id')->get();
 
         return inertia('Ciclos/Index', ['ciclos' => $ciclos]);
     }

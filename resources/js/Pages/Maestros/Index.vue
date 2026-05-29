@@ -11,8 +11,12 @@
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
     import Dialog from 'primevue/dialog';
+    import InputText from 'primevue/inputtext';
+    import IconField from 'primevue/iconfield';
+    import InputIcon from 'primevue/inputicon';
+    import { FilterMatchMode } from 'primevue/api';
     import { ref } from 'vue';
-    
+
     defineProps({
         maestros: {
             type: Array,
@@ -23,6 +27,10 @@
     const imageDialogVisible = ref(false);
     const selectedImageUrl = ref('');
     const expandedRows = ref([]);
+
+    const filters = ref({
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    });
 
     const openImageDialog = (imageUrl) => {
         if (!imageUrl) return;
@@ -73,16 +81,28 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable 
-                            :value="maestros" 
+                        <DataTable
+                            :value="maestros"
+                            v-model:filters="filters"
+                            :globalFilterFields="['nombre', 'telefono', 'email']"
                             v-model:expandedRows="expandedRows"
                             dataKey="id"
-                            stripedRows 
-                            paginator 
-                            :rows="5" 
-                            :rowsPerPageOptions="[5, 10, 20, 50]" 
+                            stripedRows
+                            paginator
+                            :rows="5"
+                            :rowsPerPageOptions="[5, 10, 20, 50]"
                             tableStyle="min-width: 58rem"
                         >
+                            <template #header>
+                                <div class="flex justify-end">
+                                    <IconField iconPosition="right">
+                                        <InputIcon>
+                                            <i class="pi pi-search" />
+                                        </InputIcon>
+                                        <InputText v-model="filters['global'].value" placeholder="Buscar..." />
+                                    </IconField>
+                                </div>
+                            </template>
                             <Column expander style="width: 4rem" />
                             <Column header="Foto">
                                 <template #body="slotProps">
@@ -106,7 +126,7 @@
                                     </div>
                                 </template>
                             </Column>
-                            <Column field="nombre" header="Nombre"></Column>
+                            <Column field="nombre" header="Nombre" sortable></Column>
                             <Column field="telefono" header="Telefono"></Column>
                             <Column field="email" header="Correo electrónico"></Column>
                             <Column header="Acciones">

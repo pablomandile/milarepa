@@ -150,7 +150,7 @@ class EstadoCuentaMembresiasController extends Controller
             ->with('success', 'Estado de cuenta actualizado correctamente');
     }
 
-    public function uploadComprobante(Request $request)
+    public function uploadComprobante(Request $request, \App\Services\OptimizadorImagenService $optimizador)
     {
         $request->validate([
             'comprobante' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
@@ -218,7 +218,7 @@ class EstadoCuentaMembresiasController extends Controller
 
         $path = null;
         if ($request->hasFile('comprobante')) {
-            $path = $request->file('comprobante')->store('comprobantes', 'public');
+            $path = $optimizador->procesar($request->file('comprobante'), 'comprobantes');
             $estadoCuenta->comprobante = $path;
         }
         $estadoCuenta->modo = $modo;

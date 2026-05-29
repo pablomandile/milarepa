@@ -68,7 +68,11 @@ const horarioTexto = computed(() => formatHora(props.actividad?.fecha_inicio) ||
             :class="imageSide === 'right' ? 'md:flex-row' : 'md:flex-row-reverse'"
         >
             <!-- Bloque de texto (mitad) -->
-            <div class="md:w-1/2 flex flex-col gap-4 md:px-6">
+            <div
+                class="md:w-1/2 flex md:px-6"
+                :class="imageSide === 'left' ? 'md:justify-end' : 'md:justify-start'"
+            >
+                <div class="flex flex-col gap-4 w-full md:max-w-[702px]">
                 <div class="flex flex-col gap-3">
                     <p
                         v-if="monthTag"
@@ -164,10 +168,14 @@ const horarioTexto = computed(() => formatHora(props.actividad?.fecha_inicio) ||
                         {{ textoBotonInscripcion(actividad, inscripcionesIds) }}
                     </button>
                 </div>
+                </div>
             </div>
 
             <!-- Bloque de imagen (mitad) con flip -->
-            <div class="md:w-1/2 flex items-center justify-center md:px-6">
+            <div
+                class="md:w-1/2 flex items-center justify-center md:px-6"
+                :class="imageSide === 'right' ? 'md:justify-end' : 'md:justify-start'"
+            >
                 <div
                     class="flip-image-wrapper w-full"
                     :class="{ 'is-flipped': flipped }"
@@ -194,10 +202,12 @@ const horarioTexto = computed(() => formatHora(props.actividad?.fecha_inicio) ||
         </div>
 
         <!-- Separador ornamental -->
-        <div class="flex justify-center pb-2 md:pb-4 opacity-50">
-            <svg viewBox="0 0 24 24" class="w-7 h-7 text-gray-400 dark:text-gray-600" fill="currentColor">
-                <path d="M12 2c-1.1 2.5-1.6 4.8-1.6 6.8 0 2 .5 3.7 1.6 5.2 1.1-1.5 1.6-3.2 1.6-5.2 0-2-.5-4.3-1.6-6.8zM6 9c0 2.2 1.3 4 3 4.7-.4 1.5-1.4 2.7-3 3.3-.6-1.4-.6-3.1 0-5 .6-1.4 1.5-2.4 3-3-.9-.4-2-.4-3 0zm12 0c-1 .6-2.1.6-3 0 1.5.6 2.4 1.6 3 3 .6 1.9.6 3.6 0 5-1.6-.6-2.6-1.8-3-3.3 1.7-.7 3-2.5 3-4.7z"/>
+        <div class="flex items-center justify-center gap-3 pb-2 md:pb-4 opacity-50 text-gray-400 dark:text-gray-600">
+            <span class="h-px w-48 md:w-64 bg-current"></span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-7 h-7 shrink-0" fill="currentColor">
+                <path d="M224 208C224 128.5 288.5 64 368 64C376.8 64 384 71.2 384 80L384 232.2C399 226.9 415.2 224 432 224C511.5 224 576 288.5 576 368C576 376.8 568.8 384 560 384L407.8 384C413.1 399 416 415.2 416 432C416 511.5 351.5 576 272 576C263.2 576 256 568.8 256 560L256 407.8C241 413.1 224.8 416 208 416C128.5 416 64 351.5 64 272C64 263.2 71.2 256 80 256L232.2 256C226.9 241 224 224.8 224 208zM320 352C337.7 352 352 337.7 352 320C352 302.3 337.7 288 320 288C302.3 288 288 302.3 288 320C288 337.7 302.3 352 320 352z"/>
             </svg>
+            <span class="h-px w-48 md:w-64 bg-current"></span>
         </div>
     </article>
 </template>
@@ -207,8 +217,7 @@ const horarioTexto = computed(() => formatHora(props.actividad?.fecha_inicio) ||
     perspective: 1200px;
     cursor: pointer;
     aspect-ratio: 1 / 1;
-    max-width: 540px;
-    margin: 0 auto;
+    max-width: 702px;
 }
 
 .flip-image-inner {
@@ -240,6 +249,7 @@ const horarioTexto = computed(() => formatHora(props.actividad?.fecha_inicio) ||
 @media (max-width: 767px) {
     .flip-image-wrapper {
         max-width: 100%;
+        margin: 0 auto;
     }
 }
 </style>

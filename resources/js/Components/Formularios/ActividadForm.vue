@@ -206,7 +206,13 @@ const botonesPagoOrdenados = computed(() => {
 });
 
 const entidadesParaSelect = computed(() => {
-  return ordenarUltimosRegistros(props.entidades || []).map((entidad) => {
+  const ordenadas = ordenarUltimosRegistros(props.entidades || []);
+  const conPrincipalPrimero = [...ordenadas].sort((a, b) => {
+    const aPrincipal = a?.entidad_principal ? 1 : 0;
+    const bPrincipal = b?.entidad_principal ? 1 : 0;
+    return bPrincipal - aPrincipal;
+  });
+  return conPrincipalPrimero.map((entidad) => {
     const nombre = String(entidad?.nombre || '');
     const nombreCorto = nombre.length > 36 ? `${nombre.slice(0, 36)}...` : nombre;
     return {

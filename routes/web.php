@@ -75,6 +75,7 @@ use App\Http\Controllers\VentasLibrosController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\ThemePreferenceController;
 use App\Http\Controllers\FrasesDeDharmaController;
+use App\Http\Controllers\AreaEstudioController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -185,6 +186,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::get('/mi-camino-budista', fn () => inertia('MiCaminoBudista/Index'))
         ->name('camino-budista.index');
+
+    Route::get('/area-estudio', [AreaEstudioController::class, 'index'])
+        ->name('area-estudio.index');
 
     Route::put('/user/theme-preference', [ThemePreferenceController::class, 'update'])
         ->name('user.theme-preference.update');
@@ -483,7 +487,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::delete('/esquema-descuentos/membresias/{membershipLineId}', [EsquemaDescuentosController::class, 'destroyMembresia'])
     ->name('esquemadescuentos.destroyMembresia');
 
-    Route::resource('/precio-grupos', PrecioGruposController::class)->except(['show', 'update']);
+    Route::resource('/precio-grupos', PrecioGruposController::class)->except(['show']);
     Route::post('/precio-grupos/{id}/membresias', [PrecioGruposController::class, 'storeMembresia'])
         ->name('precio-grupos.storeMembresia');
     Route::put('/precio-grupos/membresias/{lineaId}', [PrecioGruposController::class, 'updateMembresia'])

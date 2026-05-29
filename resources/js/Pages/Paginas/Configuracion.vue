@@ -32,6 +32,10 @@ const props = defineProps({
         type: String,
         default: 'grid1',
     },
+    optimizar_imagenes_webp: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const form = useForm({
@@ -42,6 +46,7 @@ const form = useForm({
     envio_mail_semanal_inscripciones_hora: props.envio_mail_semanal_inscripciones_hora,
     envio_mail_semanal_inscripciones_destinatario: props.envio_mail_semanal_inscripciones_destinatario,
     grid_actividades_variante: props.grid_actividades_variante,
+    optimizar_imagenes_webp: props.optimizar_imagenes_webp,
 });
 
 const guardarConfiguracion = () => {
@@ -107,6 +112,16 @@ const guardarConfiguracion = () => {
                             <p v-if="form.errors.grid_actividades_variante" class="text-sm text-red-600">
                                 {{ form.errors.grid_actividades_variante }}
                             </p>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-4 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Optimizar imágenes a WebP automáticamente</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Al subir una imagen (JPG, PNG, GIF) se convierte automáticamente a WebP con calidad 85 antes de guardarla. PDFs y otros archivos pasan sin tocar. Reduce el peso ~70% sin pérdida visual.
+                                </p>
+                            </div>
+                            <InputSwitch v-model="form.optimizar_imagenes_webp" />
                         </div>
 
                         <div class="flex items-center justify-between gap-4 border border-gray-200 dark:border-gray-700 rounded-lg p-4">

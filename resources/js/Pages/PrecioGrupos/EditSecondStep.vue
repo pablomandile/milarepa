@@ -82,6 +82,38 @@ function getMembresiaLabel(membresiaId) {
     const found = props.membresias.find(m => m.id === membresiaId);
     return found ? found.label : '—';
 }
+
+const editandoNombre = ref(false);
+const nombreEditado = ref(props.precioGrupo.nombre);
+const guardandoNombre = ref(false);
+
+function iniciarEdicionNombre() {
+    nombreEditado.value = props.precioGrupo.nombre;
+    editandoNombre.value = true;
+}
+
+function cancelarEdicionNombre() {
+    editandoNombre.value = false;
+}
+
+function guardarNombre() {
+    const nuevo = (nombreEditado.value || '').trim();
+    if (!nuevo) return;
+    if (nuevo === props.precioGrupo.nombre) {
+        editandoNombre.value = false;
+        return;
+    }
+    guardandoNombre.value = true;
+    router.put(route('precio-grupos.update', props.precioGrupo.id), { nombre: nuevo }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            editandoNombre.value = false;
+        },
+        onFinish: () => {
+            guardandoNombre.value = false;
+        },
+    });
+}
 </script>
 
 <template>
@@ -102,9 +134,47 @@ function getMembresiaLabel(membresiaId) {
                     </Link>
                 </div>
 
-                <h2 class="text-2xl font-bold mb-1 text-gray-900 dark:text-gray-100">
-                    {{ precioGrupo.nombre }}
-                </h2>
+                <div class="flex items-center gap-2 mb-1">
+                    <template v-if="!editandoNombre">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ precioGrupo.nombre }}</h2>
+                        <button
+                            type="button"
+                            @click="iniciarEdicionNombre"
+                            v-tooltip="'Editar nombre'"
+                            class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        >
+                            <i class="fas fa-pen-to-square text-lg"></i>
+                        </button>
+                    </template>
+                    <template v-else>
+                        <input
+                            v-model="nombreEditado"
+                            type="text"
+                            maxlength="100"
+                            class="text-2xl font-bold border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            @keydown.enter="guardarNombre"
+                            @keydown.escape="cancelarEdicionNombre"
+                        />
+                        <button
+                            type="button"
+                            @click="guardarNombre"
+                            :disabled="guardandoNombre"
+                            v-tooltip="'Guardar'"
+                            class="text-green-600 hover:text-green-700 disabled:opacity-50"
+                        >
+                            <i class="fas fa-check text-lg"></i>
+                        </button>
+                        <button
+                            type="button"
+                            @click="cancelarEdicionNombre"
+                            :disabled="guardandoNombre"
+                            v-tooltip="'Cancelar'"
+                            class="text-red-600 hover:text-red-700 disabled:opacity-50"
+                        >
+                            <i class="fas fa-times text-lg"></i>
+                        </button>
+                    </template>
+                </div>
                 <p v-if="precioGrupo.fecha_desde" class="text-sm text-gray-600 dark:text-gray-400 mb-4">
                     Vigencia desde: {{ formatFecha(precioGrupo.fecha_desde) }}
                 </p>

@@ -11,6 +11,10 @@
     import Swal from "sweetalert2";
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
+    import InputText from 'primevue/inputtext';
+    import IconField from 'primevue/iconfield';
+    import InputIcon from 'primevue/inputicon';
+    import { FilterMatchMode } from 'primevue/api';
     
     const props = defineProps({
         esquemaprecios: {
@@ -41,6 +45,10 @@
 
     // Controla qué filas de la tabla principal están expandidas
     const expandedRows = ref([]);
+
+    const filters = ref({
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    });
 
     const deleteEsquemaPrecio = (id) => {
     Swal.fire({
@@ -84,18 +92,30 @@
                         </Link>
                     </div>
                     <div class="mt-4">
-                        <DataTable 
-                        :value="esquemasOrdenados" 
-                        stripedRows 
-                        paginator 
-                        :rows="10" 
+                        <DataTable
+                        :value="esquemasOrdenados"
+                        v-model:filters="filters"
+                        :globalFilterFields="['nombre']"
+                        stripedRows
+                        paginator
+                        :rows="10"
                         v-model:expandedRows="expandedRows"
                         dataKey="id"
-                        :rowsPerPageOptions="[5, 10, 20, 50]" 
+                        :rowsPerPageOptions="[5, 10, 20, 50]"
                         tableStyle="min-width: 50rem"
                         >
+                            <template #header>
+                                <div class="flex justify-end">
+                                    <IconField iconPosition="right">
+                                        <InputIcon>
+                                            <i class="pi pi-search" />
+                                        </InputIcon>
+                                        <InputText v-model="filters['global'].value" placeholder="Buscar..." />
+                                    </IconField>
+                                </div>
+                            </template>
                             <Column expander style="width: 5rem" />
-                            <Column field="nombre" header="Nombre"></Column>
+                            <Column field="nombre" header="Nombre" sortable></Column>
                             <Column header="Acciones" class="flex justify-center space-x-2">
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
