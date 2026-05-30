@@ -17,8 +17,188 @@
 
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <!-- Tabla de Usuarios -->
-                        <div v-if="usuarios.length > 0" class="overflow-x-auto">
+                        <!-- Filtros móvil -->
+                        <div v-if="usuarios.length > 0" class="sm:hidden mb-4 space-y-2">
+                            <div class="flex items-center gap-2">
+                                <Button
+                                    type="button"
+                                    icon="pi pi-filter-slash"
+                                    label="Limpiar"
+                                    outlined
+                                    @click="clearFilters()"
+                                />
+                                <select
+                                    v-model="filtroMembresia"
+                                    class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                >
+                                    <option value="con_membresia">Con membresia</option>
+                                    <option value="suscripcion">Solo suscripción</option>
+                                    <option value="todos">Mostrar todos</option>
+                                </select>
+                            </div>
+                            <IconField iconPosition="right" class="w-full">
+                                <InputIcon>
+                                    <i class="pi pi-search" />
+                                </InputIcon>
+                                <InputText
+                                    v-model="filters['global'].value"
+                                    placeholder="Buscar..."
+                                    class="w-full"
+                                />
+                            </IconField>
+                        </div>
+
+                        <!-- Tarjetas móvil -->
+                        <div v-if="usuariosFiltradosMobile.length > 0" class="space-y-4 sm:hidden">
+                            <div
+                                v-for="usuario in usuariosFiltradosMobile"
+                                :key="usuario.id"
+                                class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+                            >
+                                <div class="space-y-3 p-4">
+                                    <div class="space-y-1">
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100">{{ usuario.name }}</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ usuario.email }}</p>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <span class="text-sm text-gray-500">Membresía</span>
+                                            <div class="text-right">
+                                                <select
+                                                    v-if="editandoUserId === usuario.id"
+                                                    v-model="editForm.membresia_id"
+                                                    class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-900"
+                                                >
+                                                    <option v-for="m in membresias" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+                                                </select>
+                                                <span v-else-if="tieneMembresiaReal(usuario)" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                                    <i class="fas fa-crown mr-1"></i>
+                                                    {{ usuario.membresia.nombre }}
+                                                </span>
+                                                <span v-else class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400">
+                                                    Sin membresía
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center justify-between gap-3 text-sm">
+                                            <span class="text-gray-500">Inscripción</span>
+                                            <span>
+                                                <input
+                                                    v-if="editandoUserId === usuario.id"
+                                                    type="date"
+                                                    v-model="editForm.membresia_inscripcion_fecha"
+                                                    class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-900"
+                                                />
+                                                <span v-else-if="tieneMembresiaReal(usuario) && fechaInscripcion(usuario)">
+                                                    {{ formatearFecha(fechaInscripcion(usuario)) }}
+                                                </span>
+                                                <span v-else class="text-gray-500">-</span>
+                                            </span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between gap-3 text-sm">
+                                            <span class="text-gray-500">Modalidad</span>
+                                            <span>
+                                                <select
+                                                    v-if="editandoUserId === usuario.id"
+                                                    v-model="editForm.membresia_online"
+                                                    class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-900"
+                                                >
+                                                    <option :value="false">Presencial</option>
+                                                    <option :value="true">Online</option>
+                                                </select>
+                                                <span v-else-if="tieneMembresiaReal(usuario)">
+                                                    {{ modalidadTexto(usuario) }}
+                                                </span>
+                                                <span v-else class="text-gray-500">-</span>
+                                            </span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between gap-3 text-sm">
+                                            <span class="text-gray-500">Suscripción</span>
+                                            <span>
+                                                <input
+                                                    v-if="editandoUserId === usuario.id"
+                                                    type="checkbox"
+                                                    v-model="editForm.suscripcion"
+                                                    class="h-5 w-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                                />
+                                                <i
+                                                    v-else-if="tieneMembresiaReal(usuario) && usuario.membresia_usuario?.suscripcion"
+                                                    class="fas fa-check text-emerald-600 text-lg"
+                                                    v-tooltip="'Suscrito'"
+                                                ></i>
+                                                <span v-else class="text-gray-500">-</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                    <div class="flex flex-wrap items-center justify-center gap-2">
+                                        <template v-if="editandoUserId === usuario.id">
+                                            <button
+                                                type="button"
+                                                @click="guardarEdicion(usuario)"
+                                                :disabled="guardando"
+                                                class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-emerald-500 text-white px-3 text-xs font-semibold hover:bg-emerald-600 disabled:opacity-50 transition"
+                                                title="Guardar" aria-label="Guardar"
+                                            >
+                                                <i class="fas fa-check"></i>
+                                                <span>Guardar</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                @click="cancelarEdicion"
+                                                :disabled="guardando"
+                                                class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-gray-400 text-white px-3 text-xs font-semibold hover:bg-gray-500 transition"
+                                                title="Cancelar" aria-label="Cancelar"
+                                            >
+                                                <i class="fas fa-times"></i>
+                                                <span>Cancelar</span>
+                                            </button>
+                                        </template>
+                                        <template v-else>
+                                            <button
+                                                v-if="tieneMembresiaReal(usuario)"
+                                                @click="iniciarEdicion(usuario)"
+                                                class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-500 text-white px-3 text-xs font-semibold hover:bg-indigo-600 transition"
+                                                title="Editar membresía" aria-label="Editar membresía"
+                                            >
+                                                <i class="fas fa-pen-to-square"></i>
+                                                <span>Editar</span>
+                                            </button>
+                                            <button
+                                                v-else
+                                                @click="abrirModalAsignar(usuario)"
+                                                class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-green-500 text-white px-3 text-xs font-semibold hover:bg-green-600 transition"
+                                                title="Asignar membresía" aria-label="Asignar membresía"
+                                            >
+                                                <i class="fas fa-plus-circle"></i>
+                                                <span>Asignar</span>
+                                            </button>
+                                            <button
+                                                v-if="tieneMembresiaReal(usuario)"
+                                                @click="eliminarMembresia(usuario)"
+                                                class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-500 text-white px-3 text-xs font-semibold hover:bg-red-600 transition"
+                                                title="Eliminar membresía" aria-label="Eliminar membresía"
+                                            >
+                                                <i class="fas fa-trash"></i>
+                                                <span>Eliminar</span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else-if="usuarios.length > 0" class="sm:hidden text-center py-8 text-gray-500 dark:text-gray-400">
+                            No hay resultados con los filtros actuales
+                        </div>
+
+                        <!-- Tabla de Usuarios (desktop) -->
+                        <div v-if="usuarios.length > 0" class="hidden sm:block overflow-x-auto">
                             <DataTable
                                 v-model:filters="filters"
                                 :value="usuariosFiltrados"
@@ -31,7 +211,7 @@
                                 tableStyle="min-width: 50rem"
                             >
                                 <template #header>
-                                    <div class="flex justify-between items-center">
+                                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                                         <div class="flex items-center gap-2">
                                             <Button
                                                 type="button"
@@ -48,13 +228,14 @@
                                                 <option value="todos">Mostrar todos</option>
                                             </select>
                                         </div>
-                                        <IconField iconPosition="right">
+                                        <IconField iconPosition="right" class="w-full sm:w-auto">
                                             <InputIcon>
                                                 <i class="pi pi-search" />
                                             </InputIcon>
                                             <InputText
                                                 v-model="filters['global'].value"
                                                 placeholder="Buscar..."
+                                                class="w-full sm:w-auto"
                                             />
                                         </IconField>
                                     </div>
@@ -327,9 +508,33 @@ const usuariosFiltrados = computed(() => {
         return usuariosConMembresia.value;
     }
 
+    if (filtroMembresia.value === 'suscripcion') {
+        return usuariosConMembresia.value.filter((usuario) =>
+            usuario.membresia
+            && Number(usuario.membresia.id) !== 1
+            && usuario.membresia_usuario?.suscripcion
+        );
+    }
+
     return usuariosConMembresia.value.filter((usuario) =>
         usuario.membresia && Number(usuario.membresia.id) !== 1
     );
+});
+
+const usuariosFiltradosMobile = computed(() => {
+    const term = (filters.value.global.value || '').toString().trim().toLowerCase();
+    const lista = usuariosFiltrados.value;
+    if (!term) return lista;
+    return lista.filter((usuario) => {
+        const campos = [
+            usuario.name,
+            usuario.email,
+            usuario.membresia_nombre,
+            usuario.modalidad_texto,
+            usuario.membresia_inscripcion_fecha,
+        ];
+        return campos.some((valor) => String(valor ?? '').toLowerCase().includes(term));
+    });
 });
 
 const filters = ref({

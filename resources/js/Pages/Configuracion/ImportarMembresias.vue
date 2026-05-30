@@ -313,6 +313,16 @@ function etiquetaAccion(fila) {
                                 <span v-if="data.datos">{{ data.datos.online ? 'Sí' : 'No' }}</span>
                             </template>
                         </Column>
+                        <Column header="Suscripción" style="width: 6rem">
+                            <template #body="{ data }">
+                                <i
+                                    v-if="data.datos?.suscripcion"
+                                    class="fas fa-check text-emerald-600"
+                                    v-tooltip="'Marcar como suscripción'"
+                                ></i>
+                                <span v-else class="text-gray-300">—</span>
+                            </template>
+                        </Column>
                         <Column header="Avisos">
                             <template #body="{ data }">
                                 <ul v-if="data.mensajes && data.mensajes.length" class="list-disc list-inside text-xs text-amber-700 dark:text-amber-400">
@@ -422,8 +432,11 @@ function etiquetaAccion(fila) {
                                 </tr>
                                 <tr class="border-b border-gray-100 dark:border-gray-800">
                                     <td class="px-3 py-2 font-mono text-xs">ONLINE</td>
-                                    <td class="px-3 py-2"><code>SI</code> / <code>NO</code> (el asterisco <code>SI*</code> o <code>NO*</code> se ignora)</td>
-                                    <td class="px-3 py-2"><code>membresia_usuario.membresia_online</code> (booleano)</td>
+                                    <td class="px-3 py-2">
+                                        <code>SI</code> / <code>NO</code> → <code>membresia_online</code>.<br />
+                                        Si el valor termina con asterisco (<code>SI*</code> o <code>NO*</code>), además marca la membresía como <strong>suscripción</strong>.
+                                    </td>
+                                    <td class="px-3 py-2"><code>membresia_usuario.membresia_online</code> (bool) + <code>membresia_usuario.suscripcion</code> (bool, según asterisco)</td>
                                 </tr>
                                 <tr class="border-b border-gray-100 dark:border-gray-800">
                                     <td class="px-3 py-2 font-mono text-xs">Mail</td>

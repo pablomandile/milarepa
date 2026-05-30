@@ -106,13 +106,13 @@ onMounted(() => {
 
 <template>
     <div class="flex-grow flex flex-col justify-between min-h-[calc(100vh-4rem)]">
-      <div class="flex flex-col items-center mt-10">
-          <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
+      <div class="flex flex-col items-center mt-10 px-4">
+          <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight text-center">
             SISTEMA DE INSCRIPCIONES
           </h1>
-   
-      
-          <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
+
+
+          <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight text-center">
             {{ $page.props.entidad_principal?.nombre }}
 
           </h1>

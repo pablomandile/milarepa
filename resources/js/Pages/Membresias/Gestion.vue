@@ -115,6 +115,18 @@
     };
 
     const expandedRows = ref({});
+    const expandedCardIds = ref([]);
+
+    const isCardExpanded = (id) => expandedCardIds.value.includes(id);
+
+    const toggleCardExpanded = (id) => {
+        const idx = expandedCardIds.value.indexOf(id);
+        if (idx === -1) {
+            expandedCardIds.value.push(id);
+        } else {
+            expandedCardIds.value.splice(idx, 1);
+        }
+    };
 
 </script>
 
@@ -165,7 +177,95 @@
                             Se actualiza el valor de cada membresía con el precio del grupo seleccionado.
                         </p>
                     </div>
-                    <div class="mt-4">
+                    <!-- Tarjetas móvil -->
+                    <div v-if="membresias.length > 0" class="space-y-4 sm:hidden mt-4">
+                        <div
+                            v-for="membresia in membresias"
+                            :key="membresia.id"
+                            class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+                        >
+                            <div class="space-y-3 p-4">
+                                <div class="flex items-center gap-3">
+                                    <img
+                                        v-if="imagenMembresiaSrc(membresia)"
+                                        :src="imagenMembresiaSrc(membresia)"
+                                        :alt="`Imagen de ${membresia.nombre}`"
+                                        class="h-14 w-20 object-contain rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex-shrink-0"
+                                    />
+                                    <div v-else class="h-14 w-20 rounded bg-gray-100 dark:bg-gray-900 flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-id-card text-2xl text-gray-400"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100 break-words">{{ membresia.nombre }}</p>
+                                        <p v-if="membresia.abreviacion" class="mt-1 inline-block px-2 py-0.5 text-xs font-mono font-semibold text-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded">
+                                            {{ membresia.abreviacion }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex items-start justify-between gap-3 text-sm">
+                                        <span class="text-gray-500 flex-shrink-0">Descripción</span>
+                                        <span class="text-right">{{ membresia.descripcion || '-' }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Entidad</span>
+                                        <span class="text-right">{{ membresia.entidad?.nombre || '-' }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Botón de Pago</span>
+                                        <span class="text-right">{{ membresia.boton_pago?.nombre || 'Sin botón' }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Valor</span>
+                                        <span class="text-right font-semibold">{{ formatArs(membresia.valor) }}</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                    @click="toggleCardExpanded(membresia.id)"
+                                >
+                                    <span>{{ isCardExpanded(membresia.id) ? 'Ocultar info' : 'Ver más detalles' }}</span>
+                                    <i class="pi" :class="isCardExpanded(membresia.id) ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+                                </button>
+
+                                <div v-if="isCardExpanded(membresia.id)" class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Info</p>
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                                        {{ membresia.info || 'Sin info cargada.' }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                <div class="flex flex-wrap items-center justify-center gap-2">
+                                    <Link
+                                        v-if="$page.props.user.permissions.includes('update membresias')"
+                                        :href="route('membresias.edit', parseInt(membresia.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-500 text-white px-3 text-xs font-semibold hover:bg-indigo-600 transition"
+                                        title="Editar membresía"
+                                    >
+                                        <i class="fas fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </Link>
+                                    <button
+                                        v-if="$page.props.user.permissions.includes('delete membresias')"
+                                        @click="deleteMembresia(parseInt(membresia.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-500 text-white px-3 text-xs font-semibold hover:bg-red-600 transition"
+                                        title="Borrar membresía"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                        <span>Borrar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla desktop -->
+                    <div class="mt-4 hidden sm:block">
                         <DataTable
                             v-model:expandedRows="expandedRows"
                             :value="membresias"

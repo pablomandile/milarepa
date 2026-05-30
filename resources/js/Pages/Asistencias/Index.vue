@@ -5,17 +5,41 @@ export default {
 </script>
 
 <script setup>
-import { onBeforeUnmount, ref } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import { FilterMatchMode } from 'primevue/api';
 
-defineProps({
+const props = defineProps({
     asistencias: {
         type: Array,
         required: true,
     },
+});
+
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+});
+
+const asistenciasFiltradasMobile = computed(() => {
+    const term = (filters.value.global.value || '').toString().trim().toLowerCase();
+    if (!term) return props.asistencias;
+    return props.asistencias.filter((a) => {
+        const campos = [
+            a.usuario?.name,
+            a.inscripcion?.actividad?.nombre,
+            a.inscripcion_clase?.clase?.nombre,
+            a.asistencia,
+            String(a.id ?? ''),
+            String(a.inscripcion_id ?? ''),
+        ];
+        return campos.some((v) => String(v ?? '').toLowerCase().includes(term));
+    });
 });
 
 const getEstadoClass = (estado) => {
@@ -212,14 +236,81 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
 
+                    <!-- Buscador móvil -->
+                    <div v-if="asistencias.length > 0" class="sm:hidden mb-4">
+                        <IconField iconPosition="right" class="w-full">
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Buscar..." class="w-full" />
+                        </IconField>
+                    </div>
+
+                    <!-- Tarjetas móvil -->
+                    <div v-if="asistenciasFiltradasMobile.length > 0" class="space-y-4 sm:hidden">
+                        <div
+                            v-for="asistencia in asistenciasFiltradasMobile"
+                            :key="asistencia.id"
+                            class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+                        >
+                            <div class="space-y-3 p-4">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-clipboard-check text-2xl text-indigo-600 mt-1"></i>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100 break-words">{{ asistencia.usuario?.name || '-' }}</p>
+                                        <p v-if="asistencia.inscripcion?.actividad?.nombre" class="text-sm text-gray-600 dark:text-gray-400">{{ asistencia.inscripcion.actividad.nombre }}</p>
+                                    </div>
+                                    <span
+                                        class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold flex-shrink-0"
+                                        :class="getEstadoClass(asistencia.asistencia)"
+                                    >
+                                        {{ asistencia.asistencia }}
+                                    </span>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Clase</span>
+                                        <span class="text-right">{{ asistencia.inscripcion_clase?.clase?.nombre || '-' }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Inscripción #</span>
+                                        <span class="text-right">{{ asistencia.inscripcion_id || '-' }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Fecha</span>
+                                        <span class="text-right">{{ new Date(asistencia.created_at).toLocaleDateString('es-AR') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="asistencias.length > 0" class="sm:hidden text-center py-8 text-gray-500 dark:text-gray-400">
+                        No hay resultados con los filtros actuales
+                    </div>
+
+                    <!-- Tabla desktop -->
                     <DataTable
                         :value="asistencias"
+                        v-model:filters="filters"
+                        :globalFilterFields="['usuario.name', 'inscripcion.actividad.nombre', 'inscripcion_clase.clase.nombre', 'asistencia']"
                         stripedRows
                         paginator
                         :rows="10"
                         :rowsPerPageOptions="[10, 20, 50]"
                         tableStyle="min-width: 60rem"
+                        class="hidden sm:block"
                     >
+                        <template #header>
+                            <div class="flex justify-end">
+                                <IconField iconPosition="right">
+                                    <InputIcon>
+                                        <i class="pi pi-search" />
+                                    </InputIcon>
+                                    <InputText v-model="filters['global'].value" placeholder="Buscar..." />
+                                </IconField>
+                            </div>
+                        </template>
                         <Column field="id" header="#" style="width: 80px" />
 
                         <Column field="inscripcion_id" header="Inscripción" />

@@ -14,9 +14,9 @@
     import IconField from 'primevue/iconfield';
     import InputIcon from 'primevue/inputicon';
     import { FilterMatchMode } from 'primevue/api';
-    import { ref } from 'vue';
+    import { computed, ref } from 'vue';
 
-    defineProps({
+    const props = defineProps({
         coordinadores: {
             type: Array,
             required: true
@@ -25,6 +25,15 @@
 
     const filters = ref({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    });
+
+    const coordinadoresFiltradosMobile = computed(() => {
+        const term = (filters.value.global.value || '').toString().trim().toLowerCase();
+        if (!term) return props.coordinadores;
+        return props.coordinadores.filter((c) => {
+            const campos = [c.nombre, c.telefono, c.email];
+            return campos.some((v) => String(v ?? '').toLowerCase().includes(term));
+        });
     });
 
     const deleteCoordinador = (id) => {
@@ -68,7 +77,81 @@
                             NUEV@ COORDINADOR/A
                         </Link>
                     </div>
-                    <div class="mt-4">
+                    <!-- Buscador móvil -->
+                    <div v-if="coordinadores.length > 0" class="sm:hidden mt-4">
+                        <IconField iconPosition="right" class="w-full">
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Buscar..." class="w-full" />
+                        </IconField>
+                    </div>
+
+                    <!-- Tarjetas móvil -->
+                    <div v-if="coordinadoresFiltradosMobile.length > 0" class="space-y-4 sm:hidden mt-4">
+                        <div
+                            v-for="coordinador in coordinadoresFiltradosMobile"
+                            :key="coordinador.id"
+                            class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+                        >
+                            <div class="space-y-3 p-4">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-user-tie text-2xl text-indigo-600"></i>
+                                    <p class="text-base font-semibold text-gray-800 dark:text-gray-100">{{ coordinador.nombre }}</p>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Teléfono</span>
+                                        <span class="text-right">
+                                            <a v-if="coordinador.telefono" :href="`tel:${coordinador.telefono}`" class="text-indigo-600 hover:text-indigo-800">
+                                                {{ coordinador.telefono }}
+                                            </a>
+                                            <span v-else>-</span>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Email</span>
+                                        <span class="text-right break-all">
+                                            <a v-if="coordinador.email" :href="`mailto:${coordinador.email}`" class="text-indigo-600 hover:text-indigo-800">
+                                                {{ coordinador.email }}
+                                            </a>
+                                            <span v-else>-</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                <div class="flex flex-wrap items-center justify-center gap-2">
+                                    <Link
+                                        v-if="$page.props.user.permissions.includes('update coordinadores')"
+                                        :href="route('coordinadores.edit', parseInt(coordinador.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-500 text-white px-3 text-xs font-semibold hover:bg-indigo-600 transition"
+                                        title="Editar coordinador"
+                                    >
+                                        <i class="fas fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </Link>
+                                    <button
+                                        v-if="$page.props.user.permissions.includes('delete coordinadores')"
+                                        @click="deleteCoordinador(parseInt(coordinador.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-500 text-white px-3 text-xs font-semibold hover:bg-red-600 transition"
+                                        title="Borrar coordinador"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                        <span>Borrar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="coordinadores.length > 0" class="sm:hidden mt-4 text-center py-8 text-gray-500 dark:text-gray-400">
+                        No hay resultados con los filtros actuales
+                    </div>
+
+                    <!-- Tabla desktop -->
+                    <div class="mt-4 hidden sm:block">
                         <DataTable
                             :value="coordinadores"
                             v-model:filters="filters"

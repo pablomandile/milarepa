@@ -631,52 +631,57 @@ watch(
           <InputError :message="$page.props.errors.coordinadores_ids" class="mt-2" />
         </div>
 
-        <!-- Fecha Inicio -->
-        <div class="col-span-6 sm:col-span-2">
-          <InputLabel
-            for="fecha_inicio"
-            class="text-indigo-400"
-            value="Fecha Inicio"
-            :required="true"
-          />
-          <Calendar
-            id="fecha_inicio"
-            v-model="form.fecha_inicio"
-            dateFormat="dd/mm/yy"
-            :showIcon="true"
-            showTime
-            hourFormat="24"
-            :stepMinute="1"
-            class="w-full mt-1"
-            icon="pi pi-calendar text-indigo-500 text-xl"
-            inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
-            appendTo="body"
-            @update:modelValue="form.fecha_inicio = $event"
-          />
-          <InputError :message="$page.props.errors.fecha_inicio" class="mt-2" />
-        </div>
+        <!-- Fechas (Inicio + Fin) -->
+        <div class="col-span-6 md:col-span-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Fecha Inicio -->
+            <div>
+              <InputLabel
+                for="fecha_inicio"
+                class="text-indigo-400"
+                value="Fecha Inicio"
+                :required="true"
+              />
+              <Calendar
+                id="fecha_inicio"
+                v-model="form.fecha_inicio"
+                dateFormat="dd/mm/yy"
+                showTime
+                :showIcon="true"
+                hourFormat="24"
+                class="w-full mt-1"
+                icon="pi pi-calendar text-indigo-500 text-xl"
+                inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300 w-full"
+                inputStyle="width: 100%"
+                appendTo="body"
+              />
+              <InputError :message="$page.props.errors.fecha_inicio" class="mt-2" />
+            </div>
 
-        <!-- Fecha Fin -->
-        <div class="col-span-6 sm:col-span-2">
-          <InputLabel
-            for="fecha_fin"
-            class="text-indigo-400"
-            value="Fecha Fin"
-            :required="true"
-          />
-          <Calendar
-            id="fecha_fin"
-            v-model="form.fecha_fin"
-            dateFormat="dd/mm/yy"
-            showTime  
-            :showIcon="true"
-            hourFormat="24"
-            class="w-full mt-1"
-            icon="pi pi-calendar text-indigo-500 text-xl"
-            inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300"
-            appendTo="body"
-          />
-          <InputError :message="$page.props.errors.fecha_fin" class="mt-2" />
+            <!-- Fecha Fin -->
+            <div>
+              <InputLabel
+                for="fecha_fin"
+                class="text-indigo-400"
+                value="Fecha Fin"
+                :required="true"
+              />
+              <Calendar
+                id="fecha_fin"
+                v-model="form.fecha_fin"
+                dateFormat="dd/mm/yy"
+                showTime
+                :showIcon="true"
+                hourFormat="24"
+                class="w-full mt-1"
+                icon="pi pi-calendar text-indigo-500 text-xl"
+                inputClass="rounded-md border border-gray-300 focus:border-indigo-300 focus:ring-indigo-300 w-full"
+                inputStyle="width: 100%"
+                appendTo="body"
+              />
+              <InputError :message="$page.props.errors.fecha_fin" class="mt-2" />
+            </div>
+          </div>
         </div>
 
         <!-- Entidad (Dropdown) -->

@@ -7,17 +7,34 @@ export default {
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import Swal from 'sweetalert2';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import { FilterMatchMode } from 'primevue/api';
 
-defineProps({
+const props = defineProps({
     programaEstudios: {
         type: Array,
         required: true,
     },
+});
+
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+});
+
+const programaEstudiosFiltradosMobile = computed(() => {
+    const term = (filters.value.global.value || '').toString().trim().toLowerCase();
+    if (!term) return props.programaEstudios;
+    return props.programaEstudios.filter((p) => {
+        const campos = [p.nombre, p.abreviacion, p.descripcion];
+        return campos.some((v) => String(v ?? '').toLowerCase().includes(term));
+    });
 });
 
 const dialogVisible = ref(false);
@@ -96,15 +113,98 @@ const deleteProgramaEstudio = (id) => {
                             GRABACIONES
                         </Link>
                     </div>
-                    <div class="mt-4">
+                    <!-- Buscador móvil -->
+                    <div v-if="programaEstudios.length > 0" class="sm:hidden mt-4">
+                        <IconField iconPosition="right" class="w-full">
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Buscar..." class="w-full" />
+                        </IconField>
+                    </div>
+
+                    <!-- Tarjetas móvil -->
+                    <div v-if="programaEstudiosFiltradosMobile.length > 0" class="space-y-4 sm:hidden mt-4">
+                        <div
+                            v-for="programa in programaEstudiosFiltradosMobile"
+                            :key="programa.id"
+                            class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+                        >
+                            <div class="space-y-3 p-4">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-graduation-cap text-2xl text-indigo-600 mt-1"></i>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100 break-words">{{ programa.nombre }}</p>
+                                        <p v-if="programa.abreviacion" class="mt-1">
+                                            <span class="inline-block px-2 py-0.5 text-xs font-mono font-semibold text-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded">
+                                                {{ programa.abreviacion }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <p v-if="programa.descripcion" class="text-sm text-gray-700 dark:text-gray-300 line-clamp-3">
+                                    {{ programa.descripcion }}
+                                </p>
+                            </div>
+
+                            <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                <div class="flex flex-wrap items-center justify-center gap-2">
+                                    <button
+                                        @click="verDetalle(programa)"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-100 text-indigo-700 px-3 text-xs font-semibold hover:bg-indigo-200 transition"
+                                        title="Ver detalle"
+                                    >
+                                        <i class="fas fa-eye"></i>
+                                        <span>Ver detalle</span>
+                                    </button>
+                                    <Link
+                                        v-if="$page.props.user.permissions.includes('update programa-estudios')"
+                                        :href="route('programa-estudios.edit', parseInt(programa.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-500 text-white px-3 text-xs font-semibold hover:bg-indigo-600 transition"
+                                        title="Editar programa de estudio"
+                                    >
+                                        <i class="fas fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </Link>
+                                    <button
+                                        v-if="$page.props.user.permissions.includes('delete programa-estudios')"
+                                        @click="deleteProgramaEstudio(parseInt(programa.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-500 text-white px-3 text-xs font-semibold hover:bg-red-600 transition"
+                                        title="Borrar programa de estudio"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                        <span>Borrar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="programaEstudios.length > 0" class="sm:hidden mt-4 text-center py-8 text-gray-500 dark:text-gray-400">
+                        No hay resultados con los filtros actuales
+                    </div>
+
+                    <!-- Tabla desktop -->
+                    <div class="mt-4 hidden sm:block">
                         <DataTable
                             :value="programaEstudios"
+                            v-model:filters="filters"
+                            :globalFilterFields="['nombre', 'abreviacion', 'descripcion']"
                             stripedRows
                             paginator
                             :rows="10"
                             :rowsPerPageOptions="[5, 10, 20, 50]"
                             tableStyle="min-width: 50rem"
                         >
+                            <template #header>
+                                <div class="flex justify-end">
+                                    <IconField iconPosition="right">
+                                        <InputIcon>
+                                            <i class="pi pi-search" />
+                                        </InputIcon>
+                                        <InputText v-model="filters['global'].value" placeholder="Buscar..." />
+                                    </IconField>
+                                </div>
+                            </template>
                             <Column field="nombre" header="Nombre"></Column>
                             <Column field="abreviacion" header="Abreviación">
                                 <template #body="slotProps">

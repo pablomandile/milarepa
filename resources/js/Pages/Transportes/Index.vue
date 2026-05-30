@@ -10,21 +10,33 @@
     import Swal from "sweetalert2";
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
-    import { ref } from 'vue';
+    import { computed, ref } from 'vue';
     import { FilterMatchMode } from 'primevue/api';
     import IconField from 'primevue/iconfield';
     import InputIcon from 'primevue/inputicon';
     import InputText from 'primevue/inputtext';
 
-    const { transportes } = defineProps({
+    const props = defineProps({
         transportes: {
             type: Array,
             required: true
         }
     });
+    const transportes = props.transportes;
 
     const filters = ref({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+    });
+
+    const formatPrice = (valor) => `$ ${parseFloat(valor || 0).toLocaleString('es-AR', { minimumFractionDigits: 0 })}`;
+
+    const transportesFiltradosMobile = computed(() => {
+        const term = (filters.value.global.value || '').toString().trim().toLowerCase();
+        if (!term) return props.transportes;
+        return props.transportes.filter((t) => {
+            const campos = [t.descripcion, t.boton_pago?.nombre];
+            return campos.some((v) => String(v ?? '').toLowerCase().includes(term));
+        });
     });
     
     const deleteTransporte = (id) => {
@@ -68,7 +80,70 @@
                             NUEVO TRANSPORTE
                         </Link>
                     </div>
-                    <div class="mt-4">
+                    <!-- Buscador móvil -->
+                    <div v-if="transportes.length > 0" class="sm:hidden mt-4">
+                        <IconField iconPosition="right" class="w-full">
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Buscar..." class="w-full" />
+                        </IconField>
+                    </div>
+
+                    <!-- Tarjetas móvil -->
+                    <div v-if="transportesFiltradosMobile.length > 0" class="space-y-4 sm:hidden mt-4">
+                        <div
+                            v-for="transporte in transportesFiltradosMobile"
+                            :key="transporte.id"
+                            class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+                        >
+                            <div class="space-y-3 p-4">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-bus text-2xl text-indigo-600 mt-1"></i>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100 break-words">{{ transporte.descripcion || '-' }}</p>
+                                        <p class="text-lg font-bold text-green-700 mt-1">{{ formatPrice(transporte.precio) }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Botón de Pago</span>
+                                        <span class="text-right">{{ transporte.boton_pago?.nombre || 'Sin botón' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                <div class="flex flex-wrap items-center justify-center gap-2">
+                                    <Link
+                                        v-if="$page.props.user.permissions.includes('update transportes')"
+                                        :href="route('transportes.edit', parseInt(transporte.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-500 text-white px-3 text-xs font-semibold hover:bg-indigo-600 transition"
+                                        title="Editar transporte"
+                                    >
+                                        <i class="fas fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </Link>
+                                    <button
+                                        v-if="$page.props.user.permissions.includes('delete transportes')"
+                                        @click="deleteTransporte(parseInt(transporte.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-500 text-white px-3 text-xs font-semibold hover:bg-red-600 transition"
+                                        title="Borrar transporte"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                        <span>Borrar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="transportes.length > 0" class="sm:hidden mt-4 text-center py-8 text-gray-500 dark:text-gray-400">
+                        No hay resultados con los filtros actuales
+                    </div>
+
+                    <!-- Tabla desktop -->
+                    <div class="mt-4 hidden sm:block">
                         <DataTable v-model:filters="filters" :value="transportes" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem"
                         :globalFilterFields="['descripcion']">
                             <template #header>

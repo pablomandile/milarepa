@@ -5,14 +5,18 @@
 </script>
 
 <script setup>
-    import { ref } from 'vue';
+    import { computed, ref } from 'vue';
     import AppLayout from '@/Layouts/AppLayout.vue';
     import { Link, router } from '@inertiajs/vue3';
     import Swal from "sweetalert2";
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
-    
-    defineProps({
+    import InputText from 'primevue/inputtext';
+    import IconField from 'primevue/iconfield';
+    import InputIcon from 'primevue/inputicon';
+    import { FilterMatchMode } from 'primevue/api';
+
+    const props = defineProps({
         streams: {
             type: Array,
             required: true
@@ -21,6 +25,24 @@
 
     // Controla qué filas de la tabla principal están expandidas
     const expandedRows = ref([]);
+    const expandedCardIds = ref([]);
+
+    const isCardExpanded = (id) => expandedCardIds.value.includes(id);
+    const toggleCardExpanded = (id) => {
+        const idx = expandedCardIds.value.indexOf(id);
+        if (idx === -1) expandedCardIds.value.push(id);
+        else expandedCardIds.value.splice(idx, 1);
+    };
+
+    const filters = ref({
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    });
+
+    const streamsFiltradosMobile = computed(() => {
+        const term = (filters.value.global.value || '').toString().trim().toLowerCase();
+        if (!term) return props.streams;
+        return props.streams.filter((s) => String(s.nombre ?? '').toLowerCase().includes(term));
+    });
 
     const deleteStream = (id) => {
     Swal.fire({
@@ -71,17 +93,113 @@
                             NUEVO STREAM
                         </Link>
                     </div>
-                    <div class="mt-4">
-                        <DataTable 
-                            :value="streams" 
-                            stripedRows 
-                            paginator 
-                            :rows="10" 
+                    <!-- Buscador móvil -->
+                    <div v-if="streams.length > 0" class="sm:hidden mt-4">
+                        <IconField iconPosition="right" class="w-full">
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Buscar..." class="w-full" />
+                        </IconField>
+                    </div>
+
+                    <!-- Tarjetas móvil -->
+                    <div v-if="streamsFiltradosMobile.length > 0" class="space-y-4 sm:hidden mt-4">
+                        <div
+                            v-for="stream in streamsFiltradosMobile"
+                            :key="stream.id"
+                            class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+                        >
+                            <div class="space-y-3 p-4">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-broadcast-tower text-2xl text-indigo-600"></i>
+                                    <p class="text-base font-semibold text-gray-800 dark:text-gray-100 flex-1 min-w-0 break-words">{{ stream.nombre }}</p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                    @click="toggleCardExpanded(stream.id)"
+                                >
+                                    <span>{{ isCardExpanded(stream.id) ? 'Ocultar links' : 'Ver links' }} ({{ (stream.links || []).length }})</span>
+                                    <i class="pi" :class="isCardExpanded(stream.id) ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+                                </button>
+
+                                <div v-if="isCardExpanded(stream.id)" class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
+                                    <div v-if="(stream.links || []).length === 0" class="text-sm text-gray-500">Sin links cargados.</div>
+                                    <div v-else class="space-y-2">
+                                        <div v-for="link in stream.links" :key="link.id" class="flex items-center justify-between gap-2 text-sm">
+                                            <div class="flex-1 min-w-0">
+                                                <p class="font-medium text-gray-800 dark:text-gray-100 break-words">{{ link.nombre }}</p>
+                                                <p class="text-xs text-gray-500 break-all">{{ link.link }}</p>
+                                            </div>
+                                            <a
+                                                v-if="resolveLinkUrl(link.link)"
+                                                :href="resolveLinkUrl(link.link)"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="text-indigo-500 flex-shrink-0"
+                                                title="Abrir link"
+                                            >
+                                                <i class="pi pi-link"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                <div class="flex flex-wrap items-center justify-center gap-2">
+                                    <Link
+                                        v-if="$page.props.user.permissions.includes('update streams')"
+                                        :href="route('streams.edit', parseInt(stream.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-500 text-white px-3 text-xs font-semibold hover:bg-indigo-600 transition"
+                                        title="Editar stream"
+                                    >
+                                        <i class="fas fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </Link>
+                                    <button
+                                        v-if="$page.props.user.permissions.includes('delete streams')"
+                                        @click="deleteStream(parseInt(stream.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-500 text-white px-3 text-xs font-semibold hover:bg-red-600 transition"
+                                        title="Borrar stream"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                        <span>Borrar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="streams.length > 0" class="sm:hidden mt-4 text-center py-8 text-gray-500 dark:text-gray-400">
+                        No hay resultados con los filtros actuales
+                    </div>
+
+                    <!-- Tabla desktop -->
+                    <div class="mt-4 hidden sm:block">
+                        <DataTable
+                            :value="streams"
+                            v-model:filters="filters"
+                            :globalFilterFields="['nombre']"
+                            stripedRows
+                            paginator
+                            :rows="10"
                             v-model:expandedRows="expandedRows"
                             dataKey="id"
                             :rowsPerPageOptions="[5, 10, 20, 50]" 
                             tableStyle="min-width: 50rem"
                         >
+                            <template #header>
+                                <div class="flex justify-end">
+                                    <IconField iconPosition="right">
+                                        <InputIcon>
+                                            <i class="pi pi-search" />
+                                        </InputIcon>
+                                        <InputText v-model="filters['global'].value" placeholder="Buscar..." />
+                                    </IconField>
+                                </div>
+                            </template>
                             <Column expander style="width: 5rem" />
                             <Column field="nombre" header="Nombre"></Column>
                             <Column header="Acciones" class="flex justify-center space-x-2">

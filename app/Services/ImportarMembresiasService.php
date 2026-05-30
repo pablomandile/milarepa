@@ -148,6 +148,7 @@ class ImportarMembresiasService
                 if ($info['membresia_id']) {
                     $user->updateMembresiaUsuario([
                         'membresia_id' => $info['membresia_id'],
+                        'suscripcion' => (bool) ($info['suscripcion'] ?? false),
                         'membresia_inscripcion_fecha' => $user->membresia_inscripcion_fecha ?? now()->toDateString(),
                         'membresia_online' => $info['datos']['online'],
                         'membresia_online_motivo' => $user->membresia_online_motivo ?? null,
@@ -231,7 +232,7 @@ class ImportarMembresiasService
         $mail = strtolower(trim((string) ($fila['mail'] ?? '')));
         $tk = strtoupper(trim((string) ($fila['tk'] ?? '')));
         $programa = trim((string) ($fila['programa'] ?? ''));
-        $online = $this->parsearSiNo($fila['online'] ?? '');
+        ['online' => $online, 'suscripcion' => $suscripcion] = $this->parsearOnline($fila['online'] ?? '');
         $newsletter = $this->parsearSiNo($fila['newsletter'] ?? '');
         $telefono = trim((string) ($fila['telefonos'] ?? ''));
         $ciudad = trim((string) ($fila['ciudad'] ?? ''));
@@ -247,6 +248,7 @@ class ImportarMembresiasService
                 'programa_estudio_id' => null,
                 'programa_a_distancia' => false,
                 'password_propuesta' => null,
+                'suscripcion' => false,
             ];
         }
 
@@ -261,6 +263,7 @@ class ImportarMembresiasService
                 'programa_estudio_id' => null,
                 'programa_a_distancia' => false,
                 'password_propuesta' => null,
+                'suscripcion' => false,
             ];
         }
 
@@ -313,6 +316,11 @@ class ImportarMembresiasService
 
         $passwordPropuesta = $this->generarPasswordPropuesta($apellido);
 
+        // Si se marca como suscripción pero no hay membresía válida, advertimos.
+        if ($suscripcion && !$membresiaId) {
+            $mensajes[] = "Se indicó suscripción (asterisco en ONLINE) pero no hay membresía asociada; la suscripción se ignora";
+        }
+
         return [
             'accion' => 'ok',
             'mensajes' => $mensajes,
@@ -321,6 +329,7 @@ class ImportarMembresiasService
             'programa_estudio_id' => $programaEstudioId,
             'programa_a_distancia' => $programaADistancia,
             'password_propuesta' => $passwordPropuesta,
+            'suscripcion' => $suscripcion && $membresiaId,
             'datos' => [
                 'name' => $nombreCompleto,
                 'mail' => $mail,
@@ -330,6 +339,7 @@ class ImportarMembresiasService
                 'tk' => $tk,
                 'online' => $online,
                 'newsletter' => $newsletter,
+                'suscripcion' => $suscripcion && $membresiaId,
             ],
         ];
     }
@@ -342,6 +352,21 @@ class ImportarMembresiasService
         $v = strtoupper(trim((string) $valor));
         $v = rtrim($v, '*');
         return $v === 'SI' || $v === 'SÍ' || $v === 'YES' || $v === 'Y' || $v === '1';
+    }
+
+    /**
+     * Parsea la columna ONLINE. El valor puede venir como "SI", "NO", "SI*" o "NO*".
+     * El asterisco final indica que la membresía debe marcarse como "suscripción".
+     * Devuelve ['online' => bool, 'suscripcion' => bool].
+     */
+    private function parsearOnline(?string $valor): array
+    {
+        $v = strtoupper(trim((string) $valor));
+        $suscripcion = str_ends_with($v, '*');
+        $v = rtrim($v, '*');
+        $v = trim($v);
+        $online = $v === 'SI' || $v === 'SÍ' || $v === 'YES' || $v === 'Y' || $v === '1';
+        return ['online' => $online, 'suscripcion' => $suscripcion];
     }
 
     /**

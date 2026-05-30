@@ -15,9 +15,9 @@
     import IconField from 'primevue/iconfield';
     import InputIcon from 'primevue/inputicon';
     import { FilterMatchMode } from 'primevue/api';
-    import { ref } from 'vue';
+    import { computed, ref } from 'vue';
 
-    defineProps({
+    const props = defineProps({
         maestros: {
             type: Array,
             required: true
@@ -27,9 +27,30 @@
     const imageDialogVisible = ref(false);
     const selectedImageUrl = ref('');
     const expandedRows = ref([]);
+    const expandedCardIds = ref([]);
 
     const filters = ref({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    });
+
+    const isCardExpanded = (id) => expandedCardIds.value.includes(id);
+
+    const toggleCardExpanded = (id) => {
+        const idx = expandedCardIds.value.indexOf(id);
+        if (idx === -1) {
+            expandedCardIds.value.push(id);
+        } else {
+            expandedCardIds.value.splice(idx, 1);
+        }
+    };
+
+    const maestrosFiltradosMobile = computed(() => {
+        const term = (filters.value.global.value || '').toString().trim().toLowerCase();
+        if (!term) return props.maestros;
+        return props.maestros.filter((m) => {
+            const campos = [m.nombre, m.telefono, m.email];
+            return campos.some((v) => String(v ?? '').toLowerCase().includes(term));
+        });
     });
 
     const openImageDialog = (imageUrl) => {
@@ -80,7 +101,111 @@
                             NUEV@ MAESTR@
                         </Link>
                     </div>
-                    <div class="mt-4">
+                    <!-- Buscador móvil -->
+                    <div v-if="maestros.length > 0" class="sm:hidden mt-4">
+                        <IconField iconPosition="right" class="w-full">
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Buscar..." class="w-full" />
+                        </IconField>
+                    </div>
+
+                    <!-- Tarjetas móvil -->
+                    <div v-if="maestrosFiltradosMobile.length > 0" class="space-y-4 sm:hidden mt-4">
+                        <div
+                            v-for="maestro in maestrosFiltradosMobile"
+                            :key="maestro.id"
+                            class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+                        >
+                            <div class="space-y-3 p-4">
+                                <div class="flex items-center gap-3">
+                                    <button
+                                        v-if="maestro.imagen"
+                                        type="button"
+                                        class="relative inline-flex group cursor-zoom-in"
+                                        @click="openImageDialog('/storage/' + maestro.imagen.ruta)"
+                                    >
+                                        <img
+                                            :src="'/storage/' + maestro.imagen.ruta"
+                                            alt="Foto maestro"
+                                            class="h-14 w-14 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                                        />
+                                    </button>
+                                    <div v-else class="h-14 w-14 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+                                        <i class="fas fa-user text-2xl text-gray-400"></i>
+                                    </div>
+                                    <p class="text-base font-semibold text-gray-800 dark:text-gray-100 flex-1 min-w-0 break-words">{{ maestro.nombre }}</p>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Teléfono</span>
+                                        <span class="text-right">
+                                            <a v-if="maestro.telefono" :href="`tel:${maestro.telefono}`" class="text-indigo-600 hover:text-indigo-800">
+                                                {{ maestro.telefono }}
+                                            </a>
+                                            <span v-else>-</span>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Email</span>
+                                        <span class="text-right break-all">
+                                            <a v-if="maestro.email" :href="`mailto:${maestro.email}`" class="text-indigo-600 hover:text-indigo-800">
+                                                {{ maestro.email }}
+                                            </a>
+                                            <span v-else>-</span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                    @click="toggleCardExpanded(maestro.id)"
+                                >
+                                    <span>{{ isCardExpanded(maestro.id) ? 'Ocultar detalles' : 'Ver más detalles' }}</span>
+                                    <i class="pi" :class="isCardExpanded(maestro.id) ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+                                </button>
+
+                                <div v-if="isCardExpanded(maestro.id)" class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Sobre el maestr@</p>
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                                        {{ maestro.sobre_maestro || 'Sin descripción cargada.' }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                <div class="flex flex-wrap items-center justify-center gap-2">
+                                    <Link
+                                        v-if="$page.props.user.permissions.includes('update maestros')"
+                                        :href="route('maestros.edit', parseInt(maestro.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-500 text-white px-3 text-xs font-semibold hover:bg-indigo-600 transition"
+                                        title="Editar maestro"
+                                    >
+                                        <i class="fas fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </Link>
+                                    <button
+                                        v-if="$page.props.user.permissions.includes('delete maestros')"
+                                        @click="deleteMaestro(parseInt(maestro.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-500 text-white px-3 text-xs font-semibold hover:bg-red-600 transition"
+                                        title="Borrar maestro"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                        <span>Borrar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="maestros.length > 0" class="sm:hidden mt-4 text-center py-8 text-gray-500 dark:text-gray-400">
+                        No hay resultados con los filtros actuales
+                    </div>
+
+                    <!-- Tabla desktop -->
+                    <div class="mt-4 hidden sm:block">
                         <DataTable
                             :value="maestros"
                             v-model:filters="filters"

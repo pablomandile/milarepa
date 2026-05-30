@@ -5,15 +5,19 @@
 </script>
 
 <script setup>
-    import { ref } from 'vue';
+    import { computed, ref } from 'vue';
     import AppLayout from '@/Layouts/AppLayout.vue';
     import { Link, router } from '@inertiajs/vue3';
     import Swal from "sweetalert2";
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
     import Dialog from 'primevue/dialog';
-    
-    defineProps({
+    import InputText from 'primevue/inputtext';
+    import IconField from 'primevue/iconfield';
+    import InputIcon from 'primevue/inputicon';
+    import { FilterMatchMode } from 'primevue/api';
+
+    const props = defineProps({
         grabaciones: {
             type: Array,
             required: true
@@ -22,6 +26,29 @@
 
     // Controla quÃ© filas de la tabla principal estÃ¡n expandidas
     const expandedRows = ref([]);
+    const expandedCardIds = ref([]);
+
+    const isCardExpanded = (id) => expandedCardIds.value.includes(id);
+    const toggleCardExpanded = (id) => {
+        const idx = expandedCardIds.value.indexOf(id);
+        if (idx === -1) expandedCardIds.value.push(id);
+        else expandedCardIds.value.splice(idx, 1);
+    };
+
+    const filters = ref({
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    });
+
+    const formatValor = (v) => `$ ${Number(v || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    const grabacionesFiltradasMobile = computed(() => {
+        const term = (filters.value.global.value || '').toString().trim().toLowerCase();
+        if (!term) return props.grabaciones;
+        return props.grabaciones.filter((g) => {
+            const campos = [g.nombre, g.boton_pago?.nombre];
+            return campos.some((v) => String(v ?? '').toLowerCase().includes(term));
+        });
+    });
 
     const deleteGrabacion = (id) => {
     Swal.fire({
@@ -74,17 +101,130 @@
                             NUEVA GRABACIÓN
                         </Link>
                     </div>
-                    <div class="mt-4">
-                        <DataTable 
-                            :value="grabaciones" 
-                            stripedRows 
-                            paginator 
-                            :rows="10" 
+                    <!-- Buscador móvil -->
+                    <div v-if="grabaciones.length > 0" class="sm:hidden mt-4">
+                        <IconField iconPosition="right" class="w-full">
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Buscar..." class="w-full" />
+                        </IconField>
+                    </div>
+
+                    <!-- Tarjetas móvil -->
+                    <div v-if="grabacionesFiltradasMobile.length > 0" class="space-y-4 sm:hidden mt-4">
+                        <div
+                            v-for="grabacion in grabacionesFiltradasMobile"
+                            :key="grabacion.id"
+                            class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+                        >
+                            <div class="space-y-3 p-4">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-microphone text-2xl text-indigo-600 mt-1"></i>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100 break-words">{{ grabacion.nombre }}</p>
+                                        <p class="text-lg font-bold text-green-700 mt-1">{{ formatValor(grabacion.valor) }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Botón de Pago</span>
+                                        <span class="text-right">{{ grabacion.boton_pago?.nombre || 'Sin botón' }}</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                    @click="toggleCardExpanded(grabacion.id)"
+                                >
+                                    <span>{{ isCardExpanded(grabacion.id) ? 'Ocultar archivos' : 'Ver archivos' }} ({{ (grabacion.linksgrabacion || []).length }})</span>
+                                    <i class="pi" :class="isCardExpanded(grabacion.id) ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+                                </button>
+
+                                <div v-if="isCardExpanded(grabacion.id)" class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
+                                    <div v-if="(grabacion.linksgrabacion || []).length === 0" class="text-sm text-gray-500">Sin archivos cargados.</div>
+                                    <div v-else class="space-y-3">
+                                        <div v-for="linkLine in grabacion.linksgrabacion" :key="linkLine.id" class="flex items-center justify-between gap-2 text-sm">
+                                            <div class="flex-1 min-w-0">
+                                                <p class="font-medium text-gray-800 dark:text-gray-100 break-words">{{ linkLine.nombre }}</p>
+                                                <p v-if="linkLine.boton_pago?.nombre" class="text-xs text-gray-500">{{ linkLine.boton_pago.nombre }}</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                class="text-emerald-600 hover:text-emerald-800 flex-shrink-0"
+                                                @click="openAudio(linkLine)"
+                                                title="Abrir en Drive"
+                                            >
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                <div class="flex flex-wrap items-center justify-center gap-2">
+                                    <Link
+                                        v-if="$page.props.user.permissions.includes('update grabaciones')"
+                                        :href="route('grabaciones.edit', parseInt(grabacion.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-500 text-white px-3 text-xs font-semibold hover:bg-indigo-600 transition"
+                                        title="Editar grabación"
+                                    >
+                                        <i class="fas fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </Link>
+                                    <Link
+                                        v-if="$page.props.user.permissions.includes('update grabaciones')"
+                                        :href="route('grabaciones.links', parseInt(grabacion.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-emerald-500 text-white px-3 text-xs font-semibold hover:bg-emerald-600 transition"
+                                        title="Agregar links"
+                                    >
+                                        <i class="fas fa-link"></i>
+                                        <span>Links</span>
+                                    </Link>
+                                    <button
+                                        v-if="$page.props.user.permissions.includes('delete grabaciones')"
+                                        @click="deleteGrabacion(parseInt(grabacion.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-500 text-white px-3 text-xs font-semibold hover:bg-red-600 transition"
+                                        title="Borrar grabación"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                        <span>Borrar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="grabaciones.length > 0" class="sm:hidden mt-4 text-center py-8 text-gray-500 dark:text-gray-400">
+                        No hay resultados con los filtros actuales
+                    </div>
+
+                    <!-- Tabla desktop -->
+                    <div class="mt-4 hidden sm:block">
+                        <DataTable
+                            :value="grabaciones"
+                            v-model:filters="filters"
+                            :globalFilterFields="['nombre', 'boton_pago.nombre']"
+                            stripedRows
+                            paginator
+                            :rows="10"
                             v-model:expandedRows="expandedRows"
                             dataKey="id"
-                            :rowsPerPageOptions="[5, 10, 20, 50]" 
+                            :rowsPerPageOptions="[5, 10, 20, 50]"
                             tableStyle="min-width: 50rem"
                         >
+                            <template #header>
+                                <div class="flex justify-end">
+                                    <IconField iconPosition="right">
+                                        <InputIcon>
+                                            <i class="pi pi-search" />
+                                        </InputIcon>
+                                        <InputText v-model="filters['global'].value" placeholder="Buscar..." />
+                                    </IconField>
+                                </div>
+                            </template>
                             <Column expander style="width: 5rem" />
                             <Column field="nombre" header="Nombre"></Column>
                             <Column header="Botón de Pago">

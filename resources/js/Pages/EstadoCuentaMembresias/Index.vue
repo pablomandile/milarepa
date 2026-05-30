@@ -62,15 +62,27 @@
                         </div>
 
                         <!-- Tabla de Estado de Cuentas -->
-                        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center px-4 sm:px-0">
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Filtro</label>
-                            <select
-                                v-model="filtroPeriodo"
-                                class="rounded border border-gray-300 dark:border-gray-600 px-4 py-1 text-sm w-56"
-                            >
-                                <option value="last1">Mes actual</option>
-                                <option value="all">Mostrar todo</option>
-                            </select>
+                        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-0">
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Filtro</label>
+                                <select
+                                    v-model="filtroPeriodo"
+                                    class="rounded border border-gray-300 dark:border-gray-600 px-4 py-1 text-sm w-56"
+                                >
+                                    <option value="last1">Mes actual</option>
+                                    <option value="all">Mostrar todo</option>
+                                </select>
+                            </div>
+                            <IconField iconPosition="right" class="w-full sm:w-auto">
+                                <InputIcon>
+                                    <i class="pi pi-search" />
+                                </InputIcon>
+                                <InputText
+                                    v-model="busquedaGlobal"
+                                    placeholder="Buscar..."
+                                    class="w-full sm:w-auto"
+                                />
+                            </IconField>
                         </div>
 
                         <div v-if="filtradas.length > 0" class="space-y-4 sm:hidden">
@@ -345,6 +357,9 @@
 import { computed, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import Dialog from 'primevue/dialog';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Swal from 'sweetalert2';
 
@@ -444,13 +459,37 @@ const revertirUltima = () => {
 };
 
 const filtroPeriodo = ref('last1');
+const busquedaGlobal = ref('');
+
 const filtradas = computed(() => {
     const data = props.estadoCuentas || [];
-    if (filtroPeriodo.value === 'all') return data;
+    let resultado = data;
 
-    const now = new Date();
-    const mesActualYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    return data.filter((cuenta) => String(cuenta.mes_pagado || '') === mesActualYm);
+    if (filtroPeriodo.value !== 'all') {
+        const now = new Date();
+        const mesActualYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        resultado = resultado.filter((cuenta) => String(cuenta.mes_pagado || '') === mesActualYm);
+    }
+
+    const term = busquedaGlobal.value.trim().toLowerCase();
+    if (term) {
+        resultado = resultado.filter((cuenta) => {
+            const campos = [
+                cuenta.user?.name,
+                cuenta.user?.email,
+                cuenta.membresia?.nombre,
+                cuenta.membresia?.entidad?.nombre,
+                cuenta.mes_pagado ? formatearMes(cuenta.mes_pagado) : '',
+                cuenta.importe,
+                cuenta.modo,
+                cuenta.observaciones,
+                cuenta.pagado ? 'pagado' : 'pendiente',
+            ];
+            return campos.some((valor) => String(valor ?? '').toLowerCase().includes(term));
+        });
+    }
+
+    return resultado;
 });
 
 const formatearMes = (mesPagado) => {

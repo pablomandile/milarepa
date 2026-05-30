@@ -27,6 +27,7 @@ const props = defineProps({
 });
 
 const diasSemana = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
+const diasSemanaLargos = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const showActividades = ref(true);
 const showClases = ref(true);
 const showOraciones = ref(true);
@@ -191,6 +192,60 @@ function isVisibleItem(item) {
   if (item.esOracionCantada) return showOraciones.value;
   return showActividades.value;
 }
+
+// ============= Vista semanal (móvil) =============
+const weeks = computed(() => {
+  const result = [];
+  const cells = calendarCells.value;
+  for (let i = 0; i < cells.length; i += 7) {
+    result.push(cells.slice(i, i + 7));
+  }
+  return result;
+});
+
+const initialWeekIndex = computed(() => {
+  const todayKey = props.calendar.today;
+  for (let i = 0; i < weeks.value.length; i += 1) {
+    if (weeks.value[i].some((c) => !c.empty && c.date === todayKey)) return i;
+  }
+  return 0;
+});
+
+const selectedWeekIndex = ref(0);
+
+watch(initialWeekIndex, (v) => {
+  selectedWeekIndex.value = v;
+}, { immediate: true });
+
+const selectedWeek = computed(() => weeks.value[selectedWeekIndex.value] || []);
+
+const canPrevWeek = computed(() => selectedWeekIndex.value > 0);
+const canNextWeek = computed(() => selectedWeekIndex.value < weeks.value.length - 1);
+
+function prevWeek() {
+  if (canPrevWeek.value) selectedWeekIndex.value -= 1;
+}
+
+function nextWeek() {
+  if (canNextWeek.value) selectedWeekIndex.value += 1;
+}
+
+const selectedWeekLabel = computed(() => {
+  const week = selectedWeek.value;
+  const firstDay = week.find((c) => !c.empty);
+  const lastDay = [...week].reverse().find((c) => !c.empty);
+  if (!firstDay || !lastDay) return '';
+  if (firstDay.day === lastDay.day) return `${firstDay.day}`;
+  return `${firstDay.day} – ${lastDay.day}`;
+});
+
+function diaSemanaLargoFromDate(dateStr) {
+  const date = parseYmd(dateStr);
+  // getDay(): 0=Sun, 1=Mon, ..., 6=Sat. Convert to 0=Mon, ..., 6=Sun
+  const jsDay = date.getDay();
+  const idx = jsDay === 0 ? 6 : jsDay - 1;
+  return diasSemanaLargos[idx];
+}
 </script>
 
 <template>
@@ -275,7 +330,89 @@ function isVisibleItem(item) {
           </div>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+        <!-- Vista semanal móvil -->
+        <div class="sm:hidden">
+          <div class="mb-3 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              @click="prevWeek"
+              :disabled="!canPrevWeek"
+              class="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <i class="pi pi-chevron-left text-xs"></i>
+              Anterior
+            </button>
+            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Semana {{ selectedWeekLabel }}
+            </span>
+            <button
+              type="button"
+              @click="nextWeek"
+              :disabled="!canNextWeek"
+              class="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Siguiente
+              <i class="pi pi-chevron-right text-xs"></i>
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <template v-for="cell in selectedWeek" :key="cell.key">
+              <div
+                v-if="!cell.empty"
+                class="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden"
+              >
+                <div
+                  class="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-gray-700"
+                  :class="cell.isToday ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-slate-50 dark:bg-gray-700/40'"
+                >
+                  <span
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold flex-shrink-0"
+                    :class="cell.isToday ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-gray-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-gray-600'"
+                  >
+                    {{ cell.day }}
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ diaSemanaLargoFromDate(cell.date) }}</p>
+                    <p v-if="cell.actividades.length" class="text-xs text-slate-500 dark:text-slate-400">{{ cell.actividades.length }} {{ cell.actividades.length === 1 ? 'evento' : 'eventos' }}</p>
+                  </div>
+                </div>
+                <div class="p-3">
+                  <p v-if="cell.actividades.length === 0" class="text-sm text-slate-400 dark:text-slate-500 text-center py-2">Sin actividades</p>
+                  <div v-else class="space-y-1.5">
+                    <template v-for="actividad in cell.actividades" :key="`${cell.date}-${actividad.tipo || 'actividad'}-${actividad.id}`">
+                      <div
+                        v-if="actividad.esClase"
+                        class="block rounded-md border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 px-3 py-2 text-sm leading-tight text-amber-900 dark:text-amber-200"
+                      >
+                        <Link :href="claseHref(actividad.id)" class="hover:underline">
+                          {{ itemLabel(actividad) }}
+                        </Link>
+                      </div>
+                      <Link
+                        v-else-if="!actividad.esOracionCantada"
+                        :href="actividadHref(actividad.id)"
+                        class="block rounded-md border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-2 text-sm leading-tight text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100 dark:hover:bg-emerald-900/50"
+                      >
+                        {{ itemLabel(actividad) }}
+                      </Link>
+                      <Link
+                        v-else
+                        :href="oracionCantadaHref(actividad.id)"
+                        class="block rounded-md border border-sky-200 dark:border-sky-700 bg-sky-50 dark:bg-sky-900/30 px-3 py-2 text-sm leading-tight text-sky-900 dark:text-sky-200"
+                      >
+                        {{ itemLabel(actividad) }}
+                      </Link>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Grilla mensual desktop -->
+        <div class="hidden sm:block overflow-x-auto rounded-2xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
           <div class="calendar-grid min-w-[980px] border-b border-slate-200 dark:border-gray-700 bg-slate-100 dark:bg-gray-700">
             <div
               v-for="diaSemana in diasSemana"

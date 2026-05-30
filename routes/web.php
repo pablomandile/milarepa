@@ -31,6 +31,7 @@ use App\Http\Controllers\AcercaDeController;
 use App\Http\Controllers\VersionesController;
 use App\Http\Controllers\TicketsController;
 use App\Http\Controllers\TransportesController;
+use App\Http\Controllers\TutorialesController;
 use App\Http\Controllers\DescripcionesController;
 use App\Http\Controllers\ProgramasController;
 use App\Http\Controllers\ActividadesController;
@@ -226,11 +227,14 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     })->middleware(['auth', 'verified'])->name('dashboard');
 
     Route::get('/panel-asistant', function () {
-        return inertia('Asistant/Panel');
-    })->middleware(['auth', 'verified'])->name('asistant.panel');
+        $frase = \App\Models\FraseDeDharma::inRandomOrder()->first();
 
-    Route::get('/panel-asistant', function () {
-        return inertia('Asistant/Panel');
+        return inertia('Asistant/Panel', [
+            'frase' => $frase ? [
+                'cita_textual' => $frase->cita_textual,
+                'libro' => $frase->libro,
+            ] : null,
+        ]);
     })->middleware(['auth', 'verified'])->name('asistant.panel');
 
     Route::resource('entidades', EntidadesController::class, [
@@ -393,6 +397,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/modalidades', ModalidadesController::class, [
         'parameters' => ['modalidades' => 'modalidad'],]);
     Route::resource('/centroayuda', CentroAyudaController::class);
+    Route::resource('/tutoriales', TutorialesController::class, [
+        'parameters' => ['tutoriales' => 'tutorial'],
+    ])->only(['index', 'store', 'update', 'destroy'])
+      ->middleware('role:admin|editor');
     Route::get('/novedades/gestion', [NovedadesController::class, 'gestion'])->name('novedades.gestion');
     Route::resource('/novedades', NovedadesController::class, [
         'parameters' => ['novedades' => 'novedad'],]);

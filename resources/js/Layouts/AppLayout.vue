@@ -405,6 +405,13 @@ const toggleMobileSection = (key) => {
                                     <DropdownLink :href="route('centroayuda.index')" :active="route().current('centroayuda.*')">
                                         Centro de ayuda
                                     </DropdownLink>
+                                    <DropdownLink
+                                        v-if="$page.props.user.roles?.includes('admin') || $page.props.user.roles?.includes('editor')"
+                                        :href="route('tutoriales.index')"
+                                        :active="route().current('tutoriales.*')"
+                                    >
+                                        Video tutoriales
+                                    </DropdownLink>
                                     <DropdownLink :href="route('novedades.index')" :active="route().current('novedades.*')">
                                         Novedades
                                     </DropdownLink>
@@ -520,7 +527,7 @@ const toggleMobileSection = (key) => {
                                     </div>
                                     <div class="mb-2 border-t border-gray-200 dark:border-gray-700" />
                                     <DropdownLink :href="route('profile.show')">
-                                        Mi Perfil
+                                        Perfil
                                     </DropdownLink>
                                     <DropdownLink :href="route('membresias.index')" :active="route().current('membresias.*')">
                                         Mi Membresía
@@ -545,7 +552,7 @@ const toggleMobileSection = (key) => {
                                     <!-- Authentication -->
                                     <form @submit.prevent="logout">
                                         <DropdownLink as="button">
-                                            Salir
+                                            Cerrar sesión
                                         </DropdownLink>
                                     </form>
                                 </template>
@@ -891,6 +898,13 @@ const toggleMobileSection = (key) => {
                             <ResponsiveNavLink :href="route('centroayuda.index')" :active="route().current('centroayuda.*')">
                                 Centro de ayuda
                             </ResponsiveNavLink>
+                            <ResponsiveNavLink
+                                v-if="$page.props.user.roles?.includes('admin') || $page.props.user.roles?.includes('editor')"
+                                :href="route('tutoriales.index')"
+                                :active="route().current('tutoriales.*')"
+                            >
+                                Video tutoriales
+                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('novedades.index')" :active="route().current('novedades.*')">
                                 Novedades
                             </ResponsiveNavLink>
@@ -923,7 +937,7 @@ const toggleMobileSection = (key) => {
 
                     <div class="mt-3 space-y-1">
                         <ResponsiveNavLink :href="route('profile.show')" :active="route().current('profile.show')">
-                            Profile
+                            Perfil
                         </ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('membresias.index')" :active="route().current('membresias.*')">
                             Mi Membresia
@@ -944,7 +958,7 @@ const toggleMobileSection = (key) => {
                         <!-- Authentication -->
                         <form method="POST" @submit.prevent="logout">
                             <ResponsiveNavLink as="button">
-                                Log Out
+                                Cerrar sesión
                             </ResponsiveNavLink>
                         </form>
 

@@ -11,17 +11,37 @@
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
     import Dialog from 'primevue/dialog';
-    import { ref } from 'vue';
-    
-    const { hospedajes } = defineProps({
+    import InputText from 'primevue/inputtext';
+    import IconField from 'primevue/iconfield';
+    import InputIcon from 'primevue/inputicon';
+    import { FilterMatchMode } from 'primevue/api';
+    import { computed, ref } from 'vue';
+
+    const props = defineProps({
         hospedajes: {
             type: Array,
             required: true
         }
     });
+    const hospedajes = props.hospedajes;
 
     const visible = ref(false);
     const hospedajeSeleccionado = ref(null);
+
+    const filters = ref({
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    });
+
+    const formatPrice = (valor) => `$ ${parseFloat(valor || 0).toLocaleString('es-AR', { minimumFractionDigits: 0 })}`;
+
+    const hospedajesFiltradosMobile = computed(() => {
+        const term = (filters.value.global.value || '').toString().trim().toLowerCase();
+        if (!term) return props.hospedajes;
+        return props.hospedajes.filter((h) => {
+            const campos = [h.nombre, h.descripcion, h.lugar_hospedaje?.nombre, h.boton_pago?.nombre];
+            return campos.some((v) => String(v ?? '').toLowerCase().includes(term));
+        });
+    });
 
     const verHospedaje = (id) => {
         const hospedaje = hospedajes.find((hosp) => hosp.id === id);
@@ -72,8 +92,107 @@
                             NUEVA ACOMODACIÓN
                         </Link>
                     </div>
-                    <div class="mt-4">
-                        <DataTable :value="hospedajes" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                    <!-- Buscador móvil -->
+                    <div v-if="hospedajes.length > 0" class="sm:hidden mt-4">
+                        <IconField iconPosition="right" class="w-full">
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Buscar..." class="w-full" />
+                        </IconField>
+                    </div>
+
+                    <!-- Tarjetas móvil -->
+                    <div v-if="hospedajesFiltradosMobile.length > 0" class="space-y-4 sm:hidden mt-4">
+                        <div
+                            v-for="hospedaje in hospedajesFiltradosMobile"
+                            :key="hospedaje.id"
+                            class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+                        >
+                            <div class="space-y-3 p-4">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-bed text-2xl text-indigo-600 mt-1"></i>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100 break-words">{{ hospedaje.nombre }}</p>
+                                        <p class="text-lg font-bold text-green-700 mt-1">{{ formatPrice(hospedaje.precio) }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex items-start justify-between gap-3 text-sm">
+                                        <span class="text-gray-500 flex-shrink-0">Descripción</span>
+                                        <span class="text-right">{{ hospedaje.descripcion || '-' }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Lugar</span>
+                                        <span class="text-right">{{ hospedaje.lugar_hospedaje?.nombre || '—' }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Botón de Pago</span>
+                                        <span class="text-right">{{ hospedaje.boton_pago?.nombre || 'Sin botón' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                <div class="flex flex-wrap items-center justify-center gap-2">
+                                    <button
+                                        v-if="$page.props.user.permissions.includes('read hospedajes')"
+                                        @click="verHospedaje(parseInt(hospedaje.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-100 text-indigo-700 px-3 text-xs font-semibold hover:bg-indigo-200 transition"
+                                        title="Ver acomodación"
+                                    >
+                                        <i class="fas fa-eye"></i>
+                                        <span>Ver detalle</span>
+                                    </button>
+                                    <Link
+                                        v-if="$page.props.user.permissions.includes('update hospedajes')"
+                                        :href="route('hospedajes.edit', parseInt(hospedaje.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-500 text-white px-3 text-xs font-semibold hover:bg-indigo-600 transition"
+                                        title="Editar acomodación"
+                                    >
+                                        <i class="fas fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </Link>
+                                    <button
+                                        v-if="$page.props.user.permissions.includes('delete hospedajes')"
+                                        @click="deleteHospedaje(parseInt(hospedaje.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-500 text-white px-3 text-xs font-semibold hover:bg-red-600 transition"
+                                        title="Borrar acomodación"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                        <span>Borrar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="hospedajes.length > 0" class="sm:hidden mt-4 text-center py-8 text-gray-500 dark:text-gray-400">
+                        No hay resultados con los filtros actuales
+                    </div>
+
+                    <!-- Tabla desktop -->
+                    <div class="mt-4 hidden sm:block">
+                        <DataTable
+                            :value="hospedajes"
+                            v-model:filters="filters"
+                            :globalFilterFields="['nombre', 'descripcion', 'lugar_hospedaje.nombre', 'boton_pago.nombre']"
+                            stripedRows
+                            paginator
+                            :rows="5"
+                            :rowsPerPageOptions="[5, 10, 20, 50]"
+                            tableStyle="min-width: 50rem"
+                        >
+                            <template #header>
+                                <div class="flex justify-end">
+                                    <IconField iconPosition="right">
+                                        <InputIcon>
+                                            <i class="pi pi-search" />
+                                        </InputIcon>
+                                        <InputText v-model="filters['global'].value" placeholder="Buscar..." />
+                                    </IconField>
+                                </div>
+                            </template>
                             <Column field="nombre" header="Nombre"></Column>
                             <Column field="descripcion" header="Descripción"></Column>
                             <Column header="Boton de Pago">

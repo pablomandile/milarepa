@@ -10,19 +10,37 @@
     import Swal from "sweetalert2";
     import DataTable from 'primevue/datatable';
     import Column from 'primevue/column';
-    import { ref } from 'vue';
+    import InputText from 'primevue/inputtext';
+    import IconField from 'primevue/iconfield';
+    import InputIcon from 'primevue/inputicon';
+    import { FilterMatchMode } from 'primevue/api';
+    import { computed, ref } from 'vue';
     import Dialog from 'primevue/dialog';
     import { usePage } from '@inertiajs/vue3';
 
     const page = usePage();
     const visible = ref(false);
     const entidadSeleccionada = ref(null);
-    
-    const { entidades } = defineProps({
+
+    const props = defineProps({
         entidades: {
             type: Array,
             required: true
         }
+    });
+    const entidades = props.entidades;
+
+    const filters = ref({
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    });
+
+    const entidadesFiltradasMobile = computed(() => {
+        const term = (filters.value.global.value || '').toString().trim().toLowerCase();
+        if (!term) return props.entidades;
+        return props.entidades.filter((e) => {
+            const campos = [e.nombre, e.direccion, e.telefono, e.email1];
+            return campos.some((v) => String(v ?? '').toLowerCase().includes(term));
+        });
     });
 
     const verEntidad = (id) => {
@@ -73,8 +91,121 @@
                             NUEVA ENTIDAD
                         </Link>
                     </div>
-                    <div class="mt-4">
-                        <DataTable :value="entidades" stripedRows removableSort paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                    <!-- Buscador móvil -->
+                    <div v-if="entidades.length > 0" class="sm:hidden mt-4">
+                        <IconField iconPosition="right" class="w-full">
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Buscar..." class="w-full" />
+                        </IconField>
+                    </div>
+
+                    <!-- Tarjetas móvil -->
+                    <div v-if="entidadesFiltradasMobile.length > 0" class="space-y-4 sm:hidden mt-4">
+                        <div
+                            v-for="entidad in entidadesFiltradasMobile"
+                            :key="entidad.id"
+                            class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+                        >
+                            <div class="space-y-3 p-4">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-building text-2xl text-indigo-600"></i>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100">{{ entidad.nombre }}</p>
+                                        <p v-if="entidad.entidad_principal === 1" class="mt-1 inline-flex items-center bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-star text-indigo-600 mr-1"></i>
+                                            Principal
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex items-start justify-between gap-3 text-sm">
+                                        <span class="text-gray-500 flex-shrink-0">Dirección</span>
+                                        <span class="text-right">{{ entidad.direccion || '-' }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Teléfono</span>
+                                        <span class="text-right">
+                                            <a v-if="entidad.telefono" :href="`tel:${entidad.telefono}`" class="text-indigo-600 hover:text-indigo-800">
+                                                {{ entidad.telefono }}
+                                            </a>
+                                            <span v-else>-</span>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Email</span>
+                                        <span class="text-right break-all">
+                                            <a v-if="entidad.email1" :href="`mailto:${entidad.email1}`" class="text-indigo-600 hover:text-indigo-800">
+                                                {{ entidad.email1 }}
+                                            </a>
+                                            <span v-else>-</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                <div class="flex flex-wrap items-center justify-center gap-2">
+                                    <button
+                                        v-if="$page.props.user.permissions.includes('read entidades')"
+                                        @click="verEntidad(parseInt(entidad.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-100 text-indigo-700 px-3 text-xs font-semibold hover:bg-indigo-200 transition"
+                                        title="Ver detalle"
+                                    >
+                                        <i class="fas fa-eye"></i>
+                                        <span>Ver detalle</span>
+                                    </button>
+                                    <Link
+                                        v-if="$page.props.user.permissions.includes('update entidades')"
+                                        :href="route('entidades.edit', parseInt(entidad.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-500 text-white px-3 text-xs font-semibold hover:bg-indigo-600 transition"
+                                        title="Editar entidad"
+                                    >
+                                        <i class="fas fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </Link>
+                                    <button
+                                        v-if="$page.props.user.permissions.includes('delete entidades')"
+                                        @click="deleteEntidad(parseInt(entidad.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-500 text-white px-3 text-xs font-semibold hover:bg-red-600 transition"
+                                        title="Borrar entidad"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                        <span>Borrar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="entidades.length > 0" class="sm:hidden mt-4 text-center py-8 text-gray-500 dark:text-gray-400">
+                        No hay resultados con los filtros actuales
+                    </div>
+
+                    <!-- Tabla desktop -->
+                    <div class="mt-4 hidden sm:block">
+                        <DataTable
+                            :value="entidades"
+                            v-model:filters="filters"
+                            :globalFilterFields="['nombre', 'direccion', 'telefono', 'email1']"
+                            stripedRows
+                            removableSort
+                            paginator
+                            :rows="5"
+                            :rowsPerPageOptions="[5, 10, 20, 50]"
+                            tableStyle="min-width: 50rem"
+                        >
+                            <template #header>
+                                <div class="flex justify-end">
+                                    <IconField iconPosition="right">
+                                        <InputIcon>
+                                            <i class="pi pi-search" />
+                                        </InputIcon>
+                                        <InputText v-model="filters['global'].value" placeholder="Buscar..." />
+                                    </IconField>
+                                </div>
+                            </template>
                             <Column field="nombre" header="Nombre" sortable></Column>
                             <Column field="direccion" header="Dirección" sortable></Column>
                             <Column field="telefono" header="Teléfono" sortable></Column>

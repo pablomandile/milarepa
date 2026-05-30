@@ -60,6 +60,16 @@
         role_name: { value: null, matchMode: FilterMatchMode.EQUALS }
     });
 
+    const usuariosFiltradosMobile = computed(() => {
+        const term = (filters.value.global.value || '').toString().trim().toLowerCase();
+        const lista = usuariosFiltrados.value;
+        if (!term) return lista;
+        return lista.filter((u) => {
+            const campos = [u.name, u.email, u.telefono, u.membresia_nombre, u.role_name];
+            return campos.some((v) => String(v ?? '').toLowerCase().includes(term));
+        });
+    });
+
     const clearFilters = () => {
         filters.value = {
             global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -113,7 +123,125 @@
                             NUEVO USUARIO
                         </Link>
                     </div>
-                    <div class="mt-4">
+                    <!-- Filtros móvil -->
+                    <div v-if="usuarios.length > 0" class="sm:hidden mt-4 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <Button
+                                type="button"
+                                icon="pi pi-filter-slash"
+                                label="Limpiar"
+                                outlined
+                                @click="clearFilters()"
+                            />
+                            <select
+                                v-model="filtroMembresia"
+                                class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            >
+                                <option value="con_membresia">Con membresía</option>
+                                <option value="todos">Mostrar todos</option>
+                            </select>
+                        </div>
+                        <IconField iconPosition="right" class="w-full">
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Buscar..." class="w-full" />
+                        </IconField>
+                    </div>
+
+                    <!-- Tarjetas móvil -->
+                    <div v-if="usuariosFiltradosMobile.length > 0" class="space-y-4 sm:hidden mt-4">
+                        <div
+                            v-for="usuario in usuariosFiltradosMobile"
+                            :key="usuario.id"
+                            class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+                        >
+                            <div class="space-y-3 p-4">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-user-circle text-3xl text-indigo-600 mt-0.5"></i>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100 break-words">{{ usuario.name }}</p>
+                                        <p v-if="usuario.role_name" class="mt-1">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                                <i class="fas fa-shield-halved mr-1"></i>
+                                                {{ usuario.role_name }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Email</span>
+                                        <span class="text-right break-all">
+                                            <a v-if="usuario.email" :href="`mailto:${usuario.email}`" class="text-indigo-600 hover:text-indigo-800">
+                                                {{ usuario.email }}
+                                            </a>
+                                            <span v-else>-</span>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Teléfono</span>
+                                        <span class="text-right">
+                                            <a v-if="usuario.telefono" :href="`tel:${usuario.telefono}`" class="text-indigo-600 hover:text-indigo-800">
+                                                {{ usuario.telefono }}
+                                            </a>
+                                            <span v-else>-</span>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-start justify-between gap-3 text-sm">
+                                        <span class="text-gray-500 flex-shrink-0">Membresía</span>
+                                        <span class="text-right">
+                                            <span v-if="usuario.membresia_nombre" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <i class="fas fa-crown mr-1"></i>
+                                                {{ usuario.membresia_nombre }}
+                                                <span v-if="usuario.membresia_online" class="ml-1 text-xs font-semibold">Online</span>
+                                            </span>
+                                            <span v-else class="text-gray-400">Sin membresía</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
+                                <div class="flex flex-wrap items-center justify-center gap-2">
+                                    <Link
+                                        v-if="$page.props.user.permissions.includes('update usuarios')"
+                                        :href="route('usuarios.profile.show', parseInt(usuario.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-slate-100 text-slate-700 px-3 text-xs font-semibold hover:bg-slate-200 transition"
+                                        title="Ver perfil"
+                                    >
+                                        <i class="fas fa-eye"></i>
+                                        <span>Ver perfil</span>
+                                    </Link>
+                                    <Link
+                                        v-if="$page.props.user.permissions.includes('update usuarios')"
+                                        :href="route('usuarios.edit', parseInt(usuario.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-500 text-white px-3 text-xs font-semibold hover:bg-indigo-600 transition"
+                                        title="Editar usuario"
+                                    >
+                                        <i class="fas fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </Link>
+                                    <button
+                                        v-if="$page.props.user.permissions.includes('delete usuarios')"
+                                        @click="deleteUsuario(parseInt(usuario.id))"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-500 text-white px-3 text-xs font-semibold hover:bg-red-600 transition"
+                                        title="Borrar usuario"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                        <span>Borrar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="usuarios.length > 0" class="sm:hidden mt-4 text-center py-8 text-gray-500 dark:text-gray-400">
+                        No hay resultados con los filtros actuales
+                    </div>
+
+                    <!-- Tabla desktop -->
+                    <div class="mt-4 hidden sm:block">
                         <DataTable
                             v-model:filters="filters"
                             :value="usuariosFiltrados"

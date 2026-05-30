@@ -150,6 +150,46 @@ const formatFecha = (fecha) => {
                         </button>
                     </div>
 
+                    <!-- Tarjetas móvil -->
+                    <div v-if="envios.length > 0" class="space-y-3 sm:hidden">
+                        <div
+                            v-for="envio in envios"
+                            :key="envio.id ?? `${envio.fecha}-${envio.destinatario}`"
+                            class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm rounded"
+                        >
+                            <div class="space-y-2 p-4">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-paper-plane text-lg text-indigo-600"></i>
+                                        <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">{{ formatFecha(envio.fecha) }}</span>
+                                    </div>
+                                    <span v-if="envio.tipo" class="inline-flex items-center rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 text-xs font-medium flex-shrink-0">
+                                        {{ envio.tipo }}
+                                    </span>
+                                </div>
+
+                                <div class="space-y-1.5 pt-1">
+                                    <div class="flex items-start justify-between gap-3 text-sm">
+                                        <span class="text-gray-500 flex-shrink-0">Destinatario</span>
+                                        <span class="text-right break-all">{{ envio.destinatario || '-' }}</span>
+                                    </div>
+                                    <div class="flex items-start justify-between gap-3 text-sm">
+                                        <span class="text-gray-500 flex-shrink-0">Motivo</span>
+                                        <span class="text-right">{{ envio.motivo || '-' }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="text-gray-500">Usuario</span>
+                                        <span class="text-right">{{ envio.user?.name || 'Sistema' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="sm:hidden text-center py-8 text-gray-500 dark:text-gray-400">
+                        No hay envíos registrados con los filtros actuales.
+                    </div>
+
+                    <!-- Tabla desktop -->
                     <DataTable
                         :value="envios"
                         stripedRows
@@ -157,6 +197,7 @@ const formatFecha = (fecha) => {
                         :rows="10"
                         :rowsPerPageOptions="[10, 20, 50]"
                         tableStyle="min-width: 65rem"
+                        class="hidden sm:block"
                     >
                         <Column field="fecha" header="Fecha">
                             <template #body="slotProps">

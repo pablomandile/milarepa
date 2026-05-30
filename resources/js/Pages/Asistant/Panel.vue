@@ -1,6 +1,14 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
+import CaracolaUrl from '/resources/images/caracola.webp';
+
+defineProps({
+    frase: {
+        type: Object,
+        default: null,
+    },
+});
 </script>
 
 <template>
@@ -58,6 +66,26 @@ import { Link } from '@inertiajs/vue3';
                                 <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">Acerca de</div>
                             </div>
                         </Link>
+                    </div>
+                </div>
+
+                <!-- Frase de Dharma del día (random por refresh) -->
+                <div v-if="frase" class="flex items-center gap-5 sm:gap-6 px-6 mt-10 mb-12 max-w-3xl mx-auto">
+                    <img
+                        :src="CaracolaUrl"
+                        alt="Caracola"
+                        class="h-32 sm:h-40 w-auto flex-shrink-0 object-contain opacity-80 dark:opacity-100"
+                    />
+                    <div class="flex-1 min-w-0 text-left">
+                        <p class="text-lg sm:text-xl italic text-gray-700 dark:text-gray-200 leading-relaxed">
+                            &ldquo;{{ frase.cita_textual }}&rdquo;
+                        </p>
+                        <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                            — {{ frase.libro }}
+                        </p>
+                        <p class="mt-1 text-sm italic font-medium text-gray-600 dark:text-gray-300">
+                            Gueshe Kelsang Gyatso
+                        </p>
                     </div>
                 </div>
             </div>
