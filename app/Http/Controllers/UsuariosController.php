@@ -132,7 +132,24 @@ class UsuariosController extends Controller
     public function destroy(string $id)
     {
         $usuario = User::findOrFail($id);
-        $usuario->delete();
+
+        // Bloquear si tiene inscripciones (FK restrictiva): no se borra para no perder historial.
+        $cantidadInscripciones = $usuario->inscripciones()->count();
+        if ($cantidadInscripciones > 0) {
+            return redirect()->route('usuarios.index')->with(
+                'error',
+                "No se puede eliminar el usuario: tiene {$cantidadInscripciones} inscripción(es) asociada(s). Eliminá o reasigná esas inscripciones primero."
+            );
+        }
+
+        try {
+            $usuario->delete();
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->route('usuarios.index')->with(
+                'error',
+                'No se puede eliminar el usuario porque tiene datos asociados.'
+            );
+        }
 
         return redirect()->route('usuarios.index')->with('success', 'Usuario eliminado exitosamente');
     }

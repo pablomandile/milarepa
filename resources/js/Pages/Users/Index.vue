@@ -93,8 +93,14 @@
     }).then((result) => {
         if (result.isConfirmed) {
         router.delete(route('usuarios.destroy', id), {
-                onSuccess: () => {
-                Swal.fire("¡Eliminado!", "El usuario ha sido eliminado.", "success");
+                preserveScroll: true,
+                onSuccess: (page) => {
+                const flash = page?.props?.flash || {};
+                if (flash.error) {
+                    Swal.fire("No se pudo eliminar", flash.error, "warning");
+                } else {
+                    Swal.fire("¡Eliminado!", flash.success || "El usuario ha sido eliminado.", "success");
+                }
                 },
                 onError: () => {
                 Swal.fire("Error", "Hubo un problema al eliminar el usuario.", "error");
