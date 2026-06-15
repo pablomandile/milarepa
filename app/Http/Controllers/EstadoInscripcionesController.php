@@ -7,6 +7,7 @@ use App\Models\EnvioMail;
 use App\Models\Inscripcion;
 use App\Services\EmailInscripcionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class EstadoInscripcionesController extends Controller
@@ -89,11 +90,17 @@ class EstadoInscripcionesController extends Controller
 
         $inscripcion = Inscripcion::findOrFail($id);
         $inscripcion->fill($data);
+
+        // Al quedar saldado (o sin saldo por pagar) la inscripción se confirma automáticamente.
+        if ($inscripcion->pago === 'Saldado' || (float) $inscripcion->montoapagar <= 0.0) {
+            $inscripcion->estado = 'Confirmada';
+        }
+
         $inscripcion->auditoria_fecha = now();
         $inscripcion->auditor = $user->id;
         $inscripcion->save();
 
-        return response()->json(['ok' => true]);
+        return response()->json(['ok' => true, 'estado' => $inscripcion->estado]);
     }
 
     public function countConfirmacionesPendientes(Request $request)
@@ -259,8 +266,25 @@ class EstadoInscripcionesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        //
+        $user = $request->user();
+        if (!$user || !$user->hasRole(['Admin', 'Editor', 'admin', 'editor'])) {
+            abort(403);
+        }
+
+        $inscripcion = Inscripcion::with('comprobantes')->findOrFail($id);
+
+        // Borrar los archivos de comprobantes del disco; las filas hijas
+        // (inscripcion_comprobantes, inscripcion_comida) se eliminan por cascadeOnDelete.
+        foreach ($inscripcion->comprobantes as $comprobante) {
+            if ($comprobante->ruta) {
+                Storage::disk('public')->delete($comprobante->ruta);
+            }
+        }
+
+        $inscripcion->delete();
+
+        return redirect()->back()->with('success', 'Inscripción eliminada.');
     }
 }

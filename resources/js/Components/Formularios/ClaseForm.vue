@@ -308,7 +308,7 @@ watch(
                     <div class="flex items-start gap-4">
                         <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
                             <SingleImageUploader
-                                v-model:imagenId="form.imagen_id"
+                                v-model:file="form.imagen"
                                 folder="img/clases"
                             />
                         </div>

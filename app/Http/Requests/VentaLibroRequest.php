@@ -55,6 +55,7 @@ class VentaLibroRequest extends FormRequest
             'montoTotal' => ['required', 'numeric', 'min:0'],
             'modo' => ['required', 'string', 'max:80'],
             'comprobante_id' => ['nullable', 'integer', 'exists:imagenes,id'],
+            'comprobante' => ['nullable', 'image', 'max:4096'],
         ];
     }
 

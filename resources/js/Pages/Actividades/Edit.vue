@@ -136,6 +136,7 @@
         descripcion_id: props.actividad.descripcion_id,
         observaciones: props.actividad.observaciones,
         imagen_id: props.actividad.imagen_id,
+        imagen: null,
         fecha_inicio: parseDateTime(props.actividad.fecha_inicio),
         fecha_fin: parseDateTime(props.actividad.fecha_fin),
         pagoAmticipado: parseDateTime(props.actividad.pagoAmticipado),
@@ -183,11 +184,13 @@
             
             return {
                 ...data,
+                _method: 'put',
                 fecha_inicio: formatDatetime(data.fecha_inicio),
                 fecha_fin: formatDatetime(data.fecha_fin),
                 pagoAmticipado: formatDatetime(data.pagoAmticipado),
             };
-        }).put(route('actividades.update', { actividad: props.actividad.id }), {
+        }).post(route('actividades.update', { actividad: props.actividad.id }), {
+            forceFormData: true,
             onError: errors => {
                 console.error('Errores al actualizar:', errors);
             }

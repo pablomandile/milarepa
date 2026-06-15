@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Concerns\ProcesaImagenAlGuardar;
 use App\Models\Membresia;
 use App\Models\PrecioGrupo;
 use App\Http\Requests\MembresiaRequest;
+use App\Services\OptimizadorImagenService;
 use Inertia\Inertia;
 use App\Models\Entidad;
 use Carbon\Carbon;
@@ -26,6 +28,8 @@ use Illuminate\Validation\ValidationException;
 
 class MembresiasController extends Controller
 {
+    use ProcesaImagenAlGuardar;
+
     /**
      * Display a listing of the resource.
      */
@@ -199,9 +203,18 @@ class MembresiasController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(MembresiaRequest $request)
+    public function store(MembresiaRequest $request, OptimizadorImagenService $optimizador)
     {
-        Membresia::create($request->validated());
+        $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
+
+        $this->guardarConImagen($request->file('imagen'), 'img/membresias', $optimizador, function ($imagenId) use ($validated) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
+            return Membresia::create($validated);
+        });
+
         return redirect()->route('membresias.gestion')->with('success', 'Membresia creada con exito.');
     }
 
@@ -232,10 +245,19 @@ class MembresiasController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(MembresiaRequest $request, $id)
+    public function update(MembresiaRequest $request, $id, OptimizadorImagenService $optimizador)
     {
         $membresia = Membresia::findOrFail($id);
-        $membresia->update($request->validated());
+        $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
+
+        $this->guardarConImagen($request->file('imagen'), 'img/membresias', $optimizador, function ($imagenId) use ($membresia, $validated) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
+            $membresia->update($validated);
+            return $membresia;
+        });
 
         return redirect()->route('membresias.gestion')->with('success', 'Membresia actualizada con exito.');
     }

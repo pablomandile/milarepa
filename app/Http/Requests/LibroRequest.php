@@ -28,6 +28,7 @@ class LibroRequest extends FormRequest
             'autor' => ['nullable', 'string', 'max:255'],
             'editorial' => ['nullable', 'string', 'max:255'],
             'imagen_id' => ['nullable', 'integer', 'exists:imagenes,id'],
+            'imagen' => ['nullable', 'image', 'max:4096'],
             'precio' => ['required', 'numeric', 'min:0'],
         ];
     }

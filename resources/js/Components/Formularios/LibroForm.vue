@@ -47,7 +47,7 @@
                 <InputLabel for="imagen_id" value="Imagen" />
                 <div class="flex items-start gap-4">
                     <SingleImageUploader
-                        v-model:imagenId="form.imagen_id"
+                        v-model:file="form.imagen"
                         folder="img/libros"
                     />
                     <div v-if="imagenPreviewUrl" class="flex items-center gap-2">
@@ -103,6 +103,7 @@ const form = useForm({
     autor: props.libro?.autor ?? (props.mode === 'create' ? 'Gueshe Kelsang Gyatso' : ''),
     editorial: props.libro?.editorial ?? (props.mode === 'create' ? 'Tharpa' : ''),
     imagen_id: props.libro?.imagen_id ?? null,
+    imagen: null,
     precio: props.libro?.precio ?? 0,
 });
 
@@ -118,7 +119,8 @@ const onPrecioFocus = () => {
 
 const submit = () => {
     if (props.mode === 'edit' && props.libro) {
-        form.put(route('libros.update', props.libro.id));
+        form.transform((data) => ({ ...data, _method: 'put' }))
+            .post(route('libros.update', props.libro.id), { forceFormData: true });
         return;
     }
 

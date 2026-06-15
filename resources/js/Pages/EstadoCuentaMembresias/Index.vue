@@ -70,6 +70,7 @@
                                     class="rounded border border-gray-300 dark:border-gray-600 px-4 py-1 text-sm w-56"
                                 >
                                     <option value="last1">Mes actual</option>
+                                    <option value="next1">Mes siguiente</option>
                                     <option value="all">Mostrar todo</option>
                                 </select>
                             </div>
@@ -465,10 +466,15 @@ const filtradas = computed(() => {
     const data = props.estadoCuentas || [];
     let resultado = data;
 
-    if (filtroPeriodo.value !== 'all') {
+    if (filtroPeriodo.value === 'last1') {
         const now = new Date();
         const mesActualYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         resultado = resultado.filter((cuenta) => String(cuenta.mes_pagado || '') === mesActualYm);
+    } else if (filtroPeriodo.value === 'next1') {
+        const now = new Date();
+        const siguiente = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const mesSiguienteYm = `${siguiente.getFullYear()}-${String(siguiente.getMonth() + 1).padStart(2, '0')}`;
+        resultado = resultado.filter((cuenta) => String(cuenta.mes_pagado || '') === mesSiguienteYm);
     }
 
     const term = busquedaGlobal.value.trim().toLowerCase();

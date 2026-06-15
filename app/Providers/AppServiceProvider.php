@@ -31,8 +31,8 @@ class AppServiceProvider extends ServiceProvider
             'version' => function () {
                 $version = Version::latest()->first();
                 return [
-                    'version' => $version->version,
-                    'created_at' => $version->created_at
+                    'version' => $version?->version,
+                    'created_at' => $version && $version->created_at
                         ? Carbon::parse($version->created_at)->translatedFormat('F Y')
                         : null
                 ];

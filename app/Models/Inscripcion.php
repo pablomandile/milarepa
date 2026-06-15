@@ -23,6 +23,9 @@ class Inscripcion extends Model
         'montoComidas',
         'montoapagar',
         'pago',
+        'fecha_pago',
+        'referencia_pago',
+        'observaciones',
         'envioLinkStream',
         'envioRegistro',
         'envioConfirmacion',
@@ -47,6 +50,7 @@ class Inscripcion extends Model
         'montoapagar' => 'decimal:2',
         'online' => 'boolean',
         'auditoria_fecha' => 'datetime',
+        'fecha_pago' => 'date',
     ];
 
     public function actividad()

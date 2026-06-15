@@ -24,15 +24,18 @@
         nombre: props.metodoPago.nombre,
         descripcion: props.metodoPago.descripcion,
         tipo_de_pago: props.metodoPago.tipo_de_pago || 'Presencial',
-        imagen_id: props.metodoPago.imagen_id || null
+        imagen_id: props.metodoPago.imagen_id || null,
+        imagen: null
     });
 
     const handleSubmit = () => {
-        form.put(route('metodospago.update', props.metodoPago.id), {
-            onError: errors => {
-                console.error('Errores al actualizar:', errors);
-            }
-        });
+        form.transform((data) => ({ ...data, _method: 'put' }))
+            .post(route('metodospago.update', props.metodoPago.id), {
+                forceFormData: true,
+                onError: errors => {
+                    console.error('Errores al actualizar:', errors);
+                }
+            });
     }
 </script>
 

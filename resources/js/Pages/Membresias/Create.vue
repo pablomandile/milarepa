@@ -29,6 +29,7 @@
         entidad_id: '',
         botonpago_id: null,
         imagen_id: null,
+        imagen: null,
         valor: ''
     })
 </script>

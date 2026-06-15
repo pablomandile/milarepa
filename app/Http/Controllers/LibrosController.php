@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Concerns\ProcesaImagenAlGuardar;
 use App\Http\Requests\LibroRequest;
 use App\Models\Libro;
+use App\Services\OptimizadorImagenService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class LibrosController extends Controller
 {
+    use ProcesaImagenAlGuardar;
+
     public function index(): Response
     {
         $libros = Libro::with('imagen')->orderBy('titulo')->get();
@@ -24,9 +28,17 @@ class LibrosController extends Controller
         return Inertia::render('Libros/Create');
     }
 
-    public function store(LibroRequest $request): RedirectResponse
+    public function store(LibroRequest $request, OptimizadorImagenService $optimizador): RedirectResponse
     {
-        Libro::create($request->validated());
+        $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
+
+        $this->guardarConImagen($request->file('imagen'), 'img/libros', $optimizador, function ($imagenId) use ($validated) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
+            return Libro::create($validated);
+        });
 
         return redirect()->route('libros.index')->with('success', 'Libro creado correctamente.');
     }
@@ -40,9 +52,18 @@ class LibrosController extends Controller
         ]);
     }
 
-    public function update(LibroRequest $request, Libro $libro): RedirectResponse
+    public function update(LibroRequest $request, Libro $libro, OptimizadorImagenService $optimizador): RedirectResponse
     {
-        $libro->update($request->validated());
+        $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
+
+        $this->guardarConImagen($request->file('imagen'), 'img/libros', $optimizador, function ($imagenId) use ($libro, $validated) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
+            $libro->update($validated);
+            return $libro;
+        });
 
         return redirect()->route('libros.index')->with('success', 'Libro actualizado correctamente.');
     }

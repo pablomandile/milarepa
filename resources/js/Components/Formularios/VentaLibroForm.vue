@@ -72,7 +72,7 @@
             <div>
                 <InputLabel value="Comprobante" />
                 <SingleImageUploader
-                    v-model:imagenId="form.comprobante_id"
+                    v-model:file="form.comprobante"
                     folder="img/mpago"
                 />
                 <InputError class="mt-2" :message="form.errors.comprobante_id" />
@@ -117,6 +117,7 @@ const form = useForm({
     montoTotal: 0,
     modo: null,
     comprobante_id: null,
+    comprobante: null,
 });
 
 const libroSeleccionado = computed(() => {

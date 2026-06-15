@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Concerns\ProcesaImagenAlGuardar;
 use App\Http\Requests\VentaLibroRequest;
 use App\Models\Entidad;
 use App\Models\HistoricoPedidoLibro;
 use App\Models\InventarioEntidadLibro;
 use App\Models\Venta;
+use App\Services\OptimizadorImagenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +17,8 @@ use Inertia\Response;
 
 class VentasLibrosController extends Controller
 {
+    use ProcesaImagenAlGuardar;
+
     public function index(): Response
     {
         return inertia('VentasLibros/Index', [
@@ -57,11 +61,16 @@ class VentasLibrosController extends Controller
         ]);
     }
 
-    public function store(VentaLibroRequest $request): RedirectResponse
+    public function store(VentaLibroRequest $request, OptimizadorImagenService $optimizador): RedirectResponse
     {
         $validated = $request->validated();
+        unset($validated['comprobante']); // archivo: se procesa aparte, no es columna
 
-        DB::transaction(function () use ($validated) {
+        // El comprobante se procesa y guarda dentro de la misma transacción:
+        // si la venta falla (ej. stock insuficiente) no queda imagen huérfana.
+        $this->guardarConImagen($request->file('comprobante'), 'img/mpago', $optimizador, function ($imagenId) use ($validated) {
+            $comprobanteId = $imagenId ?? ($validated['comprobante_id'] ?? null);
+
             $entidadId = (int) ($validated['entidad_id'] ?? 0);
             $libroId = (int) ($validated['libro_id'] ?? 0);
             $cantidad = (int) ($validated['cantidad'] ?? 0);
@@ -103,7 +112,7 @@ class VentasLibrosController extends Controller
                 'precio_unitario' => $precioUnitario,
                 'montoTotal' => $montoTotal,
                 'modo' => $validated['modo'],
-                'comprobante_id' => $validated['comprobante_id'] ?? null,
+                'comprobante_id' => $comprobanteId,
                 'vendedor_id' => auth()->id(),
             ]);
 

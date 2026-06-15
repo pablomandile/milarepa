@@ -123,6 +123,7 @@
         descripcion_id: null,
         observaciones: '',
         imagen_id: null,
+        imagen: null,
         fecha_inicio: null,
         fecha_fin: null,
         pagoAmticipado: null,

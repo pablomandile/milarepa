@@ -16,6 +16,7 @@ class PaginaActividadOnlineRequest extends FormRequest
         return [
             'mes_referencia' => ['required', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
             'imagen_id' => ['nullable', 'exists:imagenes,id'],
+            'imagen' => ['nullable', 'image', 'max:4096'],
         ];
     }
 

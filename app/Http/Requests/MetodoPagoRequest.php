@@ -27,6 +27,7 @@ class MetodoPagoRequest extends FormRequest
             'descripcion' => ['required', 'string', 'max:100'],
             'tipo_de_pago' => ['required', Rule::in(['Online', 'Presencial'])],
             'imagen_id' => ['nullable', 'exists:imagenes,id'],
+            'imagen' => ['nullable', 'image', 'max:4096'],
         ];
     }
 

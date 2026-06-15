@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Concerns\ProcesaImagenAlGuardar;
 use App\Http\Requests\PaginaActividadOnlineRequest;
 use App\Models\PaginaActividadOnline;
+use App\Services\OptimizadorImagenService;
 
 class PaginasActividadesOnlineController extends Controller
 {
+    use ProcesaImagenAlGuardar;
+
     public function index()
     {
         $paginas = PaginaActividadOnline::with('imagen')
@@ -24,9 +28,17 @@ class PaginasActividadesOnlineController extends Controller
         return inertia('PaginasActividadesOnline/Create');
     }
 
-    public function store(PaginaActividadOnlineRequest $request)
+    public function store(PaginaActividadOnlineRequest $request, OptimizadorImagenService $optimizador)
     {
-        PaginaActividadOnline::create($request->validated());
+        $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
+
+        $this->guardarConImagen($request->file('imagen'), 'img/pages', $optimizador, function ($imagenId) use ($validated) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
+            return PaginaActividadOnline::create($validated);
+        });
 
         return redirect()->route('paginas-actividades-online.index');
     }
@@ -45,9 +57,18 @@ class PaginasActividadesOnlineController extends Controller
         ]);
     }
 
-    public function update(PaginaActividadOnlineRequest $request, PaginaActividadOnline $paginas_actividades_online)
+    public function update(PaginaActividadOnlineRequest $request, PaginaActividadOnline $paginas_actividades_online, OptimizadorImagenService $optimizador)
     {
-        $paginas_actividades_online->update($request->validated());
+        $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
+
+        $this->guardarConImagen($request->file('imagen'), 'img/pages', $optimizador, function ($imagenId) use ($paginas_actividades_online, $validated) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
+            $paginas_actividades_online->update($validated);
+            return $paginas_actividades_online;
+        });
 
         return redirect()->route('paginas-actividades-online.index');
     }

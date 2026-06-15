@@ -62,6 +62,7 @@ use App\Http\Controllers\PaginasConfiguracionController;
 use App\Http\Controllers\ActividadesOnlineController;
 use App\Http\Controllers\MailInfoMembresiasController;
 use App\Http\Controllers\ImportarMembresiasController;
+use App\Http\Controllers\ImportarInscripcionesController;
 use App\Http\Controllers\ProgramaEstudiosController;
 use App\Http\Controllers\ProgramaGrabacionController;
 use App\Http\Controllers\AsistenciasController;
@@ -382,6 +383,20 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         ->name('inscripciones.asistir')->middleware('signed');
     Route::get('/inscripciones/{inscripcion}/ticket-qr', [InscripcionesController::class, 'ticketQr'])
         ->name('inscripciones.ticketQr');
+    // Importación de inscripciones legacy (CSV). Antes del resource para que
+    // GET /estadoinscripciones/importar no lo capture la ruta show {estadoinscripcion}.
+    Route::get('/estadoinscripciones/importar', [ImportarInscripcionesController::class, 'index'])
+        ->name('estadoinscripciones.importar');
+    Route::post('/estadoinscripciones/importar/preview', [ImportarInscripcionesController::class, 'preview'])
+        ->name('estadoinscripciones.importar.preview');
+    Route::post('/estadoinscripciones/importar/confirmar', [ImportarInscripcionesController::class, 'store'])
+        ->name('estadoinscripciones.importar.confirmar');
+    Route::get('/estadoinscripciones/importar/reportes/{archivo}', [ImportarInscripcionesController::class, 'descargarReporte'])
+        ->where('archivo', '[\w\-.]+')
+        ->name('estadoinscripciones.importar.reporte.descargar');
+    Route::delete('/estadoinscripciones/importar/reportes/{archivo}', [ImportarInscripcionesController::class, 'eliminarReporte'])
+        ->where('archivo', '[\w\-.]+')
+        ->name('estadoinscripciones.importar.reporte.eliminar');
     Route::resource('/estadoinscripciones', EstadoInscripcionesController::class, [
         'parameters' => ['estadoinscripciones' => 'estadoinscripcion'],]);
     Route::get('/estadoinscripciones/confirmaciones/count', [EstadoInscripcionesController::class, 'countConfirmacionesPendientes'])

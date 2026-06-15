@@ -12,6 +12,10 @@
             <directory>tests/Feature</directory>
         </testsuite>
     </testsuites>
+    <extensions>
+        <!-- Concentra el resultado de la corrida en test-report.json (gitignored) -->
+        <bootstrap class="Tests\Support\JsonReportExtension"/>
+    </extensions>
     <source>
         <include>
             <directory>app</directory>

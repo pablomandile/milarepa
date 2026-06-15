@@ -19,10 +19,12 @@ const props = defineProps({
 const form = useForm({
     mes_referencia: props.pagina.mes_referencia || '',
     imagen_id: props.pagina.imagen_id || null,
+    imagen: null,
 });
 
 const handleSubmit = () => {
-    form.put(route('paginas-actividades-online.update', props.pagina.id));
+    form.transform((data) => ({ ...data, _method: 'put' }))
+        .post(route('paginas-actividades-online.update', props.pagina.id), { forceFormData: true });
 };
 </script>
 

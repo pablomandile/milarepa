@@ -6,8 +6,9 @@ use App\Models\EstadoCuentaMembresia;
 use App\Models\Membresia;
 use App\Models\MembresiaUsuario;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -19,11 +20,24 @@ use Tests\TestCase;
  */
 class RenovarMembresiasMensualTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
+
+    /**
+     * users.pais_id es NOT NULL DEFAULT 1 con FK a paises. Garantizamos el país
+     * por defecto antes de crear usuarios. Idempotente.
+     */
+    private function asegurarPaisDefault(): void
+    {
+        DB::statement(
+            'INSERT IGNORE INTO paises (id, nombre, created_at, updated_at) VALUES (1, ?, NOW(), NOW())',
+            ['Argentina'],
+        );
+    }
 
     /** @test */
     public function renueva_al_nuevo_mes_expirando_anterior_y_creando_actual_pendiente_si_no_es_suscripcion(): void
     {
+        $this->asegurarPaisDefault();
         $user = User::factory()->create();
         $membresia = Membresia::create([
             'nombre' => 'TK Mensual',
@@ -35,6 +49,7 @@ class RenovarMembresiasMensualTest extends TestCase
             'user_id' => $user->id,
             'membresia_id' => $membresia->id,
             'membresia_inscripcion_fecha' => '2026-02-01',
+            'suscripcion' => false,
             'membresia_online' => false,
             'info_tarjetas_kadampa' => false,
         ]);
@@ -63,17 +78,21 @@ class RenovarMembresiasMensualTest extends TestCase
             ->where('mes_pagado', '2026-03')
             ->first();
 
+        // El mes nuevo de un socio NO suscripción se genera como cargo en blanco
+        // e impago: no hereda modo/info_pago del mes anterior (se completan al pagar).
         $this->assertNotNull($actual);
         $this->assertSame(EstadoCuentaMembresia::ESTADO_ACTIVA, $actual->estado);
         $this->assertFalse((bool) $actual->pagado);
         $this->assertNull($actual->fecha_pago);
-        $this->assertSame('Transferencia', $actual->modo);
-        $this->assertSame('CBU ejemplo', $actual->info_pago);
+        $this->assertNull($actual->modo);
+        $this->assertNull($actual->info_pago);
+        $this->assertStringStartsWith('Generado por', (string) $actual->observaciones);
     }
 
     /** @test */
     public function si_el_modo_es_suscripcion_el_nuevo_mes_se_crea_pagado(): void
     {
+        $this->asegurarPaisDefault();
         $user = User::factory()->create();
         $membresia = Membresia::create([
             'nombre' => 'TK Suscripción',
@@ -85,6 +104,7 @@ class RenovarMembresiasMensualTest extends TestCase
             'user_id' => $user->id,
             'membresia_id' => $membresia->id,
             'membresia_inscripcion_fecha' => '2026-02-01',
+            'suscripcion' => true,
             'membresia_online' => true,
             'info_tarjetas_kadampa' => false,
         ]);

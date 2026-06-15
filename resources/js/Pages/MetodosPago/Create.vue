@@ -14,7 +14,8 @@
         nombre: '',
         descripcion: '',
         tipo_de_pago: '',
-        imagen_id: null
+        imagen_id: null,
+        imagen: null
     })
 </script>
 

@@ -59,6 +59,7 @@ const form = useForm({
     mes_referencia: '',
     descripcion: '',
     imagen_id: null,
+    imagen: null,
     dias_semana: [],
     titulos_por_fecha: {},
     horario_desde: '',

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Concerns\ProcesaImagenAlGuardar;
 use App\Http\Requests\ClaseRequest;
+use App\Services\OptimizadorImagenService;
 use Illuminate\Http\Request;
 use App\Models\Ciclo;
 use App\Models\Clase;
@@ -16,6 +18,8 @@ use App\Models\Stream;
 
 class ClasesController extends Controller
 {
+    use ProcesaImagenAlGuardar;
+
     public function index()
     {
         $clases = Clase::with(['ciclo', 'entidad', 'maestros', 'coordinador', 'esquemaPrecio', 'modalidad', 'stream', 'imagen'])
@@ -38,14 +42,21 @@ class ClasesController extends Controller
         ]);
     }
 
-    public function store(ClaseRequest $request)
+    public function store(ClaseRequest $request, OptimizadorImagenService $optimizador)
     {
         $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
         $maestrosIds = $validated['maestro_ids'] ?? [];
         unset($validated['maestro_ids']);
 
-        $clase = Clase::create($validated);
-        $clase->maestros()->sync($maestrosIds);
+        $this->guardarConImagen($request->file('imagen'), 'img/clases', $optimizador, function ($imagenId) use ($validated, $maestrosIds) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
+            $clase = Clase::create($validated);
+            $clase->maestros()->sync($maestrosIds);
+            return $clase;
+        });
 
         return redirect()->route('clases.index');
     }
@@ -94,15 +105,23 @@ class ClasesController extends Controller
         ]);
     }
 
-    public function update(ClaseRequest $request, $id)
+    public function update(ClaseRequest $request, $id, OptimizadorImagenService $optimizador)
     {
         $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
         $maestrosIds = $validated['maestro_ids'] ?? [];
         unset($validated['maestro_ids']);
 
         $clase = Clase::findOrFail($id);
-        $clase->update($validated);
-        $clase->maestros()->sync($maestrosIds);
+
+        $this->guardarConImagen($request->file('imagen'), 'img/clases', $optimizador, function ($imagenId) use ($clase, $validated, $maestrosIds) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
+            $clase->update($validated);
+            $clase->maestros()->sync($maestrosIds);
+            return $clase;
+        });
 
         return redirect()->route('clases.index');
     }

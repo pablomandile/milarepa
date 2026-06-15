@@ -14,10 +14,6 @@ function readStoredTheme() {
     }
 }
 
-function systemPrefersDark() {
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
 function writeStoredTheme(value) {
     try {
         localStorage.setItem(STORAGE_KEY, value);
@@ -30,7 +26,8 @@ function applyDocumentClass(mode) {
     else html.classList.remove('dark');
 }
 
-// Estado singleton: si el usuario tiene preferencia en DB, eso manda; sino localStorage; sino sistema.
+// Estado singleton: si el usuario tiene preferencia en DB, eso manda; sino localStorage.
+// Por defecto tema claro: ignoramos la preferencia del sistema, solo cuenta la elección explícita del usuario.
 function resolveInitial() {
     let dbPref = null;
     try {
@@ -42,7 +39,7 @@ function resolveInitial() {
     if (dbPref === 'dark' || dbPref === 'light') return dbPref;
     const stored = readStoredTheme();
     if (stored) return stored;
-    return systemPrefersDark() ? 'dark' : 'light';
+    return 'light';
 }
 
 const resolvedTheme = ref(resolveInitial());
@@ -51,16 +48,8 @@ const resolvedTheme = ref(resolveInitial());
 applyDocumentClass(resolvedTheme.value);
 applyPrimeVueTheme(resolvedTheme.value);
 
-// Escuchar cambios del sistema solo si el usuario aún no eligió manualmente
-const mq = window.matchMedia('(prefers-color-scheme: dark)');
-mq.addEventListener?.('change', (e) => {
-    const hasExplicit = readStoredTheme() !== null;
-    if (hasExplicit) return;
-    const next = e.matches ? 'dark' : 'light';
-    resolvedTheme.value = next;
-    applyDocumentClass(next);
-    applyPrimeVueTheme(next);
-});
+// No seguimos los cambios de tema del sistema: el tema por defecto es claro y
+// solo cambia si el usuario lo elige explícitamente.
 
 export function useTheme() {
     const isDark = computed(() => resolvedTheme.value === 'dark');

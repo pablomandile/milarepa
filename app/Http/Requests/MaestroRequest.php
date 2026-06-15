@@ -28,6 +28,7 @@ class MaestroRequest extends FormRequest
             'telefono' => ['nullable','string', 'max:50'],
             'sobre_maestro' => ['nullable', 'string', 'max:5000'],
             'imagen_id' => ['nullable', 'exists:imagenes,id'],
+            'imagen' => ['nullable', 'image', 'max:4096'],
         ];
     }
 

@@ -3,14 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Concerns\ProcesaImagenAlGuardar;
 use App\Models\MetodoPago;
 use App\Http\Requests\MetodoPagoRequest;
+use App\Services\OptimizadorImagenService;
 use Inertia\Inertia;
 
 
 
 class MetodosPagoController extends Controller
 {
+    use ProcesaImagenAlGuardar;
+
     /**
      * Display a listing of the resource.
      */
@@ -32,9 +36,18 @@ class MetodosPagoController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(MetodoPagoRequest $request)
+    public function store(MetodoPagoRequest $request, OptimizadorImagenService $optimizador)
     {
-        MetodoPago::create($request->validated());
+        $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
+
+        $this->guardarConImagen($request->file('imagen'), 'img/mpago', $optimizador, function ($imagenId) use ($validated) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
+            return MetodoPago::create($validated);
+        });
+
         return redirect()->route('metodospago.index');
     }
 
@@ -61,9 +74,19 @@ class MetodosPagoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(MetodoPagoRequest $request, MetodoPago $metodopago)
+    public function update(MetodoPagoRequest $request, MetodoPago $metodopago, OptimizadorImagenService $optimizador)
     {
-        $metodopago->update($request->validated());
+        $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
+
+        $this->guardarConImagen($request->file('imagen'), 'img/mpago', $optimizador, function ($imagenId) use ($metodopago, $validated) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
+            $metodopago->update($validated);
+            return $metodopago;
+        });
+
         return redirect()->route('metodospago.index');
     }
 

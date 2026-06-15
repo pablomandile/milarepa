@@ -7,6 +7,14 @@
                     <i class="fas fa-clipboard-check mr-2 text-indigo-600"></i>
                     Estado de Inscripciones
                 </h2>
+                <Link
+                    v-if="canEdit"
+                    :href="route('estadoinscripciones.importar')"
+                    class="inline-flex items-center gap-2 rounded bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                >
+                    <i class="pi pi-upload"></i>
+                    Importar inscripciones
+                </Link>
             </div>
         </template>
 
@@ -14,13 +22,12 @@
             <div class="w-full p-0 sm:px-6 lg:px-8">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-0 sm:p-6 text-gray-900 dark:text-gray-100">
-                        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center px-4 sm:px-0">
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Filtro</label>
+                        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center px-4 sm:px-0">
                             <select
                                 v-model="filtroPeriodo"
-                                class="rounded border border-gray-300 dark:border-gray-600 px-4 py-1 text-sm w-56"
+                                class="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-4 py-1 text-sm w-full sm:w-56"
                             >
-                                <option value="last1">Último mes</option>
+                                <option value="last1">Actividades del último mes</option>
                                 <option value="all">Mostrar todo</option>
                             </select>
                             <button
@@ -152,6 +159,14 @@
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Modalidad</p>
                                                 <p>{{ modalidadInscripcion(inscripcion) }}</p>
                                             </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Fecha de pago</p>
+                                                <p>{{ formatearSoloFecha(inscripcion.fecha_pago) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Referencia de pago</p>
+                                                <p>{{ inscripcion.referencia_pago || '-' }}</p>
+                                            </div>
                                             <div v-if="inscripcion.montoActividad !== null && inscripcion.montoActividad !== undefined">
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Monto Actividad</p>
                                                 <p class="text-blue-700 font-medium">${{ formatearMonto(inscripcion.montoActividad) }}</p>
@@ -175,6 +190,10 @@
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Auditado</p>
                                                 <p>{{ formatearFecha(inscripcion.auditoria_fecha) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Observaciones</p>
+                                                <p class="whitespace-pre-line">{{ inscripcion.observaciones || '-' }}</p>
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Envio Registro</p>
@@ -268,6 +287,15 @@
                                                 <i class="pi pi-check-circle"></i>
                                                 <span>Saldado</span>
                                             </button>
+                                            <button
+                                                class="inline-flex items-center justify-center gap-2 rounded bg-red-50 px-3 py-2 text-xs text-red-700 hover:bg-red-100"
+                                                @click="abrirConfirmarBorrar(inscripcion)"
+                                                aria-label="Eliminar"
+                                                title="Eliminar inscripción"
+                                            >
+                                                <i class="pi pi-trash"></i>
+                                                <span>Eliminar</span>
+                                            </button>
                                         </template>
                                     </div>
                                     <span v-else class="text-xs text-gray-400">Sin permisos</span>
@@ -280,15 +308,38 @@
                                 :value="filtradas"
                                 dataKey="id"
                                 v-model:expandedRows="expandedRows"
+                                v-model:filters="filters"
+                                filterDisplay="row"
+                                :globalFilterFields="['_nombre', 'actividad.nombre', 'membresia', 'pago', 'estado']"
                                 responsiveLayout="scroll"
                                 paginator
                                 :rows="20"
                                 :rowsPerPageOptions="[10, 20, 50, 100]"
+                                removableSort
                                 class="p-datatable-sm"
                             >
+                                <template #header>
+                                    <div class="flex justify-end">
+                                        <span class="relative w-full sm:w-72">
+                                            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                            <input
+                                                v-model="filters['global'].value"
+                                                type="text"
+                                                placeholder="Buscar (nombre, actividad, membresía, pago)..."
+                                                class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 pl-9 pr-3 py-1 text-sm"
+                                            />
+                                        </span>
+                                    </div>
+                                </template>
+                                <template #empty>
+                                    <div class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        No hay inscripciones que coincidan con los filtros.
+                                    </div>
+                                </template>
+
                                 <Column expander style="width: 3rem" />
 
-                                <Column header="Nombre">
+                                <Column header="Nombre" field="_nombre" sortable :showFilterMenu="false">
                                     <template #body="{ data }">
                                         <div class="flex flex-col gap-1">
                                             <span class="font-semibold text-gray-800 dark:text-gray-100">{{ nombreUsuario(data) }}</span>
@@ -300,9 +351,18 @@
                                             </span>
                                         </div>
                                     </template>
+                                    <template #filter="{ filterModel, filterCallback }">
+                                        <input
+                                            v-model="filterModel.value"
+                                            type="text"
+                                            placeholder="Nombre"
+                                            class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-2 py-1 text-sm"
+                                            @input="filterCallback()"
+                                        />
+                                    </template>
                                 </Column>
 
-                                <Column header="Actividad">
+                                <Column header="Actividad" field="actividad.nombre" filterField="actividad.nombre" sortable :showFilterMenu="false">
                                     <template #body="{ data }">
                                         <div>
                                             <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">
@@ -313,11 +373,31 @@
                                             </p>
                                         </div>
                                     </template>
+                                    <template #filter="{ filterModel, filterCallback }">
+                                        <Dropdown
+                                            v-model="filterModel.value"
+                                            :options="actividadNombres"
+                                            placeholder="Actividad"
+                                            class="p-column-filter w-full"
+                                            :showClear="true"
+                                            @change="filterCallback()"
+                                        />
+                                    </template>
                                 </Column>
 
-                                <Column header="Membresía">
+                                <Column v-if="cols.membresia" header="Membresía" field="membresia" sortable :showFilterMenu="false">
                                     <template #body="{ data }">
                                         <span class="text-sm">{{ data.membresia || '-' }}</span>
+                                    </template>
+                                    <template #filter="{ filterModel, filterCallback }">
+                                        <Dropdown
+                                            v-model="filterModel.value"
+                                            :options="membresiaOptions"
+                                            placeholder="Membresía"
+                                            class="p-column-filter w-full"
+                                            :showClear="true"
+                                            @change="filterCallback()"
+                                        />
                                     </template>
                                 </Column>
 
@@ -337,7 +417,7 @@
                                     </template>
                                 </Column>
 
-                                <Column header="Pago" class="text-center">
+                                <Column header="Pago" field="pago" class="text-center" :showFilterMenu="false">
                                     <template #body="{ data }">
                                         <select
                                             v-if="isEditing(data)"
@@ -355,6 +435,16 @@
                                         >
                                             {{ data.pago || '-' }}
                                         </span>
+                                    </template>
+                                    <template #filter="{ filterModel, filterCallback }">
+                                        <Dropdown
+                                            v-model="filterModel.value"
+                                            :options="pagoOptions"
+                                            placeholder="Pago"
+                                            class="p-column-filter w-full"
+                                            :showClear="true"
+                                            @change="filterCallback()"
+                                        />
                                     </template>
                                 </Column>
 
@@ -390,24 +480,23 @@
                                     </template>
                                 </Column>
 
-                                <Column header="Estado">
+                                <Column v-if="cols.estado" header="Estado" field="estado" sortable :showFilterMenu="false">
                                     <template #body="{ data }">
                                         <span class="text-sm">{{ data.estado || '-' }}</span>
                                     </template>
-                                </Column>
-
-                                <Column header="Envío Registro">
-                                    <template #body="{ data }">
-                                        <span
-                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                                            :class="badgeEnvioClass(envioEstado(data, 'envioRegistro'))"
-                                        >
-                                            {{ envioEstado(data, 'envioRegistro') }}
-                                        </span>
+                                    <template #filter="{ filterModel, filterCallback }">
+                                        <Dropdown
+                                            v-model="filterModel.value"
+                                            :options="opcionesFiltro.estado"
+                                            placeholder="Estado"
+                                            class="p-column-filter w-full"
+                                            :showClear="true"
+                                            @change="filterCallback()"
+                                        />
                                     </template>
                                 </Column>
 
-                                <Column header="Envío Confirmación">
+                                <Column v-if="cols.envioConfirmacion" header="Envío Confirmación" field="envioConfirmacion" :showFilterMenu="false">
                                     <template #body="{ data }">
                                         <span
                                             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
@@ -416,16 +505,15 @@
                                             {{ envioEstado(data, 'envioConfirmacion') }}
                                         </span>
                                     </template>
-                                </Column>
-
-                                <Column header="Envío Grabación">
-                                    <template #body="{ data }">
-                                        <span
-                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                                            :class="badgeEnvioClass(envioEstado(data, 'envioGrabacion'))"
-                                        >
-                                            {{ envioEstado(data, 'envioGrabacion') }}
-                                        </span>
+                                    <template #filter="{ filterModel, filterCallback }">
+                                        <Dropdown
+                                            v-model="filterModel.value"
+                                            :options="opcionesFiltro.envioConfirmacion"
+                                            placeholder="Estado"
+                                            class="p-column-filter w-full"
+                                            :showClear="true"
+                                            @change="filterCallback()"
+                                        />
                                     </template>
                                 </Column>
 
@@ -470,6 +558,15 @@
                                             >
                                                 <i class="pi pi-check-circle"></i>
                                             </button>
+                                            <button
+                                                v-if="!isEditing(data)"
+                                                class="inline-flex items-center justify-center rounded bg-red-50 px-2 py-1 text-xs text-red-700 hover:bg-red-100"
+                                                @click="abrirConfirmarBorrar(data)"
+                                                aria-label="Eliminar"
+                                                title="Eliminar inscripción"
+                                            >
+                                                <i class="pi pi-trash"></i>
+                                            </button>
                                         </div>
                                         <span v-else class="text-xs text-gray-400">Sin permisos</span>
                                     </template>
@@ -478,6 +575,31 @@
                                 <template #expansion="{ data }">
                                     <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-md p-4">
                                         <div class="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-6">
+                                            <div v-if="!cols.membresia">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Membresía</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ data.membresia || '-' }}</p>
+                                            </div>
+                                            <div v-if="!cols.estado">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Estado</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ data.estado || '-' }}</p>
+                                            </div>
+                                            <div v-if="!cols.envioConfirmacion">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Envío Confirmación</p>
+                                                <span
+                                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                                    :class="badgeEnvioClass(envioEstado(data, 'envioConfirmacion'))"
+                                                >
+                                                    {{ envioEstado(data, 'envioConfirmacion') }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Fecha de pago</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ formatearSoloFecha(data.fecha_pago) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Referencia de pago</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ data.referencia_pago || '-' }}</p>
+                                            </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Email</p>
                                                 <p class="text-sm text-gray-800 dark:text-gray-100">{{ emailUsuario(data) }}</p>
@@ -525,6 +647,28 @@
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Auditado</p>
                                                 <p class="text-sm text-gray-800 dark:text-gray-100">{{ formatearFecha(data.auditoria_fecha) }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Envío Registro</p>
+                                                <span
+                                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                                    :class="badgeEnvioClass(envioEstado(data, 'envioRegistro'))"
+                                                >
+                                                    {{ envioEstado(data, 'envioRegistro') }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Envío Grabación</p>
+                                                <span
+                                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                                    :class="badgeEnvioClass(envioEstado(data, 'envioGrabacion'))"
+                                                >
+                                                    {{ envioEstado(data, 'envioGrabacion') }}
+                                                </span>
+                                            </div>
+                                            <div class="md:col-span-3 lg:col-span-6">
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Observaciones</p>
+                                                <p class="text-sm text-gray-800 dark:text-gray-100 whitespace-pre-line">{{ data.observaciones || '-' }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -585,6 +729,44 @@
                         @click="confirmarSaldado"
                     >
                         Confirmar
+                    </button>
+                </div>
+            </template>
+        </Dialog>
+
+        <Dialog
+            v-model:visible="confirmDeleteVisible"
+            modal
+            header="Eliminar inscripción"
+            :style="{ width: '440px' }"
+        >
+            <p class="text-sm text-gray-700 dark:text-gray-300">
+                ¿Seguro que querés eliminar la inscripción de
+                <span class="font-semibold">{{ inscripcionParaBorrar ? nombreUsuario(inscripcionParaBorrar) : '' }}</span>
+                <template v-if="inscripcionParaBorrar?.actividad?.nombre">
+                    a <span class="font-semibold">{{ inscripcionParaBorrar.actividad.nombre }}</span>
+                </template>?
+            </p>
+            <p class="mt-2 text-xs text-red-600">
+                Esta acción no se puede deshacer. También se eliminan sus comprobantes asociados.
+            </p>
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <button
+                        type="button"
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                        :disabled="isDeleting"
+                        @click="confirmDeleteVisible = false"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60"
+                        :disabled="isDeleting"
+                        @click="confirmarBorrar"
+                    >
+                        {{ isDeleting ? 'Eliminando...' : 'Eliminar' }}
                     </button>
                 </div>
             </template>
@@ -703,12 +885,14 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
-import { usePage, router } from '@inertiajs/vue3';
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
+import { usePage, router, Link } from '@inertiajs/vue3';
 import { useToast } from 'primevue/usetoast';
+import { FilterMatchMode } from 'primevue/api';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import Dropdown from 'primevue/dropdown';
 import Dialog from 'primevue/dialog';
 
 const props = defineProps({
@@ -718,6 +902,31 @@ const props = defineProps({
 const toast = useToast();
 const page = usePage();
 const filtroPeriodo = ref('last1');
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    _nombre: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    'actividad.nombre': { value: null, matchMode: FilterMatchMode.EQUALS },
+    membresia: { value: null, matchMode: FilterMatchMode.EQUALS },
+    pago: { value: null, matchMode: FilterMatchMode.EQUALS },
+    estado: { value: null, matchMode: FilterMatchMode.EQUALS },
+    envioConfirmacion: { value: null, matchMode: FilterMatchMode.EQUALS },
+});
+
+// Visibilidad de columnas según el ancho de la ventana: a medida que se achica,
+// se ocultan más columnas (las menos críticas primero) y pasan al expandable row.
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1920);
+const onResize = () => { windowWidth.value = window.innerWidth; };
+onMounted(() => window.addEventListener('resize', onResize));
+onUnmounted(() => window.removeEventListener('resize', onResize));
+
+const cols = computed(() => {
+    const w = windowWidth.value;
+    return {
+        membresia: w >= 1080,
+        estado: w >= 1200,
+        envioConfirmacion: w >= 1360,
+    };
+});
 const expandedRows = ref([]);
 const expandedCardIds = ref([]);
 const editRowId = ref(null);
@@ -783,12 +992,14 @@ const guardarEdicion = async (inscripcion) => {
     if (!canEdit.value || isSaving.value) return;
     isSaving.value = true;
     try {
-        await axios.put(route('estadoinscripciones.update', inscripcion.id), {
+        const { data } = await axios.put(route('estadoinscripciones.update', inscripcion.id), {
             montoapagar: editForm.value.montoapagar,
             pago: editForm.value.pago,
         });
         inscripcion.montoapagar = editForm.value.montoapagar;
         inscripcion.pago = editForm.value.pago;
+        // El backend confirma la inscripción al quedar saldada; reflejamos el nuevo estado.
+        if (data?.estado) inscripcion.estado = data.estado;
         editRowId.value = null;
     } catch (error) {
         alert('No se pudo guardar la edición.');
@@ -853,6 +1064,42 @@ const confirmarSaldado = () => {
     guardarEdicion(inscripcion);
 };
 
+const abrirConfirmarBorrar = (inscripcion) => {
+    if (!canEdit.value || isDeleting.value) return;
+    inscripcionParaBorrar.value = inscripcion;
+    confirmDeleteVisible.value = true;
+};
+
+const confirmarBorrar = () => {
+    const inscripcion = inscripcionParaBorrar.value;
+    if (!inscripcion || !canEdit.value || isDeleting.value) return;
+    isDeleting.value = true;
+    router.delete(route('estadoinscripciones.destroy', { estadoinscripcion: inscripcion.id }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.add({
+                severity: 'success',
+                summary: 'Inscripción eliminada',
+                detail: 'La inscripción fue eliminada correctamente.',
+                life: 4000,
+            });
+            confirmDeleteVisible.value = false;
+            inscripcionParaBorrar.value = null;
+        },
+        onError: () => {
+            toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'No se pudo eliminar la inscripción.',
+                life: 5000,
+            });
+        },
+        onFinish: () => {
+            isDeleting.value = false;
+        },
+    });
+};
+
 const paisUsuario = (inscripcion) => {
     if (isInvitado(inscripcion)) {
         return inscripcion.guest_user?.pais?.nombre || '-';
@@ -893,6 +1140,15 @@ const formatearFecha = (fecha) => {
         hour: '2-digit',
         minute: '2-digit'
     });
+};
+
+// fecha_pago es un cast 'date'; se formatea desde el string YYYY-MM-DD para evitar
+// el corrimiento de día por zona horaria que produce new Date(...) sobre medianoche UTC.
+const formatearSoloFecha = (fecha) => {
+    if (!fecha) return '-';
+    const [y, m, d] = String(fecha).slice(0, 10).split('-');
+    if (!y || !m || !d) return '-';
+    return `${d}/${m}/${y}`;
 };
 
 const modalidadInscripcion = (inscripcion) => {
@@ -949,6 +1205,9 @@ const comprobanteModal = ref(false);
 const comprobantesParaVer = ref([]);
 const confirmSaldadoVisible = ref(false);
 const inscripcionParaSaldar = ref(null);
+const confirmDeleteVisible = ref(false);
+const inscripcionParaBorrar = ref(null);
+const isDeleting = ref(false);
 const confirmEnviosVisible = ref(false);
 const totalConfirmacionesPendientes = ref(0);
 const isSendingConfirmaciones = ref(false);
@@ -1090,16 +1349,74 @@ const enviarGrabaciones = async () => {
     }
 };
 
+// Campo derivado para ordenar la columna "Nombre" (el valor mostrado es computado
+// desde user/guest_user). Se estampa sobre la fila original — sin clonar — para no
+// romper la edición inline, que muta el objeto de la inscripción directamente.
+watch(
+    () => props.inscripciones,
+    (lista) => {
+        (lista || []).forEach((i) => {
+            i._nombre = nombreUsuario(i);
+        });
+    },
+    { immediate: true }
+);
+
+// El período pre-filtra el dataset; los filtros de columna (Nombre, Actividad,
+// Membresía, Pago) y la búsqueda global los maneja PrimeVue sobre `filtradas`.
 const filtradas = computed(() => {
     const data = props.inscripciones || [];
     if (filtroPeriodo.value === 'all') return data;
+
+    // Período: filtra por la fecha de la ACTIVIDAD (no por la fecha de inscripción),
+    // así las inscripciones importadas (con created_at viejo) se ven si su actividad es reciente.
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
     return data.filter((inscripcion) => {
-        if (!inscripcion.created_at) return false;
-        const fecha = new Date(inscripcion.created_at);
-        return fecha >= start;
+        const fechaActividad = inscripcion.actividad?.fecha_inicio;
+        if (!fechaActividad) return false;
+        return new Date(fechaActividad) >= start;
     });
+});
+
+// Opciones de los dropdowns de filtro, derivadas del dataset visible (post-período).
+const actividadNombres = computed(() => {
+    const set = new Set();
+    filtradas.value.forEach((i) => {
+        if (i.actividad?.nombre) set.add(i.actividad.nombre);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'es'));
+});
+
+const pagoOptions = computed(() => {
+    const set = new Set();
+    filtradas.value.forEach((i) => {
+        if (i.pago) set.add(i.pago);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'es'));
+});
+
+const membresiaOptions = computed(() => {
+    const set = new Set();
+    filtradas.value.forEach((i) => {
+        if (i.membresia) set.add(i.membresia);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'es'));
+});
+
+// Opciones para los dropdowns de Estado y los tres campos de Envío,
+// derivadas del dataset visible (solo los valores realmente presentes).
+const opcionesFiltro = computed(() => {
+    const campos = ['estado', 'envioConfirmacion'];
+    const sets = Object.fromEntries(campos.map((c) => [c, new Set()]));
+    filtradas.value.forEach((i) => {
+        campos.forEach((c) => {
+            if (i[c]) sets[c].add(i[c]);
+        });
+    });
+    return Object.fromEntries(
+        campos.map((c) => [c, Array.from(sets[c]).sort((a, b) => a.localeCompare(b, 'es'))])
+    );
 });
 </script>
 

@@ -30,6 +30,7 @@ class ActividadRequest extends FormRequest
             'descripcion_id' => ['nullable', 'exists:descripciones,id'],
             'observaciones' => ['nullable','string'],
             'imagen_id' => ['nullable', 'exists:imagenes,id'],
+            'imagen' => ['nullable', 'image', 'max:4096'],
             'fecha_inicio' => ['required','date'],
             'fecha_fin' => ['required','date'],
             'pagoAmticipado' => ['nullable','date'],

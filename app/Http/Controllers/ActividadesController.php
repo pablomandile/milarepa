@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Concerns\ProcesaImagenAlGuardar;
 use App\Http\Requests\ActividadRequest;
+use App\Services\OptimizadorImagenService;
 use Illuminate\Http\Request;
 use App\Models\Actividad;
 use App\Models\BotonPago;
@@ -29,6 +31,8 @@ use Illuminate\Support\Facades\Log;
 
 class ActividadesController extends Controller
 {
+    use ProcesaImagenAlGuardar;
+
     /**
      * Display a listing of the resource.
      */
@@ -121,9 +125,10 @@ class ActividadesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(ActividadRequest $request)
+    public function store(ActividadRequest $request, OptimizadorImagenService $optimizador)
     {
         $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
 
         // Extraer arrays de ids (si tienes campos muchos-a-muchos) para luego sincronizar
         //    Nota: Tus rules no incluyen metodos_pago_ids, etc. 
@@ -172,22 +177,29 @@ class ActividadesController extends Controller
               $validated['comidas_ids'], $validated['transportes_ids'],
               $validated['maestros_ids'], $validated['coordinadores_ids']);
 
-        $actividad = Actividad::create($validated);
+        $this->guardarConImagen($request->file('imagen'), 'img/actividades', $optimizador, function ($imagenId) use ($validated, $metodosPagoIds, $hospedajesIds, $comidasIds, $transportesIds, $maestrosIds, $coordinadoresIds) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
 
-        // 5) Manejar la parte de "muchos a muchos" si es que tus modelos y pivots existen
-        //    Suponiendo que en tu modelo Actividad tienes:
-        //    public function metodosPago() { return $this->belongsToMany(MetodoPago::class); }
-        //    y lo mismo para hospedajes, comidas, transportes, etc.
-           $actividad->metodosPago()->sync($metodosPagoIds);
-           $actividad->hospedajes()->sync($hospedajesIds);
-           $actividad->comidas()->sync($comidasIds);
-           $actividad->transportes()->sync($transportesIds);
-           $actividad->maestros()->sync($maestrosIds);
-           $actividad->coordinadores()->sync($coordinadoresIds);
+            $actividad = Actividad::create($validated);
 
+            // 5) Manejar la parte de "muchos a muchos" si es que tus modelos y pivots existen
+            //    Suponiendo que en tu modelo Actividad tienes:
+            //    public function metodosPago() { return $this->belongsToMany(MetodoPago::class); }
+            //    y lo mismo para hospedajes, comidas, transportes, etc.
+            $actividad->metodosPago()->sync($metodosPagoIds);
+            $actividad->hospedajes()->sync($hospedajesIds);
+            $actividad->comidas()->sync($comidasIds);
+            $actividad->transportes()->sync($transportesIds);
+            $actividad->maestros()->sync($maestrosIds);
+            $actividad->coordinadores()->sync($coordinadoresIds);
 
-           return redirect()->route('actividades.index')
-           ->with('success', 'Actividad creada correctamente.');
+            return $actividad;
+        });
+
+        return redirect()->route('actividades.index')
+            ->with('success', 'Actividad creada correctamente.');
     }
 
     /**
@@ -319,7 +331,7 @@ class ActividadesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(ActividadRequest $request, string $id)
+    public function update(ActividadRequest $request, string $id, OptimizadorImagenService $optimizador)
     {
         $actividad = Actividad::findOrFail($id);
         
@@ -330,6 +342,7 @@ class ActividadesController extends Controller
         Log::info('Todos los datos:', $request->all());
         
         $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
 
         // Extraer arrays de ids para relaciones muchos-a-muchos
         $metodosPagoIds = $request->input('metodos_pago_ids', []);
@@ -369,16 +382,24 @@ class ActividadesController extends Controller
               $validated['comidas_ids'], $validated['transportes_ids'],
               $validated['maestros_ids'], $validated['coordinadores_ids']);
 
-        // Actualizar la actividad
-        $actividad->update($validated);
+        $this->guardarConImagen($request->file('imagen'), 'img/actividades', $optimizador, function ($imagenId) use ($actividad, $validated, $metodosPagoIds, $hospedajesIds, $comidasIds, $transportesIds, $maestrosIds, $coordinadoresIds) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
 
-        // Sincronizar relaciones muchos-a-muchos
-        $actividad->metodosPago()->sync($metodosPagoIds);
-        $actividad->hospedajes()->sync($hospedajesIds);
-        $actividad->comidas()->sync($comidasIds);
-        $actividad->transportes()->sync($transportesIds);
-        $actividad->maestros()->sync($maestrosIds);
-        $actividad->coordinadores()->sync($coordinadoresIds);
+            // Actualizar la actividad
+            $actividad->update($validated);
+
+            // Sincronizar relaciones muchos-a-muchos
+            $actividad->metodosPago()->sync($metodosPagoIds);
+            $actividad->hospedajes()->sync($hospedajesIds);
+            $actividad->comidas()->sync($comidasIds);
+            $actividad->transportes()->sync($transportesIds);
+            $actividad->maestros()->sync($maestrosIds);
+            $actividad->coordinadores()->sync($coordinadoresIds);
+
+            return $actividad;
+        });
 
         return redirect()->route('actividades.index')
             ->with('success', 'Actividad actualizada correctamente.');

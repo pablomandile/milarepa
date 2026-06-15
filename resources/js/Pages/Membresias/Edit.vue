@@ -38,15 +38,18 @@
         entidad_id: props.membresia.entidad_id,
         botonpago_id: props.membresia.botonpago_id || null,
         imagen_id: props.membresia.imagen_id || null,
+        imagen: null,
         valor: props.membresia.valor
     });
 
     const handleSubmit = () => {
-        form.put(route('membresias.update', props.membresia.id), {
-            onError: errors => {
-                console.error('Errores al actualizar:', errors);
-            }
-        });
+        form.transform((data) => ({ ...data, _method: 'put' }))
+            .post(route('membresias.update', props.membresia.id), {
+                forceFormData: true,
+                onError: errors => {
+                    console.error('Errores al actualizar:', errors);
+                }
+            });
     }
 </script>
 

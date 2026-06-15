@@ -7,14 +7,13 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-        {{-- Anti-FOUC: aplicar .dark en <html> antes de cargar Vite, según preferencia guardada o del sistema --}}
+        {{-- Anti-FOUC: aplicar .dark en <html> antes de cargar Vite. Por defecto tema claro;
+             solo se usa oscuro si el usuario lo eligió explícitamente (ignoramos el tema del sistema). --}}
         <script>
             (function () {
                 try {
                     var stored = localStorage.getItem('theme');
-                    var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    var dark = stored === 'dark' || (!stored && systemDark);
-                    if (dark) document.documentElement.classList.add('dark');
+                    if (stored === 'dark') document.documentElement.classList.add('dark');
                 } catch (e) {}
             })();
         </script>

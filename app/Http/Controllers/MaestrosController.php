@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Concerns\ProcesaImagenAlGuardar;
 use App\Models\Maestro;
 use Inertia\Inertia;
 use App\Http\Requests\MaestroRequest;
+use App\Services\OptimizadorImagenService;
 
 class MaestrosController extends Controller
 {
+    use ProcesaImagenAlGuardar;
+
     /**
      * Display a listing of the resource.
      */
@@ -31,9 +35,18 @@ class MaestrosController extends Controller
      * @param App\Http\Requests\MaestroRequest
      * @param \Illuminate\Http\Response
      */
-    public function store(MaestroRequest $request)
+    public function store(MaestroRequest $request, OptimizadorImagenService $optimizador)
     {
-        Maestro::create($request->validated());
+        $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
+
+        $this->guardarConImagen($request->file('imagen'), 'img/maestros', $optimizador, function ($imagenId) use ($validated) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
+            return Maestro::create($validated);
+        });
+
         return redirect()->route('maestros.index');
     }
 
@@ -61,11 +74,19 @@ class MaestrosController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(MaestroRequest $request, $id)
+    public function update(MaestroRequest $request, $id, OptimizadorImagenService $optimizador)
     {
         $maestro = Maestro::findOrFail($id);
+        $validated = $request->validated();
+        unset($validated['imagen']); // archivo: se procesa aparte, no es columna
 
-        $maestro->update($request->validated());
+        $this->guardarConImagen($request->file('imagen'), 'img/maestros', $optimizador, function ($imagenId) use ($maestro, $validated) {
+            if ($imagenId) {
+                $validated['imagen_id'] = $imagenId;
+            }
+            $maestro->update($validated);
+            return $maestro;
+        });
 
         return redirect()->route('maestros.index');
     }

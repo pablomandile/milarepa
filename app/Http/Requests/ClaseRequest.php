@@ -21,6 +21,7 @@ class ClaseRequest extends FormRequest
             'mes_referencia' => ['required', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
             'descripcion' => ['nullable', 'string', 'max:5000'],
             'imagen_id' => ['nullable', 'exists:imagenes,id'],
+            'imagen' => ['nullable', 'image', 'max:4096'],
             'dias_semana' => ['required', 'array', 'min:1'],
             'dias_semana.*' => ['string', Rule::in(['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'])],
             'titulos_por_fecha' => ['nullable', 'array'],

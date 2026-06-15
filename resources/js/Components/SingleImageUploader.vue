@@ -1,6 +1,6 @@
 <template>
     <div class="max-w-sm p-2 bg-white dark:bg-gray-800 border rounded shadow">
-  
+
       <!-- Botón Elegir Archivo -->
       <div>
         <label
@@ -15,7 +15,7 @@
           />
         </label>
       </div>
-  
+
       <!-- Vista Previa -->
       <div v-if="fileData" class="mt-4 flex items-center">
         <img
@@ -28,156 +28,97 @@
           <p class="text-gray-500">{{ formatFileSize(fileData.size) }}</p>
         </div>
       </div>
-  
-      <!-- Botones Subir / Cancelar -->
-      <div v-if="fileData && !isUploaded" class="flex gap-2 mt-4">
+
+      <!-- Quitar selección -->
+      <div v-if="fileData" class="flex gap-2 mt-4">
         <button
-          class="bg-green-600 hover:bg-green-700 text-white py-1 px-3 rounded disabled:opacity-50"
-          :disabled="isUploading"
-          @click="uploadFile"
-        >
-          {{ isUploading ? 'Subiendo...' : 'Subir' }}
-        </button>
-        <button
-          class="bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded disabled:opacity-50"
-          :disabled="isUploading"
+          type="button"
+          class="bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded"
           @click="cancel"
         >
-          Cancelar
+          Quitar
         </button>
       </div>
     </div>
   </template>
-  
-  <script setup>
-  import { ref, onUnmounted } from 'vue';
-  import { useForm } from '@inertiajs/vue3';
-  import { useToast } from 'primevue/usetoast';
 
-  
+  <script setup>
+  import { ref, onUnmounted, watch } from 'vue';
+
   // PROPS:
-  // v-model:imagenId -> para asignar el ID al padre
-  // v-model:imagenId funciona con modelValue + update:modelValue en Vue 3, 
-  // pero más simple es un prop/emit manual:
-const props = defineProps({
-    // Si quieres enlazar la ID con el padre, define:
-    imagenId: {
-      type: Number,
-      default: null
+  // v-model:file -> el File seleccionado se enlaza al padre.
+  //   La imagen NO se sube acá: la subida/proceso ocurre al guardar el formulario.
+  // folder -> se conserva por compatibilidad con los usos existentes, pero ya no
+  //   se usa acá (la carpeta de destino la decide el backend al guardar).
+  const props = defineProps({
+    file: {
+      type: [Object, null],
+      default: null,
     },
     folder: {
       type: String,
-      default: 'img/actividades'
-    }
+      default: 'img/actividades',
+    },
   });
-  const emits = defineEmits(['update:imagenId']);
-  
-  // Estado local
-  const fileData = ref(null);     // { name, size, file, previewUrl }
-  const isUploading = ref(false);
-  const isUploaded = ref(false);
+  const emits = defineEmits(['update:file']);
 
-  const toast = useToast();
+  // Estado local: { name, size, file, previewUrl }
+  const fileData = ref(null);
 
-  // Hook Inertia Form (si deseas usar .post y que devuelva JSON)
-  const form = useForm({
-    imagen: null
-  });
-  
-  // Al desmontar el componente, liberamos la URL de preview
-  onUnmounted(() => {
-    if (fileData.value && fileData.value.previewUrl) {
+  // Limpia el preview actual liberando la object URL.
+  function clearPreview() {
+    if (fileData.value?.previewUrl) {
       URL.revokeObjectURL(fileData.value.previewUrl);
     }
+    fileData.value = null;
+  }
+
+  // Si el padre limpia el File (ej. tras un submit exitoso), limpiamos el preview.
+  watch(
+    () => props.file,
+    (nuevo) => {
+      if (!nuevo && fileData.value) {
+        clearPreview();
+      }
+    }
+  );
+
+  // Al desmontar el componente, liberamos la URL de preview
+  onUnmounted(() => {
+    clearPreview();
   });
-  
+
   // Función para formatear el tamaño
   function formatFileSize(bytes) {
     if (bytes < 1024) return `${bytes} B`;
     else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + ' KB';
     else return (bytes / 1048576).toFixed(2) + ' MB';
   }
-  
-  // Selección de archivo
+
+  // Selección de archivo: guardamos preview local y emitimos el File al padre.
   function onFileSelected(e) {
     const file = e.target.files[0];
     if (!file) return;
-  
-    // Liberar anterior preview si existía
-    if (fileData.value?.previewUrl) {
-      URL.revokeObjectURL(fileData.value.previewUrl);
-    }
+
+    clearPreview();
     fileData.value = {
       file,
       name: file.name,
       size: file.size,
-      previewUrl: URL.createObjectURL(file)
+      previewUrl: URL.createObjectURL(file),
     };
-    // Reset states if user re-selects
-    isUploading.value = false;
-    isUploaded.value = false;
-  }
-  
-  // Subir archivo al backend (Axios + endpoint JSON)
-  async function uploadFile() {
-    if (!fileData.value) return;
-  
-    isUploading.value = true;
-    form.imagen = fileData.value.file;
-  
-  
-    // Ejemplo 2 (más recomendado): Usar Axios o fetch
-    try {
-      let data = new FormData();
-      data.append('imagen', fileData.value.file);
-      data.append('folder', props.folder);
-      const response = await axios.post('/imagenes-json', data);
-    
-      // Respuesta JSON: { id: 123, path: "storage/img/..." }
-      const { id, path } = response.data;
-      isUploading.value = false;
-      isUploaded.value = true;
 
-      toast.add({
-        severity: 'success',
-        summary: 'Subida Exitosa',
-        detail: 'La imagen se ha subido correctamente.',
-        life: 3000,
-        });
-    
-      // Emite al padre la nueva ID
-      emits('update:imagenId', id);
-    
-      // Podrías guardar path si deseas mostrar la preview real 
-      // en vez del local previewUrl.
-    } catch (error) {
-      isUploading.value = false;
-      const mensaje =
-        error?.response?.data?.errors?.imagen?.[0] ||
-        'Hubo un problema al subir la imagen.';
-      toast.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: mensaje,
-        life: 3000,
-        });
-    }
+    emits('update:file', file);
   }
-  
-  // Cancelar
+
+  // Quitar la selección.
   function cancel() {
-    // Borrar estado
-    if (fileData.value?.previewUrl) {
-      URL.revokeObjectURL(fileData.value.previewUrl);
-    }
-    fileData.value = null;
-    form.reset();
-    isUploading.value = false;
+    clearPreview();
+    emits('update:file', null);
   }
   </script>
-  
+
   <style scoped>
   /* Placeholder para evitar que Vite genere un CSS de 0 bytes que en server da 404 */
   .single-image-uploader-marker { display: contents; }
   </style>
-  

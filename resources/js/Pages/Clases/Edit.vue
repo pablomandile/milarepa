@@ -51,6 +51,7 @@ const form = useForm({
     mes_referencia: props.clase.mes_referencia || '',
     descripcion: props.clase.descripcion || '',
     imagen_id: props.clase.imagen_id || null,
+    imagen: null,
     dias_semana: Array.isArray(props.clase.dias_semana) ? props.clase.dias_semana : [],
     titulos_por_fecha: props.clase.titulos_por_fecha && typeof props.clase.titulos_por_fecha === 'object' ? props.clase.titulos_por_fecha : {},
     horario_desde: props.clase.horario_desde ? String(props.clase.horario_desde).slice(0, 5) : '',
@@ -79,7 +80,8 @@ function reloadCatalogo(catalogo) {
 }
 
 const handleSubmit = () => {
-    form.put(route('clases.update', props.clase.id));
+    form.transform((data) => ({ ...data, _method: 'put' }))
+        .post(route('clases.update', props.clase.id), { forceFormData: true });
 };
 </script>
 

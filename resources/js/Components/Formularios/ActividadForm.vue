@@ -145,8 +145,14 @@ function ordenarUltimosRegistros(items = []) {
   });
 }
 
+function ordenarPorNombre(items = []) {
+  return [...items].sort((a, b) =>
+    String(a?.nombre || '').localeCompare(String(b?.nombre || ''), 'es', { sensitivity: 'base' })
+  );
+}
+
 const maestrosOrdenados = computed(() => {
-  return ordenarUltimosRegistros(props.maestros || []);
+  return ordenarPorNombre(props.maestros || []);
 });
 
 const tiposActividadOrdenados = computed(() => {
@@ -154,7 +160,7 @@ const tiposActividadOrdenados = computed(() => {
 });
 
 const coordinadoresOrdenados = computed(() => {
-  return ordenarUltimosRegistros(props.coordinadores || []);
+  return ordenarPorNombre(props.coordinadores || []);
 });
 
 const descripcionesOrdenadas = computed(() => {
@@ -162,7 +168,7 @@ const descripcionesOrdenadas = computed(() => {
 });
 
 const lugaresOrdenados = computed(() => {
-  return ordenarUltimosRegistros(props.lugares || []);
+  return ordenarPorNombre(props.lugares || []);
 });
 
 const modalidadesOrdenadas = computed(() => {
@@ -479,8 +485,10 @@ watch(
               id="tipo_actividad_id"
               v-model="form.tipo_actividad_id"
               :options="tiposActividadOrdenados"
-              optionLabel="nombre"      
+              optionLabel="nombre"
               optionValue="id"
+              filter
+              filterPlaceholder="Buscar tipo"
               placeholder="Seleccione tipo"
               class="grow border border-gray-300 dark:border-gray-600"
             />
@@ -542,6 +550,8 @@ watch(
               :options="descripcionesOrdenadas"
               optionLabel="nombre"
               optionValue="id"
+              filter
+              filterPlaceholder="Buscar descripción"
               placeholder="Seleccione Descripción"
               class="grow border border-gray-300 dark:border-gray-600 my-dropdown"
             />
@@ -699,6 +709,8 @@ watch(
               :options="entidadesParaSelect"
               optionLabel="nombre_corto"
               optionValue="id"
+              filter
+              filterPlaceholder="Buscar entidad"
               placeholder="Seleccione Entidad"
               class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
@@ -749,6 +761,8 @@ watch(
               :options="lugaresOrdenados"
               optionLabel="nombre"
               optionValue="id"
+              filter
+              filterPlaceholder="Buscar lugar"
               placeholder="Seleccione Lugar (opcional)"
               showClear
               class="w-full mt-1 border border-gray-300 dark:border-gray-600"
@@ -837,6 +851,8 @@ watch(
               :options="esquemasPreciosOrdenados"
               optionLabel="nombre"
               optionValue="id"
+              filter
+              filterPlaceholder="Buscar esquema de precios"
               placeholder="Seleccione un esquema"
               class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
@@ -928,6 +944,8 @@ watch(
               :options="esquemaDescuentosOrdenados"
               optionLabel="nombre"
               optionValue="id"
+              filter
+              filterPlaceholder="Buscar esquema de descuentos"
               placeholder="Seleccione el esquema de desc."
               class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
@@ -996,6 +1014,8 @@ watch(
               :options="programasOrdenados"
               optionLabel="nombre"
               optionValue="id"
+              filter
+              filterPlaceholder="Buscar programa"
               placeholder="Seleccione un programa"
               class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
@@ -1278,7 +1298,7 @@ watch(
             <!-- Componente personalizado para subir imágen -->
             <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
               <SingleImageUploader 
-                v-model:imagenId="form.imagen_id"
+                v-model:file="form.imagen"
               />
             </div>
             <div v-if="imagenPreviewUrl" class="flex items-center gap-2">

@@ -26,15 +26,18 @@
         telefono: props.maestro.telefono,
         email: props.maestro.email,
         sobre_maestro: props.maestro.sobre_maestro || '',
-        imagen_id: props.maestro.imagen_id || null
+        imagen_id: props.maestro.imagen_id || null,
+        imagen: null
     });
 
     const handleSubmit = () => {
-        form.put(route('maestros.update', props.maestro.id), {
-            onError: errors => {
-                console.error('Errores al actualizar:', errors);
-            }
-        });
+        form.transform((data) => ({ ...data, _method: 'put' }))
+            .post(route('maestros.update', props.maestro.id), {
+                forceFormData: true,
+                onError: errors => {
+                    console.error('Errores al actualizar:', errors);
+                }
+            });
     }
 </script>
 

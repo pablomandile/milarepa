@@ -13,6 +13,8 @@
 .env.testing
 .env server
 .phpunit.result.cache
+/test-report.json
+/storage/app/*.sql
 Homestead.json
 Homestead.yaml
 auth.json

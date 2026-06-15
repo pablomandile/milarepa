@@ -12,6 +12,7 @@ import PaginaActividadOnlineForm from '@/Components/Formularios/PaginaActividadO
 const form = useForm({
     mes_referencia: '',
     imagen_id: null,
+    imagen: null,
 });
 </script>
 

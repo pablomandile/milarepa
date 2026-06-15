@@ -449,11 +449,15 @@ function cardConMuchoTexto(actividad) {
 
                         <!-- Template grid -->
                         <template #grid="slotProps">
-                            <div class="grid grid-nogutter">
+                            <div
+                                :class="gridVariante === 'grid2'
+                                    ? 'grid grid-cols-1 gap-y-2'
+                                    : 'grid grid-cols-1 md:grid-cols-2 gap-4'"
+                            >
                                 <div
                                     v-for="(actividad, index) in slotProps.items"
                                     :key="actividad.id"
-                                    :class="gridVariante === 'grid2' ? 'col-12 mb-2' : 'col-12 md:col-6 xl:col-6 px-0 md:px-2 mb-4'"
+                                    class="min-w-0"
                                 >
                                     <ActividadCardGrid1
                                         v-if="gridVariante !== 'grid2'"

@@ -17,6 +17,7 @@ const props = defineProps({
 
 const form = useForm({
     imagen_id: props.imagenId,
+    imagen: null,
 });
 
 const imagenActual = computed(() => {
@@ -28,9 +29,11 @@ const imagenActual = computed(() => {
 });
 
 const guardar = () => {
-    form.put(route('mail-info-membresias.update'), {
-        preserveScroll: true,
-    });
+    form.transform((data) => ({ ...data, _method: 'put' }))
+        .post(route('mail-info-membresias.update'), {
+            forceFormData: true,
+            preserveScroll: true,
+        });
 };
 
 const quitarImagen = () => {
@@ -56,7 +59,7 @@ const quitarImagen = () => {
                     </div>
 
                     <SingleImageUploader
-                        v-model:imagenId="form.imagen_id"
+                        v-model:file="form.imagen"
                         folder="img/membresias"
                     />
 
@@ -90,6 +93,9 @@ const quitarImagen = () => {
 
                     <p v-if="form.errors.imagen_id" class="text-sm text-red-600">
                         {{ form.errors.imagen_id }}
+                    </p>
+                    <p v-if="form.errors.imagen" class="text-sm text-red-600">
+                        {{ form.errors.imagen }}
                     </p>
                 </div>
             </div>

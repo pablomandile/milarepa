@@ -139,7 +139,7 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
                 />
                 <div class="flex items-start gap-4">
                     <SingleImageUploader
-                        v-model:imagenId="form.imagen_id"
+                        v-model:file="form.imagen"
                         folder="img/maestros"
                     />
                     <div v-if="imagenPreviewUrl" class="flex items-center gap-2">
