@@ -168,7 +168,7 @@ const clasesFiltradasMobile = computed(() => {
             clase?.nombre,
             clase?.ciclo?.nombre,
             clase?.entidad?.nombre,
-            clase?.coordinador?.nombre,
+            Array.isArray(clase?.coordinadores) ? clase.coordinadores.map((c) => c.nombre).join(' ') : '',
             Array.isArray(clase?.maestros) ? clase.maestros.map((m) => m.nombre).join(' ') : '',
         ];
 
@@ -378,8 +378,8 @@ const updateEstado = (row, nuevoEstado) => {
                                     <div v-if="isCardExpanded(clase.id)" class="rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3">
                                         <div class="grid grid-cols-1 gap-3 text-sm text-gray-700 dark:text-gray-300">
                                             <div>
-                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Coordinador</p>
-                                                <p>{{ clase.coordinador?.nombre || '-' }}</p>
+                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Coordinadores</p>
+                                                <p>{{ Array.isArray(clase.coordinadores) && clase.coordinadores.length ? clase.coordinadores.map((c) => c.nombre).join(', ') : '-' }}</p>
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Esquema de precios</p>
@@ -430,7 +430,7 @@ const updateEstado = (row, nuevoEstado) => {
                             :value="clasesFiltradas"
                             v-model:filters="filters"
                             filterDisplay="row"
-                            :globalFilterFields="['nombre', 'ciclo.nombre', 'entidad.nombre', 'coordinador.nombre']"
+                            :globalFilterFields="['nombre', 'ciclo.nombre', 'entidad.nombre']"
                             class="clases-table hidden sm:block"
                             stripedRows
                             paginator
@@ -586,8 +586,8 @@ const updateEstado = (row, nuevoEstado) => {
                                 <div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-md p-4">
                                     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                                         <div>
-                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Coordinador</p>
-                                            <p class="text-sm text-gray-800 dark:text-gray-100">{{ data.coordinador?.nombre || '-' }}</p>
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Coordinadores</p>
+                                            <p class="text-sm text-gray-800 dark:text-gray-100">{{ Array.isArray(data.coordinadores) && data.coordinadores.length ? data.coordinadores.map((c) => c.nombre).join(', ') : '-' }}</p>
                                         </div>
                                         <div>
                                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Esquema de precios</p>

@@ -127,6 +127,8 @@ Route::get('/clases/{clase}/public', [ClasesController::class, 'showPublic'])
     ->name('clases.show-public');
 Route::get('/actividades-online', [ActividadesOnlineController::class, 'index'])
     ->name('paginas.actividades-online');
+Route::get('/clases-publicas', [ClasesController::class, 'paginaPublica'])
+    ->name('paginas.clases');
 Route::get('/grid-actividades/{actividad}/public', [GridActividadesController::class, 'showPublicActividad'])
     ->name('grid-actividades.show-public');
 // Rate limit: 5 req/min por IP. Mitiga enumeración masiva desde una única fuente.
@@ -248,6 +250,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/disponibilidades', DisponibilidadesController::class, [
         'parameters' => ['disponibilidades' => 'disponibilidad'],]);
     Route::resource('/maestros', MaestrosController::class);
+    Route::post('/coordinadores/importar-usuarios', [CoordinadoresController::class, 'importarDesdeUsuarios'])
+        ->name('coordinadores.importar-usuarios');
     Route::resource('/coordinadores', CoordinadoresController::class , [
         'parameters' => ['coordinadores' => 'coordinador'],]);
     Route::resource('/monedas', MonedasController::class);

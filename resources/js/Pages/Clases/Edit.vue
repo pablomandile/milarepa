@@ -42,6 +42,14 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
+    imagenes: {
+        type: Array,
+        default: () => []
+    },
+    nombresClases: {
+        type: Array,
+        default: () => []
+    },
 });
 
 const form = useForm({
@@ -59,7 +67,9 @@ const form = useForm({
     maestro_ids: Array.isArray(props.clase.maestros)
         ? props.clase.maestros.map((maestro) => maestro.id)
         : (props.clase.maestro_id ? [props.clase.maestro_id] : []),
-    coordinador_id: props.clase.coordinador_id,
+    coordinador_ids: Array.isArray(props.clase.coordinadores)
+        ? props.clase.coordinadores.map((coordinador) => coordinador.id)
+        : (props.clase.coordinador_id ? [props.clase.coordinador_id] : []),
     esquema_precio_id: props.clase.esquema_precio_id,
     modalidad_id: props.clase.modalidad_id ?? null,
     stream_id: props.clase.stream_id ?? null,
@@ -116,6 +126,8 @@ const handleSubmit = () => {
                                 :esquema-precios="esquemaPrecios"
                                 :modalidades="modalidades"
                                 :streams="streams"
+                                :imagenes="imagenes"
+                                :nombres-clases="nombresClases"
                                 :imagen-preview-url="props.clase.imagen ? `/storage/${props.clase.imagen.ruta}` : ''"
                                 :hide-header="true"
                                 @submit="handleSubmit"

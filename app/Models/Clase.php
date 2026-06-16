@@ -22,7 +22,6 @@ class Clase extends Model
         'titulos_por_fecha',
         'horario_desde',
         'horario_hasta',
-        'coordinador_id',
         'esquema_precio_id',
         'modalidad_id',
         'stream_id',
@@ -52,9 +51,9 @@ class Clase extends Model
         return $this->belongsToMany(Maestro::class, 'clase_maestro')->withTimestamps();
     }
 
-    public function coordinador()
+    public function coordinadores()
     {
-        return $this->belongsTo(Coordinador::class, 'coordinador_id');
+        return $this->belongsToMany(Coordinador::class, 'clase_coordinador')->withTimestamps();
     }
 
     public function esquemaPrecio()

@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Coordinador;
+use App\Models\User;
 use App\Http\Requests\CoordinadorRequest;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 
@@ -25,6 +28,64 @@ class CoordinadoresController extends Controller
     public function create()
     {
         return inertia('Coordinadores/Create');
+    }
+
+    /**
+     * Importa como coordinadores a los usuarios marcados con "Es coordinador".
+     * Evita duplicados por email (no actualiza los que ya existen).
+     */
+    public function importarDesdeUsuarios()
+    {
+        $usuarios = User::where('es_coordinador', true)->get(['name', 'email', 'telefono']);
+
+        // Emails ya presentes en coordinadores (normalizados) para evitar duplicados.
+        $emailsExistentes = Coordinador::whereNotNull('email')
+            ->pluck('email')
+            ->map(fn ($email) => Str::lower(trim((string) $email)))
+            ->filter()
+            ->flip();
+
+        $creados = 0;
+        $existentes = 0;
+        $sinEmail = 0;
+
+        DB::transaction(function () use ($usuarios, &$emailsExistentes, &$creados, &$existentes, &$sinEmail) {
+            foreach ($usuarios as $usuario) {
+                $email = trim((string) $usuario->email);
+
+                if ($email === '') {
+                    $sinEmail++;
+                    continue;
+                }
+
+                $clave = Str::lower($email);
+                if ($emailsExistentes->has($clave)) {
+                    $existentes++;
+                    continue;
+                }
+
+                Coordinador::create([
+                    'nombre' => Str::limit((string) $usuario->name, 50, ''),
+                    'email' => $email,
+                    'telefono' => $usuario->telefono ? Str::limit((string) $usuario->telefono, 50, '') : null,
+                ]);
+
+                // Registra el email para no duplicar si dos usuarios comparten el mismo.
+                $emailsExistentes->put($clave, true);
+                $creados++;
+            }
+        });
+
+        $partes = ["{$creados} coordinador(es) agregado(s)"];
+        if ($existentes > 0) {
+            $partes[] = "{$existentes} ya existían";
+        }
+        if ($sinEmail > 0) {
+            $partes[] = "{$sinEmail} sin email (omitidos)";
+        }
+
+        return redirect()->route('coordinadores.index')
+            ->with('success', 'Importación desde usuarios: ' . implode(', ', $partes) . '.');
     }
 
     /**

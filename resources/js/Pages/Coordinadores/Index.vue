@@ -36,6 +36,28 @@
         });
     });
 
+    const importarDesdeUsuarios = () => {
+        Swal.fire({
+            title: "Importar desde Usuarios",
+            text: 'Se agregarán como coordinadores los usuarios marcados con "Es coordinador" que aún no estén en la lista.',
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Sí, importar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            router.post(route('coordinadores.importar-usuarios'), {}, {
+                preserveScroll: true,
+                onSuccess: (page) => {
+                    Swal.fire("Listo", page.props.flash?.success || "Importación finalizada.", "success");
+                },
+                onError: () => {
+                    Swal.fire("Error", "No se pudo importar desde usuarios.", "error");
+                },
+            });
+        });
+    };
+
     const deleteCoordinador = (id) => {
     Swal.fire({
         title: "¿Estás seguro?",
@@ -72,10 +94,19 @@
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-4xl mx-auto">
-                    <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create coordinadores')">
-                        <Link :href="route('coordinadores.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" > 
+                    <div class="flex flex-wrap items-center gap-2" v-if="$page.props.user.permissions.includes('create coordinadores')">
+                        <Link :href="route('coordinadores.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded" >
                             NUEV@ COORDINADOR/A
                         </Link>
+                        <button
+                            type="button"
+                            @click="importarDesdeUsuarios"
+                            class="inline-flex items-center gap-2 text-white bg-emerald-500 hover:bg-emerald-700 py-2 px-4 rounded"
+                            v-tooltip="'Agrega como coordinadores a los usuarios con &quot;Es coordinador&quot;'"
+                        >
+                            <i class="pi pi-user-plus"></i>
+                            Importar desde Usuarios
+                        </button>
                     </div>
                     <!-- Buscador móvil -->
                     <div v-if="coordinadores.length > 0" class="sm:hidden mt-4">

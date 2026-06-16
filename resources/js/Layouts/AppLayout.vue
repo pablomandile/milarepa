@@ -303,7 +303,10 @@ const toggleMobileSection = (key) => {
                                 <template #content>
                                     <DropdownLink :href="route('paginas.actividades-online')" :active="route().current('paginas.actividades-online')">
                                         Actividades Online
-                                    </DropdownLink>  
+                                    </DropdownLink>
+                                    <DropdownLink :href="route('paginas.clases')" :active="route().current('paginas.clases')">
+                                        Clases
+                                    </DropdownLink>
                                     <DropdownLink :href="route('calendario.index')" :active="route().current('calendario.index')">
                                         Calendario
                                     </DropdownLink>
@@ -800,7 +803,10 @@ const toggleMobileSection = (key) => {
                         <div v-if="isMobileSectionOpen('paginas')" class="space-y-1">
                             <ResponsiveNavLink :href="route('paginas.actividades-online')" :active="route().current('paginas.actividades-online')">
                                 Actividades Online
-                            </ResponsiveNavLink>  
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('paginas.clases')" :active="route().current('paginas.clases')">
+                                Clases
+                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('calendario.index')" :active="route().current('calendario.index')">
                                 Calendario
                             </ResponsiveNavLink>

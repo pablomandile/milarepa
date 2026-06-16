@@ -52,6 +52,7 @@ class ImportarMembresiasService
             'filas_validas' => 0,
             'usuarios_nuevos' => 0,
             'usuarios_existentes' => 0,
+            'sin_cambios' => 0,
             'membresias_a_asignar' => 0,
             'errores' => 0,
             'filas' => [],
@@ -70,12 +71,14 @@ class ImportarMembresiasService
             }
 
             $resultado['filas_validas']++;
-            if ($info['user_existe']) {
-                $resultado['usuarios_existentes']++;
-            } else {
+            if (!$info['user_existe']) {
                 $resultado['usuarios_nuevos']++;
+            } elseif ($info['sin_cambios']) {
+                $resultado['sin_cambios']++;
+            } else {
+                $resultado['usuarios_existentes']++;
             }
-            if ($info['membresia_id']) {
+            if ($info['asignara_membresia']) {
                 $resultado['membresias_a_asignar']++;
             }
 
@@ -97,6 +100,7 @@ class ImportarMembresiasService
             'total_filas' => count($filas),
             'creados' => 0,
             'actualizados' => 0,
+            'sin_cambios' => 0,
             'membresias_asignadas' => 0,
             'errores' => 0,
             'detalle' => [],
@@ -123,6 +127,18 @@ class ImportarMembresiasService
                 $user = User::where('email', $info['datos']['mail'])->first();
                 $esNuevo = !$user;
 
+                // Usuario existente sin ningún cambio: se omite la actualización (no se toca la BD).
+                if (!$esNuevo && $info['sin_cambios']) {
+                    $resumen['sin_cambios']++;
+                    $resumen['detalle'][] = [
+                        'linea' => $linea,
+                        'resultado' => 'sin_cambios',
+                        'email' => $info['datos']['mail'],
+                        'mensajes' => $info['mensajes'],
+                    ];
+                    continue;
+                }
+
                 $datosUser = [
                     'name' => $info['datos']['name'],
                     'telefono' => $info['datos']['telefono'],
@@ -141,11 +157,15 @@ class ImportarMembresiasService
                     $user->syncRoles(['asistant']);
                     $resumen['creados']++;
                 } else {
-                    $user->update($datosUser);
+                    // Solo escribir los campos de usuario si efectivamente cambiaron.
+                    if ($info['cambia_usuario']) {
+                        $user->update($datosUser);
+                    }
                     $resumen['actualizados']++;
                 }
 
-                if ($info['membresia_id']) {
+                // La membresía se escribe solo si corresponde (nuevo con TK, o existente con cambios).
+                if ($info['asignara_membresia']) {
                     $user->updateMembresiaUsuario([
                         'membresia_id' => $info['membresia_id'],
                         'suscripcion' => (bool) ($info['suscripcion'] ?? false),
@@ -194,11 +214,33 @@ class ImportarMembresiasService
         }
 
         // Detectar el delimitador (coma o punto y coma).
-        $primeraLinea = $lineas[0];
-        $delimitador = (substr_count($primeraLinea, ';') > substr_count($primeraLinea, ',')) ? ';' : ',';
+        $delimitador = (substr_count($lineas[0], ';') > substr_count($lineas[0], ',')) ? ';' : ',';
 
-        $header = str_getcsv($lineas[0], $delimitador);
-        $header = array_map(fn ($h) => $this->normalizarHeader($h), $header);
+        // Una línea "tiene contenido" si al parsearla queda al menos una celda no vacía.
+        // Descarta filas como ",,,,," que algunos exports (Google Sheets) ponen antes del
+        // encabezado o entre datos; si no, esa fila se tomaría como header y todo fallaría.
+        $tieneContenido = function (string $linea) use ($delimitador): bool {
+            foreach (str_getcsv($linea, $delimitador) as $celda) {
+                if (trim((string) $celda) !== '') {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // El encabezado es la primera línea con contenido real.
+        $indiceHeader = null;
+        for ($i = 0; $i < count($lineas); $i++) {
+            if ($tieneContenido($lineas[$i])) {
+                $indiceHeader = $i;
+                break;
+            }
+        }
+        if ($indiceHeader === null) {
+            return [];
+        }
+
+        $header = array_map(fn ($h) => $this->normalizarHeader($h), str_getcsv($lineas[$indiceHeader], $delimitador));
 
         $mapeoColumnas = [];
         foreach (self::COLUMNAS as $clave => $etiqueta) {
@@ -208,7 +250,10 @@ class ImportarMembresiasService
         }
 
         $filas = [];
-        for ($i = 1; $i < count($lineas); $i++) {
+        for ($i = $indiceHeader + 1; $i < count($lineas); $i++) {
+            if (!$tieneContenido($lineas[$i])) {
+                continue; // saltar filas totalmente vacías o de solo delimitadores
+            }
             $celdas = str_getcsv($lineas[$i], $delimitador);
             $fila = [];
             foreach ($mapeoColumnas as $clave => $posicion) {
@@ -321,6 +366,58 @@ class ImportarMembresiasService
             $mensajes[] = "Se indicó suscripción (asterisco en ONLINE) pero no hay membresía asociada; la suscripción se ignora";
         }
 
+        // Para usuarios existentes: snapshot de la membresía ACTUAL y qué campos cambiarían,
+        // para resaltarlos en el preview. La membresía solo se actualiza si hay TK válido
+        // (membresia_id); si no, la membresía actual no se toca → no hay cambios.
+        $actual = null;
+        $cambios = null;
+        if ($userExistente) {
+            $perfil = $userExistente->membresiaUsuario; // hasOne (lazy load)
+            $actualMembresiaId = $perfil?->membresia_id;
+            $actualOnline = (bool) ($perfil?->membresia_online ?? false);
+            $actualSuscripcion = (bool) ($perfil?->suscripcion ?? false);
+            $actualAbrev = $actualMembresiaId
+                ? optional(Membresia::find($actualMembresiaId))->abreviacion
+                : null;
+            $nuevaSuscripcion = $suscripcion && (bool) $membresiaId;
+
+            $actual = [
+                'tk' => $actualAbrev,
+                'online' => $actualOnline,
+                'suscripcion' => $actualSuscripcion,
+            ];
+            $cambios = [
+                'membresia'   => $membresiaId ? ((int) $actualMembresiaId !== (int) $membresiaId) : false,
+                'online'      => $membresiaId ? ($actualOnline !== $online) : false,
+                'suscripcion' => $membresiaId ? ($actualSuscripcion !== $nuevaSuscripcion) : false,
+            ];
+        }
+
+        // ¿Cambian los datos del usuario? (solo existentes; los nuevos siempre se crean).
+        $cambiaUsuario = false;
+        if ($userExistente) {
+            $cambiaUsuario =
+                ($userExistente->name !== $nombreCompleto)
+                || ((string) ($userExistente->telefono ?? '') !== (string) ($telefono ?: ''))
+                || ((string) ($userExistente->direccion ?? '') !== (string) ($ciudad ?: ''))
+                || ((bool) $userExistente->msgxmail !== $newsletter)
+                || ($programaEstudioId && (
+                    (int) $userExistente->programa_estudio_id !== (int) $programaEstudioId
+                    || (bool) $userExistente->programa_a_distancia !== $programaADistancia
+                ));
+        }
+
+        // ¿Se escribe la membresía? Solo si hay TK válido y, para existentes, si algo cambia.
+        $asignaraMembresia = (bool) $membresiaId && (
+            !$userExistente
+            || ($cambios['membresia'] ?? false)
+            || ($cambios['online'] ?? false)
+            || ($cambios['suscripcion'] ?? false)
+        );
+
+        // Existente sin ningún cambio (ni datos de usuario ni membresía): se omite la actualización.
+        $sinCambios = (bool) $userExistente && !$cambiaUsuario && !$asignaraMembresia;
+
         return [
             'accion' => 'ok',
             'mensajes' => $mensajes,
@@ -330,6 +427,11 @@ class ImportarMembresiasService
             'programa_a_distancia' => $programaADistancia,
             'password_propuesta' => $passwordPropuesta,
             'suscripcion' => $suscripcion && $membresiaId,
+            'actual' => $actual,
+            'cambios' => $cambios,
+            'cambia_usuario' => $cambiaUsuario,
+            'asignara_membresia' => $asignaraMembresia,
+            'sin_cambios' => $sinCambios,
             'datos' => [
                 'name' => $nombreCompleto,
                 'mail' => $mail,

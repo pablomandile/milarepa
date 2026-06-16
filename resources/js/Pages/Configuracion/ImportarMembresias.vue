@@ -104,13 +104,15 @@ function confirmarImportacion() {
     );
 }
 
-function clasePorAccion(accion) {
-    if (accion === 'error') return 'text-red-600 font-semibold';
-    return 'text-emerald-600';
+function claseAccion(fila) {
+    if (fila.accion === 'error') return 'text-red-600 font-semibold';
+    if (fila.user_existe && fila.sin_cambios) return 'text-gray-400';
+    return fila.user_existe ? 'text-blue-600' : 'text-emerald-600';
 }
 
 function etiquetaAccion(fila) {
     if (fila.accion === 'error') return 'Error';
+    if (fila.user_existe && fila.sin_cambios) return 'Sin cambios';
     return fila.user_existe ? 'Actualizar' : 'Crear';
 }
 </script>
@@ -240,7 +242,7 @@ function etiquetaAccion(fila) {
                         Vista previa
                     </h2>
 
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
                         <div class="border border-gray-200 dark:border-gray-700 rounded p-3">
                             <p class="text-xs text-gray-500 dark:text-gray-400">Filas totales</p>
                             <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ preview.total_filas }}</p>
@@ -253,6 +255,10 @@ function etiquetaAccion(fila) {
                             <p class="text-xs text-blue-700 dark:text-blue-300">Existentes (se actualizan)</p>
                             <p class="text-2xl font-semibold text-blue-700 dark:text-blue-300">{{ preview.usuarios_existentes }}</p>
                         </div>
+                        <div class="border border-gray-200 dark:border-gray-700 rounded p-3 bg-gray-50 dark:bg-gray-800/40">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Sin cambios (se omiten)</p>
+                            <p class="text-2xl font-semibold text-gray-500 dark:text-gray-400">{{ preview.sin_cambios ?? 0 }}</p>
+                        </div>
                         <div class="border border-indigo-200 dark:border-indigo-800 rounded p-3 bg-indigo-50 dark:bg-indigo-900/20">
                             <p class="text-xs text-indigo-700 dark:text-indigo-300">Membresías a asignar</p>
                             <p class="text-2xl font-semibold text-indigo-700 dark:text-indigo-300">{{ preview.membresias_a_asignar }}</p>
@@ -262,6 +268,12 @@ function etiquetaAccion(fila) {
                             <p class="text-2xl font-semibold text-red-700 dark:text-red-300">{{ preview.errores }}</p>
                         </div>
                     </div>
+
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                        En las filas a <span class="text-blue-700 dark:text-blue-300 font-medium">Actualizar</span>, los valores resaltados en
+                        <span class="rounded bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5 text-amber-800 dark:text-amber-200">ámbar (actual → nuevo)</span>
+                        indican qué cambia respecto a la membresía actual del usuario.
+                    </p>
 
                     <DataTable
                         :value="preview.filas"
@@ -275,7 +287,7 @@ function etiquetaAccion(fila) {
                         <Column field="linea" header="Línea" style="width: 5rem"></Column>
                         <Column header="Acción" style="width: 7rem">
                             <template #body="{ data }">
-                                <span :class="clasePorAccion(data.accion)">{{ etiquetaAccion(data) }}</span>
+                                <span :class="claseAccion(data)">{{ etiquetaAccion(data) }}</span>
                             </template>
                         </Column>
                         <Column header="Email">
@@ -288,9 +300,18 @@ function etiquetaAccion(fila) {
                                 {{ data.datos?.name || '—' }}
                             </template>
                         </Column>
-                        <Column header="TK" style="width: 5rem">
+                        <Column header="TK" style="width: 8rem">
                             <template #body="{ data }">
-                                <span v-if="data.datos?.tk" class="font-mono">{{ data.datos.tk }}</span>
+                                <span
+                                    v-if="data.user_existe && data.cambios?.membresia"
+                                    class="inline-flex items-center gap-1 rounded bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5"
+                                    v-tooltip="'Cambia respecto a la membresía actual'"
+                                >
+                                    <span class="font-mono text-gray-500 line-through">{{ data.actual?.tk || '—' }}</span>
+                                    <i class="pi pi-arrow-right text-[10px] text-amber-600"></i>
+                                    <span class="font-mono font-semibold text-amber-800 dark:text-amber-200">{{ data.datos?.tk || '—' }}</span>
+                                </span>
+                                <span v-else-if="data.datos?.tk" class="font-mono">{{ data.datos.tk }}</span>
                                 <span v-else>—</span>
                             </template>
                         </Column>
@@ -308,15 +329,33 @@ function etiquetaAccion(fila) {
                                 ></i>
                             </template>
                         </Column>
-                        <Column header="Online" style="width: 5rem">
+                        <Column header="Online" style="width: 7rem">
                             <template #body="{ data }">
-                                <span v-if="data.datos">{{ data.datos.online ? 'Sí' : 'No' }}</span>
+                                <span
+                                    v-if="data.user_existe && data.cambios?.online"
+                                    class="inline-flex items-center gap-1 rounded bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5"
+                                    v-tooltip="'Cambia respecto a la membresía actual'"
+                                >
+                                    <span class="text-gray-500 line-through">{{ data.actual?.online ? 'Sí' : 'No' }}</span>
+                                    <i class="pi pi-arrow-right text-[10px] text-amber-600"></i>
+                                    <span class="font-semibold text-amber-800 dark:text-amber-200">{{ data.datos?.online ? 'Sí' : 'No' }}</span>
+                                </span>
+                                <span v-else-if="data.datos">{{ data.datos.online ? 'Sí' : 'No' }}</span>
                             </template>
                         </Column>
-                        <Column header="Suscripción" style="width: 6rem">
+                        <Column header="Suscripción" style="width: 7rem">
                             <template #body="{ data }">
+                                <span
+                                    v-if="data.user_existe && data.cambios?.suscripcion"
+                                    class="inline-flex items-center gap-1 rounded bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5"
+                                    v-tooltip="'Cambia respecto a la membresía actual'"
+                                >
+                                    <span class="text-gray-500 line-through">{{ data.actual?.suscripcion ? 'Sí' : 'No' }}</span>
+                                    <i class="pi pi-arrow-right text-[10px] text-amber-600"></i>
+                                    <span class="font-semibold text-amber-800 dark:text-amber-200">{{ data.datos?.suscripcion ? 'Sí' : 'No' }}</span>
+                                </span>
                                 <i
-                                    v-if="data.datos?.suscripcion"
+                                    v-else-if="data.datos?.suscripcion"
                                     class="fas fa-check text-emerald-600"
                                     v-tooltip="'Marcar como suscripción'"
                                 ></i>
@@ -351,7 +390,7 @@ function etiquetaAccion(fila) {
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                         Resultado de la importación
                     </h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
                         <div class="border border-emerald-200 dark:border-emerald-800 rounded p-3 bg-emerald-50 dark:bg-emerald-900/20">
                             <p class="text-xs text-emerald-700 dark:text-emerald-300">Usuarios creados</p>
                             <p class="text-2xl font-semibold text-emerald-700 dark:text-emerald-300">{{ resumen.creados }}</p>
@@ -359,6 +398,10 @@ function etiquetaAccion(fila) {
                         <div class="border border-blue-200 dark:border-blue-800 rounded p-3 bg-blue-50 dark:bg-blue-900/20">
                             <p class="text-xs text-blue-700 dark:text-blue-300">Usuarios actualizados</p>
                             <p class="text-2xl font-semibold text-blue-700 dark:text-blue-300">{{ resumen.actualizados }}</p>
+                        </div>
+                        <div class="border border-gray-200 dark:border-gray-700 rounded p-3 bg-gray-50 dark:bg-gray-800/40">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Sin cambios (omitidos)</p>
+                            <p class="text-2xl font-semibold text-gray-500 dark:text-gray-400">{{ resumen.sin_cambios ?? 0 }}</p>
                         </div>
                         <div class="border border-indigo-200 dark:border-indigo-800 rounded p-3 bg-indigo-50 dark:bg-indigo-900/20">
                             <p class="text-xs text-indigo-700 dark:text-indigo-300">Membresías asignadas</p>

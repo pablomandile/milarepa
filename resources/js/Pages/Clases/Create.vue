@@ -38,6 +38,14 @@ defineProps({
         type: Array,
         default: () => []
     },
+    imagenes: {
+        type: Array,
+        default: () => []
+    },
+    nombresClases: {
+        type: Array,
+        default: () => []
+    },
 });
 
 const CATALOGOS_RECARGABLES = new Set(['ciclos', 'entidades']);
@@ -65,7 +73,7 @@ const form = useForm({
     horario_desde: '',
     horario_hasta: '',
     maestro_ids: [],
-    coordinador_id: null,
+    coordinador_ids: [],
     esquema_precio_id: null,
     modalidad_id: null,
     stream_id: null,
@@ -104,6 +112,8 @@ const form = useForm({
                                 :esquema-precios="esquemaPrecios"
                                 :modalidades="modalidades"
                                 :streams="streams"
+                                :imagenes="imagenes"
+                                :nombres-clases="nombresClases"
                                 :imagen-preview-url="''"
                                 :hide-header="true"
                                 @submit="form.post(route('clases.store'))"

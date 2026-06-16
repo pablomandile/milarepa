@@ -41,4 +41,10 @@ class RoutesSmokeTest extends TestCase
     {
         $this->actingAs($this->usuario())->get(route('metodospago.index'))->assertSuccessful();
     }
+
+    public function test_pagina_publica_clases_responde_ok(): void
+    {
+        // Ruta pública (sin auth): lista todas las clases activas por entidad.
+        $this->get(route('paginas.clases'))->assertSuccessful();
+    }
 }

@@ -157,7 +157,9 @@ class ActividadesOnlineController extends Controller
                     'titulo_fecha' => filled($tituloFecha) ? (string) $tituloFecha : null,
                     'button_text' => filled($tituloFecha) ? (string) $tituloFecha : 'Abrir link',
                     'image_url' => $clase->imagen ? '/storage/' . $clase->imagen->ruta : null,
-                    'links' => $this->matchStreamLinksByDateToken($cursor, collect($clase->stream?->links ?? [])),
+                    // El link de cada fecha es el que coincide con el título de esa fecha
+                    // (titulos_por_fecha), que es como están nombrados los links del stream.
+                    'links' => $this->matchStreamLinksByTitulo($tituloFecha, collect($clase->stream?->links ?? [])),
                 ]);
             }
         }
@@ -204,14 +206,20 @@ class ActividadesOnlineController extends Controller
         return '/storage/' . ltrim($path, '/');
     }
 
-    private function matchStreamLinks(string $oracionNombre, Carbon $fecha, Collection $links): array
+    /**
+     * Resuelve los links de stream para una actividad (oración o clase) en una fecha.
+     * Compara por TOKEN DE FECHA (ej. "martes 3") y, además, por NOMBRE de la actividad
+     * para desambiguar cuando un mismo stream tiene links de varias actividades en la
+     * misma fecha. Si ningún link matchea por nombre, cae al match por fecha solamente.
+     */
+    private function matchStreamLinks(string $nombre, Carbon $fecha, Collection $links): array
     {
         if ($links->isEmpty()) {
             return [];
         }
 
-        $normalizedOracion = $this->normalizeText($oracionNombre);
-        $oracionWords = collect(preg_split('/\s+/', $normalizedOracion))
+        $normalizedNombre = $this->normalizeText($nombre);
+        $nombreWords = collect(preg_split('/\s+/', $normalizedNombre))
             ->filter(fn ($word) => mb_strlen($word) >= 4)
             ->values();
 
@@ -230,16 +238,16 @@ class ActividadesOnlineController extends Controller
             })
             ->values();
 
-        $strict = $prepared->filter(function ($link) use ($dateTokens, $normalizedOracion, $oracionWords) {
+        $strict = $prepared->filter(function ($link) use ($dateTokens, $normalizedNombre, $nombreWords) {
             $name = $link['normalized_name'];
             $dateMatch = $dateTokens->contains(fn ($token) => $this->hasExactTokenMatch($name, $token));
             if (!$dateMatch) return false;
 
-            if ($normalizedOracion !== '' && str_contains($name, $normalizedOracion)) {
+            if ($normalizedNombre !== '' && str_contains($name, $normalizedNombre)) {
                 return true;
             }
 
-            return $oracionWords->contains(fn ($word) => str_contains($name, $word));
+            return $nombreWords->contains(fn ($word) => str_contains($name, $word));
         });
 
         $result = $strict->isNotEmpty()
@@ -291,25 +299,44 @@ class ActividadesOnlineController extends Controller
         return preg_match($pattern, $text) === 1;
     }
 
-    private function matchStreamLinksByDateToken(Carbon $fecha, Collection $links): array
+    /**
+     * Resuelve los links de una clase para una fecha comparando por el TÍTULO de esa
+     * fecha (titulos_por_fecha), que es como están nombrados los links del stream.
+     * Primero busca coincidencia exacta de nombre (normalizado); si no hay, cae a
+     * coincidencia por contención (uno contiene al otro).
+     */
+    private function matchStreamLinksByTitulo(?string $tituloFecha, Collection $links): array
     {
-        if ($links->isEmpty()) {
+        if ($links->isEmpty() || !filled($tituloFecha)) {
             return [];
         }
 
-        $dateToken = $this->normalizeText($fecha->locale('es')->translatedFormat('l j')); // Ej: martes 3
+        $tituloNorm = $this->normalizeText((string) $tituloFecha);
 
-        return $links
+        $prepared = $links
             ->filter(fn ($link) => filled($link->link))
             ->map(function ($link) {
                 return [
                     'id' => $link->id,
-                    'nombre' => (string) $link->nombre,
+                    'nombre' => $link->nombre,
                     'url' => $this->resolveExternalUrl((string) $link->link),
                     'normalized_name' => $this->normalizeText((string) $link->nombre),
                 ];
             })
-            ->filter(fn ($link) => $this->hasExactTokenMatch($link['normalized_name'], $dateToken))
+            ->values();
+
+        // 1) Coincidencia exacta por nombre normalizado.
+        $match = $prepared->filter(fn ($link) => $link['normalized_name'] !== '' && $link['normalized_name'] === $tituloNorm);
+
+        // 2) Fallback: uno contiene al otro (tolera diferencias menores de puntuación/espacios).
+        if ($match->isEmpty()) {
+            $match = $prepared->filter(fn ($link) =>
+                $link['normalized_name'] !== ''
+                && (str_contains($link['normalized_name'], $tituloNorm) || str_contains($tituloNorm, $link['normalized_name']))
+            );
+        }
+
+        return $match
             ->map(fn ($link) => [
                 'id' => $link['id'],
                 'nombre' => $link['nombre'],

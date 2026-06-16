@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup>
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import FormSection from '@/Components/FormSection.vue'
 import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
@@ -16,6 +16,8 @@ import Textarea from 'primevue/textarea';
 import Dropdown from 'primevue/dropdown';
 import InputSwitch from 'primevue/inputswitch';
 import MultiSelect from 'primevue/multiselect';
+import Dialog from 'primevue/dialog';
+import AutoComplete from 'primevue/autocomplete';
 
 const props = defineProps({
     form: {
@@ -52,6 +54,14 @@ const props = defineProps({
         default: () => []
     },
     streams: {
+        type: Array,
+        default: () => []
+    },
+    imagenes: {
+        type: Array,
+        default: () => []
+    },
+    nombresClases: {
         type: Array,
         default: () => []
     },
@@ -193,6 +203,102 @@ watch(
     },
     { immediate: true }
 );
+
+// ----- Nombre: texto libre + sugerencias de nombres ya usados (asc) -----
+const nombresSugeridos = ref([]);
+
+function buscarNombres(event) {
+    const termino = (event.query || '').trim().toLowerCase();
+    const todos = props.nombresClases || [];
+    nombresSugeridos.value = termino
+        ? todos.filter((nombre) => String(nombre).toLowerCase().includes(termino))
+        : [...todos];
+}
+
+// ----- Ciclo: mostrar el mes en la etiqueta de cada opción -----
+const nombresMeses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+];
+
+function nombreMes(mes) {
+    const indice = Number(mes) - 1;
+    return indice >= 0 && indice < 12 ? nombresMeses[indice] : '';
+}
+
+const ciclosConEtiqueta = computed(() =>
+    (props.ciclos || []).map((ciclo) => {
+        const mes = nombreMes(ciclo?.mes);
+        return {
+            ...ciclo,
+            etiqueta: mes ? `${ciclo.nombre} — ${mes}` : ciclo.nombre,
+        };
+    })
+);
+
+// ----- Esquema de precios / Stream: ver detalle en un diálogo -----
+const mostrarEsquemaDialog = ref(false);
+const mostrarStreamDialog = ref(false);
+
+const esquemaSeleccionado = computed(() =>
+    (props.esquemaPrecios || []).find((item) => String(item?.id) === String(props.form.esquema_precio_id)) || null
+);
+
+const streamSeleccionado = computed(() =>
+    (props.streams || []).find((item) => String(item?.id) === String(props.form.stream_id)) || null
+);
+
+function formatearPrecio(valor) {
+    const numero = Number(valor);
+    if (Number.isNaN(numero)) {
+        return valor;
+    }
+    return numero.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ----- Galería: seleccionar entre imágenes ya cargadas -----
+const mostrarGaleriaDialog = ref(false);
+const galeriaFiltro = ref('');
+const imagenSeleccionadaGaleria = ref(null);
+
+const imagenesFiltradas = computed(() => {
+    const termino = galeriaFiltro.value.trim().toLowerCase();
+    const lista = props.imagenes || [];
+    if (!termino) {
+        return lista;
+    }
+    return lista.filter((img) => String(img?.nombre || '').toLowerCase().includes(termino));
+});
+
+// Preview de la imagen actual: prioriza la elegida de la galería; si no, la guardada.
+const previewActualUrl = computed(() => {
+    if (imagenSeleccionadaGaleria.value) {
+        return `/storage/${imagenSeleccionadaGaleria.value.ruta}`;
+    }
+    return props.imagenPreviewUrl;
+});
+
+const previewActualLabel = computed(() =>
+    imagenSeleccionadaGaleria.value ? 'Elegida de galería' : 'Actual'
+);
+
+function seleccionarImagenGaleria(img) {
+    imagenSeleccionadaGaleria.value = img;
+    props.form.imagen_id = img.id;
+    // Al elegir de la galería descartamos cualquier archivo recién subido.
+    props.form.imagen = null;
+    mostrarGaleriaDialog.value = false;
+}
+
+// Si el usuario sube un archivo nuevo, ese archivo manda: limpiamos la selección de galería.
+watch(
+    () => props.form.imagen,
+    (file) => {
+        if (file) {
+            imagenSeleccionadaGaleria.value = null;
+        }
+    }
+);
 </script>
 
 <template>
@@ -213,7 +319,18 @@ watch(
 
                 <div class="w-full col-span-6 sm:col-span-6">
                     <InputLabel for="nombre" class="text-indigo-400" value="Nombre" :required="true" />
-                    <TextInput id="nombre" v-model="form.nombre" type="text" autocomplete="off" class="mt-1 block w-full" />
+                    <AutoComplete
+                        inputId="nombre"
+                        v-model="form.nombre"
+                        :suggestions="nombresSugeridos"
+                        @complete="buscarNombres"
+                        dropdown
+                        completeOnFocus
+                        :delay="150"
+                        class="mt-1 block w-full"
+                        inputClass="w-full border border-gray-300 dark:border-gray-600"
+                        placeholder="Escribí o elegí un nombre"
+                    />
                     <InputError :message="$page.props.errors.nombre" class="mt-2" />
                 </div>
 
@@ -223,8 +340,8 @@ watch(
                         <Dropdown
                             id="ciclo_id"
                             v-model="form.ciclo_id"
-                            :options="ciclos"
-                            optionLabel="nombre"
+                            :options="ciclosConEtiqueta"
+                            optionLabel="etiqueta"
                             optionValue="id"
                             placeholder="Seleccione un ciclo"
                             class="w-full border border-gray-300 dark:border-gray-600"
@@ -305,20 +422,31 @@ watch(
 
                 <div class="col-span-6 sm:col-span-6">
                     <InputLabel for="imagen_id" class="text-indigo-400 mb-2" value="Imagen" />
-                    <div class="flex items-start gap-4">
-                        <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
-                            <SingleImageUploader
-                                v-model:file="form.imagen"
-                                folder="img/clases"
-                            />
+                    <div class="flex flex-wrap items-start gap-4">
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
+                                <SingleImageUploader
+                                    v-model:file="form.imagen"
+                                    folder="img/clases"
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center gap-2 rounded bg-indigo-500 px-3 py-2 text-sm text-white hover:bg-indigo-600"
+                                @click="mostrarGaleriaDialog = true"
+                                v-tooltip="'Elegir entre las imágenes ya cargadas'"
+                            >
+                                <i class="pi pi-images"></i>
+                                Elegir de la galería
+                            </button>
                         </div>
-                        <div v-if="imagenPreviewUrl" class="flex items-center gap-2">
+                        <div v-if="previewActualUrl" class="flex items-center gap-2">
                             <img
-                                :src="imagenPreviewUrl"
+                                :src="previewActualUrl"
                                 alt="Imagen actual"
                                 class="h-16 w-16 rounded border border-gray-200 dark:border-gray-700 object-cover"
                             />
-                            <span class="text-xs text-gray-500">Actual</span>
+                            <span class="text-xs text-gray-500">{{ previewActualLabel }}</span>
                         </div>
                     </div>
                     <InputError :message="$page.props.errors.imagen_id" class="mt-2" />
@@ -424,32 +552,45 @@ watch(
                 </div>
 
                 <div class="col-span-6 sm:col-span-6">
-                    <InputLabel for="coordinador_id" class="text-indigo-400" value="Coordinador" />
-                    <Dropdown
-                        id="coordinador_id"
-                        v-model="form.coordinador_id"
+                    <InputLabel for="coordinador_ids" class="text-indigo-400" value="Coordinadores" />
+                    <MultiSelect
+                        id="coordinador_ids"
+                        v-model="form.coordinador_ids"
                         :options="coordinadores"
                         optionLabel="nombre"
                         optionValue="id"
-                        placeholder="Seleccione un coordinador"
+                        placeholder="Seleccione uno o mas coordinadores"
                         class="w-full mt-1 border border-gray-300 dark:border-gray-600"
-                        showClear
+                        :filter="true"
+                        display="chip"
+                        :maxSelectedLabels="3"
                     />
-                    <InputError :message="$page.props.errors.coordinador_id" class="mt-2" />
+                    <InputError :message="$page.props.errors.coordinador_ids" class="mt-2" />
                 </div>
 
                 <div class="col-span-6 sm:col-span-6">
                     <InputLabel for="esquema_precio_id" class="text-indigo-400" value="Esquema de precios" />
-                    <Dropdown
-                        id="esquema_precio_id"
-                        v-model="form.esquema_precio_id"
-                        :options="esquemaPrecios"
-                        optionLabel="nombre"
-                        optionValue="id"
-                        placeholder="Seleccione un esquema"
-                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
-                        showClear
-                    />
+                    <div class="flex gap-2 items-center mt-1">
+                        <Dropdown
+                            id="esquema_precio_id"
+                            v-model="form.esquema_precio_id"
+                            :options="esquemaPrecios"
+                            optionLabel="nombre"
+                            optionValue="id"
+                            placeholder="Seleccione un esquema"
+                            class="w-full border border-gray-300 dark:border-gray-600"
+                            showClear
+                        />
+                        <button
+                            type="button"
+                            class="flex items-center justify-center rounded bg-indigo-500 px-3 py-2 text-white hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
+                            :disabled="!esquemaSeleccionado"
+                            @click="mostrarEsquemaDialog = true"
+                            v-tooltip="'Ver detalle del esquema'"
+                        >
+                            <i class="pi pi-eye"></i>
+                        </button>
+                    </div>
                     <InputError :message="$page.props.errors.esquema_precio_id" class="mt-2" />
                 </div>
 
@@ -470,16 +611,27 @@ watch(
 
                 <div v-if="!esModalidadPresencial" class="col-span-6 sm:col-span-6">
                     <InputLabel for="stream_id" class="text-indigo-400" value="Stream" />
-                    <Dropdown
-                        id="stream_id"
-                        v-model="form.stream_id"
-                        :options="streams"
-                        optionLabel="nombre"
-                        optionValue="id"
-                        placeholder="Seleccione un stream"
-                        class="w-full mt-1 border border-gray-300 dark:border-gray-600"
-                        showClear
-                    />
+                    <div class="flex gap-2 items-center mt-1">
+                        <Dropdown
+                            id="stream_id"
+                            v-model="form.stream_id"
+                            :options="streams"
+                            optionLabel="nombre"
+                            optionValue="id"
+                            placeholder="Seleccione un stream"
+                            class="w-full border border-gray-300 dark:border-gray-600"
+                            showClear
+                        />
+                        <button
+                            type="button"
+                            class="flex items-center justify-center rounded bg-indigo-500 px-3 py-2 text-white hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
+                            :disabled="!streamSeleccionado"
+                            @click="mostrarStreamDialog = true"
+                            v-tooltip="'Ver detalle del stream'"
+                        >
+                            <i class="pi pi-eye"></i>
+                        </button>
+                    </div>
                     <InputError :message="$page.props.errors.stream_id" class="mt-2" />
                 </div>
 
@@ -503,6 +655,117 @@ watch(
                     <InputError :message="$page.props.errors.activa" class="mt-2" />
                 </div>
             </div>
+
+            <!-- Detalle del esquema de precios -->
+            <Dialog
+                v-model:visible="mostrarEsquemaDialog"
+                modal
+                header="Detalle del esquema de precios"
+                :style="{ width: '42rem' }"
+                :breakpoints="{ '960px': '90vw' }"
+                dismissableMask
+            >
+                <template v-if="esquemaSeleccionado">
+                    <h3 class="text-lg font-semibold text-indigo-600 mb-3">{{ esquemaSeleccionado.nombre }}</h3>
+                    <div v-if="esquemaSeleccionado.membresias && esquemaSeleccionado.membresias.length" class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-200 dark:border-gray-700 text-left text-gray-500">
+                                    <th class="py-2 pr-4">Membresía</th>
+                                    <th class="py-2 pr-4 text-right">Precio</th>
+                                    <th class="py-2 pr-4">Moneda</th>
+                                    <th class="py-2">Botón de pago</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="item in esquemaSeleccionado.membresias"
+                                    :key="item.id"
+                                    class="border-b border-gray-100 dark:border-gray-800"
+                                >
+                                    <td class="py-2 pr-4 text-gray-700 dark:text-gray-300">{{ item.membresia?.nombre ?? '—' }}</td>
+                                    <td class="py-2 pr-4 text-right font-medium text-gray-800 dark:text-gray-200">{{ formatearPrecio(item.precio) }}</td>
+                                    <td class="py-2 pr-4 text-gray-600 dark:text-gray-400">{{ item.moneda?.nombre ?? '—' }}</td>
+                                    <td class="py-2 text-gray-600 dark:text-gray-400">{{ item.boton_pago?.nombre || item.botonPago?.nombre || '—' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p v-else class="text-sm text-gray-500">Este esquema no tiene precios cargados.</p>
+                </template>
+            </Dialog>
+
+            <!-- Detalle del stream -->
+            <Dialog
+                v-model:visible="mostrarStreamDialog"
+                modal
+                header="Detalle del stream"
+                :style="{ width: '42rem' }"
+                :breakpoints="{ '960px': '90vw' }"
+                dismissableMask
+            >
+                <template v-if="streamSeleccionado">
+                    <h3 class="text-lg font-semibold text-indigo-600 mb-3">{{ streamSeleccionado.nombre }}</h3>
+                    <ul v-if="streamSeleccionado.links && streamSeleccionado.links.length" class="space-y-2">
+                        <li
+                            v-for="link in streamSeleccionado.links"
+                            :key="link.id"
+                            class="rounded border border-gray-200 dark:border-gray-700 p-2"
+                        >
+                            <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ link.nombre || 'Sin nombre' }}</p>
+                            <a
+                                :href="link.link"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-sm text-indigo-500 hover:underline break-all"
+                            >{{ link.link }}</a>
+                        </li>
+                    </ul>
+                    <p v-else class="text-sm text-gray-500">Este stream no tiene links cargados.</p>
+                </template>
+            </Dialog>
+
+            <!-- Galería: elegir entre imágenes ya cargadas -->
+            <Dialog
+                v-model:visible="mostrarGaleriaDialog"
+                modal
+                header="Elegir imagen de la galería"
+                :style="{ width: '60rem' }"
+                :breakpoints="{ '1199px': '95vw' }"
+                dismissableMask
+            >
+                <div class="mb-4">
+                    <TextInput
+                        v-model="galeriaFiltro"
+                        type="text"
+                        class="block w-full"
+                        placeholder="Buscar por nombre…"
+                    />
+                </div>
+                <div v-if="imagenesFiltradas.length" class="max-h-[60vh] overflow-y-auto">
+                    <div class="grid grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                        <button
+                            v-for="img in imagenesFiltradas"
+                            :key="img.id"
+                            type="button"
+                            class="group relative rounded border p-1 transition hover:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            :class="String(form.imagen_id) === String(img.id)
+                                ? 'border-indigo-500 ring-2 ring-indigo-500'
+                                : 'border-gray-200 dark:border-gray-700'"
+                            @click="seleccionarImagenGaleria(img)"
+                            :title="img.nombre"
+                        >
+                            <img
+                                :src="`/storage/${img.ruta}`"
+                                :alt="img.nombre"
+                                class="aspect-square w-full rounded object-cover"
+                                loading="lazy"
+                            />
+                        </button>
+                    </div>
+                </div>
+                <p v-else class="text-sm text-gray-500">No hay imágenes que coincidan con la búsqueda.</p>
+            </Dialog>
         </template>
 
         <template #actions>

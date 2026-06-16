@@ -131,16 +131,16 @@ function abrirImagenMaestro(url) {
         </div>
 
         <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div class="grid gap-0 md:grid-cols-[280px_1fr]">
-            <div class="border-b border-slate-200 bg-slate-100 md:border-b-0 md:border-r">
-              <div v-if="clase.imagen" class="h-full">
+          <div>
+            <div class="border-b border-slate-200 bg-slate-100">
+              <div v-if="clase.imagen">
                 <img
                   :src="`/storage/${clase.imagen.ruta}`"
                   :alt="clase.nombre"
-                  class="h-full min-h-[240px] w-full object-cover"
+                  class="block w-full h-auto"
                 />
               </div>
-              <div v-else class="flex min-h-[240px] items-center justify-center text-sm text-slate-500">
+              <div v-else class="flex min-h-[200px] items-center justify-center text-sm text-slate-500">
                 Sin imagen
               </div>
             </div>

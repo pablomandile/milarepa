@@ -16,7 +16,13 @@ class ImportarMembresiasController extends Controller
 
     public function index()
     {
-        return $this->renderVista();
+        // Post/Redirect/Get: preview() y store() redirigen acá con los datos flasheados,
+        // así la URL queda en un GET refrescable (evita MethodNotAllowed al recargar).
+        return $this->renderVista(
+            preview: session('importMembresiasPreview'),
+            resumen: session('importMembresiasResumen'),
+            entidadSeleccionada: session('importMembresiasEntidad'),
+        );
     }
 
     public function preview(Request $request)
@@ -28,7 +34,10 @@ class ImportarMembresiasController extends Controller
 
         $preview = $this->service->previsualizar($request->file('archivo'), (int) $validated['entidad_id']);
 
-        return $this->renderVista(preview: $preview, entidadSeleccionada: (int) $validated['entidad_id']);
+        return redirect()
+            ->route('configuracion.importar-membresias')
+            ->with('importMembresiasPreview', $preview)
+            ->with('importMembresiasEntidad', (int) $validated['entidad_id']);
     }
 
     public function store(Request $request)
@@ -39,9 +48,12 @@ class ImportarMembresiasController extends Controller
         ]);
 
         $resumen = $this->service->importar($request->file('archivo'), (int) $validated['entidad_id']);
-        $resumen['mensaje'] = "Importación finalizada: {$resumen['creados']} creados, {$resumen['actualizados']} actualizados, {$resumen['membresias_asignadas']} membresías asignadas, {$resumen['errores']} errores.";
+        $resumen['mensaje'] = "Importación finalizada: {$resumen['creados']} creados, {$resumen['actualizados']} actualizados, {$resumen['sin_cambios']} sin cambios, {$resumen['membresias_asignadas']} membresías asignadas, {$resumen['errores']} errores.";
 
-        return $this->renderVista(resumen: $resumen, entidadSeleccionada: (int) $validated['entidad_id']);
+        return redirect()
+            ->route('configuracion.importar-membresias')
+            ->with('importMembresiasResumen', $resumen)
+            ->with('importMembresiasEntidad', (int) $validated['entidad_id']);
     }
 
     private function renderVista(?array $preview = null, ?array $resumen = null, ?int $entidadSeleccionada = null)
