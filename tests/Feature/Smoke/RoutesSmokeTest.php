@@ -47,4 +47,10 @@ class RoutesSmokeTest extends TestCase
         // Ruta pública (sin auth): lista todas las clases activas por entidad.
         $this->get(route('paginas.clases'))->assertSuccessful();
     }
+
+    public function test_pagina_publica_oraciones_cantadas_responde_ok(): void
+    {
+        // Ruta pública (sin auth): lista las oraciones cantadas (excluye las online).
+        $this->get(route('paginas.oraciones-cantadas'))->assertSuccessful();
+    }
 }

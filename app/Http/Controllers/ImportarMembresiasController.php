@@ -58,8 +58,10 @@ class ImportarMembresiasController extends Controller
 
     private function renderVista(?array $preview = null, ?array $resumen = null, ?int $entidadSeleccionada = null)
     {
+        // Solo entidades cuyo nombre comienza con "Centro" (sedes principales).
         $entidades = Entidad::query()
             ->select('id', 'nombre', 'abreviacion')
+            ->where('nombre', 'like', 'Centro%')
             ->orderBy('nombre')
             ->get();
 

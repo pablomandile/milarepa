@@ -9,6 +9,21 @@ defineProps({
         default: null,
     },
 });
+
+// Ítems del menú del asistente (cada uno conserva su SVG; el orden lo define esta lista).
+const menuItems = [
+    { routeName: 'grid-actividades.index', label: 'Actividades del Mes', icon: '06-cursos-retiros.svg' },
+    { routeName: 'paginas.clases', label: 'Clases', icon: '07-clases.svg' },
+    { routeName: 'paginas.oraciones-cantadas', label: 'Oraciones cantadas', icon: '08-oraciones-cantadas.svg' },
+    { routeName: 'calendario.index', label: 'Calendario', icon: '01 Calendario.svg' },
+    { routeName: 'inscripciones.index', label: 'Mis inscripciones', icon: '02-mis-inscripciones.svg' },
+    { routeName: 'membresias.index', label: 'Membresías (Tarjetas Kadampa)', icon: '03-membresias-kadampa.svg' },
+    { routeName: 'centroayuda.index', label: 'Centro de ayuda', icon: '04-centro-de-ayuda.svg' },
+    { routeName: 'acercade.index', label: 'Acerca de', icon: '05-acerca-de.svg' },
+];
+
+// Los SVG viven en storage/app/public/img/menu_asistente (servidos vía /storage).
+const iconUrl = (file) => `/storage/img/menu_asistente/${encodeURIComponent(file)}`;
 </script>
 
 <template>
@@ -22,48 +37,18 @@ defineProps({
                 <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 shadow-sm">
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 place-items-center">
                         <Link
-                            :href="route('grid-actividades.index')"
+                            v-for="item in menuItems"
+                            :key="item.routeName"
+                            :href="route(item.routeName)"
                             class="group flex h-56 w-56 items-center justify-center text-center rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:bg-indigo-50 hover:border-indigo-200 transition"
                         >
                             <div class="space-y-3">
-                                <i class="fa-solid fa-calendar-days text-8xl text-indigo-600"></i>
-                                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">Actividades del Mes</div>
-                            </div>
-                        </Link>
-                        <Link
-                            :href="route('inscripciones.index')"
-                            class="group flex h-56 w-56 items-center justify-center text-center rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:bg-indigo-50 hover:border-indigo-200 transition"
-                        >
-                            <div class="space-y-3">
-                                <i class="fa-solid fa-clipboard-check text-8xl text-indigo-600"></i>
-                                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">Mis inscripciones</div>
-                            </div>
-                        </Link>
-                        <Link
-                            :href="route('membresias.index')"
-                            class="group flex h-56 w-56 items-center justify-center text-center rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:bg-indigo-50 hover:border-indigo-200 transition"
-                        >
-                            <div class="space-y-3">
-                                <i class="fa-solid fa-id-card text-8xl text-indigo-600"></i>
-                                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">Membresías (Tarjetas Kadampa)</div>
-                            </div>
-                        </Link>
-                        <Link
-                            :href="route('centroayuda.index')"
-                            class="group flex h-56 w-56 items-center justify-center text-center rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:bg-indigo-50 hover:border-indigo-200 transition"
-                        >
-                            <div class="space-y-3">
-                                <i class="fa-solid fa-life-ring text-8xl text-indigo-600"></i>
-                                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">Centro de ayuda</div>
-                            </div>
-                        </Link>
-                        <Link
-                            :href="route('acercade.index')"
-                            class="group flex h-56 w-56 items-center justify-center text-center rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:bg-indigo-50 hover:border-indigo-200 transition"
-                        >
-                            <div class="space-y-3">
-                                <i class="fa-solid fa-circle-info text-8xl text-indigo-600"></i>
-                                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">Acerca de</div>
+                                <img
+                                    :src="iconUrl(item.icon)"
+                                    :alt="item.label"
+                                    class="mx-auto h-28 w-28 object-contain"
+                                />
+                                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">{{ item.label }}</div>
                             </div>
                         </Link>
                     </div>

@@ -86,6 +86,10 @@
                             </IconField>
                         </div>
 
+                        <p class="px-4 sm:px-0 mb-3 text-xs text-gray-500 dark:text-gray-400">
+                            Mostrando {{ filtradas.length }} {{ filtradas.length === 1 ? 'registro' : 'registros' }}
+                        </p>
+
                         <div v-if="filtradas.length > 0" class="space-y-4 sm:hidden">
                             <div
                                 v-for="cuenta in filtradas"

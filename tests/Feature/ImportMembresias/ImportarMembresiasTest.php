@@ -3,6 +3,7 @@
 namespace Tests\Feature\ImportMembresias;
 
 use App\Models\Entidad;
+use App\Models\EstadoCuentaMembresia;
 use App\Models\Membresia;
 use App\Models\User;
 use App\Services\ImportarMembresiasService;
@@ -122,5 +123,71 @@ class ImportarMembresiasTest extends TestCase
         $this->assertSame(0, $resumen['actualizados']);
         $this->assertSame(0, $resumen['membresias_asignadas']);
         $this->assertSame(0, $resumen['creados']);
+    }
+
+    public function test_importa_pago_del_mes_al_estado_de_cuenta_y_es_idempotente(): void
+    {
+        DB::statement('INSERT IGNORE INTO paises (id, nombre, created_at, updated_at) VALUES (1, ?, NOW(), NOW())', ['Argentina']);
+
+        $entidad = Entidad::create(['nombre' => 'Entidad Pago', 'abreviacion' => 'EPG', 'entidad_principal' => false]);
+        $memb = Membresia::create(['nombre' => 'TK Pago', 'abreviacion' => 'ZZ9', 'entidad_id' => $entidad->id, 'valor' => 1000]);
+
+        // Tres usuarios existentes con la membresía ZZ9 (no cambia su membresía al importar).
+        foreach (['pago1' => 'p1@example.com', 'pago2' => 'p2@example.com', 'pago3' => 'p3@example.com'] as $nombre => $email) {
+            $user = User::create(['name' => ucfirst($nombre) . ' Test', 'email' => $email, 'password' => Hash::make('x')]);
+            $user->updateMembresiaUsuario([
+                'membresia_id' => $memb->id,
+                'membresia_online' => $nombre === 'pago1',
+                'membresia_inscripcion_fecha' => now()->toDateString(),
+            ]);
+        }
+
+        // CSV con las 4 columnas de pago: monto+Bco, Sponsor, y sin pago.
+        $contenido = implode("\n", [
+            'Nombre,Apellido,Activo,TK,Programa,ONLINE,Mail,Teléfonos,Ciudad,Newsletter,Imp.,Día,Modo,Nota',
+            'Pago1,Test,A,ZZ9,,SI,p1@example.com,111,CABA,No,"$55,000",10/06,Bco,Pago de junio',
+            'Pago2,Test,A,ZZ9,,NO,p2@example.com,222,CABA,No,Sponsor,,,Comentario',
+            'Pago3,Test,A,ZZ9,,NO,p3@example.com,333,CABA,No,,,,Solo nota',
+        ]);
+
+        $service = app(ImportarMembresiasService::class);
+        $mesActual = now()->format('Y-m');
+
+        // Preview: 2 pagos a registrar (Pago1 y Pago2; Pago3 sin importe).
+        $preview = $service->previsualizar(UploadedFile::fake()->createWithContent('pago.csv', $contenido), $entidad->id);
+        $this->assertSame(2, $preview['pagos_a_registrar']);
+
+        // Import.
+        $resumen = $service->importar(UploadedFile::fake()->createWithContent('pago.csv', $contenido), $entidad->id);
+        $this->assertSame(2, $resumen['pagos_registrados']);
+
+        // Pago1: monto, modo mapeado a Transferencia, original en info_pago, observaciones de la nota.
+        $p1 = EstadoCuentaMembresia::where('user_id', User::where('email', 'p1@example.com')->value('id'))->first();
+        $this->assertNotNull($p1);
+        $this->assertSame($mesActual, $p1->mes_pagado);
+        $this->assertSame(55000.0, (float) $p1->importe);
+        $this->assertSame('Transferencia', $p1->modo);
+        $this->assertSame('Bco', $p1->info_pago);
+        $this->assertSame('Pago de junio', $p1->observaciones);
+        $this->assertTrue((bool) $p1->pagado);
+        $this->assertNotNull($p1->fecha_pago);
+
+        // Pago2: Sponsor => pagado con importe 0 y observación "Sponsor · ...".
+        $p2 = EstadoCuentaMembresia::where('user_id', User::where('email', 'p2@example.com')->value('id'))->first();
+        $this->assertNotNull($p2);
+        $this->assertSame(0.0, (float) $p2->importe);
+        $this->assertTrue((bool) $p2->pagado);
+        $this->assertStringContainsString('Sponsor', $p2->observaciones);
+
+        // Pago3: sin importe => no se crea estado de cuenta.
+        $p3 = EstadoCuentaMembresia::where('user_id', User::where('email', 'p3@example.com')->value('id'))->count();
+        $this->assertSame(0, $p3);
+
+        // Idempotencia: reimportar no duplica los registros del mes.
+        $service->importar(UploadedFile::fake()->createWithContent('pago.csv', $contenido), $entidad->id);
+        $total = EstadoCuentaMembresia::whereIn('user_id', User::whereIn('email', ['p1@example.com', 'p2@example.com', 'p3@example.com'])->pluck('id'))
+            ->where('mes_pagado', $mesActual)
+            ->count();
+        $this->assertSame(2, $total);
     }
 }

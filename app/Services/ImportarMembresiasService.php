@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\EstadoCuentaMembresia;
 use App\Models\Membresia;
 use App\Models\ProgramaEstudio;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -27,6 +29,11 @@ class ImportarMembresiasService
         'telefonos' => 'Teléfonos',
         'ciudad' => 'Ciudad',
         'newsletter' => 'Newsletter',
+        // Pago del mes en curso (columnas opcionales al final del CSV).
+        'imp' => 'Imp.',
+        'dia' => 'Día',
+        'modo' => 'Modo',
+        'nota' => 'Nota',
     ];
 
     /**
@@ -54,6 +61,7 @@ class ImportarMembresiasService
             'usuarios_existentes' => 0,
             'sin_cambios' => 0,
             'membresias_a_asignar' => 0,
+            'pagos_a_registrar' => 0,
             'errores' => 0,
             'filas' => [],
         ];
@@ -71,15 +79,19 @@ class ImportarMembresiasService
             }
 
             $resultado['filas_validas']++;
+            $registraPago = $info['pago']['registrar'] ?? false;
             if (!$info['user_existe']) {
                 $resultado['usuarios_nuevos']++;
-            } elseif ($info['sin_cambios']) {
+            } elseif ($info['sin_cambios'] && !$registraPago) {
                 $resultado['sin_cambios']++;
             } else {
                 $resultado['usuarios_existentes']++;
             }
             if ($info['asignara_membresia']) {
                 $resultado['membresias_a_asignar']++;
+            }
+            if ($registraPago) {
+                $resultado['pagos_a_registrar']++;
             }
 
             $emailsVistos[strtolower($info['datos']['mail'])] = true;
@@ -102,6 +114,7 @@ class ImportarMembresiasService
             'actualizados' => 0,
             'sin_cambios' => 0,
             'membresias_asignadas' => 0,
+            'pagos_registrados' => 0,
             'errores' => 0,
             'detalle' => [],
         ];
@@ -126,9 +139,10 @@ class ImportarMembresiasService
 
                 $user = User::where('email', $info['datos']['mail'])->first();
                 $esNuevo = !$user;
+                $registraPago = $info['pago']['registrar'] ?? false;
 
-                // Usuario existente sin ningún cambio: se omite la actualización (no se toca la BD).
-                if (!$esNuevo && $info['sin_cambios']) {
+                // Usuario existente sin ningún cambio NI pago a registrar: se omite (no se toca la BD).
+                if (!$esNuevo && $info['sin_cambios'] && !$registraPago) {
                     $resumen['sin_cambios']++;
                     $resumen['detalle'][] = [
                         'linea' => $linea,
@@ -178,10 +192,33 @@ class ImportarMembresiasService
                     $resumen['membresias_asignadas']++;
                 }
 
+                // Pago del mes en curso (estado de cuenta), idempotente por user+membresía+mes.
+                if ($registraPago) {
+                    $pago = $info['pago'];
+                    EstadoCuentaMembresia::updateOrCreate(
+                        [
+                            'user_id' => $user->id,
+                            'membresia_id' => $info['membresia_id'],
+                            'mes_pagado' => $pago['mes_pagado'],
+                        ],
+                        [
+                            'fecha_pago' => $pago['fecha_pago'],
+                            'importe' => $pago['importe'],
+                            'observaciones' => $pago['observaciones'],
+                            'info_pago' => $pago['info_pago'],
+                            'pagado' => $pago['pagado'],
+                            'estado' => EstadoCuentaMembresia::ESTADO_ACTIVA,
+                            'modo' => $pago['modo'],
+                        ]
+                    );
+                    $resumen['pagos_registrados']++;
+                }
+
                 $resumen['detalle'][] = [
                     'linea' => $linea,
                     'resultado' => $esNuevo ? 'creado' : 'actualizado',
                     'email' => $info['datos']['mail'],
+                    'pago_registrado' => $registraPago,
                     'mensajes' => $info['mensajes'],
                 ];
             }
@@ -418,9 +455,16 @@ class ImportarMembresiasService
         // Existente sin ningún cambio (ni datos de usuario ni membresía): se omite la actualización.
         $sinCambios = (bool) $userExistente && !$cambiaUsuario && !$asignaraMembresia;
 
+        // Pago del mes en curso (columnas Imp./Día/Modo/Nota). Requiere membresía válida.
+        $pago = $this->parsearPago($fila, $membresiaId);
+        if (($pago['sin_membresia'] ?? false)) {
+            $mensajes[] = 'Se indicó un pago en el CSV pero el usuario no tiene una membresía (TK) válida para la entidad; el pago no se registra';
+        }
+
         return [
             'accion' => 'ok',
             'mensajes' => $mensajes,
+            'pago' => $pago,
             'user_existe' => (bool) $userExistente,
             'membresia_id' => $membresiaId,
             'programa_estudio_id' => $programaEstudioId,
@@ -469,6 +513,138 @@ class ImportarMembresiasService
         $v = trim($v);
         $online = $v === 'SI' || $v === 'SÍ' || $v === 'YES' || $v === 'Y' || $v === '1';
         return ['online' => $online, 'suscripcion' => $suscripcion];
+    }
+
+    /**
+     * Parsea las columnas de pago del mes en curso (Imp./Día/Modo/Nota) y arma el
+     * payload para el estado de cuenta. Solo se registra si hay importe (monto o
+     * "Sponsor") y una membresía válida. "--"/vacío => no se registra pago.
+     */
+    private function parsearPago(array $fila, ?int $membresiaId): array
+    {
+        $raw = [
+            'imp' => trim((string) ($fila['imp'] ?? '')),
+            'dia' => trim((string) ($fila['dia'] ?? '')),
+            'modo' => trim((string) ($fila['modo'] ?? '')),
+            'nota' => trim((string) ($fila['nota'] ?? '')),
+        ];
+
+        $imp = $this->parsearImporte($raw['imp']);
+        $esSponsor = $imp['tipo'] === 'sponsor';
+        $hayPago = $imp['tipo'] === 'monto' || $esSponsor;
+
+        if (!$hayPago) {
+            return ['registrar' => false, 'sin_membresia' => false, 'raw' => $raw];
+        }
+
+        if (!$membresiaId) {
+            return ['registrar' => false, 'sin_membresia' => true, 'raw' => $raw];
+        }
+
+        $modoInfo = $this->mapearModoPago($raw['modo']);
+        $observaciones = $esSponsor
+            ? ($raw['nota'] !== '' ? "Sponsor · {$raw['nota']}" : 'Sponsor')
+            : $raw['nota'];
+
+        return [
+            'registrar' => true,
+            'sin_membresia' => false,
+            'es_sponsor' => $esSponsor,
+            'mes_pagado' => now()->format('Y-m'),
+            'importe' => $imp['importe'],
+            'fecha_pago' => $this->parsearFechaPago($raw['dia']),
+            'modo' => $modoInfo['modo'],
+            'info_pago' => $modoInfo['info_pago'],
+            'observaciones' => $observaciones,
+            'pagado' => true,
+            'raw' => $raw,
+        ];
+    }
+
+    /**
+     * Interpreta el importe del CSV: "$60,000" => 60000; "Sponsor" => tipo sponsor;
+     * vacío o solo guiones ("--") => sin pago.
+     */
+    private function parsearImporte(string $valor): array
+    {
+        $v = trim($valor);
+        if ($v === '' || preg_match('/^-+$/', $v)) {
+            return ['tipo' => 'ninguno', 'importe' => 0.0];
+        }
+        if (Str::lower($v) === 'sponsor') {
+            return ['tipo' => 'sponsor', 'importe' => 0.0];
+        }
+        $digitos = preg_replace('/[^\d]/', '', $v); // quita $, separadores de miles, espacios
+        if ($digitos === '') {
+            return ['tipo' => 'ninguno', 'importe' => 0.0];
+        }
+        return ['tipo' => 'monto', 'importe' => (float) $digitos];
+    }
+
+    /**
+     * Parsea "dd/mm" (o "d/m", con o sin año) a fecha Y-m-d. Sin año asume el año
+     * actual; si el mes resultara futuro respecto al mes actual, usa el año anterior.
+     */
+    private function parsearFechaPago(string $valor): ?string
+    {
+        $v = trim($valor);
+        if ($v === '' || !preg_match('#^(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?$#', $v, $m)) {
+            return null;
+        }
+
+        $dia = (int) $m[1];
+        $mes = (int) $m[2];
+        if ($dia < 1 || $dia > 31 || $mes < 1 || $mes > 12) {
+            return null;
+        }
+
+        if (isset($m[3]) && $m[3] !== '') {
+            $anio = (int) $m[3];
+            if ($anio < 100) {
+                $anio += 2000;
+            }
+        } else {
+            $anio = (int) now()->format('Y');
+            if ($mes > (int) now()->format('n')) {
+                $anio--; // el mes es futuro => el pago es del año anterior
+            }
+        }
+
+        try {
+            return Carbon::create($anio, $mes, $dia)->toDateString();
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Mapea el modo de pago abreviado del CSV al enum del modelo y conserva el texto
+     * original (con su nº de referencia, ej. "MP6978") en info_pago.
+     * Bco/B### => Transferencia, MPS => Suscripción, MP### => Otro (MercadoPago),
+     * Efectivo => Efectivo, y cualquier otro => Otro.
+     */
+    private function mapearModoPago(string $valor): array
+    {
+        $v = trim($valor);
+        if ($v === '') {
+            return ['modo' => null, 'info_pago' => null];
+        }
+
+        $u = strtoupper(Str::ascii($v));
+
+        if (str_starts_with($u, 'EFECTIVO')) {
+            $modo = 'Efectivo';
+        } elseif (str_starts_with($u, 'MPS')) {
+            $modo = 'Suscripción';
+        } elseif (str_starts_with($u, 'MP')) {
+            $modo = 'Otro'; // MercadoPago (no está en el enum)
+        } elseif (str_starts_with($u, 'B')) {
+            $modo = 'Transferencia'; // Bco / Banco / B#### (referencia bancaria)
+        } else {
+            $modo = 'Otro'; // Anexo, USD, etc.
+        }
+
+        return ['modo' => $modo, 'info_pago' => $v];
     }
 
     /**

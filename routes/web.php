@@ -129,6 +129,8 @@ Route::get('/actividades-online', [ActividadesOnlineController::class, 'index'])
     ->name('paginas.actividades-online');
 Route::get('/clases-publicas', [ClasesController::class, 'paginaPublica'])
     ->name('paginas.clases');
+Route::get('/oraciones-cantadas-publicas', [OracionesCantadasController::class, 'paginaPublica'])
+    ->name('paginas.oraciones-cantadas');
 Route::get('/grid-actividades/{actividad}/public', [GridActividadesController::class, 'showPublicActividad'])
     ->name('grid-actividades.show-public');
 // Rate limit: 5 req/min por IP. Mitiga enumeración masiva desde una única fuente.

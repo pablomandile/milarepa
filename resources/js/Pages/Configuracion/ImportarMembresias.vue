@@ -197,6 +197,7 @@ function etiquetaAccion(fila) {
                     </h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
                         Columnas esperadas: <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">Nombre, Apellido, Activo, TK, Programa, ONLINE, Mail, Teléfonos, Ciudad, Newsletter</code>
+                        <span class="block mt-1">Opcionales (pago del mes en curso, al final): <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">Imp., Día, Modo, Nota</code></span>
                     </p>
 
                     <div class="flex items-center gap-3 flex-wrap">
@@ -242,7 +243,7 @@ function etiquetaAccion(fila) {
                         Vista previa
                     </h2>
 
-                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 mb-4">
                         <div class="border border-gray-200 dark:border-gray-700 rounded p-3">
                             <p class="text-xs text-gray-500 dark:text-gray-400">Filas totales</p>
                             <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ preview.total_filas }}</p>
@@ -262,6 +263,10 @@ function etiquetaAccion(fila) {
                         <div class="border border-indigo-200 dark:border-indigo-800 rounded p-3 bg-indigo-50 dark:bg-indigo-900/20">
                             <p class="text-xs text-indigo-700 dark:text-indigo-300">Membresías a asignar</p>
                             <p class="text-2xl font-semibold text-indigo-700 dark:text-indigo-300">{{ preview.membresias_a_asignar }}</p>
+                        </div>
+                        <div class="border border-teal-200 dark:border-teal-800 rounded p-3 bg-teal-50 dark:bg-teal-900/20">
+                            <p class="text-xs text-teal-700 dark:text-teal-300">Pagos a registrar</p>
+                            <p class="text-2xl font-semibold text-teal-700 dark:text-teal-300">{{ preview.pagos_a_registrar ?? 0 }}</p>
                         </div>
                         <div class="border border-red-200 dark:border-red-800 rounded p-3 bg-red-50 dark:bg-red-900/20">
                             <p class="text-xs text-red-700 dark:text-red-300">Filas con error</p>
@@ -362,6 +367,23 @@ function etiquetaAccion(fila) {
                                 <span v-else class="text-gray-300">—</span>
                             </template>
                         </Column>
+                        <Column header="Pago (mes en curso)" style="width: 13rem">
+                            <template #body="{ data }">
+                                <div v-if="data.pago?.registrar" class="text-xs leading-5">
+                                    <div class="font-semibold text-teal-700 dark:text-teal-300">
+                                        <template v-if="data.pago.es_sponsor">Sponsor</template>
+                                        <template v-else>$ {{ Number(data.pago.importe).toLocaleString('es-AR') }}</template>
+                                    </div>
+                                    <div class="text-gray-600 dark:text-gray-400">
+                                        <span v-if="data.pago.fecha_pago">{{ data.pago.fecha_pago }}</span>
+                                        <span v-if="data.pago.modo"> · {{ data.pago.modo }}</span>
+                                        <span v-if="data.pago.info_pago && data.pago.info_pago !== data.pago.modo" class="text-gray-400"> ({{ data.pago.info_pago }})</span>
+                                    </div>
+                                    <div v-if="data.pago.observaciones" class="text-gray-400 italic">{{ data.pago.observaciones }}</div>
+                                </div>
+                                <span v-else class="text-xs text-gray-300">—</span>
+                            </template>
+                        </Column>
                         <Column header="Avisos">
                             <template #body="{ data }">
                                 <ul v-if="data.mensajes && data.mensajes.length" class="list-disc list-inside text-xs text-amber-700 dark:text-amber-400">
@@ -390,7 +412,7 @@ function etiquetaAccion(fila) {
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                         Resultado de la importación
                     </h2>
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
                         <div class="border border-emerald-200 dark:border-emerald-800 rounded p-3 bg-emerald-50 dark:bg-emerald-900/20">
                             <p class="text-xs text-emerald-700 dark:text-emerald-300">Usuarios creados</p>
                             <p class="text-2xl font-semibold text-emerald-700 dark:text-emerald-300">{{ resumen.creados }}</p>
@@ -406,6 +428,10 @@ function etiquetaAccion(fila) {
                         <div class="border border-indigo-200 dark:border-indigo-800 rounded p-3 bg-indigo-50 dark:bg-indigo-900/20">
                             <p class="text-xs text-indigo-700 dark:text-indigo-300">Membresías asignadas</p>
                             <p class="text-2xl font-semibold text-indigo-700 dark:text-indigo-300">{{ resumen.membresias_asignadas }}</p>
+                        </div>
+                        <div class="border border-teal-200 dark:border-teal-800 rounded p-3 bg-teal-50 dark:bg-teal-900/20">
+                            <p class="text-xs text-teal-700 dark:text-teal-300">Pagos registrados</p>
+                            <p class="text-2xl font-semibold text-teal-700 dark:text-teal-300">{{ resumen.pagos_registrados ?? 0 }}</p>
                         </div>
                         <div class="border border-red-200 dark:border-red-800 rounded p-3 bg-red-50 dark:bg-red-900/20">
                             <p class="text-xs text-red-700 dark:text-red-300">Errores</p>
@@ -496,10 +522,30 @@ function etiquetaAccion(fila) {
                                     <td class="px-3 py-2">Texto libre</td>
                                     <td class="px-3 py-2"><code>users.direccion</code></td>
                                 </tr>
-                                <tr>
+                                <tr class="border-b border-gray-100 dark:border-gray-800">
                                     <td class="px-3 py-2 font-mono text-xs">Newsletter</td>
                                     <td class="px-3 py-2"><code>Si</code> / <code>No</code> / vacío</td>
                                     <td class="px-3 py-2"><code>users.msgxmail</code> (booleano)</td>
+                                </tr>
+                                <tr class="border-b border-gray-100 dark:border-gray-800 bg-teal-50/50 dark:bg-teal-900/10">
+                                    <td class="px-3 py-2 font-mono text-xs">Imp. <span class="text-teal-600">(opcional)</span></td>
+                                    <td class="px-3 py-2">Importe del mes (<code>$60,000</code>), <code>Sponsor</code>, o vacío/<code>--</code></td>
+                                    <td class="px-3 py-2"><code>estado_cuenta_membresias.importe</code>. Vacío o <code>--</code> ⇒ no se registra pago. <code>Sponsor</code> ⇒ pagado con importe 0</td>
+                                </tr>
+                                <tr class="border-b border-gray-100 dark:border-gray-800 bg-teal-50/50 dark:bg-teal-900/10">
+                                    <td class="px-3 py-2 font-mono text-xs">Día <span class="text-teal-600">(opcional)</span></td>
+                                    <td class="px-3 py-2"><code>dd/mm</code> (ej. <code>11/06</code>)</td>
+                                    <td class="px-3 py-2"><code>fecha_pago</code>. Sin año ⇒ se asume el año actual</td>
+                                </tr>
+                                <tr class="border-b border-gray-100 dark:border-gray-800 bg-teal-50/50 dark:bg-teal-900/10">
+                                    <td class="px-3 py-2 font-mono text-xs">Modo <span class="text-teal-600">(opcional)</span></td>
+                                    <td class="px-3 py-2"><code>Bco</code>, <code>MP</code>, <code>MPS</code>, <code>Efectivo</code>… (puede traer nº de referencia)</td>
+                                    <td class="px-3 py-2"><code>modo</code> mapeado al enum (Bco→Transferencia, MPS→Suscripción, MP→Otro, Efectivo→Efectivo, resto→Otro). El texto original queda en <code>info_pago</code></td>
+                                </tr>
+                                <tr class="bg-teal-50/50 dark:bg-teal-900/10">
+                                    <td class="px-3 py-2 font-mono text-xs">Nota <span class="text-teal-600">(opcional)</span></td>
+                                    <td class="px-3 py-2">Texto libre</td>
+                                    <td class="px-3 py-2"><code>estado_cuenta_membresias.observaciones</code></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -512,6 +558,7 @@ function etiquetaAccion(fila) {
                         <li>Si el email ya existe en la BD, se <strong>actualizan</strong> los datos del usuario y se asocia/actualiza la membresía</li>
                         <li>Si el email es nuevo, se crea el usuario con password <code>{Apellido}2026</code> (sin tildes ni espacios)</li>
                         <li>Las filas con email vacío/inválido o email repetido dentro del CSV se omiten y se reportan en el preview</li>
+                        <li>Si vienen las columnas de pago (<code>Imp./Día/Modo/Nota</code>), se registra el pago del <strong>mes en curso</strong> en el estado de cuenta de la membresía (uno por usuario+membresía+mes; reimportar no duplica)</li>
                         <li>Toda la importación corre dentro de una transacción: si algo falla a nivel BD, se hace rollback completo</li>
                     </ul>
                 </div>

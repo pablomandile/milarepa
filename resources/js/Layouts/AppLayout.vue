@@ -307,6 +307,9 @@ const toggleMobileSection = (key) => {
                                     <DropdownLink :href="route('paginas.clases')" :active="route().current('paginas.clases')">
                                         Clases
                                     </DropdownLink>
+                                    <DropdownLink :href="route('paginas.oraciones-cantadas')" :active="route().current('paginas.oraciones-cantadas')">
+                                        Oraciones cantadas
+                                    </DropdownLink>
                                     <DropdownLink :href="route('calendario.index')" :active="route().current('calendario.index')">
                                         Calendario
                                     </DropdownLink>
@@ -806,6 +809,9 @@ const toggleMobileSection = (key) => {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('paginas.clases')" :active="route().current('paginas.clases')">
                                 Clases
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('paginas.oraciones-cantadas')" :active="route().current('paginas.oraciones-cantadas')">
+                                Oraciones cantadas
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('calendario.index')" :active="route().current('calendario.index')">
                                 Calendario
