@@ -339,6 +339,12 @@
 
                                 <Column expander style="width: 3rem" />
 
+                                <Column header="Fecha" field="created_at" sortable :showFilterMenu="false" style="width: 8rem">
+                                    <template #body="{ data }">
+                                        <span class="text-sm whitespace-nowrap">{{ formatearSoloFecha(data.created_at) }}</span>
+                                    </template>
+                                </Column>
+
                                 <Column header="Nombre" field="_nombre" sortable :showFilterMenu="false">
                                     <template #body="{ data }">
                                         <div class="flex flex-col gap-1">
@@ -921,10 +927,14 @@ onUnmounted(() => window.removeEventListener('resize', onResize));
 
 const cols = computed(() => {
     const w = windowWidth.value;
+    // Umbrales pensados para que en pantallas de 1366px (innerWidth ~1349 al
+    // descontar la scrollbar) NO haya scroll horizontal: a ese ancho se muestran
+    // las columnas núcleo + Membresía, y Estado/Envío Confirmación se colapsan a
+    // la fila expandible. Se vuelven a mostrar en pantallas más anchas.
     return {
         membresia: w >= 1080,
-        estado: w >= 1200,
-        envioConfirmacion: w >= 1360,
+        estado: w >= 1500,
+        envioConfirmacion: w >= 1500,
     };
 });
 const expandedRows = ref([]);
