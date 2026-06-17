@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticationCard from '@/Components/AuthenticationCard.vue';
 import AuthenticationCardLogo from '@/Components/AuthenticationCardLogo.vue';
@@ -9,9 +10,19 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import LogoMilarepa from '/resources/images/lotus-art-logo.webp';
 
-defineProps({
+const props = defineProps({
     canResetPassword: Boolean,
     status: String,
+});
+
+// El mensaje de sesión expirada llega por ?expired=1 (lo setea el Handler tras un 419),
+// ya que el flash no sobrevive la recarga completa que fuerza Inertia::location.
+const statusMessage = computed(() => {
+    if (props.status) return props.status;
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('expired')) {
+        return 'Tu sesión expiró. Por favor, iniciá sesión de nuevo.';
+    }
+    return '';
 });
 
 const form = useForm({
@@ -38,8 +49,8 @@ const submit = () => {
             <img :src="LogoMilarepa" alt="Logo Milarepa" class="h-20 w-auto mx-auto" />
         </template>
 
-        <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
-            {{ status }}
+        <div v-if="statusMessage" class="mb-4 font-medium text-sm text-green-600">
+            {{ statusMessage }}
         </div>
 
         <a

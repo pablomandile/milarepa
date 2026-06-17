@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
@@ -38,13 +39,27 @@ class Handler extends ExceptionHandler
             if ($e->getStatusCode() !== 419) {
                 return null;
             }
+
             Auth::guard('web')->logout();
             if ($request->hasSession()) {
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
             }
-            return redirect()->route('login')
-                ->with('status', 'Tu sesión expiró. Por favor, iniciá sesión de nuevo.');
+
+            // El aviso va por query param (?expired=1) y no por flash: el flash no
+            // sobrevive la secuencia excepción -> recarga completa (se pierde al crearse
+            // una sesión nueva). El login lo lee del query string.
+            $destino = route('login', ['expired' => 1]);
+
+            // Para requests Inertia (XHR) forzamos una recarga COMPLETA del navegador
+            // hacia el login. Un redirect parcial dejaría la cookie XSRF-TOKEN
+            // desincronizada con la sesión nueva (el login siguiente fallaría con 419
+            // hasta hacer F5). Inertia::location dispara window.location = ... .
+            if ($request->header('X-Inertia')) {
+                return Inertia::location($destino);
+            }
+
+            return redirect()->to($destino);
         });
     }
 }
