@@ -3,7 +3,6 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
@@ -40,21 +39,18 @@ class Handler extends ExceptionHandler
                 return null;
             }
 
-            Auth::guard('web')->logout();
-            if ($request->hasSession()) {
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-            }
-
-            // El aviso va por query param (?expired=1) y no por flash: el flash no
-            // sobrevive la secuencia excepción -> recarga completa (se pierde al crearse
-            // una sesión nueva). El login lo lee del query string.
+            // IMPORTANTE: NO destruimos la sesión acá. Un 419 es un token CSRF
+            // vencido en ESTE request puntual (p. ej. el PUT de preferencia de tema
+            // con la cookie XSRF apenas desfasada tras el login), NO necesariamente
+            // una sesión muerta. Si la deslogueábamos, cualquier 419 de fondo —
+            // silenciado por su .catch()— echaba al usuario sin que se diera cuenta.
+            // Si la sesión sigue viva, /login (middleware guest) lo devuelve al
+            // dashboard; si está realmente vencida, ve el login con el aviso.
             $destino = route('login', ['expired' => 1]);
 
-            // Para requests Inertia (XHR) forzamos una recarga COMPLETA del navegador
-            // hacia el login. Un redirect parcial dejaría la cookie XSRF-TOKEN
-            // desincronizada con la sesión nueva (el login siguiente fallaría con 419
-            // hasta hacer F5). Inertia::location dispara window.location = ... .
+            // En requests Inertia (XHR) forzamos recarga COMPLETA del navegador hacia
+            // el login: garantiza una cookie XSRF-TOKEN fresca. Inertia::location
+            // dispara window.location = ... .
             if ($request->header('X-Inertia')) {
                 return Inertia::location($destino);
             }

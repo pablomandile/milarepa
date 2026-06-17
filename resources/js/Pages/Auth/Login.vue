@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticationCard from '@/Components/AuthenticationCard.vue';
 import AuthenticationCardLogo from '@/Components/AuthenticationCardLogo.vue';
@@ -30,6 +30,8 @@ const form = useForm({
     password: '',
     remember: false,
 });
+
+const showPassword = ref(false);
 
 const submit = () => {
     form.transform(data => ({
@@ -89,14 +91,25 @@ const submit = () => {
 
             <div class="mt-4">
                 <InputLabel for="password" value="Contraseña" />
-                <TextInput
-                    id="password"
-                    v-model="form.password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    required
-                    autocomplete="current-password"
-                />
+                <div class="relative mt-1">
+                    <TextInput
+                        id="password"
+                        v-model="form.password"
+                        :type="showPassword ? 'text' : 'password'"
+                        class="block w-full pe-10"
+                        required
+                        autocomplete="current-password"
+                    />
+                    <button
+                        type="button"
+                        @click="showPassword = !showPassword"
+                        class="absolute inset-y-0 end-0 flex items-center pe-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+                        :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                        :title="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                    >
+                        <i :class="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+                    </button>
+                </div>
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
