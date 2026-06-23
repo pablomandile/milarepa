@@ -500,7 +500,7 @@ class GridActividadesController extends Controller
         $online = $this->resolverModalidadOnline($actividad, $user, $registrado, Arr::get($data, 'modalidad_cursada'));
         $incluyeGrabacion = (bool) ($data['incluye_grabacion'] ?? false);
         $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
-        $envioGrabacion = 'Pendiente';
+        $envioGrabacion = $actividad->grabacion_id ? 'Pendiente' : 'No aplica';
         $comidasIds = $data['comidas_ids'] ?? [];
         $transportesIds = $data['transportes_ids'] ?? [];
         $hospedajesIds = $data['hospedajes_ids'] ?? [];
@@ -854,7 +854,7 @@ class GridActividadesController extends Controller
         $online = ($actividad->modalidad?->nombre === 'Online')
             || ($user && $user->membresia_id && $user->membresia_online);
         $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
-        $envioGrabacion = 'Pendiente';
+        $envioGrabacion = $actividad->grabacion_id ? 'Pendiente' : 'No aplica';
         [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
         $inscripcion = Inscripcion::create([
             'actividad_id' => $actividad->id,
@@ -972,7 +972,7 @@ class GridActividadesController extends Controller
             $online = ($actividad->modalidad?->nombre === 'Online')
                 || ($user && $user->membresia_id && $user->membresia_online);
             $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
-            $envioGrabacion = 'Pendiente';
+            $envioGrabacion = $actividad->grabacion_id ? 'Pendiente' : 'No aplica';
             [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
             $inscripcion = Inscripcion::create([
                 'actividad_id' => $actividad->id,
@@ -1026,7 +1026,7 @@ class GridActividadesController extends Controller
 
         $montoApagar = $precioGeneral;
         $envioLinkStream = $actividad->stream_id ? 'Pendiente' : 'No aplica';
-        $envioGrabacion = 'Pendiente';
+        $envioGrabacion = $actividad->grabacion_id ? 'Pendiente' : 'No aplica';
         [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
         $inscripcion = Inscripcion::create([
             'actividad_id' => $actividad->id,

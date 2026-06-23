@@ -207,7 +207,9 @@ class InscripcionesController extends Controller
         $data['estado'] = $estadoInscripcion;
         $data['envioRegistro'] = 'Pendiente';
         $data['envioConfirmacion'] = 'Pendiente';
-        $data['envioGrabacion'] = 'Pendiente';
+        // Solo queda 'Pendiente' si la actividad ofrece grabación; si no, 'No aplica'.
+        $ofreceGrabacion = (bool) Actividad::whereKey($actividadId)->value('grabacion_id');
+        $data['envioGrabacion'] = $ofreceGrabacion ? 'Pendiente' : 'No aplica';
 
         $inscripcion = Inscripcion::create($data);
 

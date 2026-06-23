@@ -88,6 +88,10 @@ class EmailInscripcionService
                 new InscripcionConfirmada($inscripcion, $configuracion['view'])
             );
 
+            // Si se envía la plantilla de confirmación, la inscripción queda confirmada.
+            // (Ej.: inscripciones de costo 0 incluidas en la membresía: se confirman al
+            // recibir el mail de confirmación, no deben quedar en "Registrada").
+            $inscripcion->estado = 'Confirmada';
             $inscripcion->envioRegistro = 'Enviada';
             $inscripcion->envioConfirmacion = 'Enviada';
             $inscripcion->save();

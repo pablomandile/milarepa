@@ -27,7 +27,7 @@
                                 v-model="filtroPeriodo"
                                 class="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-4 py-1 text-sm w-full sm:w-56"
                             >
-                                <option value="last1">Actividades del último mes</option>
+                                <option value="last1">Último mes</option>
                                 <option value="all">Mostrar todo</option>
                             </select>
                             <button
@@ -117,7 +117,12 @@
                                         </div>
                                         <div class="flex items-center justify-between gap-3">
                                             <span class="text-gray-500">Estado</span>
-                                            <span>{{ inscripcion.estado || '-' }}</span>
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                                :class="badgeEstadoClass(inscripcion.estado)"
+                                            >
+                                                {{ inscripcion.estado || '-' }}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -482,7 +487,12 @@
 
                                 <Column v-if="cols.estado" header="Estado" field="estado" sortable :showFilterMenu="false">
                                     <template #body="{ data }">
-                                        <span class="text-sm">{{ data.estado || '-' }}</span>
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                            :class="badgeEstadoClass(data.estado)"
+                                        >
+                                            {{ data.estado || '-' }}
+                                        </span>
                                     </template>
                                     <template #filter="{ filterModel, filterCallback }">
                                         <Dropdown
@@ -581,7 +591,12 @@
                                             </div>
                                             <div v-if="!cols.estado">
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Estado</p>
-                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ data.estado || '-' }}</p>
+                                                <span
+                                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                                    :class="badgeEstadoClass(data.estado)"
+                                                >
+                                                    {{ data.estado || '-' }}
+                                                </span>
                                             </div>
                                             <div v-if="!cols.envioConfirmacion">
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Envío Confirmación</p>
@@ -1170,6 +1185,12 @@ const badgePagoClass = (pago) => {
     if (pago === 'Saldado') return 'bg-green-100 text-green-800';
     if (pago === 'Parcial') return 'bg-yellow-100 text-yellow-800';
     if (pago === 'Pendiente') return 'bg-red-100 text-red-800';
+    return 'bg-gray-100 text-gray-700';
+};
+
+const badgeEstadoClass = (estado) => {
+    if (estado === 'Confirmada') return 'bg-green-100 text-green-800';
+    if (estado === 'Registrada') return 'bg-yellow-100 text-yellow-800';
     return 'bg-gray-100 text-gray-700';
 };
 
