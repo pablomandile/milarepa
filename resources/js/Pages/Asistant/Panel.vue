@@ -12,12 +12,14 @@ defineProps({
 
 // Ítems del menú del asistente (cada uno conserva su SVG; el orden lo define esta lista).
 const menuItems = [
-    { routeName: 'grid-actividades.index', label: 'Actividades del Mes', icon: '06-cursos-retiros.svg' },
+    { routeName: 'grid-actividades.index', label: 'Cursos y Retiros del Mes', icon: '06-cursos-retiros.svg' },
     { routeName: 'paginas.clases', label: 'Clases', icon: '07-clases.svg' },
     { routeName: 'paginas.oraciones-cantadas', label: 'Oraciones cantadas', icon: '08-oraciones-cantadas.svg' },
     { routeName: 'calendario.index', label: 'Calendario', icon: '01 Calendario.svg' },
     { routeName: 'inscripciones.index', label: 'Mis inscripciones', icon: '02-mis-inscripciones.svg' },
     { routeName: 'membresias.index', label: 'Membresías (Tarjetas Kadampa)', icon: '03-membresias-kadampa.svg' },
+    { routeName: 'area-estudio.index', label: 'Área de estudio', icon: '09-area-de-estudio.svg' },
+    { routeName: 'camino-budista.index', label: 'Mi camino budista', icon: '10-mi-camino-budista.svg' },
     { routeName: 'centroayuda.index', label: 'Centro de ayuda', icon: '04-centro-de-ayuda.svg' },
     { routeName: 'acercade.index', label: 'Acerca de', icon: '05-acerca-de.svg' },
 ];

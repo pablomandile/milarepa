@@ -1,4 +1,5 @@
 <script setup>
+import { computed, ref } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticationCard from '@/Components/AuthenticationCard.vue';
 import AuthenticationCardLogo from '@/Components/AuthenticationCardLogo.vue';
@@ -9,9 +10,19 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import LogoMilarepa from '/resources/images/lotus-art-logo.webp';
 
-defineProps({
+const props = defineProps({
     canResetPassword: Boolean,
     status: String,
+});
+
+// El mensaje de sesión expirada llega por ?expired=1 (lo setea el Handler tras un 419),
+// ya que el flash no sobrevive la recarga completa que fuerza Inertia::location.
+const statusMessage = computed(() => {
+    if (props.status) return props.status;
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('expired')) {
+        return 'Tu sesión expiró. Por favor, iniciá sesión de nuevo.';
+    }
+    return '';
 });
 
 const form = useForm({
@@ -19,6 +30,8 @@ const form = useForm({
     password: '',
     remember: false,
 });
+
+const showPassword = ref(false);
 
 const submit = () => {
     form.transform(data => ({
@@ -38,8 +51,8 @@ const submit = () => {
             <img :src="LogoMilarepa" alt="Logo Milarepa" class="h-20 w-auto mx-auto" />
         </template>
 
-        <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
-            {{ status }}
+        <div v-if="statusMessage" class="mb-4 font-medium text-sm text-green-600">
+            {{ statusMessage }}
         </div>
 
         <a
@@ -78,14 +91,25 @@ const submit = () => {
 
             <div class="mt-4">
                 <InputLabel for="password" value="Contraseña" />
-                <TextInput
-                    id="password"
-                    v-model="form.password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    required
-                    autocomplete="current-password"
-                />
+                <div class="relative mt-1">
+                    <TextInput
+                        id="password"
+                        v-model="form.password"
+                        :type="showPassword ? 'text' : 'password'"
+                        class="block w-full pe-10"
+                        required
+                        autocomplete="current-password"
+                    />
+                    <button
+                        type="button"
+                        @click="showPassword = !showPassword"
+                        class="absolute inset-y-0 end-0 flex items-center pe-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+                        :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                        :title="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                    >
+                        <i :class="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+                    </button>
+                </div>
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
