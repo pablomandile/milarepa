@@ -151,10 +151,14 @@ class ClasesController extends Controller
             ->orderBy('id')
             ->value('nombre');
 
+        // Las clases de la entidad principal se muestran siempre primero.
+        $entidadPrincipalId = Entidad::where('entidad_principal', true)->orderBy('id')->value('id');
+
         $clases = Clase::query()
             ->where('activa', true)
             ->with(['imagen', 'entidad:id,nombre', 'maestros:id,nombre', 'esquemaPrecio.membresias.membresia'])
-            // La clase destacada va siempre primero; el resto, alfabético.
+            // Orden: entidad principal primero, luego la clase destacada, luego alfabético.
+            ->when($entidadPrincipalId, fn ($q) => $q->orderByRaw('CASE WHEN entidad_id = ? THEN 0 ELSE 1 END', [$entidadPrincipalId]))
             ->orderByRaw('CASE WHEN LOWER(TRIM(nombre)) = ? THEN 0 ELSE 1 END', [self::CLASE_DESTACADA])
             ->orderBy('nombre')
             ->get(['id', 'nombre', 'entidad_id', 'esquema_precio_id', 'mes_referencia', 'dias_semana', 'horario_desde', 'horario_hasta', 'titulos_por_fecha', 'imagen_id']);
@@ -173,11 +177,12 @@ class ClasesController extends Controller
             'fechas' => $this->sesionesDeClase($clase),
         ])->values();
 
-        // Entidades con clases activas, para los botones de filtro (orden alfabético).
+        // Entidades con clases activas, para los botones de filtro
+        // (entidad principal primero, el resto alfabético).
         $entidades = $clases->map->entidad
             ->filter()
             ->unique('id')
-            ->sortBy('nombre')
+            ->sortBy(fn ($entidad) => [$entidad->id === $entidadPrincipalId ? 0 : 1, mb_strtolower((string) $entidad->nombre)])
             ->map(fn ($entidad) => ['id' => $entidad->id, 'nombre' => $entidad->nombre])
             ->values();
 

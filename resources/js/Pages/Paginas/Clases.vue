@@ -151,10 +151,17 @@ const groupFechasByWeekday = (fechas) => {
 
                     <!-- Filtros por entidad -->
                     <div v-if="entidades.length > 0" class="px-3 sm:px-6 pt-5">
-                        <div class="mb-4 text-center">
-                            <p class="text-2xl font-semibold text-indigo-800">Clases de {{ monthLabel }}</p>
-                            <p v-if="cycleName" class="mt-1 text-xl text-indigo-700">📚 Ciclo: "{{ cycleName }}"</p>
-                            <p class="mt-1 text-base text-indigo-700">Elegí un lugar para ver sus clases</p>
+                        <div class="mb-6 text-center">
+                            <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 bg-clip-text text-transparent pb-1">
+                                Clases de {{ monthLabel }}
+                            </h2>
+                            <div v-if="cycleName" class="mt-3 flex justify-center">
+                                <span class="inline-flex items-center gap-2 rounded-full bg-indigo-50 dark:bg-indigo-900/40 px-5 py-2 text-lg sm:text-xl font-medium text-indigo-700 dark:text-indigo-200 ring-1 ring-inset ring-indigo-200 dark:ring-indigo-700 shadow-sm">
+                                    <span class="text-xl">📚</span>
+                                    <span>Ciclo: <span class="font-semibold">“{{ cycleName }}”</span></span>
+                                </span>
+                            </div>
+                            <p class="mt-4 text-sm sm:text-base text-slate-500 dark:text-gray-400">Elegí un lugar para ver sus clases</p>
                         </div>
                         <div class="flex flex-wrap justify-center gap-2">
                             <button
