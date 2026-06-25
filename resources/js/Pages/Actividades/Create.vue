@@ -142,6 +142,7 @@
         botonpago_id: null,
         metodos_pago_ids: [],
         hospedajes_ids: [],
+        hospedajes_cupos: {},
         lugar_hospedaje_id: null,
         comidas_ids: [],
         transportes_ids: [],

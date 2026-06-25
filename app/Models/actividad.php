@@ -45,9 +45,9 @@ class Actividad extends Model
         return $this->belongsToMany(MetodoPago::class); 
     }
 
-    public function hospedajes() 
-    { 
-        return $this->belongsToMany(Hospedaje::class); 
+    public function hospedajes()
+    {
+        return $this->belongsToMany(Hospedaje::class)->withPivot('cantidad');
     }
 
     public function comidas() 

@@ -154,6 +154,9 @@
         estado: props.actividad.estado,
         metodos_pago_ids: props.actividad.metodos_pago ? props.actividad.metodos_pago.map(m => m.id) : [],
         hospedajes_ids: props.actividad.hospedajes ? props.actividad.hospedajes.map(h => h.id) : [],
+        hospedajes_cupos: props.actividad.hospedajes
+            ? Object.fromEntries(props.actividad.hospedajes.map(h => [h.id, h.pivot?.cantidad ?? null]))
+            : {},
         lugar_hospedaje_id: props.actividad.hospedajes && props.actividad.hospedajes.length > 0
             ? props.actividad.hospedajes[0].lugar_hospedaje_id
             : null,

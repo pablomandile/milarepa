@@ -72,6 +72,15 @@ const totalHospedajes = computed(() => hospedajesDisponibles.value
 const lugaresHospedaje = computed(() => Array.from(
   new Set(hospedajesDisponibles.value.map((h) => h.lugar_hospedaje?.nombre).filter(Boolean))
 ));
+
+// Cupo de la acomodación: disponibles === null/undefined → ilimitado (sin etiqueta).
+const hospedajeAgotado = (h) => h.disponibles !== null && h.disponibles !== undefined
+  && Number(h.disponibles) <= 0 && !props.hospedajes.includes(h.id);
+const hospedajeEtiquetaCupo = (h) => {
+  if (h.disponibles === null || h.disponibles === undefined) return '';
+  const n = Number(h.disponibles);
+  return n <= 0 ? 'Agotado' : `quedan ${n}`;
+};
 </script>
 
 <template>
@@ -203,9 +212,16 @@ const lugaresHospedaje = computed(() => Array.from(
               :inputId="`${idPrefix}_hospedaje_${hospedaje.id}`"
               :value="hospedaje.id"
               v-model="hospedajesModel"
-              :disabled="hospedajesBloqueadosIds.includes(hospedaje.id)"
+              :disabled="hospedajesBloqueadosIds.includes(hospedaje.id) || hospedajeAgotado(hospedaje)"
             />
             {{ hospedaje.nombre }}
+            <span
+              v-if="hospedajeEtiquetaCupo(hospedaje)"
+              class="text-xs"
+              :class="hospedajeAgotado(hospedaje) ? 'text-red-500 font-medium' : 'text-gray-400'"
+            >
+              ({{ hospedajeEtiquetaCupo(hospedaje) }})
+            </span>
           </label>
           <div class="flex items-center gap-2">
             <span class="text-sm text-gray-700">{{ formatMoney(precioHospedaje(hospedaje).precio, precioHospedaje(hospedaje).simbolo) }}</span>

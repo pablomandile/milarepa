@@ -392,6 +392,14 @@ const filteredHospedajes = computed(() => {
   ));
 });
 
+// Acomodaciones elegidas, para configurar el cupo (cantidad) de cada una.
+const hospedajesSeleccionados = computed(() =>
+  (props.hospedajes || []).filter((h) => (props.form.hospedajes_ids || []).includes(h.id))
+);
+if (!props.form.hospedajes_cupos || typeof props.form.hospedajes_cupos !== 'object') {
+  props.form.hospedajes_cupos = {};
+}
+
 const comidasOrdenadas = computed(() => {
   return ordenarUltimosRegistros(props.comidas || []);
 });
@@ -1247,6 +1255,27 @@ watch(
             placeholder="Seleccione hospedajes"
           />
           <InputError :message="$page.props.errors.hospedajes_ids" class="mt-2" />
+
+          <div v-if="hospedajesSeleccionados.length" class="mt-3 rounded-md border border-gray-200 dark:border-gray-700 p-3">
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Cupo por acomodación (vacío = ilimitado)</p>
+            <div class="space-y-2">
+              <div
+                v-for="hospedaje in hospedajesSeleccionados"
+                :key="`cupo-${hospedaje.id}`"
+                class="flex items-center justify-between gap-3"
+              >
+                <span class="text-sm text-gray-700 dark:text-gray-200">{{ hospedaje.nombre }}</span>
+                <input
+                  v-model.number="form.hospedajes_cupos[hospedaje.id]"
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="∞"
+                  class="w-24 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-2 py-1 text-sm"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <div v-if="ofreceComidas" class="col-span-6 sm:col-span-6">

@@ -135,12 +135,13 @@ class ActividadesController extends Controller
         //    Por lo tanto, podrías manejarlo manualmente.
         $metodosPagoIds = $request->input('metodos_pago_ids', []);
         $hospedajesIds  = $request->input('hospedajes_ids', []);
+        $hospedajesCupos = $request->input('hospedajes_cupos', []);
         $comidasIds     = $request->input('comidas_ids', []);
         $transportesIds = $request->input('transportes_ids', []);
         $maestrosIds = $request->input('maestros_ids', []);
         $coordinadoresIds = $request->input('coordinadores_ids', []);
 
-        // Si metodos_pago_ids viene vacío (por ejemplo null o un array vacío), 
+        // Si metodos_pago_ids viene vacío (por ejemplo null o un array vacío),
         // lo forzamos a [1] como valor por defecto: Efectivo
         if (empty($metodosPagoIds)) {
             $metodosPagoIds = [1];
@@ -177,7 +178,7 @@ class ActividadesController extends Controller
               $validated['comidas_ids'], $validated['transportes_ids'],
               $validated['maestros_ids'], $validated['coordinadores_ids']);
 
-        $this->guardarConImagen($request->file('imagen'), 'img/actividades', $optimizador, function ($imagenId) use ($validated, $metodosPagoIds, $hospedajesIds, $comidasIds, $transportesIds, $maestrosIds, $coordinadoresIds) {
+        $this->guardarConImagen($request->file('imagen'), 'img/actividades', $optimizador, function ($imagenId) use ($validated, $metodosPagoIds, $hospedajesIds, $hospedajesCupos, $comidasIds, $transportesIds, $maestrosIds, $coordinadoresIds) {
             if ($imagenId) {
                 $validated['imagen_id'] = $imagenId;
             }
@@ -189,7 +190,7 @@ class ActividadesController extends Controller
             //    public function metodosPago() { return $this->belongsToMany(MetodoPago::class); }
             //    y lo mismo para hospedajes, comidas, transportes, etc.
             $actividad->metodosPago()->sync($metodosPagoIds);
-            $actividad->hospedajes()->sync($hospedajesIds);
+            $actividad->hospedajes()->sync($this->construirHospedajesSync($hospedajesIds, $hospedajesCupos));
             $actividad->comidas()->sync($comidasIds);
             $actividad->transportes()->sync($transportesIds);
             $actividad->maestros()->sync($maestrosIds);
@@ -347,6 +348,7 @@ class ActividadesController extends Controller
         // Extraer arrays de ids para relaciones muchos-a-muchos
         $metodosPagoIds = $request->input('metodos_pago_ids', []);
         $hospedajesIds  = $request->input('hospedajes_ids', []);
+        $hospedajesCupos = $request->input('hospedajes_cupos', []);
         $comidasIds     = $request->input('comidas_ids', []);
         $transportesIds = $request->input('transportes_ids', []);
         $maestrosIds = $request->input('maestros_ids', []);
@@ -382,7 +384,7 @@ class ActividadesController extends Controller
               $validated['comidas_ids'], $validated['transportes_ids'],
               $validated['maestros_ids'], $validated['coordinadores_ids']);
 
-        $this->guardarConImagen($request->file('imagen'), 'img/actividades', $optimizador, function ($imagenId) use ($actividad, $validated, $metodosPagoIds, $hospedajesIds, $comidasIds, $transportesIds, $maestrosIds, $coordinadoresIds) {
+        $this->guardarConImagen($request->file('imagen'), 'img/actividades', $optimizador, function ($imagenId) use ($actividad, $validated, $metodosPagoIds, $hospedajesIds, $hospedajesCupos, $comidasIds, $transportesIds, $maestrosIds, $coordinadoresIds) {
             if ($imagenId) {
                 $validated['imagen_id'] = $imagenId;
             }
@@ -392,7 +394,7 @@ class ActividadesController extends Controller
 
             // Sincronizar relaciones muchos-a-muchos
             $actividad->metodosPago()->sync($metodosPagoIds);
-            $actividad->hospedajes()->sync($hospedajesIds);
+            $actividad->hospedajes()->sync($this->construirHospedajesSync($hospedajesIds, $hospedajesCupos));
             $actividad->comidas()->sync($comidasIds);
             $actividad->transportes()->sync($transportesIds);
             $actividad->maestros()->sync($maestrosIds);
@@ -403,6 +405,28 @@ class ActividadesController extends Controller
 
         return redirect()->route('actividades.index')
             ->with('success', 'Actividad actualizada correctamente.');
+    }
+
+    /**
+     * Arma el payload de sync() para hospedajes incluyendo el cupo por acomodación.
+     * `cantidad` vacío/null = ilimitado.
+     *
+     * @param  array<int, int|string>  $hospedajesIds
+     * @param  array<int|string, mixed>  $hospedajesCupos  mapa [hospedaje_id => cantidad]
+     * @return array<int, array{cantidad: int|null}>
+     */
+    private function construirHospedajesSync(array $hospedajesIds, array $hospedajesCupos): array
+    {
+        $sync = [];
+        foreach ($hospedajesIds as $hid) {
+            $hid = (int) $hid;
+            $cupo = $hospedajesCupos[$hid] ?? null;
+            $sync[$hid] = [
+                'cantidad' => ($cupo === '' || $cupo === null) ? null : max(0, (int) $cupo),
+            ];
+        }
+
+        return $sync;
     }
 
     /**

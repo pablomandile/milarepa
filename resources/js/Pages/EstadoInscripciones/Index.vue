@@ -216,7 +216,7 @@
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Comprobante</p>
                                                 <div class="flex items-center gap-2">
                                                     <button
-                                                        v-if="isEditing(inscripcion)"
+                                                        v-if="canEdit"
                                                         type="button"
                                                         @click="openComprobanteModal(inscripcion)"
                                                         class="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sky-700"
@@ -462,7 +462,7 @@
                                 <Column header="Comprobante" class="text-center">
                                     <template #body="{ data }">
                                         <button
-                                            v-if="isEditing(data)"
+                                            v-if="canEdit"
                                             type="button"
                                             @click="openComprobanteModal(data)"
                                             class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200"
@@ -944,6 +944,120 @@
                 </div>
             </template>
         </Dialog>
+
+        <!-- Dialog de edición completa (servicios + invitados, recálculo automático) -->
+        <Dialog
+            v-model:visible="editDialog"
+            modal
+            header="Editar inscripción"
+            :style="{ width: '760px' }"
+            :breakpoints="{ '768px': '95vw' }"
+        >
+            <div v-if="editLoading" class="py-10 text-center text-gray-500">
+                Cargando datos…
+            </div>
+            <div v-else-if="editActividad" class="space-y-5 pt-1">
+                <!-- Titular -->
+                <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Titular</p>
+                    <div class="flex flex-wrap items-center gap-4 mb-3">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-gray-600 dark:text-gray-300">Estado de pago</label>
+                            <select
+                                v-model="editTitular.pago"
+                                class="rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-2 py-1 text-sm"
+                            >
+                                <option value="Saldado">Saldado</option>
+                                <option value="Parcial">Parcial</option>
+                                <option value="Pendiente">Pendiente</option>
+                            </select>
+                        </div>
+                        <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                            <Checkbox v-model="editTitular.online" binary inputId="edit_titular_online" />
+                            Cursa online
+                        </label>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-2">Precio actividad: <span class="font-semibold">{{ formatMoneyEdit(editTitular.montoActividad) }}</span> (no se modifica)</p>
+                    <ServiciosActividadSelector
+                        :actividad="editActividad"
+                        v-model:grabacion="editTitular.grabacion"
+                        v-model:comidas="editTitular.comidas"
+                        v-model:transportes="editTitular.transportes"
+                        v-model:hospedajes="editTitular.hospedajes"
+                        :resolver-precio="resolverPrecioEdit"
+                        :format-money="formatMoneyEdit"
+                        id-prefix="edit_titular"
+                    />
+                    <p class="mt-2 text-sm text-gray-700 dark:text-gray-200">Subtotal titular: <span class="font-semibold">{{ formatMoneyEdit(subtotalTitularEdit) }}</span></p>
+                </div>
+
+                <!-- Invitados -->
+                <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">Invitados ({{ editInvitados.length }}/{{ MAX_INVITADOS }})</p>
+                        <button
+                            type="button"
+                            class="px-3 py-1 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700 disabled:bg-gray-300"
+                            :disabled="editInvitados.length >= MAX_INVITADOS"
+                            @click="agregarInvitadoEdit"
+                        >
+                            Agregar invitado
+                        </button>
+                    </div>
+
+                    <div v-if="editInvitados.length" class="space-y-4">
+                        <div
+                            v-for="(inv, idx) in editInvitados"
+                            :key="`edit-inv-${idx}`"
+                            class="rounded-md border border-gray-200 dark:border-gray-700 p-3"
+                        >
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Invitado {{ idx + 1 }}</span>
+                                <button type="button" class="text-red-600 text-sm hover:underline" @click="eliminarInvitadoEdit(idx)">Eliminar</button>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
+                                <input v-model="inv.nombre" type="text" placeholder="Nombre *" class="rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-2 py-1 text-sm" />
+                                <input v-model="inv.apellido" type="text" placeholder="Apellido *" class="rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-2 py-1 text-sm" />
+                                <input v-model="inv.telefono" type="text" placeholder="Teléfono" class="rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-2 py-1 text-sm" />
+                            </div>
+                            <label v-if="editModalidadAbierta" class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-2">
+                                <Checkbox v-model="inv.online" binary :inputId="`edit_inv_online_${idx}`" />
+                                Cursa online
+                            </label>
+                            <ServiciosActividadSelector
+                                :actividad="editActividad"
+                                v-model:grabacion="inv.grabacion"
+                                v-model:comidas="inv.comidas"
+                                v-model:transportes="inv.transportes"
+                                v-model:hospedajes="inv.hospedajes"
+                                :resolver-precio="resolverPrecioEdit"
+                                :format-money="formatMoneyEdit"
+                                :id-prefix="`edit_inv_${idx}`"
+                            />
+                            <p class="mt-2 text-sm text-gray-700 dark:text-gray-200">Subtotal: <span class="font-semibold">{{ formatMoneyEdit(subtotalInvitadoEdit(inv)) }}</span></p>
+                        </div>
+                    </div>
+                    <p v-else class="text-xs text-gray-400">Sin invitados.</p>
+                </div>
+
+                <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800/50">
+                    <p class="text-base text-gray-800 dark:text-gray-100">Total a pagar: <span class="font-bold text-green-700">{{ formatMoneyEdit(totalEdit) }}</span></p>
+                </div>
+            </div>
+
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <button class="px-4 py-2 bg-gray-500 text-white rounded" @click="cancelarEdicion">Cancelar</button>
+                    <button
+                        class="px-4 py-2 bg-indigo-600 text-white rounded disabled:opacity-60"
+                        :disabled="isSaving || editLoading"
+                        @click="guardarEdicionCompleta"
+                    >
+                        {{ isSaving ? 'Guardando…' : 'Guardar' }}
+                    </button>
+                </div>
+            </template>
+        </Dialog>
     </AppLayout>
 </template>
 
@@ -957,6 +1071,8 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dropdown from 'primevue/dropdown';
 import Dialog from 'primevue/dialog';
+import Checkbox from 'primevue/checkbox';
+import ServiciosActividadSelector from '@/Components/Actividades/ServiciosActividadSelector.vue';
 
 const props = defineProps({
     inscripciones: Array
@@ -1030,7 +1146,110 @@ const isInvitado = (inscripcion) => {
     return inscripcion.user?.name === 'Invitado';
 };
 
-const isEditing = (inscripcion) => editRowId.value === inscripcion.id;
+// La edición pasó a un dialog completo; ya no hay edición inline en la fila.
+const isEditing = () => false;
+
+// ----- Dialog de edición completa (servicios + invitados, recálculo automático) -----
+const MAX_INVITADOS = 10;
+const editDialog = ref(false);
+const editLoading = ref(false);
+const editInscripcionId = ref(null);
+const editActividad = ref(null);
+const editModalidadAbierta = ref(false);
+const editTitular = ref({
+    online: false,
+    pago: 'Pendiente',
+    montoActividad: 0,
+    precioGeneral: 0,
+    grabacion: false,
+    comidas: [],
+    transportes: [],
+    hospedajes: [],
+});
+const editInvitados = ref([]);
+
+const nuevoInvitadoEdit = () => ({
+    nombre: '',
+    apellido: '',
+    telefono: '',
+    online: false,
+    grabacion: false,
+    comidas: [],
+    transportes: [],
+    hospedajes: [],
+});
+
+// Funciones inyectadas a ServiciosActividadSelector (precio simple, moneda única).
+const resolverPrecioEdit = (item, campo = 'precio') => ({
+    precio: Number(item?.[campo] ?? 0) || 0,
+    simbolo: '$',
+});
+const formatMoneyEdit = (valor) => `$${formatearMonto(valor)}`;
+
+const sumarServiciosEdit = (sel) => {
+    const a = editActividad.value;
+    if (!a) return 0;
+    let total = 0;
+    if (sel.grabacion && a.grabacion) total += Number(a.grabacion.valor || 0);
+    (a.comidas || []).forEach((c) => { if (sel.comidas.includes(c.id)) total += Number(c.precio || 0); });
+    (a.transportes || []).forEach((t) => { if (sel.transportes.includes(t.id)) total += Number(t.precio || 0); });
+    (a.hospedajes || []).forEach((h) => { if (sel.hospedajes.includes(h.id)) total += Number(h.precio || 0); });
+    return total;
+};
+const subtotalTitularEdit = computed(() => Number(editTitular.value.montoActividad || 0) + sumarServiciosEdit(editTitular.value));
+const subtotalInvitadoEdit = (inv) => Number(editTitular.value.precioGeneral || 0) + sumarServiciosEdit(inv);
+const totalEdit = computed(() => subtotalTitularEdit.value + editInvitados.value.reduce((acc, inv) => acc + subtotalInvitadoEdit(inv), 0));
+
+const agregarInvitadoEdit = () => {
+    if (editInvitados.value.length >= MAX_INVITADOS) {
+        toast.add({ severity: 'warn', summary: 'Invitados', detail: `Máximo ${MAX_INVITADOS} invitados.`, life: 4000 });
+        return;
+    }
+    editInvitados.value.push(nuevoInvitadoEdit());
+};
+const eliminarInvitadoEdit = (index) => {
+    editInvitados.value.splice(index, 1);
+};
+
+const guardarEdicionCompleta = async () => {
+    if (!canEdit.value || isSaving.value) return;
+    // Validación mínima de invitados.
+    for (const inv of editInvitados.value) {
+        if (!String(inv.nombre).trim() || !String(inv.apellido).trim()) {
+            toast.add({ severity: 'warn', summary: 'Invitados', detail: 'Cada invitado necesita nombre y apellido.', life: 4000 });
+            return;
+        }
+    }
+    isSaving.value = true;
+    try {
+        const payload = {
+            pago: editTitular.value.pago,
+            online: editTitular.value.online,
+            incluye_grabacion: editTitular.value.grabacion,
+            comidas_ids: editTitular.value.comidas,
+            transportes_ids: editTitular.value.transportes,
+            hospedajes_ids: editTitular.value.hospedajes,
+            invitados: editInvitados.value.map((inv) => ({
+                nombre: inv.nombre.trim(),
+                apellido: inv.apellido.trim(),
+                telefono: (inv.telefono || '').trim() || null,
+                online: editModalidadAbierta.value ? !!inv.online : false,
+                incluye_grabacion: !!inv.grabacion,
+                comidas_ids: inv.comidas,
+                transportes_ids: inv.transportes,
+                hospedajes_ids: inv.hospedajes,
+            })),
+        };
+        await axios.put(route('estadoinscripciones.update', editInscripcionId.value), payload);
+        editDialog.value = false;
+        toast.add({ severity: 'success', summary: 'Inscripción', detail: 'Cambios guardados.', life: 3000 });
+        router.reload({ only: ['inscripciones'] });
+    } catch (error) {
+        toast.add({ severity: 'error', summary: 'Error', detail: error?.response?.data?.message || 'No se pudo guardar la edición.', life: 5000 });
+    } finally {
+        isSaving.value = false;
+    }
+};
 
 const isCardExpanded = (id) => expandedCardIds.value.includes(id);
 
@@ -1043,33 +1262,63 @@ const toggleCardExpanded = (id) => {
     }
 };
 
-const iniciarEdicion = (inscripcion) => {
-    editRowId.value = inscripcion.id;
-    editForm.value = {
-        montoapagar: Number(inscripcion.montoapagar || 0),
-        pago: inscripcion.pago || 'Pendiente',
-    };
+// Abre el dialog de edición completa y carga los datos (servicios + invitados).
+const iniciarEdicion = async (inscripcion) => {
+    if (!canEdit.value) return;
+    editInscripcionId.value = inscripcion.id;
+    editLoading.value = true;
+    editActividad.value = null;
+    editInvitados.value = [];
+    editDialog.value = true;
+    try {
+        const { data } = await axios.get(route('estadoinscripciones.editar-data', { estadoinscripcion: inscripcion.id }));
+        editActividad.value = data.actividad;
+        editModalidadAbierta.value = !!data.modalidad_abierta;
+        editTitular.value = {
+            online: !!data.inscripcion.online,
+            pago: data.inscripcion.pago || 'Pendiente',
+            montoActividad: Number(data.inscripcion.montoActividad || 0),
+            precioGeneral: Number(data.inscripcion.precioGeneral || 0),
+            grabacion: !!data.inscripcion.incluye_grabacion,
+            comidas: [...(data.inscripcion.comidas_ids || [])],
+            transportes: [...(data.inscripcion.transportes_ids || [])],
+            hospedajes: [...(data.inscripcion.hospedajes_ids || [])],
+        };
+        editInvitados.value = (data.invitados || []).map((inv) => ({
+            nombre: inv.nombre,
+            apellido: inv.apellido,
+            telefono: inv.telefono || '',
+            online: !!inv.online,
+            grabacion: !!inv.incluye_grabacion,
+            comidas: [...(inv.comidas_ids || [])],
+            transportes: [...(inv.transportes_ids || [])],
+            hospedajes: [...(inv.hospedajes_ids || [])],
+        }));
+    } catch (error) {
+        toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los datos de edición.', life: 4000 });
+        editDialog.value = false;
+    } finally {
+        editLoading.value = false;
+    }
 };
 
 const cancelarEdicion = () => {
-    editRowId.value = null;
+    editDialog.value = false;
 };
 
+// Cambio rápido del estado de pago (botón "marcar saldado"); no toca servicios.
 const guardarEdicion = async (inscripcion) => {
     if (!canEdit.value || isSaving.value) return;
     isSaving.value = true;
     try {
-        const { data } = await axios.put(route('estadoinscripciones.update', inscripcion.id), {
-            montoapagar: editForm.value.montoapagar,
+        const { data } = await axios.patch(route('estadoinscripciones.pago', { estadoinscripcion: inscripcion.id }), {
             pago: editForm.value.pago,
         });
-        inscripcion.montoapagar = editForm.value.montoapagar;
         inscripcion.pago = editForm.value.pago;
-        // El backend confirma la inscripción al quedar saldada; reflejamos el nuevo estado.
         if (data?.estado) inscripcion.estado = data.estado;
         editRowId.value = null;
     } catch (error) {
-        alert('No se pudo guardar la edición.');
+        toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar el pago.', life: 4000 });
     } finally {
         isSaving.value = false;
     }
