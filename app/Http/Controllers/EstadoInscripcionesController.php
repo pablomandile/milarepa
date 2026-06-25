@@ -32,6 +32,10 @@ class EstadoInscripcionesController extends Controller
                 'guestUser.barrio',
                 'auditorUser',
             'comprobantes',
+            'invitados',
+            'invitados.comidas',
+            'invitados.transportes',
+            'invitados.hospedajes',
             ])
             ->orderBy('created_at', 'desc')
             ->get();

@@ -43,6 +43,15 @@ const formatPrice = (value) => {
   }).format(value);
 };
 
+const serviciosInvitado = (invitado) => {
+  const items = [];
+  if (invitado.incluye_grabacion) items.push('Grabación');
+  (invitado.comidas || []).forEach((c) => items.push(c.nombre));
+  (invitado.transportes || []).forEach((t) => items.push(t.descripcion || 'Transporte'));
+  (invitado.hospedajes || []).forEach((h) => items.push(h.nombre));
+  return items.length ? items.join(', ') : 'Sin servicios';
+};
+
 watch(() => $page.props.flash, (flash) => {
   if (flash?.success) {
     toast.add({
@@ -174,6 +183,30 @@ watch(() => $page.props.flash, (flash) => {
                   </div>
                 </div>
               </div>
+              <div
+                v-if="inscripcion.invitados && inscripcion.invitados.length"
+                class="bg-violet-50 rounded-xl border border-violet-100 shadow-sm p-4 sm:p-5 sm:col-span-3"
+              >
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Invitados ({{ inscripcion.invitados.length }})
+                </h3>
+                <div class="space-y-2">
+                  <div
+                    v-for="invitado in inscripcion.invitados"
+                    :key="invitado.id"
+                    class="flex flex-wrap items-center justify-between gap-2 border-b border-violet-100 last:border-0 pb-2 last:pb-0"
+                  >
+                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                      <span class="font-semibold text-gray-900 dark:text-gray-100">{{ invitado.nombre }} {{ invitado.apellido }}</span>
+                      <span v-if="invitado.telefono" class="text-gray-500"> · {{ invitado.telefono }}</span>
+                      <span v-if="invitado.online" class="ml-1 text-xs text-indigo-600">(Online)</span>
+                      <span class="block text-xs text-gray-500">{{ serviciosInvitado(invitado) }}</span>
+                    </div>
+                    <span class="text-sm font-semibold text-green-700">${{ formatPrice(invitado.montoapagar) }}</span>
+                  </div>
+                </div>
+              </div>
+
               <div v-if="comprobanteUrl" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-4 sm:col-span-3">
                 <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Comprobante</h4>
                 <p v-if="comprobanteDescripcion" class="text-xs text-gray-500 mb-2">

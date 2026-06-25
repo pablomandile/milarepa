@@ -102,6 +102,15 @@ const formatMoney = (value) => {
     return numeric.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
+const serviciosInvitado = (invitado) => {
+    const items = [];
+    if (invitado.incluye_grabacion) items.push('Grabación');
+    (invitado.comidas || []).forEach((c) => items.push(c.nombre));
+    (invitado.transportes || []).forEach((t) => items.push(t.descripcion || 'Transporte'));
+    (invitado.hospedajes || []).forEach((h) => items.push(h.nombre));
+    return items.length ? items.join(', ') : 'Sin servicios';
+};
+
 const comprobanteModal = ref(false);
 const comprobantesParaVer = ref([]);
 const mapModalVisible = ref(false);
@@ -648,6 +657,26 @@ watch(() => $page.props.flash, (flash) => {
                                             <p class="text-sm text-gray-800 dark:text-gray-100">
                                                 {{ data.hospedaje?.nombre || '-' }}
                                             </p>
+                                        </div>
+                                    </div>
+
+                                    <div v-if="data.invitados?.length" class="mt-4">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                                            Invitados ({{ data.invitados.length }})
+                                        </p>
+                                        <div class="space-y-1">
+                                            <div
+                                                v-for="invitado in data.invitados"
+                                                :key="invitado.id"
+                                                class="text-sm text-gray-800 dark:text-gray-100 flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 dark:border-gray-700 pb-1"
+                                            >
+                                                <span>
+                                                    <span class="font-medium">{{ invitado.nombre }} {{ invitado.apellido }}</span>
+                                                    <span v-if="invitado.online" class="ml-1 text-xs text-indigo-600">(Online)</span>
+                                                    <span class="text-gray-500"> · {{ serviciosInvitado(invitado) }}</span>
+                                                </span>
+                                                <span class="font-semibold text-green-700">${{ formatMoney(invitado.montoapagar) }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

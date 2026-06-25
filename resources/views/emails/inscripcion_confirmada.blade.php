@@ -437,6 +437,27 @@
                     @endif
                 </div>
                 @endif
+
+                @if($inscripcion->invitados && $inscripcion->invitados->count())
+                <div class="info-row" style="margin-top: 12px;">
+                    <strong>Invitados ({{ $inscripcion->invitados->count() }}):</strong>
+                </div>
+                @foreach($inscripcion->invitados as $invitado)
+                    <div class="info-row" style="padding-left: 12px;">
+                        <strong>{{ $invitado->nombre }} {{ $invitado->apellido }}</strong>
+                        @if($invitado->online) (Online) @endif
+                        @php($itemsInvitado = [])
+                        @if($invitado->incluye_grabacion) @php($itemsInvitado[] = 'Grabación') @endif
+                        @foreach($invitado->comidas as $comida) @php($itemsInvitado[] = $comida->nombre) @endforeach
+                        @foreach($invitado->transportes as $transporte) @php($itemsInvitado[] = $transporte->descripcion ?? 'Transporte') @endforeach
+                        @foreach($invitado->hospedajes as $hospedaje) @php($itemsInvitado[] = $hospedaje->nombre) @endforeach
+                        @if(count($itemsInvitado))
+                            <br><span style="font-size: 13px; color: #666;">{{ implode(', ', $itemsInvitado) }}</span>
+                        @endif
+                        <br><span style="font-size: 13px; color: #666;">Monto: ${{ number_format((float) $invitado->montoapagar, 2, ',', '.') }}</span>
+                    </div>
+                @endforeach
+                @endif
             </div>
 
             <!-- Important Note -->

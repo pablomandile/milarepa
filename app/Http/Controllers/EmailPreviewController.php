@@ -473,6 +473,28 @@ class EmailPreviewController extends Controller
         $inscripcion->hospedaje = $hospedaje;
         $inscripcion->comida = $comida;
         $inscripcion->transporte = $transporte;
+        $inscripcion->invitados = collect([
+            (object) [
+                'nombre' => 'Maria',
+                'apellido' => 'Gomez',
+                'online' => false,
+                'incluye_grabacion' => true,
+                'montoapagar' => 5800.00,
+                'comidas' => [(object) ['nombre' => 'Almuerzo vegetariano']],
+                'transportes' => [],
+                'hospedajes' => [],
+            ],
+            (object) [
+                'nombre' => 'Juan',
+                'apellido' => 'Perez',
+                'online' => false,
+                'incluye_grabacion' => false,
+                'montoapagar' => 5000.00,
+                'comidas' => [],
+                'transportes' => [(object) ['descripcion' => 'Combi desde el centro']],
+                'hospedajes' => [],
+            ],
+        ]);
 
         return $inscripcion;
     }

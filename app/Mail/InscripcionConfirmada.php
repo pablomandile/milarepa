@@ -51,6 +51,10 @@ class InscripcionConfirmada extends Mailable
         $this->inscripcion->loadMissing([
             'user.membresia.botonPago.metodoPago.imagen',
             'actividad.metodosPago.imagen',
+            'invitados',
+            'invitados.comidas',
+            'invitados.transportes',
+            'invitados.hospedajes',
         ]);
 
         return new Content(

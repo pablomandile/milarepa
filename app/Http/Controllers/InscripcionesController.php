@@ -37,7 +37,11 @@ class InscripcionesController extends Controller
                 'comida',
                 'comidas',
             'transporte',
-            'comprobantes'
+            'comprobantes',
+            'invitados',
+            'invitados.comidas',
+            'invitados.transportes',
+            'invitados.hospedajes',
             ])
             ->where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
@@ -289,6 +293,10 @@ class InscripcionesController extends Controller
             'comidas',
             'transporte',
             'comprobantes',
+            'invitados',
+            'invitados.comidas',
+            'invitados.transportes',
+            'invitados.hospedajes',
         ])->findOrFail($id);
 
         // Verificar que la Inscripción pertenece al usuario autenticado

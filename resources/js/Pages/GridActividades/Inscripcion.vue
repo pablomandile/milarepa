@@ -7,6 +7,20 @@ const props = defineProps({
     required: true,
   },
 });
+
+const formatPrice = (value) => {
+  if (value === null || value === undefined || isNaN(value)) return '0,00';
+  return new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+};
+
+const serviciosInvitado = (invitado) => {
+  const items = [];
+  if (invitado.incluye_grabacion) items.push('Grabación');
+  (invitado.comidas || []).forEach((c) => items.push(c.nombre));
+  (invitado.transportes || []).forEach((t) => items.push(t.descripcion || 'Transporte'));
+  (invitado.hospedajes || []).forEach((h) => items.push(h.nombre));
+  return items.length ? items.join(', ') : 'Sin servicios';
+};
 </script>
 
 <template>
@@ -49,6 +63,27 @@ const props = defineProps({
               <p class="mt-3 text-base font-semibold text-amber-900">
                 {{ inscripcion.comprobantes?.length ? 'Cargado' : 'No cargado' }}
               </p>
+            </div>
+          </div>
+
+          <div v-if="inscripcion.invitados && inscripcion.invitados.length" class="mt-6 rounded-2xl border border-violet-100 bg-violet-50 p-5 shadow-sm">
+            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Invitados ({{ inscripcion.invitados.length }})
+            </h3>
+            <div class="space-y-2">
+              <div
+                v-for="invitado in inscripcion.invitados"
+                :key="invitado.id"
+                class="flex flex-wrap items-center justify-between gap-2 border-b border-violet-100 last:border-0 pb-2 last:pb-0"
+              >
+                <div class="text-sm text-gray-700">
+                  <span class="font-semibold text-gray-900">{{ invitado.nombre }} {{ invitado.apellido }}</span>
+                  <span v-if="invitado.telefono" class="text-gray-500"> · {{ invitado.telefono }}</span>
+                  <span v-if="invitado.online" class="ml-1 text-xs text-indigo-600">(Online)</span>
+                  <span class="block text-xs text-gray-500">{{ serviciosInvitado(invitado) }}</span>
+                </div>
+                <span class="text-sm font-semibold text-green-700">${{ formatPrice(invitado.montoapagar) }}</span>
+              </div>
             </div>
           </div>
 

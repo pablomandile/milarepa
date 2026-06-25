@@ -692,6 +692,48 @@
                                                 <p class="text-sm text-gray-800 dark:text-gray-100 whitespace-pre-line">{{ data.observaciones || '-' }}</p>
                                             </div>
                                         </div>
+
+                                        <div v-if="data.invitados?.length" class="mt-4">
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                                                Invitados ({{ data.invitados.length }})
+                                            </p>
+                                            <div class="overflow-x-auto">
+                                                <table class="min-w-full text-sm">
+                                                    <thead>
+                                                        <tr class="text-left text-xs uppercase text-gray-500">
+                                                            <th class="py-1 pr-3">Nombre</th>
+                                                            <th class="py-1 pr-3">Modalidad</th>
+                                                            <th class="py-1 pr-3">Servicios</th>
+                                                            <th class="py-1 pr-3 text-right">Monto</th>
+                                                            <th class="py-1 pr-3">Asistencia</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr
+                                                            v-for="invitado in data.invitados"
+                                                            :key="invitado.id"
+                                                            class="border-t border-gray-200 dark:border-gray-700"
+                                                        >
+                                                            <td class="py-1 pr-3 text-gray-800 dark:text-gray-100">{{ invitado.nombre }} {{ invitado.apellido }}</td>
+                                                            <td class="py-1 pr-3 text-gray-600 dark:text-gray-300">{{ invitado.online ? 'Online' : 'Presencial' }}</td>
+                                                            <td class="py-1 pr-3 text-gray-600 dark:text-gray-300">{{ serviciosInvitado(invitado) }}</td>
+                                                            <td class="py-1 pr-3 text-right text-blue-700 font-medium">${{ formatearMonto(invitado.montoapagar) }}</td>
+                                                            <td class="py-1 pr-3">
+                                                                <select
+                                                                    :value="invitado.asistencia || 'Pendiente'"
+                                                                    @change="marcarAsistenciaInvitado(invitado, $event.target.value)"
+                                                                    class="text-xs rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-2 py-1"
+                                                                >
+                                                                    <option value="Pendiente">Pendiente</option>
+                                                                    <option value="Presente">Presente</option>
+                                                                    <option value="Ausente">Ausente</option>
+                                                                </select>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
                                 </template>
                             </DataTable>
@@ -1030,6 +1072,27 @@ const guardarEdicion = async (inscripcion) => {
         alert('No se pudo guardar la edición.');
     } finally {
         isSaving.value = false;
+    }
+};
+
+const serviciosInvitado = (invitado) => {
+    const items = [];
+    if (invitado.incluye_grabacion) items.push('Grabación');
+    (invitado.comidas || []).forEach((c) => items.push(c.nombre));
+    (invitado.transportes || []).forEach((t) => items.push(t.descripcion || 'Transporte'));
+    (invitado.hospedajes || []).forEach((h) => items.push(h.nombre));
+    return items.length ? items.join(', ') : 'Sin servicios';
+};
+
+const marcarAsistenciaInvitado = async (invitado, asistencia) => {
+    const anterior = invitado.asistencia;
+    try {
+        await axios.patch(route('invitados.asistencia', { invitado: invitado.id }), { asistencia });
+        invitado.asistencia = asistencia;
+        toast.add({ severity: 'success', summary: 'Asistencia', detail: `${invitado.nombre}: ${asistencia}`, life: 3000 });
+    } catch (error) {
+        invitado.asistencia = anterior;
+        toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar la asistencia.', life: 4000 });
     }
 };
 
