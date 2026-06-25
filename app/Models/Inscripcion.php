@@ -22,6 +22,7 @@ class Inscripcion extends Model
         'montoTransporte',
         'montoComidas',
         'montoapagar',
+        'monto_invitados',
         'pago',
         'fecha_pago',
         'referencia_pago',
@@ -48,6 +49,7 @@ class Inscripcion extends Model
         'montoTransporte' => 'decimal:2',
         'montoComidas' => 'decimal:2',
         'montoapagar' => 'decimal:2',
+        'monto_invitados' => 'decimal:2',
         'online' => 'boolean',
         'auditoria_fecha' => 'datetime',
         'fecha_pago' => 'date',
@@ -97,6 +99,11 @@ class Inscripcion extends Model
     public function comprobantes()
     {
         return $this->hasMany(InscripcionComprobante::class)->latest();
+    }
+
+    public function invitados()
+    {
+        return $this->hasMany(Invitado::class);
     }
 }
 
