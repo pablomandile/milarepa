@@ -7,6 +7,7 @@ use App\Models\Actividad;
 use App\Models\GuestUser;
 use App\Models\Inscripcion;
 use App\Models\InscripcionComprobante;
+use App\Models\Invitado;
 use App\Models\Pais;
 use App\Models\Provincia;
 use App\Models\Municipio;
@@ -23,6 +24,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use App\Mail\InscripcionConfirmada;
 use Illuminate\Support\Arr;
@@ -388,6 +390,18 @@ class GridActividadesController extends Controller
             'transportes_ids.*' => ['integer', 'exists:transportes,id'],
             'hospedajes_ids' => ['nullable', 'array'],
             'hospedajes_ids.*' => ['integer', 'exists:hospedajes,id'],
+            'invitados' => ['nullable', 'array', 'max:10'],
+            'invitados.*.nombre' => ['required_with:invitados', 'string'],
+            'invitados.*.apellido' => ['required_with:invitados', 'string'],
+            'invitados.*.telefono' => ['nullable', 'string'],
+            'invitados.*.online' => ['nullable', 'boolean'],
+            'invitados.*.incluye_grabacion' => ['nullable', 'boolean'],
+            'invitados.*.comidas_ids' => ['nullable', 'array'],
+            'invitados.*.comidas_ids.*' => ['integer', 'exists:comidas,id'],
+            'invitados.*.transportes_ids' => ['nullable', 'array'],
+            'invitados.*.transportes_ids.*' => ['integer', 'exists:transportes,id'],
+            'invitados.*.hospedajes_ids' => ['nullable', 'array'],
+            'invitados.*.hospedajes_ids.*' => ['integer', 'exists:hospedajes,id'],
         ]);
 
         $data['pago_metodo'] = $this->normalizarMetodoPagoFinal((string) ($data['pago_metodo'] ?? ''));
@@ -521,11 +535,15 @@ class GridActividadesController extends Controller
             ? (float) $actividad->hospedajes()->whereIn('hospedajes.id', $hospedajesIds)->sum('hospedajes.precio')
             : 0.0;
 
+        $invitadosData = $this->prepararInvitados($actividad, (float) $precioGeneral, $data['invitados'] ?? []);
+        $montoInvitados = array_sum(array_column($invitadosData, 'montoapagar'));
+
         $montoApagar = $montoActividad
             + (float) ($montoGrabacion ?? 0)
             + (float) ($montoComidas ?? 0)
             + (float) ($montoTransporte ?? 0)
-            + $montoHospedaje;
+            + $montoHospedaje
+            + $montoInvitados;
         [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
 
         if (!empty($pago['inscripcion_id'])) {
@@ -537,33 +555,42 @@ class GridActividadesController extends Controller
                 return response()->json(['ok' => false, 'message' => 'No se encontró la inscripción a actualizar.'], 404);
             }
 
-            $inscripcion->update([
-                'membresia' => $membresiaNombre,
-                'precioGeneral' => $precioGeneral,
-                'montoActividad' => $montoActividad,
-                'montoGrabacion' => $montoGrabacion,
-                'montoTransporte' => $montoTransporte,
-                'montoComidas' => $montoComidas,
-                'montoapagar' => $montoApagar,
-                'pago' => $estadoPago,
-                'estado' => $estadoInscripcion,
-                'envioLinkStream' => $envioLinkStream,
-                'envioGrabacion' => $envioGrabacion,
-                'online' => $online,
-                'hospedaje_id' => $hospedajeId,
-                'comida_id' => $comidaId,
-                'transporte_id' => $transporteId,
-            ]);
-
-            $inscripcion->comidas()->sync($comidasIds);
-
-            if (!empty($pago['comprobante_path'])) {
-                InscripcionComprobante::create([
-                    'inscripcion_id' => $inscripcion->id,
-                    'ruta' => $pago['comprobante_path'],
-                    'descripcion' => $pago['comprobante_descripcion'] ?? null,
+            DB::transaction(function () use (
+                $inscripcion, $membresiaNombre, $precioGeneral, $montoActividad, $montoGrabacion,
+                $montoTransporte, $montoComidas, $montoApagar, $montoInvitados, $estadoPago, $estadoInscripcion,
+                $envioLinkStream, $envioGrabacion, $online, $hospedajeId, $comidaId, $transporteId,
+                $comidasIds, $invitadosData, $pago
+            ) {
+                $inscripcion->update([
+                    'membresia' => $membresiaNombre,
+                    'precioGeneral' => $precioGeneral,
+                    'montoActividad' => $montoActividad,
+                    'montoGrabacion' => $montoGrabacion,
+                    'montoTransporte' => $montoTransporte,
+                    'montoComidas' => $montoComidas,
+                    'montoapagar' => $montoApagar,
+                    'monto_invitados' => $montoInvitados,
+                    'pago' => $estadoPago,
+                    'estado' => $estadoInscripcion,
+                    'envioLinkStream' => $envioLinkStream,
+                    'envioGrabacion' => $envioGrabacion,
+                    'online' => $online,
+                    'hospedaje_id' => $hospedajeId,
+                    'comida_id' => $comidaId,
+                    'transporte_id' => $transporteId,
                 ]);
-            }
+
+                $inscripcion->comidas()->sync($comidasIds);
+                $this->persistirInvitados($inscripcion, $invitadosData);
+
+                if (!empty($pago['comprobante_path'])) {
+                    InscripcionComprobante::create([
+                        'inscripcion_id' => $inscripcion->id,
+                        'ruta' => $pago['comprobante_path'],
+                        'descripcion' => $pago['comprobante_descripcion'] ?? null,
+                    ]);
+                }
+            });
 
             $request->session()->forget('grid_pago');
 
@@ -576,41 +603,53 @@ class GridActividadesController extends Controller
             ]);
         }
 
-        $inscripcion = Inscripcion::create([
-            'actividad_id' => $actividad->id,
-            'user_id' => $user->id,
-            'guest_user_id' => $guestUser?->id,
-            'membresia' => $membresiaNombre,
-            'precioGeneral' => $precioGeneral,
-            'montoActividad' => $montoActividad,
-            'montoGrabacion' => $montoGrabacion,
-            'montoTransporte' => $montoTransporte,
-            'montoComidas' => $montoComidas,
-            'montoapagar' => $montoApagar,
-            'pago' => $estadoPago,
-            'estado' => $estadoInscripcion,
-            'envioLinkStream' => $envioLinkStream,
+        $inscripcion = DB::transaction(function () use (
+            $actividad, $user, $guestUser, $membresiaNombre, $precioGeneral, $montoActividad, $montoGrabacion,
+            $montoTransporte, $montoComidas, $montoApagar, $montoInvitados, $estadoPago, $estadoInscripcion,
+            $envioLinkStream, $envioGrabacion, $online, $hospedajeId, $comidaId, $transporteId,
+            $comidasIds, $invitadosData, $pago
+        ) {
+            $inscripcion = Inscripcion::create([
+                'actividad_id' => $actividad->id,
+                'user_id' => $user->id,
+                'guest_user_id' => $guestUser?->id,
+                'membresia' => $membresiaNombre,
+                'precioGeneral' => $precioGeneral,
+                'montoActividad' => $montoActividad,
+                'montoGrabacion' => $montoGrabacion,
+                'montoTransporte' => $montoTransporte,
+                'montoComidas' => $montoComidas,
+                'montoapagar' => $montoApagar,
+                'monto_invitados' => $montoInvitados,
+                'pago' => $estadoPago,
+                'estado' => $estadoInscripcion,
+                'envioLinkStream' => $envioLinkStream,
                 'envioRegistro' => 'Pendiente',
                 'envioConfirmacion' => 'Pendiente',
-            'envioGrabacion' => $envioGrabacion,
-            'asistencia' => 'Pendiente',
-            'online' => $online,
-            'hospedaje_id' => $hospedajeId,
-            'comida_id' => $comidaId,
-            'transporte_id' => $transporteId,
-        ]);
-
-        if (!empty($comidasIds)) {
-            $inscripcion->comidas()->sync($comidasIds);
-        }
-
-        if (!empty($pago['comprobante_path'])) {
-            InscripcionComprobante::create([
-                'inscripcion_id' => $inscripcion->id,
-                'ruta' => $pago['comprobante_path'],
-                'descripcion' => $pago['comprobante_descripcion'] ?? null,
+                'envioGrabacion' => $envioGrabacion,
+                'asistencia' => 'Pendiente',
+                'online' => $online,
+                'hospedaje_id' => $hospedajeId,
+                'comida_id' => $comidaId,
+                'transporte_id' => $transporteId,
             ]);
-        }
+
+            if (!empty($comidasIds)) {
+                $inscripcion->comidas()->sync($comidasIds);
+            }
+
+            $this->persistirInvitados($inscripcion, $invitadosData);
+
+            if (!empty($pago['comprobante_path'])) {
+                InscripcionComprobante::create([
+                    'inscripcion_id' => $inscripcion->id,
+                    'ruta' => $pago['comprobante_path'],
+                    'descripcion' => $pago['comprobante_descripcion'] ?? null,
+                ]);
+            }
+
+            return $inscripcion;
+        });
 
         $inscripcionRelations = [
             'actividad.entidad',
@@ -733,6 +772,10 @@ class GridActividadesController extends Controller
             'comidas',
             'transporte',
             'comprobantes',
+            'invitados',
+            'invitados.comidas',
+            'invitados.transportes',
+            'invitados.hospedajes',
         ];
         if ($this->canUseLugarRelation()) {
             $inscripcionLoad[] = 'actividad.lugar';
@@ -1294,6 +1337,102 @@ class GridActividadesController extends Controller
         }
 
         return ['Pendiente', 'Registrada'];
+    }
+
+    /**
+     * Construye el payload de cada invitado calculando sus montos.
+     * Los invitados NUNCA tienen descuento: pagan siempre el precio general.
+     * Sólo pueden cursar online si la actividad es "Presencial y Online Abierta".
+     *
+     * @param  array<int, array<string, mixed>>  $invitados
+     * @return array<int, array<string, mixed>>
+     */
+    private function prepararInvitados(Actividad $actividad, float $precioGeneral, array $invitados): array
+    {
+        if (empty($invitados)) {
+            return [];
+        }
+
+        $modalidadAbierta = $this->normalizarTextoModalidad($actividad->modalidad?->nombre) === 'presencial y online abierta';
+
+        $preparados = [];
+        foreach ($invitados as $invitado) {
+            $comidasIds = array_values(array_unique(array_map('intval', $invitado['comidas_ids'] ?? [])));
+            $transportesIds = array_values(array_unique(array_map('intval', $invitado['transportes_ids'] ?? [])));
+            $hospedajesIds = array_values(array_unique(array_map('intval', $invitado['hospedajes_ids'] ?? [])));
+
+            $incluyeGrabacion = (bool) ($invitado['incluye_grabacion'] ?? false);
+            $online = $modalidadAbierta && (bool) ($invitado['online'] ?? false);
+
+            $montoGrabacion = $incluyeGrabacion && $actividad->grabacion_id
+                ? (float) ($actividad->grabacion?->valor ?? 0)
+                : null;
+            $montoComidas = !empty($comidasIds)
+                ? (float) $actividad->comidas()->whereIn('comidas.id', $comidasIds)->sum('comidas.precio')
+                : null;
+            $montoTransporte = !empty($transportesIds)
+                ? (float) $actividad->transportes()->whereIn('transportes.id', $transportesIds)->sum('transportes.precio')
+                : null;
+            $montoHospedaje = !empty($hospedajesIds)
+                ? (float) $actividad->hospedajes()->whereIn('hospedajes.id', $hospedajesIds)->sum('hospedajes.precio')
+                : null;
+
+            $montoApagar = $precioGeneral
+                + (float) ($montoGrabacion ?? 0)
+                + (float) ($montoComidas ?? 0)
+                + (float) ($montoTransporte ?? 0)
+                + (float) ($montoHospedaje ?? 0);
+
+            $preparados[] = [
+                'nombre' => trim((string) ($invitado['nombre'] ?? '')),
+                'apellido' => trim((string) ($invitado['apellido'] ?? '')),
+                'telefono' => $invitado['telefono'] ?? null,
+                'online' => $online,
+                'incluye_grabacion' => $incluyeGrabacion,
+                'montoActividad' => $precioGeneral,
+                'montoGrabacion' => $montoGrabacion,
+                'montoComidas' => $montoComidas,
+                'montoTransporte' => $montoTransporte,
+                'montoHospedaje' => $montoHospedaje,
+                'montoapagar' => $montoApagar,
+                'comidas_ids' => $comidasIds,
+                'transportes_ids' => $transportesIds,
+                'hospedajes_ids' => $hospedajesIds,
+            ];
+        }
+
+        return $preparados;
+    }
+
+    /**
+     * Reemplaza los invitados de la inscripción por los nuevos (borra y recrea).
+     *
+     * @param  array<int, array<string, mixed>>  $invitadosData
+     */
+    private function persistirInvitados(Inscripcion $inscripcion, array $invitadosData): void
+    {
+        $inscripcion->invitados()->delete();
+
+        foreach ($invitadosData as $data) {
+            $invitado = $inscripcion->invitados()->create([
+                'nombre' => $data['nombre'],
+                'apellido' => $data['apellido'],
+                'telefono' => $data['telefono'],
+                'online' => $data['online'],
+                'asistencia' => 'Pendiente',
+                'incluye_grabacion' => $data['incluye_grabacion'],
+                'montoActividad' => $data['montoActividad'],
+                'montoGrabacion' => $data['montoGrabacion'],
+                'montoComidas' => $data['montoComidas'],
+                'montoTransporte' => $data['montoTransporte'],
+                'montoHospedaje' => $data['montoHospedaje'],
+                'montoapagar' => $data['montoapagar'],
+            ]);
+
+            $invitado->comidas()->sync($data['comidas_ids']);
+            $invitado->transportes()->sync($data['transportes_ids']);
+            $invitado->hospedajes()->sync($data['hospedajes_ids']);
+        }
     }
 
     private function resolverMembresiaActivaUsuario(User $user)

@@ -24,6 +24,7 @@ use App\Http\Controllers\LugaresHospedajeController;
 use App\Http\Controllers\ModalidadesController;
 use App\Http\Controllers\InscripcionesController;
 use App\Http\Controllers\EstadoInscripcionesController;
+use App\Http\Controllers\InvitadosController;
 use App\Http\Controllers\CentroAyudaController;
 use App\Http\Controllers\NovedadesController;
 use App\Http\Controllers\ReporteErrorController;
@@ -413,6 +414,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         ->name('estadoinscripciones.grabaciones.count');
     Route::post('/estadoinscripciones/grabaciones/enviar', [EstadoInscripcionesController::class, 'enviarGrabacionesPendientes'])
         ->name('estadoinscripciones.grabaciones.enviar');
+    Route::patch('/invitados/{invitado}/asistencia', [InvitadosController::class, 'asistencia'])
+        ->name('invitados.asistencia');
     Route::resource('/lugareshospedaje', LugaresHospedajeController::class, [
         'parameters' => ['lugareshospedaje' => 'lugarhospedaje'],]);
     Route::resource('/modalidades', ModalidadesController::class, [
