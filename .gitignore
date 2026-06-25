@@ -28,7 +28,4 @@ yarn-error.log
 # Contienen threat model, lógica de negocio sensible y snapshots operacionales.
 # Si el repo se cambia a privado, se pueden quitar de esta lista.
 SECURITY_AUDIT.md
-BUSINESS_RULES.md
-ARCHITECTURE.md
-CONTEXTO.md
 DEUDA_TECNICA.md
