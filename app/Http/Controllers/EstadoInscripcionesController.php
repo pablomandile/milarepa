@@ -2,15 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Actividad;
+use App\Models\Barrio;
 use App\Models\EmailEnvioConfiguracion;
 use App\Models\EnvioMail;
 use App\Models\Inscripcion;
+use App\Models\Municipio;
+use App\Models\Pais;
+use App\Models\Provincia;
+use App\Models\User;
 use App\Services\EmailInscripcionService;
 use App\Services\HospedajeCupoService;
 use App\Services\InscripcionServiciosService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class EstadoInscripcionesController extends Controller
@@ -45,7 +52,83 @@ class EstadoInscripcionesController extends Controller
 
         return Inertia::render('EstadoInscripciones/Index', [
             'inscripciones' => $inscripciones,
+            // Para el dialog "Crear inscripción" (admin inscribe en nombre de otra persona):
+            // sólo actividades activas y que aún no finalizaron (fecha_fin >= ahora).
+            'actividades' => Actividad::where('estado', true)
+                ->where('fecha_fin', '>=', now())
+                ->orderBy('fecha_inicio')
+                ->get(['id', 'nombre', 'fecha_inicio', 'fecha_fin']),
+            'paises' => Pais::all(),
+            'provincias' => Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get(),
+            'municipios' => Municipio::all(),
+            'barrios' => Barrio::all(),
         ]);
+    }
+
+    /**
+     * Prepara la sesión de pago (grid_pago) para que el admin inscriba a otra persona
+     * y luego complete servicios/invitados/pago en la pantalla de pago existente.
+     * (POST, sólo admin/editor.)
+     */
+    public function crearInscripcionPrepare(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || !$user->hasRole(['Admin', 'Editor', 'admin', 'editor'])) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'actividad_id' => ['required', 'exists:actividades,id'],
+            'modo' => ['required', 'in:nuevo,existente'],
+            'user_id' => ['required_if:modo,existente', 'nullable', 'exists:users,id'],
+        ] + GridActividadesController::reglasGuest('guest', 'required_if:modo,nuevo'));
+
+        $guest = $data['guest'] ?? null;
+        if ($data['modo'] === 'nuevo') {
+            $registrarDatos = (bool) ($guest['registrar_datos'] ?? false);
+            if ($registrarDatos && !empty($guest['email']) && User::where('email', $guest['email'])->exists()) {
+                throw ValidationException::withMessages([
+                    'guest.email' => ['Este correo electrónico ya está registrado. Elegí "Participante existente".'],
+                ]);
+            }
+        }
+
+        $request->session()->put('grid_pago', [
+            'actividad_id' => $data['actividad_id'],
+            'user_id' => $data['modo'] === 'existente' ? (int) $data['user_id'] : null,
+            'guest' => $data['modo'] === 'nuevo' ? $guest : null,
+            'comprobante_path' => null,
+            'pago_metodo' => null,
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Autocomplete de usuarios para el dialog "Crear inscripción". (GET, sólo admin/editor.)
+     */
+    public function buscarUsuarios(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || !$user->hasRole(['Admin', 'Editor', 'admin', 'editor'])) {
+            abort(403);
+        }
+
+        $q = trim((string) $request->query('q', ''));
+        if (mb_strlen($q) < 2) {
+            return response()->json(['usuarios' => []]);
+        }
+
+        $usuarios = User::query()
+            ->where(function ($query) use ($q) {
+                $query->where('name', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+            })
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name', 'email']);
+
+        return response()->json(['usuarios' => $usuarios]);
     }
 
     /**

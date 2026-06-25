@@ -109,15 +109,83 @@ Reglas:
 - **Persistencia transaccional**: la creación/actualización de la inscripción y sus invitados (con
   `sync` de pivotes) ocurre dentro de `DB::transaction`. En el camino de actualización (pago de una
   inscripción existente) los invitados se **borran y recrean**.
-- **Fuera de alcance v1**: edición/eliminación de invitados post-inscripción por el asistente; control
-  de cupo de servicios. En actividades **puramente online** se oculta "Agregar invitado" (el flujo
-  apunta a eventos con componente presencial).
+- **Fuera de alcance v1**: edición/eliminación de invitados post-inscripción por el asistente. En
+  actividades **puramente online** se oculta "Agregar invitado" (el flujo apunta a eventos con
+  componente presencial). *(El cupo de hospedaje sí se controla — ver 2.7.)*
 
-Backend en `GridActividadesController::finalizarPago()` (validación `invitados[] max:10`, helpers
-`prepararInvitados()` / `persistirInvitados()`). Frontend en `Pago.vue` + subcomponente
-`Components/Actividades/ServiciosActividadSelector.vue` (reutilizado por principal e invitados).
-Los invitados se muestran en: email de confirmación/registro, "Mis inscripciones", pantalla de
-inscripción registrada y el panel admin "Estado de inscripciones".
+Backend en `GridActividadesController::finalizarPago()` (validación `invitados[] max:10`); el cálculo
+y la persistencia viven en `App\Services\InscripcionServiciosService` (`prepararInvitados()` /
+`persistirInvitados()` / `montosServicios()`), compartido con la edición admin (ver 2.8). Frontend en
+`Pago.vue` + subcomponente `Components/Actividades/ServiciosActividadSelector.vue` (reutilizado por
+principal e invitados). Los invitados se muestran en: email de confirmación/registro, "Mis
+inscripciones", pantalla de inscripción registrada y el panel admin "Estado de inscripciones".
+
+### 2.7 Cupo de acomodaciones de hospedaje
+
+> Modelo: **`LugarHospedaje`** (lugar físico) → **`Hospedaje`** = *acomodación* (tipo de habitación,
+> con nombre y precio). El **cupo NO vive en la acomodación**, sino en la relación **actividad ↔
+> acomodación** (pivote `actividad_hospedaje.cantidad`), porque la misma acomodación puede ofrecerse
+> con distinto cupo en cada actividad/fecha.
+
+- **Dónde se carga el cupo**: en el **formulario de la Actividad** (`ActividadForm.vue`), al activar
+  "Ofrece hospedaje" y seleccionar acomodaciones, aparece el bloque **"Cupo por acomodación"** con un
+  número por acomodación. `cantidad` **vacío/null = ilimitado** (sin control). Se persiste con
+  `Actividad::hospedajes()->sync([id => ['cantidad' => N]])` (`withPivot('cantidad')`).
+- **Disponibilidad por conteo** (sin contador mutable): se calcula en vivo como
+  `disponibles = actividad_hospedaje.cantidad − reservas_activas`, donde `reservas_activas` =
+  inscripciones del titular con ese `hospedaje_id` **+** filas de `invitado_hospedaje` de invitados de
+  esa actividad con ese hospedaje. La "reserva" es implícita: existe mientras existe la inscripción/invitado.
+- **Reserva al confirmar**: no hay "hold" temporal mientras se navega. Se valida disponibilidad al
+  **confirmar** (`finalizarPago`) y al **editar** (admin) **dentro de la transacción**, con
+  `lockForUpdate()` sobre las filas del pivote para evitar sobreventa concurrente. Si se supera el cupo
+  se rechaza con **422** nombrando la acomodación ("La acomodación 'X' ya no tiene cupo disponible.").
+  La validación cuenta **titular + todos sus invitados** juntos.
+- **Liberación automática**: al **borrar** la inscripción (hard delete → cascade borra invitados e
+  `invitado_hospedaje`) o cuando el **admin edita y quita** la acomodación, la unidad se libera sola
+  (el conteo baja). No hay código de liberación ni job por tiempo.
+- **UI**: en la selección, cada acomodación muestra **"quedan N"** o **"Agotado"** (deshabilitada) según
+  `actividad.hospedajes[].disponibles`. La disponibilidad mostrada **excluye la propia inscripción**
+  (para poder mantener/re-elegir lo ya reservado al editar). El backend es la fuente de verdad y
+  rechaza la sobreventa al guardar.
+
+Lógica en `App\Services\HospedajeCupoService` (`disponibles()`, `requeridos()`, `validar()`); se invoca
+desde `GridActividadesController::finalizarPago/pago` y `EstadoInscripcionesController::update/editarData`.
+
+### 2.8 Edición admin de inscripciones (recálculo)
+
+Desde "Estado de inscripciones", el admin/editor edita una inscripción en un **dialog completo**
+(`EstadoInscripcionesController::update`, `PUT /estadoinscripciones/{id}`):
+
+- Permite cambiar **estado de pago**, **modalidad online**, y **agregar/quitar servicios** del titular
+  y de los **invitados** (con su propio selector de servicios).
+- El **monto NO se escribe a mano**: se **recalcula** siempre desde los servicios elegidos (titular a su
+  precio de membresía ya guardado; invitados a precio general), reusando `InscripcionServiciosService`.
+  Respeta el cupo de hospedaje (2.7).
+- Datos del dialog vía `GET /estadoinscripciones/{id}/editar-data`. El atajo **"marcar saldado"** usa
+  `PATCH /estadoinscripciones/{id}/pago` (`marcarPago`), que sólo cambia el estado de pago y **no toca**
+  servicios ni invitados.
+
+### 2.9 Crear inscripción iniciada por el admin (recepción)
+
+El admin/editor puede inscribir a una persona **en su nombre** (caso típico: gente mayor que no usa el
+sistema, atendida en recepción), incluyendo a sus **invitados**. Botón **"Crear inscripción"** en
+"Estado de inscripciones".
+
+- El dialog pide sólo **(1) la actividad** y **(2) el participante**, con un radio:
+  - **Participante existente** → buscador autocomplete (`GET /estadoinscripciones/usuarios/buscar`,
+    `buscarUsuarios`, filtra por nombre/email; el `user_id` viaja directo porque el endpoint es sólo admin).
+  - **Participante nuevo** → reusa `GuestUserForm` → crea un `GuestUser`, con el toggle *registrar datos*
+    para crearle opcionalmente también un `User` (igual que el flujo público).
+- El select de actividades muestra **sólo actividades activas y no finalizadas** (`estado = true` y
+  `fecha_fin >= now()`).
+- Al confirmar, `EstadoInscripcionesController::crearInscripcionPrepare`
+  (`POST /estadoinscripciones/crear/prepare`) **escribe la sesión `grid_pago`** con el participante
+  elegido y redirige a la **pantalla de pago existente** (`Pago.vue`), donde el admin completa servicios,
+  **invitados**, hospedaje (con cupo, ver 2.7), comprobante y método de pago.
+- **Importante:** `pago()` y `finalizarPago()` resuelven participante, membresía y precio desde la sesión
+  `grid_pago` (no desde `auth()`), por lo que la inscripción y el precio quedan a nombre del
+  **participante destino**, aunque sea el admin quien la opera. Las reglas de validación del guest se
+  comparten con el flujo público vía `GridActividadesController::reglasGuest()`.
 
 ---
 
@@ -347,3 +415,6 @@ Lista de comportamientos observados que no son reglas escritas pero **impactan o
 | Esquema de descuento | Tabla de precios reducidos para pago anticipado |
 | Guest user | Persona inscripta sin cuenta registrada en el sistema (es titular de una inscripción) |
 | Invitado / acompañante | Familiar o acompañante que la persona principal suma a **su** inscripción (tabla `invitados`). No es usuario ni titular; paga precio general. Distinto de *Guest user* |
+| Lugar de hospedaje | Lugar físico que aloja (`LugarHospedaje`): hotel, monasterio, etc. |
+| Acomodación | Tipo de habitación dentro de un lugar (`Hospedaje`: nombre + precio). Es lo que elige el inscripto |
+| Cupo de acomodación | Cantidad de unidades de una acomodación **por actividad** (`actividad_hospedaje.cantidad`; null = ilimitado). Se reserva al inscribir y se libera al borrar/editar |

@@ -31,6 +31,7 @@ Sistema de gestión integral para un centro de meditación budista (tradición K
 | **Clase** | Sesiones recurrentes dentro de un **Ciclo**, con stream y maestro |
 | **Inscripcion** | A una Actividad. Soporta usuario autenticado o `GuestUser`, comprobante de pago, QR firmado, asistencia. Puede llevar hasta 10 `Invitado`s |
 | **Invitado** | Acompañante/familiar que el titular suma a su inscripción (no es usuario ni `GuestUser`). Paga precio general, elige servicios propios y tiene asistencia individual. Ver [BUSINESS_RULES §2.6](BUSINESS_RULES.md) |
+| **LugarHospedaje** / **Hospedaje** | Lugar físico → acomodación (tipo de habitación con precio). El **cupo** es por actividad (`actividad_hospedaje.cantidad`); disponibilidad por conteo de reservas. Ver [BUSINESS_RULES §2.7](BUSINESS_RULES.md) |
 | **InscripcionClase** | A una Clase. Tres montos desglosados: actividad + tharpa + tienda. JSON con artículos |
 | **Membresia** | Tarjetas Kadampa con planes, esquema de precios y estado de cuenta. Estados: ACTIVA/INACTIVA/VENCIDA |
 | **OracionCantada** | Práctica con periodicidad base + `configuracion_por_mes` (JSON) que sobrescribe día/hora/días por mes |
@@ -86,7 +87,7 @@ Desde [AppLayout.vue](resources/js/Layouts/AppLayout.vue):
 
 ## 7. Flujos clave
 
-1. **Inscripción a actividad** (pública o autenticada) → opcional: sumar hasta 10 invitados (precio general + servicios propios) → comprobante de pago (imagen) → QR firmado → asistencia (del titular y de cada invitado)
+1. **Inscripción a actividad** (pública o autenticada) → opcional: sumar hasta 10 invitados (precio general + servicios propios) → al confirmar valida cupo de hospedaje (rechaza si está agotado) → comprobante de pago (imagen) → QR firmado → asistencia (del titular y de cada invitado). El admin edita la inscripción en un dialog que recalcula montos y respeta el cupo; borrar/editar libera la acomodación. El admin también puede **crear** una inscripción en nombre de otra persona (participante existente o nuevo) desde "Estado de inscripciones", reutilizando la pantalla de pago
 2. **Inscripción a clase** → calcula tres montos (actividad + tharpa + tienda) → registra artículos en JSON
 3. **Inventario tharpa** por entidad → ventas y préstamos entre sedes con devoluciones
 4. **Membresías** → estado de cuenta, renovación mensual vía comando Artisan

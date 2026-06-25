@@ -101,7 +101,8 @@ resources/js/
 
 ## 4. Modelo de datos
 
-- **84 tablas** físicas en MySQL (incluye `invitados` + 3 pivotes `invitado_*`).
+- **84 tablas** físicas en MySQL (incluye `invitados` + 3 pivotes `invitado_*`; el pivote
+  `actividad_hospedaje` tiene `cantidad` para el cupo de acomodaciones).
 - **65 modelos Eloquent** mapeados con `$fillable` (100% protegidos contra mass assignment).
 - **41% de modelos sin `$casts`** explícito — campos boolean/decimal/array vienen como strings.
 
@@ -112,6 +113,9 @@ Entidades centrales:
 - `Invitado` (hijo de `Inscripcion`, hasta 10): acompañantes que el titular suma en el pago; pivotes
   `invitado_comida/_transporte/_hospedaje` para sus servicios. No confundir con `GuestUser`. Ver
   [BUSINESS_RULES.md §2.6](BUSINESS_RULES.md).
+- `LugarHospedaje` → `Hospedaje` (acomodación: tipo de habitación con precio). El **cupo** de cada
+  acomodación es **por actividad** (`actividad_hospedaje.cantidad`); la disponibilidad se calcula por
+  conteo de reservas. Ver [BUSINESS_RULES.md §2.7](BUSINESS_RULES.md).
 - `Membresia` + `MembresiaUsuario` + `EstadoCuentaMembresia`.
 - `Libro` + `InventarioEntidadLibro` + `PrestamoAnexo` + `DevolucionAnexo` + `Venta`.
 - `OracionCantada` con `configuracion_por_mes` (JSON) que sobrescribe el calendario base.
@@ -146,7 +150,8 @@ Diagrama relacional detallado en [BUSINESS_RULES.md](BUSINESS_RULES.md).
 
 Ver [BUSINESS_RULES.md](BUSINESS_RULES.md) para detalle operativo.
 
-1. **Inscripción pública a actividad**: usuario sin login → llena formulario en `/grid-actividades` → crea `GuestUser` (si no existe) o usa `User` existente → en la pantalla de pago puede sumar hasta 10 **invitados** (acompañantes, precio general, servicios propios) → registra `Inscripcion` + `Invitado`s en una transacción, con monto desglosado (incluye `monto_invitados`) → opcionalmente sube comprobante → recibe email de confirmación con QR firmado y el detalle de invitados.
+1. **Inscripción pública a actividad**: usuario sin login → llena formulario en `/grid-actividades` → crea `GuestUser` (si no existe) o usa `User` existente → en la pantalla de pago puede sumar hasta 10 **invitados** (acompañantes, precio general, servicios propios) → al confirmar se **valida el cupo de hospedaje** (`HospedajeCupoService`, `lockForUpdate`, 422 si agotado) → registra `Inscripcion` + `Invitado`s en una transacción, con monto desglosado (incluye `monto_invitados`) → opcionalmente sube comprobante → recibe email de confirmación con QR firmado y el detalle de invitados. La edición/borrado libera el cupo automáticamente.
+   - **Variante admin (recepción)**: el admin inscribe en nombre de otra persona desde "Estado de inscripciones" (`crearInscripcionPrepare`, `POST /estadoinscripciones/crear/prepare`): elige actividad + participante (existente vía autocomplete `buscarUsuarios`, o nuevo vía `GuestUserForm`), se prepara la sesión `grid_pago` y se reutiliza la misma pantalla de pago. Como `pago()`/`finalizarPago()` resuelven todo desde la sesión (no desde `auth()`), la inscripción queda a nombre del participante destino. Ver [BUSINESS_RULES §2.9](BUSINESS_RULES.md).
 2. **Inscripción a clase**: idem pero suma `articulos_tharpa` (descuenta `InventarioEntidadLibro`) y `articulos_tienda`.
 3. **Renovación de membresía**: comando mensual programable expira los `EstadoCuentaMembresia` previos y crea uno nuevo con estado `ACTIVA`; si modalidad es `Suscripción`, marca pagado automáticamente.
 4. **Reporte semanal**: cron envía resumen de inscripciones a la entidad principal o destinatario configurado.
@@ -184,7 +189,7 @@ Ver [BUSINESS_RULES.md](BUSINESS_RULES.md) para detalle operativo.
 ### Media
 
 - 41% de modelos sin `$casts` explícito → tipados implícitos (booleans como strings, JSON sin parse automático).
-- Controladores con lógica de cálculo inline en lugar de Services (ver `GridActividadesController` con 1000+ LOC de queries y cálculos).
+- Controladores con lógica de cálculo inline en lugar de Services (ver `GridActividadesController` con 1000+ LOC de queries y cálculos). *Parcialmente mejorado:* el cálculo de servicios/invitados y el cupo de hospedaje se extrajeron a `App\Services\InscripcionServiciosService` y `App\Services\HospedajeCupoService`.
 - Sin error tracking (Sentry, Bugsnag) ni APM.
 
 ---

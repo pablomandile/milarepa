@@ -408,6 +408,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         ->name('estadoinscripciones.editar-data');
     Route::patch('/estadoinscripciones/{estadoinscripcion}/pago', [EstadoInscripcionesController::class, 'marcarPago'])
         ->name('estadoinscripciones.pago');
+    // Admin inscribe en nombre de otra persona: prepara la sesión y luego usa la pantalla de pago.
+    Route::post('/estadoinscripciones/crear/prepare', [EstadoInscripcionesController::class, 'crearInscripcionPrepare'])
+        ->name('estadoinscripciones.crear-prepare');
+    Route::get('/estadoinscripciones/usuarios/buscar', [EstadoInscripcionesController::class, 'buscarUsuarios'])
+        ->name('estadoinscripciones.buscar-usuarios');
     Route::resource('/estadoinscripciones', EstadoInscripcionesController::class, [
         'parameters' => ['estadoinscripciones' => 'estadoinscripcion'],]);
     Route::get('/estadoinscripciones/confirmaciones/count', [EstadoInscripcionesController::class, 'countConfirmacionesPendientes'])

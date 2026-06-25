@@ -48,6 +48,15 @@
                             >
                                 Envío de Grabaciones
                             </button>
+                            <button
+                                v-if="canEdit"
+                                type="button"
+                                class="inline-flex items-center gap-1 rounded bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                                @click="abrirCrearInscripcion"
+                            >
+                                <i class="pi pi-plus"></i>
+                                Crear inscripción
+                            </button>
                         </div>
 
                         <div v-if="filtradas.length > 0" class="space-y-4 sm:hidden">
@@ -945,6 +954,91 @@
             </template>
         </Dialog>
 
+        <!-- Dialog: Crear inscripción (admin inscribe en nombre de otra persona) -->
+        <Dialog
+            v-model:visible="crearDialog"
+            modal
+            header="Crear inscripción"
+            :style="{ width: '820px' }"
+            :breakpoints="{ '768px': '95vw' }"
+        >
+            <div class="space-y-5 pt-1">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Actividad</label>
+                    <Dropdown
+                        v-model="crearActividadId"
+                        :options="actividades"
+                        optionLabel="nombre"
+                        optionValue="id"
+                        :filter="true"
+                        placeholder="Seleccioná una actividad"
+                        class="w-full border border-gray-300 dark:border-gray-600"
+                    />
+                    <p v-if="crearErrors.actividad_id" class="mt-1 text-xs text-red-500">{{ crearErrors.actividad_id[0] }}</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Participante</label>
+                    <div class="flex flex-wrap items-center gap-6">
+                        <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+                            <RadioButton v-model="crearModo" inputId="crear_modo_existente" value="existente" />
+                            Participante existente
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+                            <RadioButton v-model="crearModo" inputId="crear_modo_nuevo" value="nuevo" />
+                            Participante nuevo
+                        </label>
+                    </div>
+                </div>
+
+                <div v-if="crearModo === 'existente'">
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Buscar usuario</label>
+                    <AutoComplete
+                        v-model="crearUsuarioSeleccionado"
+                        :suggestions="crearUsuariosSugeridos"
+                        optionLabel="label"
+                        placeholder="Escribí nombre o email…"
+                        :minLength="2"
+                        :delay="300"
+                        class="w-full"
+                        inputClass="w-full"
+                        @complete="buscarUsuarios"
+                    />
+                    <p class="mt-1 text-xs text-gray-400">Escribí al menos 2 caracteres del nombre o email.</p>
+                    <p v-if="crearErrors.user_id" class="mt-1 text-xs text-red-500">{{ crearErrors.user_id[0] }}</p>
+                </div>
+
+                <div v-else>
+                    <GuestUserForm
+                        :form="crearGuest"
+                        :errors="crearErrors"
+                        :paises="paises"
+                        :provincias="provincias"
+                        :municipios="municipios"
+                        :barrios="barrios"
+                        :mostrar-registrar-datos="true"
+                    />
+                </div>
+            </div>
+            <template #footer>
+                <button
+                    type="button"
+                    class="rounded px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100"
+                    @click="crearDialog = false"
+                >
+                    Cancelar
+                </button>
+                <button
+                    type="button"
+                    class="rounded bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+                    :disabled="crearSubmitting"
+                    @click="confirmarCrearInscripcion"
+                >
+                    {{ crearSubmitting ? 'Preparando…' : 'Continuar al pago' }}
+                </button>
+            </template>
+        </Dialog>
+
         <!-- Dialog de edición completa (servicios + invitados, recálculo automático) -->
         <Dialog
             v-model:visible="editDialog"
@@ -1072,10 +1166,18 @@ import Column from 'primevue/column';
 import Dropdown from 'primevue/dropdown';
 import Dialog from 'primevue/dialog';
 import Checkbox from 'primevue/checkbox';
+import RadioButton from 'primevue/radiobutton';
+import AutoComplete from 'primevue/autocomplete';
 import ServiciosActividadSelector from '@/Components/Actividades/ServiciosActividadSelector.vue';
+import GuestUserForm from '@/Components/Formularios/GuestUserForm.vue';
 
 const props = defineProps({
-    inscripciones: Array
+    inscripciones: Array,
+    actividades: { type: Array, default: () => [] },
+    paises: { type: Array, default: () => [] },
+    provincias: { type: Array, default: () => [] },
+    municipios: { type: Array, default: () => [] },
+    barrios: { type: Array, default: () => [] },
 });
 
 const toast = useToast();
@@ -1127,6 +1229,87 @@ const canEdit = computed(() => {
     const roles = (page.props.user?.roles || []).map((role) => String(role).toLowerCase());
     return roles.includes('admin') || roles.includes('editor');
 });
+
+// ----- Dialog: Crear inscripción (admin inscribe en nombre de otra persona) -----
+const crearDialog = ref(false);
+const crearSubmitting = ref(false);
+const crearErrors = ref({});
+const crearActividadId = ref(null);
+const crearModo = ref('existente');
+const crearUsuarioSeleccionado = ref(null);
+const crearUsuariosSugeridos = ref([]);
+
+const guestFormVacio = () => ({
+    name: '', email: '', telefono: '', whatsapp: '',
+    pais_id: null, provincia_id: null, municipio_id: null, barrio_id: null,
+    direccion: '', msgxmail: false, msgxwapp: false,
+    accesibilidad: false, accesibilidad_desc: '', info_tarjetas_kadampa: false,
+    registrar_datos: false,
+});
+const crearGuest = ref(guestFormVacio());
+
+const abrirCrearInscripcion = () => {
+    if (!canEdit.value) return;
+    crearActividadId.value = null;
+    crearModo.value = 'existente';
+    crearUsuarioSeleccionado.value = null;
+    crearUsuariosSugeridos.value = [];
+    crearGuest.value = guestFormVacio();
+    crearErrors.value = {};
+    crearDialog.value = true;
+};
+
+const buscarUsuarios = async (event) => {
+    const q = String(event?.query || '').trim();
+    if (q.length < 2) {
+        crearUsuariosSugeridos.value = [];
+        return;
+    }
+    try {
+        const { data } = await axios.get(route('estadoinscripciones.buscar-usuarios'), { params: { q } });
+        crearUsuariosSugeridos.value = (data.usuarios || []).map((u) => ({ ...u, label: `${u.name} — ${u.email}` }));
+    } catch (e) {
+        crearUsuariosSugeridos.value = [];
+    }
+};
+
+const confirmarCrearInscripcion = async () => {
+    if (crearSubmitting.value) return;
+    crearErrors.value = {};
+
+    if (!crearActividadId.value) {
+        crearErrors.value = { actividad_id: ['Seleccioná una actividad.'] };
+        return;
+    }
+
+    const payload = { actividad_id: crearActividadId.value, modo: crearModo.value };
+    if (crearModo.value === 'existente') {
+        const uid = crearUsuarioSeleccionado.value?.id;
+        if (!uid) {
+            crearErrors.value = { user_id: ['Seleccioná un usuario.'] };
+            return;
+        }
+        payload.user_id = uid;
+    } else {
+        payload.guest = { ...crearGuest.value };
+    }
+
+    crearSubmitting.value = true;
+    try {
+        const { data } = await axios.post(route('estadoinscripciones.crear-prepare'), payload);
+        if (data.ok) {
+            router.visit(route('grid-actividades.pago', crearActividadId.value));
+        }
+    } catch (error) {
+        if (error.response?.status === 422) {
+            crearErrors.value = error.response.data.errors || {};
+        } else {
+            toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo preparar la inscripción.', life: 4000 });
+        }
+    } finally {
+        crearSubmitting.value = false;
+    }
+};
 
 const nombreUsuario = (inscripcion) => {
     if (isInvitado(inscripcion) && inscripcion.guest_user?.name) {

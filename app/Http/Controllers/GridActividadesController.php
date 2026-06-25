@@ -212,29 +212,44 @@ class GridActividadesController extends Controller
     /**
      * Preparar datos de pago e inscripcion en sesion.
      */
+    /**
+     * Reglas de validación de los datos de un participante "guest" (no registrado).
+     * Compartidas por el flujo público (preparePago) y el flujo admin
+     * (EstadoInscripcionesController::crearInscripcionPrepare).
+     *
+     * @param string $prefijo Clave bajo la que viajan los datos (p.ej. "guest").
+     * @param string $requeridoRegla Regla que marca obligatorios los campos núcleo
+     *                               ("required_with:guest" en público; "required_if:..." en admin).
+     */
+    public static function reglasGuest(string $prefijo = 'guest', string $requeridoRegla = 'required_with:guest'): array
+    {
+        return [
+            $prefijo => ['nullable', 'array'],
+            "{$prefijo}.name" => [$requeridoRegla, 'string', 'max:255'],
+            "{$prefijo}.email" => [$requeridoRegla, 'email', 'max:255'],
+            "{$prefijo}.telefono" => ['nullable', 'string', 'max:50'],
+            "{$prefijo}.whatsapp" => ['nullable', 'string', 'max:50'],
+            "{$prefijo}.pais_id" => [$requeridoRegla, 'exists:paises,id'],
+            "{$prefijo}.provincia_id" => [$requeridoRegla, 'exists:provincias,id'],
+            "{$prefijo}.municipio_id" => ['nullable', 'exists:municipios,id'],
+            "{$prefijo}.barrio_id" => ['nullable', 'exists:barrios,id'],
+            "{$prefijo}.direccion" => ['nullable', 'string', 'max:255'],
+            "{$prefijo}.msgxmail" => ['nullable', 'boolean'],
+            "{$prefijo}.msgxwapp" => ['nullable', 'boolean'],
+            "{$prefijo}.accesibilidad" => ['nullable', 'boolean'],
+            "{$prefijo}.accesibilidad_desc" => ['nullable', 'string', 'max:255'],
+            "{$prefijo}.info_tarjetas_kadampa" => ['nullable', 'boolean'],
+            "{$prefijo}.registrar_datos" => ['nullable', 'boolean'],
+        ];
+    }
+
     public function preparePago(Request $request)
     {
         $data = $request->validate([
             'actividad_id' => ['required', 'exists:actividades,id'],
             // Token opaco emitido por lookupEmail (reemplaza user_id numérico).
             'user_lookup_token' => ['nullable', 'string'],
-            'guest' => ['nullable', 'array'],
-            'guest.name' => ['required_with:guest', 'string', 'max:255'],
-            'guest.email' => ['required_with:guest', 'email', 'max:255'],
-            'guest.telefono' => ['nullable', 'string', 'max:50'],
-            'guest.whatsapp' => ['nullable', 'string', 'max:50'],
-            'guest.pais_id' => ['required_with:guest', 'exists:paises,id'],
-            'guest.provincia_id' => ['required_with:guest', 'exists:provincias,id'],
-            'guest.municipio_id' => ['nullable', 'exists:municipios,id'],
-            'guest.barrio_id' => ['nullable', 'exists:barrios,id'],
-            'guest.direccion' => ['nullable', 'string', 'max:255'],
-            'guest.msgxmail' => ['nullable', 'boolean'],
-            'guest.msgxwapp' => ['nullable', 'boolean'],
-            'guest.accesibilidad' => ['nullable', 'boolean'],
-            'guest.accesibilidad_desc' => ['nullable', 'string', 'max:255'],
-            'guest.info_tarjetas_kadampa' => ['nullable', 'boolean'],
-            'guest.registrar_datos' => ['nullable', 'boolean'],
-        ]);
+        ] + self::reglasGuest('guest', 'required_with:guest'));
 
         $guest = $data['guest'] ?? null;
         $registrarDatos = (bool) ($guest['registrar_datos'] ?? false);
