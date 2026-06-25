@@ -205,11 +205,13 @@ class CalendarioController extends Controller
                     continue;
                 }
 
+                $horaDia = $oracion->horaParaDia($configuracion, $weekday);
+
                 $items->push([
                     'id' => $oracion->id,
                     'nombre' => $oracion->nombre,
                     'fecha' => $cursor->toDateString(),
-                    'hora' => $configuracion['hora'] ? Carbon::parse($configuracion['hora'])->format('H:i') : null,
+                    'hora' => $horaDia ? Carbon::parse($horaDia)->format('H:i') : null,
                     'tipo' => 'oracion',
                 ]);
             }

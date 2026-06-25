@@ -34,7 +34,7 @@ Sistema de gestión integral para un centro de meditación budista (tradición K
 | **LugarHospedaje** / **Hospedaje** | Lugar físico → acomodación (tipo de habitación con precio). El **cupo** es por actividad (`actividad_hospedaje.cantidad`); disponibilidad por conteo de reservas. Ver [BUSINESS_RULES §2.7](BUSINESS_RULES.md) |
 | **InscripcionClase** | A una Clase. Tres montos desglosados: actividad + tharpa + tienda. JSON con artículos |
 | **Membresia** | Tarjetas Kadampa con planes, esquema de precios y estado de cuenta. Estados: ACTIVA/INACTIVA/VENCIDA |
-| **OracionCantada** | Práctica con periodicidad base + `configuracion_por_mes` (JSON) que sobrescribe día/hora/días por mes |
+| **OracionCantada** | Práctica con periodicidad base + horario por día (`horarios_por_dia`) + `configuracion_por_mes` (JSON) que sobrescribe día/hora/días por mes |
 | **Libro** + **InventarioEntidadLibro** | "Tharpa" = literatura budista sagrada. Inventario por entidad |
 | **PrestamoAnexo** / **DevolucionAnexo** | Préstamo de libros entre entidades, ciclo cerrado por devolución |
 | **Venta** | Venta de libros a entidad, con comprobante imagen, modo de pago, vendedor |

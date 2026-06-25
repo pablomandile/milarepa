@@ -12,6 +12,40 @@ class OracionCantadaRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Descarta los horarios por dia vacios antes de validar: un input de hora sin
+     * completar llega como "" y "nullable" no lo exime de date_format. Sin horario
+     * propio, el dia usa la hora general (no es un error de validacion).
+     */
+    protected function prepareForValidation(): void
+    {
+        $limpiarHorarios = fn ($horarios) => is_array($horarios)
+            ? array_filter($horarios, fn ($hora) => is_string($hora) && $hora !== '')
+            : $horarios;
+
+        $merge = [];
+
+        if ($this->has('horarios_por_dia')) {
+            $merge['horarios_por_dia'] = $limpiarHorarios($this->input('horarios_por_dia'));
+        }
+
+        if (is_array($this->input('configuracion_por_mes'))) {
+            $merge['configuracion_por_mes'] = collect($this->input('configuracion_por_mes'))
+                ->map(function ($configuracion) use ($limpiarHorarios) {
+                    if (is_array($configuracion) && array_key_exists('horarios_por_dia', $configuracion)) {
+                        $configuracion['horarios_por_dia'] = $limpiarHorarios($configuracion['horarios_por_dia']);
+                    }
+
+                    return $configuracion;
+                })
+                ->all();
+        }
+
+        if (!empty($merge)) {
+            $this->merge($merge);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -25,6 +59,8 @@ class OracionCantadaRequest extends FormRequest
             'dias_semana' => ['nullable', 'array'],
             'dias_semana.*' => ['string', Rule::in(['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'])],
             'hora' => ['required', 'date_format:H:i'],
+            'horarios_por_dia' => ['nullable', 'array'],
+            'horarios_por_dia.*' => ['nullable', 'date_format:H:i'],
             'periodicidad' => ['required', Rule::in(['Diaria', 'Mensual'])],
             'configuracion_por_mes' => ['nullable', 'array'],
             'configuracion_por_mes.*.mes' => ['required', 'integer', 'min:1', 'max:12', 'distinct'],
@@ -33,6 +69,8 @@ class OracionCantadaRequest extends FormRequest
             'configuracion_por_mes.*.dias_semana' => ['nullable', 'array'],
             'configuracion_por_mes.*.dias_semana.*' => ['string', Rule::in(['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'])],
             'configuracion_por_mes.*.hora' => ['required', 'date_format:H:i'],
+            'configuracion_por_mes.*.horarios_por_dia' => ['nullable', 'array'],
+            'configuracion_por_mes.*.horarios_por_dia.*' => ['nullable', 'date_format:H:i'],
             'modalidad_id' => ['nullable', 'exists:modalidades,id'],
             'stream_id' => ['nullable', 'exists:streams,id'],
             'imagen' => ['nullable', 'string', 'max:2048'],
@@ -86,6 +124,8 @@ class OracionCantadaRequest extends FormRequest
             'dias_semana.array' => __('Los dias de la semana son invalidos'),
             'configuracion_por_mes.*.mes.distinct' => __('No puede haber dos configuraciones personalizadas para el mismo mes'),
             'configuracion_por_mes.*.hora.date_format' => __('La hora personalizada debe tener formato hh:mm'),
+            'horarios_por_dia.*.date_format' => __('El horario por dia debe tener formato hh:mm'),
+            'configuracion_por_mes.*.horarios_por_dia.*.date_format' => __('El horario por dia debe tener formato hh:mm'),
         ];
     }
 }

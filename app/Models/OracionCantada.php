@@ -18,6 +18,7 @@ class OracionCantada extends Model
         'dia',
         'dias_semana',
         'hora',
+        'horarios_por_dia',
         'periodicidad',
         'configuracion_por_mes',
         'modalidad_id',
@@ -29,6 +30,7 @@ class OracionCantada extends Model
     protected $casts = [
         'dia' => 'integer',
         'dias_semana' => 'array',
+        'horarios_por_dia' => 'array',
         'configuracion_por_mes' => 'array',
         'mostrar_en_calendario' => 'boolean',
     ];
@@ -40,6 +42,7 @@ class OracionCantada extends Model
             'dia' => $this->dia,
             'dias_semana' => $this->dias_semana ?? [],
             'hora' => $this->hora,
+            'horarios_por_dia' => $this->horarios_por_dia ?? [],
         ];
 
         $mes = (int) $month->format('n');
@@ -55,7 +58,23 @@ class OracionCantada extends Model
             'dia' => $personalizada['dia'] ?? $base['dia'],
             'dias_semana' => $personalizada['dias_semana'] ?? $base['dias_semana'],
             'hora' => $personalizada['hora'] ?? $base['hora'],
+            'horarios_por_dia' => $personalizada['horarios_por_dia'] ?? $base['horarios_por_dia'],
         ];
+    }
+
+    /**
+     * Devuelve la hora de un día puntual (periodicidad Diaria) usando el horario
+     * personalizado por día si existe, o la hora general como valor por defecto.
+     */
+    public function horaParaDia(array $configuracion, string $weekday): ?string
+    {
+        $horarios = $configuracion['horarios_por_dia'] ?? [];
+
+        if (is_array($horarios) && !empty($horarios[$weekday])) {
+            return $horarios[$weekday];
+        }
+
+        return $configuracion['hora'] ?? null;
     }
 
     public function stream()

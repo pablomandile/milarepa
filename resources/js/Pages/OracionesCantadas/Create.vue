@@ -26,6 +26,7 @@ const form = useForm({
     dia: 1,
     dias_semana: [],
     hora: '08:00',
+    horarios_por_dia: {},
     periodicidad: 'Mensual',
     configuracion_por_mes: [],
     modalidad_id: null,

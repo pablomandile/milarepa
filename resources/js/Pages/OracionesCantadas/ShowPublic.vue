@@ -41,6 +41,22 @@ const horaTexto = computed(() => {
   return `${String(props.oracionCantada.hora).slice(0, 5)} hs.`;
 });
 
+const horariosPorDia = computed(() => {
+  if (props.oracionCantada.periodicidad !== 'Diaria') return [];
+  const dias = Array.isArray(props.oracionCantada.dias_semana) ? props.oracionCantada.dias_semana : [];
+  const horarios = props.oracionCantada.horarios_por_dia && typeof props.oracionCantada.horarios_por_dia === 'object'
+    ? props.oracionCantada.horarios_por_dia
+    : {};
+  const horaGeneral = props.oracionCantada.hora ? String(props.oracionCantada.hora).slice(0, 5) : null;
+
+  return ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo']
+    .filter((d) => dias.includes(d))
+    .map((d) => ({
+      label: dayLabels[d] || d,
+      hora: horarios[d] ? String(horarios[d]).slice(0, 5) : horaGeneral,
+    }));
+});
+
 const volverHref = computed(() => props.returnUrl || route('calendario.index'));
 </script>
 
@@ -80,7 +96,12 @@ const volverHref = computed(() => props.returnUrl || route('calendario.index'));
               <div class="mt-4 grid gap-3 sm:grid-cols-2">
                 <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
                   <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Hora</div>
-                  <div class="mt-1 text-sm text-slate-900">{{ horaTexto }}</div>
+                  <div v-if="oracionCantada.periodicidad === 'Diaria' && horariosPorDia.length" class="mt-1 space-y-0.5 text-sm text-slate-900">
+                    <div v-for="h in horariosPorDia" :key="h.label">
+                      <span class="font-medium">{{ h.label }}:</span> {{ h.hora ? `${h.hora} hs.` : '-' }}
+                    </div>
+                  </div>
+                  <div v-else class="mt-1 text-sm text-slate-900">{{ horaTexto }}</div>
                 </div>
                 <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
                   <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Periodicidad</div>

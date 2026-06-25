@@ -55,6 +55,7 @@ class OracionesCantadasController extends Controller
         $oracionCantada->setAttribute('dia', $configuracion['dia']);
         $oracionCantada->setAttribute('dias_semana', $configuracion['dias_semana']);
         $oracionCantada->setAttribute('hora', $configuracion['hora']);
+        $oracionCantada->setAttribute('horarios_por_dia', $configuracion['horarios_por_dia']);
 
         return Inertia::render('OracionesCantadas/ShowPublic', [
             'oracionCantada' => $oracionCantada,
@@ -211,9 +212,11 @@ class OracionesCantadasController extends Controller
                 continue;
             }
 
+            $horaDia = $oracion->horaParaDia($config, $weekday);
+
             $fechas[] = [
                 'fecha' => $cursor->toDateString(),
-                'hora' => $hora,
+                'hora' => $horaDia ? Carbon::parse($horaDia)->format('H:i') : null,
             ];
         }
 
@@ -258,8 +261,10 @@ class OracionesCantadasController extends Controller
         if ($periodicidad === 'Diaria') {
             $data['dia'] = null;
             $data['dias_semana'] = array_values(array_unique($data['dias_semana'] ?? []));
+            $data['horarios_por_dia'] = $this->normalizeHorariosPorDia($data['horarios_por_dia'] ?? [], $data['dias_semana']);
         } else {
             $data['dias_semana'] = null;
+            $data['horarios_por_dia'] = null;
         }
 
         $data['configuracion_por_mes'] = collect($data['configuracion_por_mes'] ?? [])
@@ -271,11 +276,13 @@ class OracionesCantadasController extends Controller
                     'dia' => $configuracion['dia'] ?? null,
                     'dias_semana' => $configuracion['dias_semana'] ?? [],
                     'hora' => $configuracion['hora'] ?? null,
+                    'horarios_por_dia' => null,
                 ];
 
                 if ($periodicidad === 'Diaria') {
                     $configuracionNormalizada['dia'] = null;
                     $configuracionNormalizada['dias_semana'] = array_values(array_unique($configuracionNormalizada['dias_semana'] ?? []));
+                    $configuracionNormalizada['horarios_por_dia'] = $this->normalizeHorariosPorDia($configuracion['horarios_por_dia'] ?? [], $configuracionNormalizada['dias_semana']);
                 } else {
                     $configuracionNormalizada['dias_semana'] = null;
                 }
@@ -289,6 +296,20 @@ class OracionesCantadasController extends Controller
             ->all();
 
         return $data;
+    }
+
+    /**
+     * Conserva solo los horarios de los días realmente seleccionados y con un
+     * valor de hora válido (HH:mm). Devuelve null si no queda ninguno.
+     */
+    private function normalizeHorariosPorDia(array $horarios, array $diasSemana): ?array
+    {
+        $normalizados = collect($horarios)
+            ->only($diasSemana)
+            ->filter(fn ($hora) => is_string($hora) && preg_match('/^\d{2}:\d{2}$/', $hora) === 1)
+            ->all();
+
+        return empty($normalizados) ? null : $normalizados;
     }
 
     private function resolveMonth(string $monthParam): Carbon

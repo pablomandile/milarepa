@@ -97,6 +97,7 @@ function nuevaConfiguracionPorMes() {
         dia: props.form.dia || 1,
         dias_semana: Array.isArray(props.form.dias_semana) ? [...props.form.dias_semana] : [],
         hora: props.form.hora || '08:00',
+        horarios_por_dia: {},
     };
 }
 
@@ -289,21 +290,34 @@ watch(
 
             <div v-if="isDiaria" class="col-span-6 sm:col-span-6 mt-3">
                 <InputLabel value="Dias de la semana" :required="true" />
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Para cada dia podes definir un horario propio. Si lo dejas vacio, se usa la Hora general.
+                </p>
 
                 <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                    <label
+                    <div
                         v-for="diaOption in diasSemanaOptions"
                         :key="diaOption.value"
-                        class="flex items-center gap-2 rounded border border-gray-200 dark:border-gray-700 px-3 py-2"
+                        class="rounded border border-gray-200 dark:border-gray-700 px-3 py-2"
                     >
+                        <label class="flex items-center gap-2">
+                            <input
+                                v-model="form.dias_semana"
+                                type="checkbox"
+                                :value="diaOption.value"
+                                class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                            />
+                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ diaOption.label }}</span>
+                        </label>
                         <input
-                            v-model="form.dias_semana"
-                            type="checkbox"
-                            :value="diaOption.value"
-                            class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                            v-if="form.dias_semana.includes(diaOption.value)"
+                            v-model="form.horarios_por_dia[diaOption.value]"
+                            type="time"
+                            step="60"
+                            :placeholder="form.hora"
+                            class="mt-2 block w-full rounded-md border-gray-300 dark:border-gray-600 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         />
-                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ diaOption.label }}</span>
-                    </label>
+                    </div>
                 </div>
 
                 <label class="mt-3 inline-flex items-center gap-2 rounded border border-indigo-200 bg-indigo-50 px-3 py-2">
@@ -413,20 +427,33 @@ watch(
 
                     <div v-else class="mt-3">
                         <InputLabel value="Dias de la semana" :required="true" />
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Para cada dia podes definir un horario propio. Si lo dejas vacio, se usa la Hora de este mes.
+                        </p>
                         <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                            <label
+                            <div
                                 v-for="diaOption in diasSemanaOptions"
                                 :key="`${index}-${diaOption.value}`"
-                                class="flex items-center gap-2 rounded border border-gray-200 dark:border-gray-700 px-3 py-2"
+                                class="rounded border border-gray-200 dark:border-gray-700 px-3 py-2"
                             >
+                                <label class="flex items-center gap-2">
+                                    <input
+                                        v-model="configuracion.dias_semana"
+                                        type="checkbox"
+                                        :value="diaOption.value"
+                                        class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                    />
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ diaOption.label }}</span>
+                                </label>
                                 <input
-                                    v-model="configuracion.dias_semana"
-                                    type="checkbox"
-                                    :value="diaOption.value"
-                                    class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                    v-if="(configuracion.dias_semana || []).includes(diaOption.value)"
+                                    v-model="configuracion.horarios_por_dia[diaOption.value]"
+                                    type="time"
+                                    step="60"
+                                    :placeholder="configuracion.hora"
+                                    class="mt-2 block w-full rounded-md border-gray-300 dark:border-gray-600 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                 />
-                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ diaOption.label }}</span>
-                            </label>
+                            </div>
                         </div>
                         <InputError :message="$page.props.errors[`configuracion_por_mes.${index}.dias_semana`]" class="mt-2" />
                     </div>

@@ -24,18 +24,29 @@ const props = defineProps({
     },
 });
 
+const normalizarHorariosPorDia = (horarios) => {
+    if (!horarios || typeof horarios !== 'object') return {};
+    return Object.fromEntries(
+        Object.entries(horarios)
+            .filter(([, hora]) => !!hora)
+            .map(([dia, hora]) => [dia, String(hora).slice(0, 5)])
+    );
+};
+
 const form = useForm({
     nombre: props.oracionCantada.nombre ?? '',
     descripcion: props.oracionCantada.descripcion ?? '',
     dia: props.oracionCantada.dia ?? 1,
     dias_semana: Array.isArray(props.oracionCantada.dias_semana) ? props.oracionCantada.dias_semana : [],
     hora: props.oracionCantada.hora ? String(props.oracionCantada.hora).slice(0, 5) : '08:00',
+    horarios_por_dia: normalizarHorariosPorDia(props.oracionCantada.horarios_por_dia),
     periodicidad: props.oracionCantada.periodicidad ?? 'Mensual',
     configuracion_por_mes: Array.isArray(props.oracionCantada.configuracion_por_mes)
         ? props.oracionCantada.configuracion_por_mes.map((configuracion) => ({
             ...configuracion,
             hora: configuracion.hora ? String(configuracion.hora).slice(0, 5) : '08:00',
             dias_semana: Array.isArray(configuracion.dias_semana) ? configuracion.dias_semana : [],
+            horarios_por_dia: normalizarHorariosPorDia(configuracion.horarios_por_dia),
         }))
         : [],
     modalidad_id: props.oracionCantada.modalidad_id ?? null,

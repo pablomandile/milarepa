@@ -118,7 +118,7 @@ Entidades centrales:
   conteo de reservas. Ver [BUSINESS_RULES.md §2.7](BUSINESS_RULES.md).
 - `Membresia` + `MembresiaUsuario` + `EstadoCuentaMembresia`.
 - `Libro` + `InventarioEntidadLibro` + `PrestamoAnexo` + `DevolucionAnexo` + `Venta`.
-- `OracionCantada` con `configuracion_por_mes` (JSON) que sobrescribe el calendario base.
+- `OracionCantada` con `horarios_por_dia` (horario propio por día de la semana) y `configuracion_por_mes` (JSON) que sobrescribe el calendario base.
 
 Diagrama relacional detallado en [BUSINESS_RULES.md](BUSINESS_RULES.md).
 

@@ -297,25 +297,34 @@ Para cada usuario con `membresiaUsuario.membresia_id`:
 
 ## 6. Oraciones cantadas
 
-`OracionCantada.php` líneas ~36-59.
+`OracionCantada.php` (modelo) + `OracionesCantadasController.php` / `CalendarioController.php` (consumidores).
 
 ### 6.1 Modelo de calendario
 
-- `periodicidad` (string): `"diaria"`, `"semanal"`, `"mensual"`.
-- `dias_semana` (array): aplica si periodicidad semanal.
-- `dia` (int): día del mes — aplica si periodicidad mensual.
-- `hora` (time): hora de ejecución.
-- `configuracion_por_mes` (JSON): array de objetos `{mes: N, periodicidad, dia, dias_semana, hora}` que **sobrescribe** la configuración base para ese mes específico.
+- `periodicidad` (string): `"Diaria"` o `"Mensual"` (validado en `OracionCantadaRequest`).
+- `dia` (int): día del mes — aplica si `Mensual`.
+- `dias_semana` (array): días de la semana (`lunes`…`domingo`) — aplica si `Diaria`. Una oración puede tener varios días.
+- `hora` (time): hora base / por defecto.
+- `horarios_por_dia` (JSON): mapa `{ "lunes": "08:00", "miercoles": "19:00" }` con un horario propio por cada día de la semana. Solo aplica si `Diaria`. Si un día seleccionado **no** tiene hora propia, se usa `hora` como valor por defecto (retrocompatible con oraciones cargadas antes de este campo).
+- `configuracion_por_mes` (JSON): array de objetos `{mes: N, periodicidad, dia, dias_semana, hora, horarios_por_dia}` que **sobrescribe** la configuración base para ese mes específico.
 
 ### 6.2 Resolución para un mes dado
 
 Método `configuracionParaMes(CarbonInterface $month)`:
 
-1. Toma la configuración base.
+1. Toma la configuración base (incluido `horarios_por_dia`).
 2. Si `configuracion_por_mes` contiene una entrada con `mes = $month->month` → fusiona campo por campo, los valores del mes específico tienen prioridad.
 3. Devuelve la configuración efectiva.
 
-> Útil cuando, p. ej., una oración semanal cambia su día/hora durante un retiro de un mes específico.
+Para resolver la hora de un día concreto se usa el helper `horaParaDia(array $config, string $weekday)`: devuelve `config['horarios_por_dia'][$weekday]` si existe, o `config['hora']` como fallback. Lo usan tanto el calendario (`CalendarioController::buildOracionesCantadasCalendarItems`) como la página pública (`OracionesCantadasController::sesionesDeOracion`) al generar cada ocurrencia del mes.
+
+> Útil cuando, p. ej., una oración Diaria ocurre Lunes a las 08:00 y Miércoles a las 19:00, o cuando cambia su día/hora durante un retiro de un mes específico.
+
+### 6.3 Regla: una configuración por mes
+
+No se permiten **dos bloques** de `configuracion_por_mes` para el mismo mes (regla `distinct` en `OracionCantadaRequest` + `->unique('mes')` en el controller). Para tener horarios distintos por día dentro de un mes **no** se agregan varios bloques: se usa el mapa `horarios_por_dia` de ese único bloque (o de la config general).
+
+> Normalización (`OracionesCantadasController::normalizePayload`): al guardar, `horarios_por_dia` conserva solo las claves de días realmente seleccionados (`dias_semana`) y con formato `HH:mm` válido; queda `null` si la periodicidad es `Mensual` o si no quedó ningún horario. Los inputs de hora vacíos se descartan antes de validar (`prepareForValidation`).
 
 ---
 
