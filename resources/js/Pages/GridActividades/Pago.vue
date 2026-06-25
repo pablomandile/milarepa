@@ -6,6 +6,7 @@ import Tag from 'primevue/tag';
 import Dialog from 'primevue/dialog';
 import Checkbox from 'primevue/checkbox';
 import { useToast } from 'primevue/usetoast';
+import ServiciosActividadSelector from '@/Components/Actividades/ServiciosActividadSelector.vue';
 
 const props = defineProps({
   actividad: {
@@ -250,9 +251,90 @@ const totalHospedajes = computed(() => {
     .reduce((acc, hospedaje) => acc + precioHospedaje(hospedaje).precio, 0);
 });
 
+// --- Invitados ---------------------------------------------------------------
+// Los invitados pagan SIEMPRE el precio general de la actividad (sin descuento).
+const lineaGeneralActividad = computed(() => obtenerLineaPrecio(
+  esquemaVigente.value?.membresias || [],
+  null,
+  monedaSeleccionadaId.value
+));
+const precioGeneralActividad = computed(() => {
+  if (lineaGeneralActividad.value?.precio !== undefined && lineaGeneralActividad.value?.precio !== null) {
+    return Number(lineaGeneralActividad.value.precio) || 0;
+  }
+  return actividadPrecio.value;
+});
+
+const modalidadActividadAbierta = computed(
+  () => normalizarNombre(props.actividad?.modalidad?.nombre) === 'presencial y online abierta'
+);
+// El flujo de invitados aplica a eventos con componente presencial.
+const permiteInvitados = computed(
+  () => normalizarNombre(props.actividad?.modalidad?.nombre) !== 'online'
+);
+
+const MAX_INVITADOS = 10;
+const invitados = ref([]);
+const invitadoDialog = ref(false);
+
+const nuevoInvitado = () => ({
+  nombre: '',
+  apellido: '',
+  telefono: '',
+  online: false,
+  grabacion: false,
+  comidas: [],
+  transportes: [],
+  hospedajes: [],
+});
+const invitadoForm = ref(nuevoInvitado());
+
+const subtotalInvitado = (invitado) => {
+  const totalGrabacion = invitado.grabacion ? grabacionPrecio.value : 0;
+  const totalComidasInv = comidasDisponibles.value
+    .filter((c) => invitado.comidas.includes(c.id))
+    .reduce((acc, c) => acc + precioComida(c).precio, 0);
+  const totalTransportesInv = transportesDisponibles.value
+    .filter((t) => invitado.transportes.includes(t.id))
+    .reduce((acc, t) => acc + precioTransporte(t).precio, 0);
+  const totalHospedajesInv = hospedajesDisponibles.value
+    .filter((h) => invitado.hospedajes.includes(h.id))
+    .reduce((acc, h) => acc + precioHospedaje(h).precio, 0);
+  return precioGeneralActividad.value + totalGrabacion + totalComidasInv + totalTransportesInv + totalHospedajesInv;
+};
+
+const totalInvitados = computed(() => invitados.value.reduce((acc, inv) => acc + subtotalInvitado(inv), 0));
+
+const abrirDialogInvitado = () => {
+  invitadoForm.value = nuevoInvitado();
+  invitadoDialog.value = true;
+};
+const guardarInvitado = () => {
+  const f = invitadoForm.value;
+  if (!f.nombre.trim() || !f.apellido.trim()) {
+    toast.add({ severity: 'warn', summary: 'Invitado', detail: 'Nombre y apellido son obligatorios.', life: 4000 });
+    return;
+  }
+  if (invitados.value.length >= MAX_INVITADOS) {
+    toast.add({ severity: 'warn', summary: 'Invitados', detail: `Máximo ${MAX_INVITADOS} invitados.`, life: 4000 });
+    return;
+  }
+  invitados.value.push({
+    ...f,
+    nombre: f.nombre.trim(),
+    apellido: f.apellido.trim(),
+    telefono: (f.telefono || '').trim(),
+    online: modalidadActividadAbierta.value ? !!f.online : false,
+  });
+  invitadoDialog.value = false;
+};
+const eliminarInvitado = (index) => {
+  invitados.value.splice(index, 1);
+};
+
 const saldoAPagar = computed(() => {
   const totalGrabacion = grabacionSeleccionada.value ? grabacionPrecio.value : 0;
-  return actividadPrecio.value + totalGrabacion + totalComidas.value + totalTransportes.value + totalHospedajes.value;
+  return actividadPrecio.value + totalGrabacion + totalComidas.value + totalTransportes.value + totalHospedajes.value + totalInvitados.value;
 });
 const esPagoDeInscripcionExistente = computed(() => !!props.pago?.inscripcion_id);
 const comidasBloqueadasIds = computed(() => {
@@ -274,10 +356,9 @@ const grabacionBloqueada = computed(() => {
   return esPagoDeInscripcionExistente.value && !!props.inscripcion?.montoGrabacion && Number(props.inscripcion.montoGrabacion) > 0;
 });
 const esPagoCero = computed(() => {
-  return (
-    actividadPrecio.value <= 0 ||
-    actividadEsGratuita.value
-  );
+  // Si hay un monto real a pagar (incluye invitados y servicios) se habilitan los
+  // medios de pago, aunque la actividad base sea gratuita o esté incluida.
+  return saldoAPagar.value <= 0;
 });
 
 const normalizarMetodoPago = (valor) => {
@@ -400,6 +481,16 @@ async function terminar() {
       comidas_ids: comidasSeleccionadas.value,
       transportes_ids: transportesSeleccionados.value,
       hospedajes_ids: hospedajesSeleccionados.value,
+      invitados: invitados.value.map((inv) => ({
+        nombre: inv.nombre,
+        apellido: inv.apellido,
+        telefono: inv.telefono || null,
+        online: modalidadActividadAbierta.value ? !!inv.online : false,
+        incluye_grabacion: !!inv.grabacion,
+        comidas_ids: inv.comidas,
+        transportes_ids: inv.transportes,
+        hospedajes_ids: inv.hospedajes,
+      })),
     });
     const inscripcionId = response.data?.inscripcion_id;
     const registrado = response.data?.registered;
@@ -631,155 +722,62 @@ watch(
               </div>
             </div>
 
-            <div v-if="grabacionDisponible" class="border rounded-lg p-4">
-              <div class="flex items-center gap-2">
-                <Checkbox
-                  inputId="grabacion_check"
-                  v-model="grabacionSeleccionada"
-                  binary
-                  :disabled="grabacionBloqueada"
-                />
-                <label for="grabacion_check" class="text-sm font-semibold text-gray-700">
-                  Agregar grabación
-                </label>
-              </div>
-              <div v-if="grabacionSeleccionada" class="mt-2 text-sm text-gray-700">
-                <div class="flex flex-wrap items-center gap-2">
-                  <span>Valor de grabación:</span>
-                  <span class="font-semibold">{{ formatMoney(grabacionPrecio, grabacionSimbolo) }}</span>
-                  <a
-                    v-if="mostrarBotonesPago && grabacionPagoLink"
-                    :href="grabacionPagoLink"
-                    target="_blank"
-                    class="inline-flex items-center px-3 py-1 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700"
-                  >
-                    Pagar grabación
-                  </a>
-                  <span v-else-if="mostrarBotonesPago" class="text-xs text-gray-400">Sin botón de pago</span>
-                </div>
-              </div>
-            </div>
+            <ServiciosActividadSelector
+              :actividad="actividad"
+              v-model:grabacion="grabacionSeleccionada"
+              v-model:comidas="comidasSeleccionadas"
+              v-model:transportes="transportesSeleccionados"
+              v-model:hospedajes="hospedajesSeleccionados"
+              :resolver-precio="resolverPrecioItemEnMoneda"
+              :format-money="formatMoney"
+              :simbolo-moneda="simboloMoneda"
+              :grabacion-bloqueada="grabacionBloqueada"
+              :comidas-bloqueadas-ids="comidasBloqueadasIds"
+              :transportes-bloqueados-ids="transportesBloqueadosIds"
+              :hospedajes-bloqueados-ids="hospedajesBloqueadosIds"
+              :mostrar-botones-pago="mostrarBotonesPago"
+              id-prefix="principal"
+            />
 
-            <div v-if="comidasDisponibles.length" class="border rounded-lg p-4">
-              <p class="text-sm font-semibold text-gray-700 mb-2">Comidas</p>
-              <div class="space-y-2">
-                <div
-                  v-for="comida in comidasDisponibles"
-                  :key="comida.id"
-                  class="flex flex-wrap items-center justify-between gap-2"
+            <div v-if="permiteInvitados" class="border rounded-lg p-4">
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <p class="text-sm font-semibold text-gray-700">Invitados ({{ invitados.length }}/{{ MAX_INVITADOS }})</p>
+                <button
+                  type="button"
+                  class="px-3 py-1 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700 disabled:bg-gray-300"
+                  :disabled="invitados.length >= MAX_INVITADOS"
+                  @click="abrirDialogInvitado"
                 >
-                  <label class="flex items-center gap-2 text-sm text-gray-700">
-                    <Checkbox
-                      :inputId="`comida_${comida.id}`"
-                      :value="comida.id"
-                      v-model="comidasSeleccionadas"
-                      :disabled="comidasBloqueadasIds.includes(comida.id)"
-                    />
-                    {{ comida.nombre }}
-                  </label>
-                  <div class="flex items-center gap-2">
-                    <span class="text-sm text-gray-700">{{ formatMoney(precioComida(comida).precio, precioComida(comida).simbolo) }}</span>
-                    <a
-                      v-if="mostrarBotonesPago && comidasSeleccionadas.includes(comida.id) && comida.boton_pago?.link"
-                      :href="comida.boton_pago.link"
-                      target="_blank"
-                      class="inline-flex items-center px-2 py-1 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700"
+                  Agregar invitado
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 mb-3">
+                Los invitados pagan precio general (sin descuento) y reciben los servicios que elijas para cada uno.
+              </p>
+              <div v-if="invitados.length" class="space-y-2">
+                <div
+                  v-for="(inv, idx) in invitados"
+                  :key="idx"
+                  class="flex flex-wrap items-center justify-between gap-2 border rounded p-2"
+                >
+                  <div class="text-sm text-gray-700">
+                    <span class="font-semibold">{{ inv.nombre }} {{ inv.apellido }}</span>
+                    <span v-if="inv.telefono" class="text-gray-500"> · {{ inv.telefono }}</span>
+                    <span v-if="inv.online" class="ml-2 text-xs text-indigo-600">Online</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-sm font-semibold text-gray-800">{{ formatMoney(subtotalInvitado(inv)) }}</span>
+                    <button
+                      type="button"
+                      class="text-red-600 text-sm hover:underline"
+                      @click="eliminarInvitado(idx)"
                     >
-                      Pagar
-                    </a>
-                    <span v-else-if="mostrarBotonesPago && comidasSeleccionadas.includes(comida.id)" class="text-xs text-gray-400">Sin bot�n</span>
+                      Eliminar
+                    </button>
                   </div>
                 </div>
               </div>
-              <div class="mt-3 text-sm text-gray-800">
-                Total Comidas: <span class="font-semibold">{{ formatMoney(totalComidas) }}</span>
-              </div>
-            </div>
-
-            <div v-if="transportesDisponibles.length" class="border rounded-lg p-4">
-              <p class="text-sm font-semibold text-gray-700 mb-2">Transportes</p>
-              <div class="space-y-2">
-                <div
-                  v-for="transporte in transportesDisponibles"
-                  :key="transporte.id"
-                  class="flex flex-wrap items-center justify-between gap-2"
-                >
-                  <label class="flex items-center gap-2 text-sm text-gray-700">
-                    <Checkbox
-                      :inputId="`transporte_${transporte.id}`"
-                      :value="transporte.id"
-                      v-model="transportesSeleccionados"
-                      :disabled="transportesBloqueadosIds.includes(transporte.id)"
-                    />
-                    {{ transporte.descripcion || transporte.nombre }}
-                  </label>
-                  <div class="flex items-center gap-2">
-                    <span class="text-sm text-gray-700">{{ formatMoney(precioTransporte(transporte).precio, precioTransporte(transporte).simbolo) }}</span>
-                    <a
-                      v-if="mostrarBotonesPago && transportesSeleccionados.includes(transporte.id) && transporte.boton_pago?.link"
-                      :href="transporte.boton_pago.link"
-                      target="_blank"
-                      class="inline-flex items-center px-2 py-1 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700"
-                    >
-                      Pagar
-                    </a>
-                    <span v-else-if="mostrarBotonesPago && transportesSeleccionados.includes(transporte.id)" class="text-xs text-gray-400">Sin bot�n</span>
-                  </div>
-                </div>
-              </div>
-              <div class="mt-3 text-sm text-gray-800">
-                Total Transportes: <span class="font-semibold">{{ formatMoney(totalTransportes) }}</span>
-              </div>
-            </div>
-
-
-            <div v-if="hospedajesDisponibles.length" class="border rounded-lg p-4">
-              <p class="text-sm font-semibold text-gray-700 mb-2">Lugar de hospedaje</p>
-              <div class="text-sm text-gray-700 mb-3">
-                <template v-if="hospedajesDisponibles.some(h => h.lugar_hospedaje)">
-                  <span
-                    v-for="(lugar, idx) in Array.from(new Set(hospedajesDisponibles.map(h => h.lugar_hospedaje?.nombre).filter(Boolean)))"
-                    :key="lugar"
-                  >
-                    {{ lugar }}<span v-if="idx < Array.from(new Set(hospedajesDisponibles.map(h => h.lugar_hospedaje?.nombre).filter(Boolean))).length - 1">, </span>
-                  </span>
-                </template>
-                <span v-else class="text-xs text-gray-400">Sin lugar definido</span>
-              </div>
-
-              <p class="text-sm font-semibold text-gray-700 mb-2">Hospedajes</p>
-              <div class="space-y-2">
-                <div
-                  v-for="hospedaje in hospedajesDisponibles"
-                  :key="hospedaje.id"
-                  class="flex flex-wrap items-center justify-between gap-2"
-                >
-                  <label class="flex items-center gap-2 text-sm text-gray-700">
-                    <Checkbox
-                      :inputId="`hospedaje_${hospedaje.id}`"
-                      :value="hospedaje.id"
-                      v-model="hospedajesSeleccionados"
-                      :disabled="hospedajesBloqueadosIds.includes(hospedaje.id)"
-                    />
-                    {{ hospedaje.nombre }}
-                  </label>
-                  <div class="flex items-center gap-2">
-                    <span class="text-sm text-gray-700">{{ formatMoney(precioHospedaje(hospedaje).precio, precioHospedaje(hospedaje).simbolo) }}</span>
-                    <a
-                      v-if="mostrarBotonesPago && hospedajesSeleccionados.includes(hospedaje.id) && hospedaje.boton_pago?.link"
-                      :href="hospedaje.boton_pago.link"
-                      target="_blank"
-                      class="inline-flex items-center px-2 py-1 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700"
-                    >
-                      Pagar
-                    </a>
-                    <span v-else-if="mostrarBotonesPago && hospedajesSeleccionados.includes(hospedaje.id)" class="text-xs text-gray-400">Sin bot�n</span>
-                  </div>
-                </div>
-              </div>
-              <div class="mt-3 text-sm text-gray-800">
-                Total Hospedaje: <span class="font-semibold">{{ formatMoney(totalHospedajes) }}</span>
-              </div>
+              <p v-else class="text-xs text-gray-400">Sin invitados agregados.</p>
             </div>
 
             <div class="border rounded-lg p-4 bg-gray-50">
@@ -836,6 +834,81 @@ watch(
             @click="subirComprobante"
           >
             {{ isUploading ? 'Subiendo...' : 'Subir' }}
+          </button>
+        </div>
+      </template>
+    </Dialog>
+
+    <Dialog
+      v-model:visible="invitadoDialog"
+      modal
+      header="Agregar invitado"
+      :style="{ width: '600px' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
+      <div class="space-y-4 pt-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="inv_nombre">Nombre *</label>
+            <input
+              id="inv_nombre"
+              v-model="invitadoForm.nombre"
+              type="text"
+              class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="inv_apellido">Apellido *</label>
+            <input
+              id="inv_apellido"
+              v-model="invitadoForm.apellido"
+              type="text"
+              class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1" for="inv_telefono">Teléfono</label>
+          <input
+            id="inv_telefono"
+            v-model="invitadoForm.telefono"
+            type="text"
+            class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+            placeholder="Para seguridad/emergencia del evento"
+          />
+        </div>
+
+        <div v-if="modalidadActividadAbierta" class="flex items-center gap-2">
+          <Checkbox inputId="inv_online" v-model="invitadoForm.online" binary />
+          <label for="inv_online" class="text-sm text-gray-700">Cursa online</label>
+        </div>
+
+        <div>
+          <p class="text-sm font-semibold text-gray-700 mb-2">Servicios del invitado</p>
+          <ServiciosActividadSelector
+            :actividad="actividad"
+            v-model:grabacion="invitadoForm.grabacion"
+            v-model:comidas="invitadoForm.comidas"
+            v-model:transportes="invitadoForm.transportes"
+            v-model:hospedajes="invitadoForm.hospedajes"
+            :resolver-precio="resolverPrecioItemEnMoneda"
+            :format-money="formatMoney"
+            :simbolo-moneda="simboloMoneda"
+            id-prefix="invitado_form"
+          />
+        </div>
+
+        <div class="border rounded-lg p-3 bg-gray-50 text-sm text-gray-800">
+          Subtotal invitado: <span class="font-semibold">{{ formatMoney(subtotalInvitado(invitadoForm)) }}</span>
+        </div>
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <button class="px-4 py-2 bg-gray-500 text-white rounded" @click="invitadoDialog = false">
+            Cancelar
+          </button>
+          <button class="px-4 py-2 bg-indigo-600 text-white rounded" @click="guardarInvitado">
+            Agregar
           </button>
         </div>
       </template>
