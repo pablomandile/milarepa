@@ -10,6 +10,8 @@ use App\Models\InscripcionComprobante;
 use App\Models\Invitado;
 use App\Services\InscripcionServiciosService;
 use App\Services\HospedajeCupoService;
+use App\Services\InscripcionMailService;
+use App\Services\MercadoPagoService;
 use App\Models\Pais;
 use App\Models\Provincia;
 use App\Models\Municipio;
@@ -402,7 +404,7 @@ class GridActividadesController extends Controller
     /**
      * Finalizar inscripcion y enviar mail.
      */
-    public function finalizarPago(Request $request, InscripcionServiciosService $servicios, HospedajeCupoService $cupo)
+    public function finalizarPago(Request $request, InscripcionServiciosService $servicios, HospedajeCupoService $cupo, InscripcionMailService $mailService, MercadoPagoService $mercadoPago)
     {
         $data = $request->validate([
             'pago_metodo' => ['required', 'string'],
@@ -430,7 +432,7 @@ class GridActividadesController extends Controller
         ]);
 
         $data['pago_metodo'] = $this->normalizarMetodoPagoFinal((string) ($data['pago_metodo'] ?? ''));
-        if (!in_array($data['pago_metodo'], ['efectivo', 'comprobante', 'transferencia', 'getnet'], true)) {
+        if (!in_array($data['pago_metodo'], ['efectivo', 'comprobante', 'transferencia', 'getnet', 'mercadopago'], true)) {
             return response()->json([
                 'ok' => false,
                 'message' => 'The selected pago metodo is invalid.',
@@ -615,6 +617,10 @@ class GridActividadesController extends Controller
 
             $request->session()->forget('grid_pago');
 
+            if ($data['pago_metodo'] === 'mercadopago') {
+                return $this->iniciarPagoMercadoPago($inscripcion, true, true, $mercadoPago);
+            }
+
             return response()->json([
                 'ok' => true,
                 'inscripcion_id' => $inscripcion->id,
@@ -688,38 +694,7 @@ class GridActividadesController extends Controller
         }
         $inscripcion->load($inscripcionRelations);
 
-        $destinatarioRegistro = $inscripcion->guestUser?->email ?: $inscripcion->user?->email;
-        if (!empty($destinatarioRegistro)) {
-            try {
-                $procesoRegistro = $inscripcion->pago === 'Saldado'
-                    ? 'inscripcion_confirmada'
-                    : 'inscripcion_registrada';
-                $configuracionRegistro = EmailEnvioConfiguracion::resolverPlantilla($procesoRegistro);
-
-                Mail::to($destinatarioRegistro)->send(
-                    new InscripcionConfirmada($inscripcion, $configuracionRegistro['view'])
-                );
-                $inscripcion->envioRegistro = 'Enviada';
-                if ($inscripcion->estado === 'Confirmada') {
-                    $inscripcion->envioConfirmacion = 'Enviada';
-                }
-                $inscripcion->save();
-
-                EnvioMail::create([
-                    'fecha' => now()->toDateString(),
-                    'tipo' => 'Automático',
-                    'user_id' => null,
-                    'destinatario' => $destinatarioRegistro,
-                    'motivo' => $configuracionRegistro['nombre'],
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Error al enviar mail de inscripcion en finalizarPago', [
-                    'inscripcion_id' => $inscripcion->id,
-                    'destinatario' => $destinatarioRegistro,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+        $mailService->enviarConfirmacionRegistro($inscripcion);
 
         $solicitaInfoTk = (bool) Arr::get($pago, 'guest.info_tarjetas_kadampa', false);
         if (!$solicitaInfoTk && $registrado) {
@@ -766,6 +741,10 @@ class GridActividadesController extends Controller
 
         $request->session()->forget('grid_pago');
 
+        if ($data['pago_metodo'] === 'mercadopago') {
+            return $this->iniciarPagoMercadoPago($inscripcion, $registrado, false, $mercadoPago);
+        }
+
         return response()->json([
             'ok' => true,
             'inscripcion_id' => $inscripcion->id,
@@ -777,6 +756,22 @@ class GridActividadesController extends Controller
                 ['inscripcion' => $inscripcion->id]
             ),
         ]);
+    }
+
+    /**
+     * Retorno desde el checkout de Mercado Pago (back_urls). El estado real del
+     * pago lo confirma el webhook; acá solo llevamos al usuario a la landing de su
+     * inscripción (URL firmada), que mostrará el estado actualizado.
+     */
+    public function pagoRetorno(Inscripcion $inscripcion)
+    {
+        $signedUrl = URL::temporarySignedRoute(
+            'grid-actividades.inscripcion',
+            now()->addDays(180),
+            ['inscripcion' => $inscripcion->id]
+        );
+
+        return redirect()->to($signedUrl);
     }
 
     /**
@@ -1350,6 +1345,10 @@ class GridActividadesController extends Controller
             return 'efectivo';
         }
 
+        if (in_array($normalizado, ['mercado pago', 'mercadopago', 'mercado-pago'], true)) {
+            return 'mercadopago';
+        }
+
         return $normalizado;
     }
 
@@ -1360,6 +1359,31 @@ class GridActividadesController extends Controller
         }
 
         return ['Pendiente', 'Registrada'];
+    }
+
+    /**
+     * Crea la preferencia de Mercado Pago para la inscripción y devuelve la
+     * respuesta con la URL del checkout a la que debe redirigir el frontend.
+     * La confirmación del pago la realiza el webhook (no este retorno).
+     */
+    private function iniciarPagoMercadoPago(Inscripcion $inscripcion, bool $registrado, bool $updatedExisting, MercadoPagoService $mercadoPago)
+    {
+        try {
+            $redirectUrl = $mercadoPago->crearPreferencia($inscripcion);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'No se pudo iniciar el pago con Mercado Pago. Intentá nuevamente en unos minutos.',
+            ], 502);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'inscripcion_id' => $inscripcion->id,
+            'registered' => $registrado,
+            'redirect_url' => $redirectUrl,
+            'updated_existing' => $updatedExisting,
+        ]);
     }
 
     private function resolverMembresiaActivaUsuario(User $user)

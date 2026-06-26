@@ -386,17 +386,20 @@ const puedeFinalizar = computed(() => {
   if (esPagoCero.value) return true;
   if (!pagoMetodo.value) return false;
   if (esMetodoTipoEfectivo.value) return true;
+  if (esMercadoPagoSeleccionado.value) return true;
   return ['transferencia', 'getnet'].includes(pagoMetodo.value) || !!comprobantePath.value;
 });
 const esEfectivoSeleccionado = computed(() => metodoSeleccionado.value === 'efectivo');
 const esTransferenciaSeleccionado = computed(() => metodoSeleccionado.value === 'transferencia');
 const esGetnetSeleccionado = computed(() => metodoSeleccionado.value === 'getnet');
+const esMercadoPagoSeleccionado = computed(() => ['mercado pago', 'mercadopago'].includes(metodoSeleccionado.value));
 const mostrarBotonesPago = computed(() => {
   return !esPagoCero.value && esGetnetSeleccionado.value;
 });
 const mostrarInfoEfectivo = computed(() => !esPagoCero.value && esMetodoTipoEfectivo.value);
 const mostrarInfoTransferencia = computed(() => !esPagoCero.value && esTransferenciaSeleccionado.value);
 const mostrarInfoGetnet = computed(() => !esPagoCero.value && esGetnetSeleccionado.value);
+const mostrarInfoMercadoPago = computed(() => !esPagoCero.value && esMercadoPagoSeleccionado.value);
 
 const descripcionEfectivo = computed(() => {
   const metodo = props.actividad.metodos_pago?.find(
@@ -492,6 +495,11 @@ async function terminar() {
         hospedajes_ids: inv.hospedajes,
       })),
     });
+    // Mercado Pago: el backend devuelve la URL del checkout; redirigimos ahí.
+    if (response.data?.redirect_url) {
+      window.location.href = response.data.redirect_url;
+      return;
+    }
     const inscripcionId = response.data?.inscripcion_id;
     const registrado = response.data?.registered;
     const canViewPrivate = !!response.data?.can_view_private;
@@ -700,6 +708,14 @@ watch(
                 </button>
               </div>
             </div>
+            <div v-if="mostrarInfoMercadoPago" class="border rounded-lg p-4">
+              <h3 class="text-sm font-semibold text-gray-700">Pago con Mercado Pago</h3>
+              <p class="text-sm text-green-600 mt-1">
+                Al finalizar serás redirigido a Mercado Pago para completar el pago de forma segura
+                (tarjetas, dinero en cuenta, etc.). Tu inscripción se confirmará automáticamente
+                cuando el pago se acredite.
+              </p>
+            </div>
           </div>
 
           <div class="mt-6 space-y-4">
@@ -797,7 +813,7 @@ watch(
               :disabled="isFinalizing || !puedeFinalizar"
               @click="terminar"
             >
-              {{ isFinalizing ? 'Finalizando...' : (esPagoDeInscripcionExistente ? 'Terminar Pago' : 'Terminar inscripción') }}
+              {{ isFinalizing ? 'Procesando...' : (esMercadoPagoSeleccionado ? 'Pagar con Mercado Pago' : (esPagoDeInscripcionExistente ? 'Terminar Pago' : 'Terminar inscripción')) }}
             </button>
           </div>
         </div>

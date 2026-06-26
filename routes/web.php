@@ -43,6 +43,7 @@ use App\Http\Controllers\OracionesCantadasController;
 use App\Http\Controllers\ImagenesController;
 use App\Http\Controllers\RegistroMembresiasController;
 use App\Http\Controllers\BotonesPagoController;
+use App\Http\Controllers\MercadoPagoWebhookController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\EstadoCuentaMembresiasController;
 use App\Http\Controllers\MembresiasGestionController;
@@ -156,10 +157,16 @@ Route::post('/grid-actividades/pago/comprobante', [GridActividadesController::cl
 Route::post('/grid-actividades/pago/finalizar', [GridActividadesController::class, 'finalizarPago'])
     ->name('grid-actividades.pago.finalizar')
     ->middleware('throttle:public-write');
+// Retorno desde el checkout de Mercado Pago (back_urls). El estado real lo confirma el webhook.
+Route::get('/grid-actividades/pago/retorno/{inscripcion}', [GridActividadesController::class, 'pagoRetorno'])
+    ->name('grid-actividades.pago.retorno');
 // URL firmada (signed): solo accesible con la firma generada por finalizarPago
 Route::get('/grid-actividades/inscripcion/{inscripcion}', [GridActividadesController::class, 'showPublic'])
     ->name('grid-actividades.inscripcion')
     ->middleware('signed');
+// Webhook de notificaciones de Mercado Pago (público, sin auth ni CSRF — ver VerifyCsrfToken::$except).
+Route::post('/webhooks/mercadopago', [MercadoPagoWebhookController::class, 'handle'])
+    ->name('mercadopago.webhook');
 Route::get('/membresias/public', [MembresiasController::class, 'publicIndex'])
     ->name('membresias.public.index');
 Route::post('/membresias/public/subscribe', [MembresiasController::class, 'subscribePublic'])

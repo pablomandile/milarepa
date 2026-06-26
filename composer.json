@@ -13,6 +13,7 @@
         "laravel/sanctum": "^3.3",
         "laravel/socialite": "^5.27",
         "laravel/tinker": "^2.8",
+        "mercadopago/dx-php": "^3.10",
         "spatie/laravel-permission": "^6.4",
         "tightenco/ziggy": "^2.3"
     },

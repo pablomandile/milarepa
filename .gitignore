@@ -29,3 +29,4 @@ yarn-error.log
 # Si el repo se cambia a privado, se pueden quitar de esta lista.
 SECURITY_AUDIT.md
 DEUDA_TECNICA.md
+MERCADO_PAGO.md
