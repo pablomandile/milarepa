@@ -49,6 +49,14 @@ const form = useForm({
             horarios_por_dia: normalizarHorariosPorDia(configuracion.horarios_por_dia),
         }))
         : [],
+    excepciones_por_fecha: Array.isArray(props.oracionCantada.excepciones_por_fecha)
+        ? props.oracionCantada.excepciones_por_fecha.map((excepcion) => ({
+            mes: excepcion.fecha ? Number(String(excepcion.fecha).slice(5, 7)) : null,
+            fecha: excepcion.fecha ?? null,
+            hora: excepcion.hora ? String(excepcion.hora).slice(0, 5) : '',
+            mensaje: excepcion.mensaje ?? '',
+        }))
+        : [],
     modalidad_id: props.oracionCantada.modalidad_id ?? null,
     stream_id: props.oracionCantada.stream_id ?? null,
     imagen: props.oracionCantada.imagen ?? '',

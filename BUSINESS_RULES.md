@@ -307,6 +307,7 @@ Para cada usuario con `membresiaUsuario.membresia_id`:
 - `hora` (time): hora base / por defecto.
 - `horarios_por_dia` (JSON): mapa `{ "lunes": "08:00", "miercoles": "19:00" }` con un horario propio por cada día de la semana. Solo aplica si `Diaria`. Si un día seleccionado **no** tiene hora propia, se usa `hora` como valor por defecto (retrocompatible con oraciones cargadas antes de este campo).
 - `configuracion_por_mes` (JSON): array de objetos `{mes: N, periodicidad, dia, dias_semana, hora, horarios_por_dia}` que **sobrescribe** la configuración base para ese mes específico.
+- `excepciones_por_fecha` (JSON): array de objetos `{fecha: "YYYY-MM-DD", hora, mensaje}` que **decoran una fecha puntual** (year-specific). A diferencia de `configuracion_por_mes` (que reemplaza el mes entero), una excepción solo afecta esa fecha: si trae `hora` reemplaza la hora de esa ocurrencia; si trae `mensaje` (ej. "Centro cerrado", "Sin actividad") se muestra en la grilla pública y el calendario en lugar de la hora. Puede haber varias excepciones por mes. Solo decoran fechas que la config ya genera; nunca crean ocurrencias nuevas.
 
 ### 6.2 Resolución para un mes dado
 
@@ -316,7 +317,9 @@ Método `configuracionParaMes(CarbonInterface $month)`:
 2. Si `configuracion_por_mes` contiene una entrada con `mes = $month->month` → fusiona campo por campo, los valores del mes específico tienen prioridad.
 3. Devuelve la configuración efectiva.
 
-Para resolver la hora de un día concreto se usa el helper `horaParaDia(array $config, string $weekday)`: devuelve `config['horarios_por_dia'][$weekday]` si existe, o `config['hora']` como fallback. Lo usan tanto el calendario (`CalendarioController::buildOracionesCantadasCalendarItems`) como la página pública (`OracionesCantadasController::sesionesDeOracion`) al generar cada ocurrencia del mes.
+Para resolver la hora de un día concreto se usa el helper `horaParaDia(array $config, string $weekday)`: devuelve `config['horarios_por_dia'][$weekday]` si existe, o `config['hora']` como fallback.
+
+La generación de las ocurrencias del mes está centralizada en `OracionCantada::sesionesDelMes(CarbonInterface $monthStart, $monthEnd)`, que devuelve items `{fecha, hora, mensaje}` aplicando la config del mes, `horaParaDia` y las `excepciones_por_fecha`. La consumen tanto la página pública (`OracionesCantadasController::paginaPublica`) como el calendario (`CalendarioController::buildOracionesCantadasCalendarItems`), evitando duplicar el algoritmo.
 
 > Útil cuando, p. ej., una oración Diaria ocurre Lunes a las 08:00 y Miércoles a las 19:00, o cuando cambia su día/hora durante un retiro de un mes específico.
 
@@ -324,7 +327,11 @@ Para resolver la hora de un día concreto se usa el helper `horaParaDia(array $c
 
 No se permiten **dos bloques** de `configuracion_por_mes` para el mismo mes (regla `distinct` en `OracionCantadaRequest` + `->unique('mes')` en el controller). Para tener horarios distintos por día dentro de un mes **no** se agregan varios bloques: se usa el mapa `horarios_por_dia` de ese único bloque (o de la config general).
 
-> Normalización (`OracionesCantadasController::normalizePayload`): al guardar, `horarios_por_dia` conserva solo las claves de días realmente seleccionados (`dias_semana`) y con formato `HH:mm` válido; queda `null` si la periodicidad es `Mensual` o si no quedó ningún horario. Los inputs de hora vacíos se descartan antes de validar (`prepareForValidation`).
+> Normalización (`OracionesCantadasController::normalizePayload`): al guardar, `horarios_por_dia` conserva solo las claves de días realmente seleccionados (`dias_semana`) y con formato `HH:mm` válido; queda `null` si la periodicidad es `Mensual` o si no quedó ningún horario. Los inputs de hora vacíos se descartan antes de validar (`prepareForValidation`). Las `excepciones_por_fecha` se normalizan aparte (`normalizeExcepcionesPorFecha`): se descartan las que no tienen ni hora ni mensaje, se deduplican por `fecha` y se ordenan.
+
+### 6.4 Excepción para una fecha puntual
+
+Para cambiar **una sola fecha** (no todo el mes) se usa `excepciones_por_fecha`. En el formulario de admin, la sección "Excepciones por fecha" ofrece un select de fecha poblado con las ocurrencias que la config efectiva genera para el mes elegido, más una hora y/o mensaje opcionales. La regla `excepciones_por_fecha.*.fecha` es `distinct` (una excepción por fecha) y cada excepción exige al menos hora **o** mensaje (`withValidator`). Como la fecha es completa (year-specific), solo aparece en la grilla/calendario cuando ese mes/año es el que se está mostrando.
 
 ---
 

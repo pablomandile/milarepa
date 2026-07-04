@@ -41,6 +41,29 @@ class OracionCantadaRequest extends FormRequest
                 ->all();
         }
 
+        // Una hora o un mensaje sin completar llegan como "": los pasamos a null para
+        // que "nullable" los exima de date_format/string y no sean falsos errores.
+        if (is_array($this->input('excepciones_por_fecha'))) {
+            $merge['excepciones_por_fecha'] = collect($this->input('excepciones_por_fecha'))
+                ->map(function ($excepcion) {
+                    if (!is_array($excepcion)) {
+                        return $excepcion;
+                    }
+
+                    if (array_key_exists('hora', $excepcion) && !(is_string($excepcion['hora']) && $excepcion['hora'] !== '')) {
+                        $excepcion['hora'] = null;
+                    }
+
+                    if (array_key_exists('mensaje', $excepcion)) {
+                        $mensaje = is_string($excepcion['mensaje']) ? trim($excepcion['mensaje']) : null;
+                        $excepcion['mensaje'] = $mensaje === '' ? null : $mensaje;
+                    }
+
+                    return $excepcion;
+                })
+                ->all();
+        }
+
         if (!empty($merge)) {
             $this->merge($merge);
         }
@@ -71,6 +94,10 @@ class OracionCantadaRequest extends FormRequest
             'configuracion_por_mes.*.hora' => ['required', 'date_format:H:i'],
             'configuracion_por_mes.*.horarios_por_dia' => ['nullable', 'array'],
             'configuracion_por_mes.*.horarios_por_dia.*' => ['nullable', 'date_format:H:i'],
+            'excepciones_por_fecha' => ['nullable', 'array'],
+            'excepciones_por_fecha.*.fecha' => ['required', 'date_format:Y-m-d', 'distinct'],
+            'excepciones_por_fecha.*.hora' => ['nullable', 'date_format:H:i'],
+            'excepciones_por_fecha.*.mensaje' => ['nullable', 'string', 'max:255'],
             'modalidad_id' => ['nullable', 'exists:modalidades,id'],
             'stream_id' => ['nullable', 'exists:streams,id'],
             'imagen' => ['nullable', 'string', 'max:2048'],
@@ -106,6 +133,15 @@ class OracionCantadaRequest extends FormRequest
                     $validator->errors()->add("configuracion_por_mes.$index.dias_semana", 'Debe seleccionar al menos un dia de la semana para la configuracion mensual diaria.');
                 }
             }
+
+            foreach ((array) $this->input('excepciones_por_fecha', []) as $index => $excepcion) {
+                $tieneHora = is_string($excepcion['hora'] ?? null) && ($excepcion['hora'] ?? '') !== '';
+                $tieneMensaje = is_string($excepcion['mensaje'] ?? null) && trim($excepcion['mensaje'] ?? '') !== '';
+
+                if (!$tieneHora && !$tieneMensaje) {
+                    $validator->errors()->add("excepciones_por_fecha.$index.hora", 'Indica una hora o un mensaje para la fecha.');
+                }
+            }
         });
     }
 
@@ -126,6 +162,11 @@ class OracionCantadaRequest extends FormRequest
             'configuracion_por_mes.*.hora.date_format' => __('La hora personalizada debe tener formato hh:mm'),
             'horarios_por_dia.*.date_format' => __('El horario por dia debe tener formato hh:mm'),
             'configuracion_por_mes.*.horarios_por_dia.*.date_format' => __('El horario por dia debe tener formato hh:mm'),
+            'excepciones_por_fecha.*.fecha.required' => __('La fecha de la excepcion es obligatoria'),
+            'excepciones_por_fecha.*.fecha.date_format' => __('La fecha de la excepcion debe tener formato aaaa-mm-dd'),
+            'excepciones_por_fecha.*.fecha.distinct' => __('No puede haber dos excepciones para la misma fecha'),
+            'excepciones_por_fecha.*.hora.date_format' => __('La hora de la excepcion debe tener formato hh:mm'),
+            'excepciones_por_fecha.*.mensaje.max' => __('El mensaje no puede superar los 255 caracteres'),
         ];
     }
 }

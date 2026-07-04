@@ -78,7 +78,7 @@ class OracionesCantadasController extends Controller
         $oraciones = OracionCantada::query()
             ->with(['modalidad:id,nombre'])
             ->orderBy('nombre')
-            ->get(['id', 'nombre', 'imagen', 'descripcion', 'periodicidad', 'dia', 'dias_semana', 'hora', 'configuracion_por_mes', 'stream_id', 'modalidad_id'])
+            ->get(['id', 'nombre', 'imagen', 'descripcion', 'periodicidad', 'dia', 'dias_semana', 'hora', 'horarios_por_dia', 'configuracion_por_mes', 'excepciones_por_fecha', 'stream_id', 'modalidad_id'])
             // "Todas menos las que son online": se descartan las transmitidas por stream
             // o cuya modalidad es exclusivamente "Online".
             ->reject(fn (OracionCantada $oracion) => $this->esOracionOnline($oracion))
@@ -94,7 +94,7 @@ class OracionesCantadasController extends Controller
                 'periodicidad' => $config['periodicidad'],
                 'dia_label' => $this->oracionDiaLabel($config),
                 'hora_label' => $config['hora'] ? Carbon::parse($config['hora'])->format('H:i') . ' hs' : null,
-                'fechas' => $this->sesionesDeOracion($oracion, $monthStart, $monthEnd),
+                'fechas' => $oracion->sesionesDelMes($monthStart, $monthEnd),
             ];
         })->values();
 
@@ -163,64 +163,6 @@ class OracionesCantadasController extends Controller
         }
 
         return implode(', ', array_map(fn ($d) => $labels[$d], $ordered));
-    }
-
-    /**
-     * Genera las fechas de una oración dentro del mes (fecha + hora), con la misma
-     * lógica que usa el calendario (Mensual por día del mes, Diaria por días de la
-     * semana, respetando la configuración personalizada por mes).
-     */
-    private function sesionesDeOracion(OracionCantada $oracion, Carbon $monthStart, Carbon $monthEnd): array
-    {
-        $weekdayMap = [
-            1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves',
-            5 => 'viernes', 6 => 'sabado', 7 => 'domingo',
-        ];
-
-        $config = $oracion->configuracionParaMes($monthStart);
-        $hora = $config['hora'] ? Carbon::parse($config['hora'])->format('H:i') : null;
-        $fechas = [];
-
-        if ($config['periodicidad'] === 'Mensual') {
-            $dia = (int) ($config['dia'] ?? 0);
-            if ($dia === 29 && $monthStart->daysInMonth === 28) {
-                $dia = 28;
-            }
-
-            if ($dia >= 1 && $dia <= $monthStart->daysInMonth) {
-                $fechas[] = [
-                    'fecha' => $monthStart->copy()->day($dia)->toDateString(),
-                    'hora' => $hora,
-                ];
-            }
-
-            return $fechas;
-        }
-
-        if ($config['periodicidad'] !== 'Diaria') {
-            return $fechas;
-        }
-
-        $diasSemana = collect($config['dias_semana'] ?? [])->map(fn ($d) => (string) $d);
-        if ($diasSemana->isEmpty()) {
-            return $fechas;
-        }
-
-        for ($cursor = $monthStart->copy(); $cursor->lte($monthEnd); $cursor->addDay()) {
-            $weekday = $weekdayMap[$cursor->dayOfWeekIso] ?? null;
-            if (!$weekday || !$diasSemana->contains($weekday)) {
-                continue;
-            }
-
-            $horaDia = $oracion->horaParaDia($config, $weekday);
-
-            $fechas[] = [
-                'fecha' => $cursor->toDateString(),
-                'hora' => $horaDia ? Carbon::parse($horaDia)->format('H:i') : null,
-            ];
-        }
-
-        return $fechas;
     }
 
     public function edit(OracionCantada $oracionCantada)
@@ -295,7 +237,48 @@ class OracionesCantadasController extends Controller
             ->values()
             ->all();
 
+        $data['excepciones_por_fecha'] = $this->normalizeExcepcionesPorFecha($data['excepciones_por_fecha'] ?? []);
+
         return $data;
+    }
+
+    /**
+     * Normaliza las excepciones por fecha: conserva la fecha (Y-m-d), la hora en
+     * formato HH:mm (o null) y el mensaje sin espacios sobrantes (o null). Descarta
+     * las excepciones que no aportan nada (sin hora ni mensaje) y las duplicadas.
+     */
+    private function normalizeExcepcionesPorFecha(array $excepciones): ?array
+    {
+        $normalizadas = collect($excepciones)
+            ->map(function ($excepcion) {
+                if (!is_array($excepcion)) {
+                    return null;
+                }
+
+                $fecha = (string) ($excepcion['fecha'] ?? '');
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha) !== 1) {
+                    return null;
+                }
+
+                $hora = $excepcion['hora'] ?? null;
+                $hora = is_string($hora) && preg_match('/^\d{2}:\d{2}$/', $hora) === 1 ? $hora : null;
+
+                $mensaje = $excepcion['mensaje'] ?? null;
+                $mensaje = is_string($mensaje) && trim($mensaje) !== '' ? trim($mensaje) : null;
+
+                if ($hora === null && $mensaje === null) {
+                    return null;
+                }
+
+                return ['fecha' => $fecha, 'hora' => $hora, 'mensaje' => $mensaje];
+            })
+            ->filter()
+            ->unique('fecha')
+            ->sortBy('fecha')
+            ->values()
+            ->all();
+
+        return empty($normalizadas) ? null : $normalizadas;
     }
 
     /**

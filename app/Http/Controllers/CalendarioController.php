@@ -148,70 +148,22 @@ class CalendarioController extends Controller
 
     private function buildOracionesCantadasCalendarItems(Carbon $monthStart, Carbon $monthEnd)
     {
-        $weekdayMap = [
-            1 => 'lunes',
-            2 => 'martes',
-            3 => 'miercoles',
-            4 => 'jueves',
-            5 => 'viernes',
-            6 => 'sabado',
-            7 => 'domingo',
-        ];
-
         $items = collect();
 
         $oraciones = OracionCantada::query()
             ->where('mostrar_en_calendario', true)
             ->orderBy('hora')
             ->orderBy('nombre')
-            ->get(['id', 'nombre', 'periodicidad', 'dia', 'dias_semana', 'hora', 'configuracion_por_mes']);
+            ->get(['id', 'nombre', 'periodicidad', 'dia', 'dias_semana', 'hora', 'horarios_por_dia', 'configuracion_por_mes', 'excepciones_por_fecha']);
 
         foreach ($oraciones as $oracion) {
-            $configuracion = $oracion->configuracionParaMes($monthStart);
-
-            if ($configuracion['periodicidad'] === 'Mensual') {
-                $dia = (int) ($configuracion['dia'] ?? 0);
-                if ($dia === 29 && $monthStart->daysInMonth === 28) {
-                    $dia = 28;
-                }
-
-                if ($dia < 1 || $dia > $monthStart->daysInMonth) {
-                    continue;
-                }
-
-                $fecha = $monthStart->copy()->day($dia);
+            foreach ($oracion->sesionesDelMes($monthStart, $monthEnd) as $sesion) {
                 $items->push([
                     'id' => $oracion->id,
                     'nombre' => $oracion->nombre,
-                    'fecha' => $fecha->toDateString(),
-                    'hora' => $configuracion['hora'] ? Carbon::parse($configuracion['hora'])->format('H:i') : null,
-                    'tipo' => 'oracion',
-                ]);
-                continue;
-            }
-
-            if ($configuracion['periodicidad'] !== 'Diaria') {
-                continue;
-            }
-
-            $diasSemana = collect($configuracion['dias_semana'] ?? [])->map(fn ($d) => (string) $d)->values();
-            if ($diasSemana->isEmpty()) {
-                continue;
-            }
-
-            for ($cursor = $monthStart->copy(); $cursor->lte($monthEnd); $cursor->addDay()) {
-                $weekday = $weekdayMap[$cursor->dayOfWeekIso] ?? null;
-                if (!$weekday || !$diasSemana->contains($weekday)) {
-                    continue;
-                }
-
-                $horaDia = $oracion->horaParaDia($configuracion, $weekday);
-
-                $items->push([
-                    'id' => $oracion->id,
-                    'nombre' => $oracion->nombre,
-                    'fecha' => $cursor->toDateString(),
-                    'hora' => $horaDia ? Carbon::parse($horaDia)->format('H:i') : null,
+                    'fecha' => $sesion['fecha'],
+                    'hora' => $sesion['hora'],
+                    'mensaje' => $sesion['mensaje'] ?? null,
                     'tipo' => 'oracion',
                 ]);
             }

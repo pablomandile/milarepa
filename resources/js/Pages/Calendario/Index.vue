@@ -178,6 +178,9 @@ function claseHref(claseId) {
 }
 
 function itemLabel(item) {
+  if (item?.esOracionCantada && item?.mensaje) {
+    return `${item.nombre} — ${item.mensaje}`;
+  }
   const hora = item?.hora || item?.hora_inicio;
   return hora ? `${hora} hs. ${item.nombre}` : item.nombre;
 }

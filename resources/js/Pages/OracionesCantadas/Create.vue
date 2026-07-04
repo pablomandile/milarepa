@@ -29,6 +29,7 @@ const form = useForm({
     horarios_por_dia: {},
     periodicidad: 'Mensual',
     configuracion_por_mes: [],
+    excepciones_por_fecha: [],
     modalidad_id: null,
     stream_id: null,
     imagen: '',

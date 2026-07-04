@@ -117,6 +117,108 @@ function isConfiguracionDiaria(configuracion) {
     return configuracion?.periodicidad === 'Diaria';
 }
 
+// ===== Excepciones por fecha =====
+// Overrides puntuales sobre una fecha concreta: cambian la hora de ese dia o traen
+// un mensaje (ej. "Centro cerrado"). El select de fecha se arma con las fechas que la
+// configuracion efectiva de ese mes genera (base, u override mensual si existe).
+const mensajeSugerencias = ['Centro cerrado', 'Sin actividad'];
+const weekdayJsToNombre = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+const excepcionesPorFecha = computed(() => Array.isArray(props.form.excepciones_por_fecha) ? props.form.excepciones_por_fecha : []);
+
+const pad2 = (n) => String(n).padStart(2, '0');
+
+// Las excepciones guardan fecha completa (year-specific). Como la grilla publica
+// muestra el mes en curso, por defecto usamos el anio actual; si el mes elegido ya
+// paso este anio, ofrecemos el del anio siguiente para no listar fechas pasadas.
+function anioParaMes(mes) {
+    const now = new Date();
+    const mesActual = now.getMonth() + 1;
+    return mes && mes < mesActual ? now.getFullYear() + 1 : now.getFullYear();
+}
+
+function configEfectivaDelMes(mes) {
+    const override = (props.form.configuracion_por_mes || []).find((c) => Number(c?.mes) === Number(mes));
+    if (override && override.periodicidad) {
+        return {
+            periodicidad: override.periodicidad,
+            dia: override.dia,
+            dias_semana: Array.isArray(override.dias_semana) ? override.dias_semana : [],
+        };
+    }
+    return {
+        periodicidad: props.form.periodicidad,
+        dia: props.form.dia,
+        dias_semana: Array.isArray(props.form.dias_semana) ? props.form.dias_semana : [],
+    };
+}
+
+function labelFecha(dia, nombreDia) {
+    const label = nombreDia ? nombreDia.charAt(0).toUpperCase() + nombreDia.slice(1) : '';
+    return `${label} ${dia}`.trim();
+}
+
+function fechasCandidatasDelMes(mes, anio) {
+    if (!mes) return [];
+    const year = anio || anioParaMes(mes);
+    const config = configEfectivaDelMes(mes);
+    const diasEnMes = new Date(year, mes, 0).getDate();
+    const opciones = [];
+
+    if (config.periodicidad === 'Mensual') {
+        let dia = Number(config.dia || 0);
+        if (dia === 29 && diasEnMes === 28) dia = 28;
+        if (dia >= 1 && dia <= diasEnMes) {
+            const nombreDia = weekdayJsToNombre[new Date(year, mes - 1, dia).getDay()];
+            opciones.push({ value: `${year}-${pad2(mes)}-${pad2(dia)}`, label: labelFecha(dia, nombreDia) });
+        }
+        return opciones;
+    }
+
+    if (config.periodicidad !== 'Diaria') return [];
+
+    const dias = config.dias_semana || [];
+    if (!dias.length) return [];
+
+    for (let d = 1; d <= diasEnMes; d++) {
+        const nombreDia = weekdayJsToNombre[new Date(year, mes - 1, d).getDay()];
+        if (!dias.includes(nombreDia)) continue;
+        opciones.push({ value: `${year}-${pad2(mes)}-${pad2(d)}`, label: labelFecha(d, nombreDia) });
+    }
+    return opciones;
+}
+
+// Opciones del select de fecha de una excepcion. Usa el anio de la fecha ya guardada
+// (edicion) o el heuristico segun el mes, y garantiza que la fecha guardada siga
+// siendo seleccionable aunque ya no matchee la configuracion base.
+function opcionesFechaParaExcepcion(excepcion) {
+    const anio = excepcion?.fecha && /^\d{4}-/.test(excepcion.fecha)
+        ? Number(excepcion.fecha.slice(0, 4))
+        : anioParaMes(excepcion?.mes);
+    let opciones = fechasCandidatasDelMes(excepcion?.mes, anio);
+
+    if (excepcion?.fecha && !opciones.some((o) => o.value === excepcion.fecha)) {
+        const [y, m, d] = excepcion.fecha.split('-').map(Number);
+        const nombreDia = weekdayJsToNombre[new Date(y, m - 1, d).getDay()];
+        opciones = [{ value: excepcion.fecha, label: labelFecha(d, nombreDia) }, ...opciones];
+    }
+    return opciones;
+}
+
+function nuevaExcepcionPorFecha() {
+    return { mes: null, fecha: null, hora: '', mensaje: '' };
+}
+
+function agregarExcepcionPorFecha() {
+    if (!Array.isArray(props.form.excepciones_por_fecha)) {
+        props.form.excepciones_por_fecha = [];
+    }
+    props.form.excepciones_por_fecha.push(nuevaExcepcionPorFecha());
+}
+
+function quitarExcepcionPorFecha(index) {
+    props.form.excepciones_por_fecha.splice(index, 1);
+}
+
 const selectedImageFile = ref(null);
 const selectedImagePreview = ref(null);
 const isUploadingImage = ref(false);
@@ -458,6 +560,111 @@ watch(
                         <InputError :message="$page.props.errors[`configuracion_por_mes.${index}.dias_semana`]" class="mt-2" />
                     </div>
                 </div>
+            </div>
+
+            <div class="col-span-6 sm:col-span-6 mt-6 rounded-lg border border-amber-100 bg-amber-50/40 p-4">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Excepciones por fecha</h3>
+                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                            Cambia la hora de una fecha puntual o marca un mensaje (ej. "Centro cerrado"). Se aplica solo a esa fecha; el resto del mes usa la configuracion general.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="inline-flex items-center justify-center rounded bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700"
+                        @click="agregarExcepcionPorFecha"
+                    >
+                        Agregar excepcion
+                    </button>
+                </div>
+
+                <div v-if="excepcionesPorFecha.length === 0" class="mt-4 rounded border border-dashed border-amber-200 bg-white dark:bg-gray-800 px-3 py-3 text-sm text-gray-500">
+                    No hay excepciones por fecha.
+                </div>
+
+                <div
+                    v-for="(excepcion, index) in excepcionesPorFecha"
+                    :key="`excepcion-${index}`"
+                    class="mt-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4"
+                >
+                    <div class="flex items-center justify-between gap-3">
+                        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Excepcion {{ index + 1 }}</h4>
+                        <button
+                            type="button"
+                            class="rounded bg-red-100 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-200"
+                            @click="quitarExcepcionPorFecha(index)"
+                        >
+                            Quitar
+                        </button>
+                    </div>
+
+                    <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <div>
+                            <InputLabel :for="`excepcion_mes_${index}`" value="Mes" :required="true" />
+                            <Dropdown
+                                :id="`excepcion_mes_${index}`"
+                                v-model="excepcion.mes"
+                                :options="mesesOptions"
+                                optionLabel="label"
+                                optionValue="value"
+                                placeholder="Seleccione mes"
+                                class="mt-1 w-full border border-gray-300 dark:border-gray-600"
+                                @change="excepcion.fecha = null"
+                            />
+                        </div>
+
+                        <div>
+                            <InputLabel :for="`excepcion_fecha_${index}`" value="Fecha" :required="true" />
+                            <Dropdown
+                                :id="`excepcion_fecha_${index}`"
+                                v-model="excepcion.fecha"
+                                :options="opcionesFechaParaExcepcion(excepcion)"
+                                optionLabel="label"
+                                optionValue="value"
+                                :placeholder="excepcion.mes ? 'Seleccione fecha' : 'Elegi un mes primero'"
+                                :disabled="!excepcion.mes"
+                                class="mt-1 w-full border border-gray-300 dark:border-gray-600"
+                            />
+                            <InputError :message="$page.props.errors[`excepciones_por_fecha.${index}.fecha`]" class="mt-2" />
+                        </div>
+
+                        <div>
+                            <InputLabel :for="`excepcion_hora_${index}`" value="Hora (opcional)" />
+                            <input
+                                :id="`excepcion_hora_${index}`"
+                                v-model="excepcion.hora"
+                                type="time"
+                                step="60"
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            />
+                            <InputError :message="$page.props.errors[`excepciones_por_fecha.${index}.hora`]" class="mt-2" />
+                        </div>
+
+                        <div>
+                            <InputLabel :for="`excepcion_mensaje_${index}`" value="Mensaje (opcional)" />
+                            <input
+                                :id="`excepcion_mensaje_${index}`"
+                                v-model="excepcion.mensaje"
+                                type="text"
+                                maxlength="255"
+                                list="excepcion-mensaje-sugerencias"
+                                placeholder="Ej. Centro cerrado"
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            />
+                            <InputError :message="$page.props.errors[`excepciones_por_fecha.${index}.mensaje`]" class="mt-2" />
+                        </div>
+                    </div>
+
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Indica una hora, un mensaje, o ambos. Si dejas un mensaje, se muestra en lugar de la hora en la grilla publica.
+                    </p>
+                </div>
+
+                <datalist id="excepcion-mensaje-sugerencias">
+                    <option v-for="sugerencia in mensajeSugerencias" :key="sugerencia" :value="sugerencia" />
+                </datalist>
             </div>
 
             <div class="col-span-6 sm:col-span-6 mt-3">

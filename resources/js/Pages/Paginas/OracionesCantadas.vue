@@ -141,7 +141,16 @@ const groupFechasByWeekday = (fechas) => {
                                                     class="border-t border-slate-100 dark:border-gray-700 odd:bg-white dark:odd:bg-gray-700 even:bg-slate-50 dark:even:bg-gray-800"
                                                 >
                                                     <td class="px-3 py-3 text-slate-700 dark:text-gray-200 whitespace-nowrap align-top">{{ formatMonthDay(fh.fecha) }}</td>
-                                                    <td class="px-3 py-3 text-slate-600 dark:text-gray-300 whitespace-nowrap align-top">{{ formatItemTime(fh) }}</td>
+                                                    <td class="px-3 py-3 align-top">
+                                                        <span
+                                                            v-if="fh.mensaje"
+                                                            class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-base font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+                                                        >
+                                                            <i class="pi pi-exclamation-triangle text-sm"></i>
+                                                            {{ fh.mensaje }}
+                                                        </span>
+                                                        <span v-else class="text-slate-600 dark:text-gray-300 whitespace-nowrap">{{ formatItemTime(fh) }}</span>
+                                                    </td>
                                                 </tr>
                                             </tbody>
                                         </table>
