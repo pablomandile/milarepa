@@ -21,6 +21,7 @@ import MultiSelect from 'primevue/multiselect';
 import Textarea from 'primevue/textarea';
 import InputSwitch from 'primevue/inputswitch';
 import SingleImageUploader from '@/Components/SingleImageUploader.vue';
+import { renderMarkdown } from '@/composables/useActividadHelpers';
 
 const emit = defineEmits(['submit', 'refresh-descripciones', 'refresh-catalogo']);
 
@@ -253,6 +254,55 @@ const esquemasPreciosOrdenados = computed(() => {
 const dialogVisible = ref(false);
 const dialogTitle = ref('');
 const detalleSeleccionado = ref(null);
+const detalleTipo = ref('');
+
+// Config visual (ícono + acento de color) por tipo de detalle.
+// IMPORTANTE: las clases deben ir completas y literales (Tailwind purga las cadenas interpoladas).
+const TIPO_CONFIG = {
+  descripciones: {
+    icon: 'pi pi-align-left',
+    iconWrap: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300',
+    label: 'text-indigo-500 dark:text-indigo-300',
+  },
+  entidades: {
+    icon: 'pi pi-building',
+    iconWrap: 'bg-sky-100 text-sky-600 dark:bg-sky-500/20 dark:text-sky-300',
+    label: 'text-sky-500 dark:text-sky-300',
+  },
+  lugares: {
+    icon: 'pi pi-map-marker',
+    iconWrap: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300',
+    label: 'text-emerald-500 dark:text-emerald-300',
+  },
+  esquema_precios: {
+    icon: 'pi pi-dollar',
+    iconWrap: 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300',
+    label: 'text-amber-500 dark:text-amber-300',
+  },
+  esquema_descuentos: {
+    icon: 'pi pi-percentage',
+    iconWrap: 'bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-300',
+    label: 'text-rose-500 dark:text-rose-300',
+  },
+  programas: {
+    icon: 'pi pi-book',
+    iconWrap: 'bg-violet-100 text-violet-600 dark:bg-violet-500/20 dark:text-violet-300',
+    label: 'text-violet-500 dark:text-violet-300',
+  },
+  grabaciones: {
+    icon: 'pi pi-video',
+    iconWrap: 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-300',
+    label: 'text-red-500 dark:text-red-300',
+  },
+  streams: {
+    icon: 'pi pi-wifi',
+    iconWrap: 'bg-cyan-100 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-300',
+    label: 'text-cyan-500 dark:text-cyan-300',
+  },
+};
+
+const tipoConfig = computed(() => TIPO_CONFIG[detalleTipo.value] || TIPO_CONFIG.descripciones);
+
 const conDescuentoAnticipado = ref(false);
 const ofreceGrabacion = ref(!!props.form.grabacion_id);
 const ofreceHospedaje = ref(!!props.form.lugar_hospedaje_id || (Array.isArray(props.form.hospedajes_ids) && props.form.hospedajes_ids.length > 0));
@@ -270,6 +320,7 @@ const botonPagoUnico = ref(!!props.form.botonpago_id);
  function verDetalle(arrayName, id, title) {
   if (!id) return;
   dialogTitle.value = title;
+  detalleTipo.value = arrayName;
 
   // Acceder al array por su nombre
   const arrayData = props[arrayName];
@@ -280,7 +331,7 @@ const botonPagoUnico = ref(!!props.form.botonpago_id);
 
   // Mostrar dialog
   dialogVisible.value = true;
-  
+
 }
 
 function formatDatetime(date) {
@@ -467,9 +518,9 @@ watch(
 
     <!-- Formulario principal -->
     <template #form>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Header que ocupa las 3 columnas (se muestra solo si hideHeader === false) -->
-        <div v-if="!hideHeader" class="md:col-span-3">
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <!-- Header que ocupa las 6 columnas (se muestra solo si hideHeader === false) -->
+        <div v-if="!hideHeader" class="md:col-span-6">
           <h2 class="text-2xl font-semibold text-indigo-600">
             {{ updating ? 'Actualizar Actividad' : 'Nueva Actividad' }}
           </h2>
@@ -624,6 +675,8 @@ watch(
             :options="maestrosOrdenados"
             optionLabel="nombre"
             optionValue="id"
+            filter
+            filterPlaceholder="Buscar maestro"
             class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             placeholder="Seleccione maestro/s"
           />
@@ -643,6 +696,8 @@ watch(
             :options="coordinadoresOrdenados"
             optionLabel="nombre"
             optionValue="id"
+            filter
+            filterPlaceholder="Buscar coordinador"
             class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             placeholder="Seleccione coordinador/es"
           />
@@ -650,10 +705,10 @@ watch(
         </div>
 
         <!-- Fechas (Inicio + Fin) -->
-        <div class="col-span-6 md:col-span-3">
+        <div class="col-span-6 sm:col-span-6">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Fecha Inicio -->
-            <div>
+            <div class="min-w-0">
               <InputLabel
                 for="fecha_inicio"
                 class="text-indigo-400"
@@ -677,7 +732,7 @@ watch(
             </div>
 
             <!-- Fecha Fin -->
-            <div>
+            <div class="min-w-0">
               <InputLabel
                 for="fecha_fin"
                 class="text-indigo-400"
@@ -916,7 +971,7 @@ watch(
         </div>
 
         <!-- Fecha para descuentos -->
-        <div v-if="conDescuentoAnticipado" class="col-span-6 sm:col-span-2">
+        <div v-if="conDescuentoAnticipado" class="col-span-6 sm:col-span-4">
           <InputLabel
             for="pagoAmticipado"
             class="text-indigo-400"
@@ -1412,103 +1467,161 @@ watch(
     </template>
   </FormSection>
   <!-- ... -->
-   <!-- Dialog Generico -->
+   <!-- Dialog Generico de detalle -->
    <Dialog
       v-model:visible="dialogVisible"
-      :header="dialogTitle"
-      :style="{ width: '50vw' }"
+      :style="{ width: '92vw', maxWidth: '620px' }"
+      :breakpoints="{ '640px': '95vw' }"
       dismissableMask
       modal
     >
-    <template v-if="detalleSeleccionado">
-      <!-- Aquí muestras la info según sea la data. Por ejemplo: -->
-      <h3 class="text-xl font-bold mb-2">{{ detalleSeleccionado.nombre }}</h3>
-      <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-        <!-- Muestra 'contenido' o 'descripcion' o 'info', depende de tu objeto -->
-        {{ detalleSeleccionado.contenido || detalleSeleccionado.descripcion }}
-      </p>
-      <p v-if="detalleSeleccionado.direccion">
-        <strong>Dirección:</strong> {{ detalleSeleccionado.direccion }}
-      </p>
-      <p v-if="detalleSeleccionado.programa">
-        <strong>Programa:</strong> {{ detalleSeleccionado.programa }}
-      </p>
-    </template>
-    <template v-else>
-      <p>No se encontró la información solicitada.</p>
-    </template>
-
-    <!-- Comprobamos si hay 'membresias' -->
-    <div v-if="detalleSeleccionado.membresias && detalleSeleccionado.membresias.length > 0">
-      <h4 class="font-semibold mt-4 mb-2">Membresías</h4>
-
-      <ul class="space-y-2">
-        <li
-          v-for="(line, idx) in detalleSeleccionado.membresias"
-          :key="line.id"
-          class="border p-2 rounded"
+    <!-- Encabezado custom con ícono + color por tipo -->
+    <template #header>
+      <div class="flex items-center gap-3">
+        <span
+          class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+          :class="tipoConfig.iconWrap"
         >
-          <!-- Ejemplo de campos:
-               line.precio, line.moneda.simbolo, line.membresia.nombre, line.membresia.entidad.abreviacion -->
-          <strong class="block">
-            <!-- Nombre de la Membresía -->
-            {{ line.membresia ? line.membresia.nombre : 'â€”' }}
-          </strong>
+          <i :class="[tipoConfig.icon, 'text-lg']"></i>
+        </span>
+        <div class="min-w-0">
+          <p class="text-xs font-semibold uppercase tracking-wide" :class="tipoConfig.label">
+            {{ dialogTitle }}
+          </p>
+          <h3 class="truncate text-lg font-bold text-gray-800 dark:text-gray-100">
+            {{ detalleSeleccionado?.nombre || '—' }}
+          </h3>
+        </div>
+      </div>
+    </template>
 
-          <!-- Precio + Moneda -->
-          <span v-if="line.moneda">
-            {{ line.moneda.simbolo }} {{ line.precio }}
-          </span>
-          <span v-else>
-            ${{ line.precio }}
-          </span>
+    <!-- Cuerpo -->
+    <div v-if="detalleSeleccionado" class="space-y-4">
+      <!-- Descripción (markdown renderizado, misma visual que la vista pública) -->
+      <div
+        v-if="detalleSeleccionado.descripcion"
+        class="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-700 dark:bg-gray-900"
+      >
+        <div
+          class="prose prose-sm max-w-none dark:prose-invert"
+          v-html="renderMarkdown(detalleSeleccionado.descripcion)"
+        ></div>
+      </div>
 
-          <!-- Entidad abreviación, si aplica -->
-          <span v-if="line.membresia && line.membresia.entidad">
-            ({{ line.membresia.entidad.abreviacion }})
-          </span>
-        </li>
-      </ul>
+      <!-- Dirección -->
+      <div
+        v-if="detalleSeleccionado.direccion"
+        class="flex items-start gap-2 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+      >
+        <i class="pi pi-map-marker mt-0.5 text-emerald-500"></i>
+        <span>{{ detalleSeleccionado.direccion }}</span>
+      </div>
+
+      <!-- Programa (markdown renderizado) -->
+      <div
+        v-if="detalleSeleccionado.programa"
+        class="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-700 dark:bg-gray-900"
+      >
+        <div
+          class="prose prose-sm max-w-none dark:prose-invert"
+          v-html="renderMarkdown(detalleSeleccionado.programa)"
+        ></div>
+      </div>
+
+      <!-- Membresías -->
+      <div v-if="detalleSeleccionado.membresias && detalleSeleccionado.membresias.length">
+        <h4 class="mb-2 text-sm font-semibold text-gray-800 dark:text-gray-100">Membresías</h4>
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div
+            v-for="line in detalleSeleccionado.membresias"
+            :key="line.id"
+            class="rounded-lg border border-slate-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-semibold text-slate-800 dark:text-gray-100">
+                {{ line.membresia ? line.membresia.nombre : '—' }}
+              </span>
+              <span
+                v-if="line.membresia && line.membresia.entidad"
+                class="shrink-0 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300"
+              >
+                {{ line.membresia.entidad.abreviacion }}
+              </span>
+            </div>
+            <div class="mt-1 text-lg font-bold text-amber-600 dark:text-amber-400">
+              {{ line.moneda?.simbolo || '$' }} {{ line.precio }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Links (Stream) -->
+      <div v-if="detalleSeleccionado.links && detalleSeleccionado.links.length">
+        <h4 class="mb-2 text-sm font-semibold text-gray-800 dark:text-gray-100">Links</h4>
+        <ul class="space-y-2">
+          <li v-for="line in detalleSeleccionado.links" :key="line.id">
+            <a
+              :href="line.link"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-cyan-300 hover:bg-cyan-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-cyan-700 dark:hover:bg-cyan-900/20"
+            >
+              <i class="pi pi-external-link text-cyan-500"></i>
+              <span class="min-w-0">
+                <span class="block font-medium text-slate-800 dark:text-gray-100">{{ line.nombre }}</span>
+                <span class="block truncate text-xs text-slate-500 dark:text-gray-400">{{ line.link }}</span>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Links de grabación -->
+      <div v-if="detalleSeleccionado.linksgrabacion && detalleSeleccionado.linksgrabacion.length">
+        <h4 class="mb-2 text-sm font-semibold text-gray-800 dark:text-gray-100">Links</h4>
+        <ul class="space-y-2">
+          <li v-for="line in detalleSeleccionado.linksgrabacion" :key="line.id">
+            <a
+              :href="line.link"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-red-300 hover:bg-red-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-700 dark:hover:bg-red-900/20"
+            >
+              <i class="pi pi-external-link text-red-500"></i>
+              <span class="min-w-0">
+                <span class="block font-medium text-slate-800 dark:text-gray-100">{{ line.nombre }}</span>
+                <span class="block truncate text-xs text-slate-500 dark:text-gray-400">{{ line.link }}</span>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
 
-    <div v-if="detalleSeleccionado.links && detalleSeleccionado.links.length > 0">
-      <h4 class="font-semibold mt-4 mb-2">Links</h4>
-
-      <ul class="space-y-2">
-        <li
-          v-for="(line, idx) in detalleSeleccionado.links"
-          :key="line.id"
-          class="border p-2 rounded"
-        >
-          <strong class="block">
-            {{ line.nombre }}
-          </strong>
-
-          <span v-if="line.link">
-            {{ line.link }}
-          </span>
-        </li>
-      </ul>
-    </div>
-
-    <div v-if="detalleSeleccionado.linksgrabacion && detalleSeleccionado.linksgrabacion.length > 0">
-      <h4 class="font-semibold mt-4 mb-2">Links</h4>
-
-      <ul class="space-y-2">
-        <li
-          v-for="(line, idx) in detalleSeleccionado.linksgrabacion"
-          :key="line.id"
-          class="border p-2 rounded"
-        >
-          <strong class="block">
-            {{ line.nombre }}
-          </strong>
-
-          <span v-if="line.link">
-            {{ line.link }}
-          </span>
-        </li>
-      </ul>
+    <!-- Estado vacío -->
+    <div v-else class="flex flex-col items-center justify-center gap-2 py-8 text-slate-400 dark:text-gray-500">
+      <i class="pi pi-inbox text-3xl"></i>
+      <p class="text-sm">No se encontró la información solicitada.</p>
     </div>
   </Dialog>
 </template>
+
+<!-- Estilo global (no scoped): el panel del MultiSelect se teletransporta al body,
+     así que un estilo scoped no lo alcanzaría. Da un borde visible a los checkbox
+     sobre fondo blanco (Métodos de Pago y demás MultiSelect del formulario). -->
+<style>
+.p-multiselect-panel .p-checkbox .p-checkbox-box {
+  border: 1px solid #64748b;
+}
+</style>
+
+<!-- El Calendar con showIcon se renderiza como inline-flex de ancho automático, por lo
+     que no ocupa el ancho completo ni arranca alineado a la izquierda como el resto de
+     los campos. Lo forzamos a flex de ancho completo (el root NO se teletransporta, así
+     que un estilo scoped :deep lo alcanza). -->
+<style scoped>
+:deep(.p-calendar) {
+  display: flex;
+  width: 100%;
+}
+</style>
