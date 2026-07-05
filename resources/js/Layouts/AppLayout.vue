@@ -247,7 +247,7 @@ const toggleMobileSection = (key) => {
                                         Estado de Cuenta Membresías
                                     </DropdownLink>
                                     <DropdownLink :href="route('membresias.gestion-usuarios')" :active="route().current('membresias.gestion-usuarios')">
-                                        Adminnistrar Membresías
+                                        Administrar Membresías
                                     </DropdownLink>
                                 </template>
                             </Dropdown>
@@ -392,6 +392,20 @@ const toggleMobileSection = (key) => {
                                         :active="route().current('configuracion.importar-membresias*')"
                                     >
                                         Importar Membresías (CSV)
+                                    </DropdownLink>
+                                    <DropdownLink
+                                        v-if="$page.props.user.roles?.includes('admin') || $page.props.user.roles?.includes('editor')"
+                                        :href="route('estadoinscripciones.importar')"
+                                        :active="route().current('estadoinscripciones.importar') || route().current('estadoinscripciones.importar.*')"
+                                    >
+                                        Importar Inscripciones
+                                    </DropdownLink>
+                                    <DropdownLink
+                                        v-if="$page.props.user.roles?.includes('admin') || $page.props.user.roles?.includes('editor')"
+                                        :href="route('estadoinscripciones.importar-multievento')"
+                                        :active="route().current('estadoinscripciones.importar-multievento') || route().current('estadoinscripciones.importar-multievento.*')"
+                                    >
+                                        Importar Multievento
                                     </DropdownLink>
                                 </template>
                             </Dropdown>
@@ -892,6 +906,20 @@ const toggleMobileSection = (key) => {
                                 :active="route().current('configuracion.importar-membresias*')"
                             >
                                 Importar Membresías (CSV)
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink
+                                v-if="$page.props.user.roles?.includes('admin') || $page.props.user.roles?.includes('editor')"
+                                :href="route('estadoinscripciones.importar')"
+                                :active="route().current('estadoinscripciones.importar') || route().current('estadoinscripciones.importar.*')"
+                            >
+                                Importar Inscripciones
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink
+                                v-if="$page.props.user.roles?.includes('admin') || $page.props.user.roles?.includes('editor')"
+                                :href="route('estadoinscripciones.importar-multievento')"
+                                :active="route().current('estadoinscripciones.importar-multievento') || route().current('estadoinscripciones.importar-multievento.*')"
+                            >
+                                Importar Multievento
                             </ResponsiveNavLink>
                         </div>
                     </div>

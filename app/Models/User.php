@@ -51,6 +51,7 @@ class User extends Authenticatable
         'programa_a_distancia',
         'telefono',
         'whatsapp',
+        'medio_comunicacion',
         'fecha_nacimiento',
         'sexo_id',
         'es_maestro',

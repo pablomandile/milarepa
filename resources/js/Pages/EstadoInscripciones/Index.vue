@@ -7,14 +7,22 @@
                     <i class="fas fa-clipboard-check mr-2 text-indigo-600"></i>
                     Estado de Inscripciones
                 </h2>
-                <Link
-                    v-if="canEdit"
-                    :href="route('estadoinscripciones.importar')"
-                    class="inline-flex items-center gap-2 rounded bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
-                >
-                    <i class="pi pi-upload"></i>
-                    Importar inscripciones
-                </Link>
+                <div v-if="canEdit" class="flex items-center gap-2">
+                    <Link
+                        :href="route('estadoinscripciones.importar')"
+                        class="inline-flex items-center gap-2 rounded bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                    >
+                        <i class="pi pi-upload"></i>
+                        Importar inscripciones
+                    </Link>
+                    <Link
+                        :href="route('estadoinscripciones.importar-multievento')"
+                        class="inline-flex items-center gap-2 rounded bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700"
+                    >
+                        <i class="pi pi-cloud-download"></i>
+                        Importar multievento
+                    </Link>
+                </div>
             </div>
         </template>
 

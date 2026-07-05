@@ -65,6 +65,7 @@ use App\Http\Controllers\ActividadesOnlineController;
 use App\Http\Controllers\MailInfoMembresiasController;
 use App\Http\Controllers\ImportarMembresiasController;
 use App\Http\Controllers\ImportarInscripcionesController;
+use App\Http\Controllers\ImportarMultieventoController;
 use App\Http\Controllers\ProgramaEstudiosController;
 use App\Http\Controllers\ProgramaGrabacionController;
 use App\Http\Controllers\AsistenciasController;
@@ -417,6 +418,19 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::delete('/estadoinscripciones/importar/reportes/{archivo}', [ImportarInscripcionesController::class, 'eliminarReporte'])
         ->where('archivo', '[\w\-.]+')
         ->name('estadoinscripciones.importar.reporte.eliminar');
+    // Importación multievento (planilla maestra consolidada). Antes del resource.
+    Route::get('/estadoinscripciones/importar-multievento', [ImportarMultieventoController::class, 'index'])
+        ->name('estadoinscripciones.importar-multievento');
+    Route::post('/estadoinscripciones/importar-multievento/preview', [ImportarMultieventoController::class, 'preview'])
+        ->name('estadoinscripciones.importar-multievento.preview');
+    Route::post('/estadoinscripciones/importar-multievento/confirmar', [ImportarMultieventoController::class, 'store'])
+        ->name('estadoinscripciones.importar-multievento.confirmar');
+    Route::get('/estadoinscripciones/importar-multievento/reportes/{archivo}', [ImportarMultieventoController::class, 'descargarReporte'])
+        ->where('archivo', '[\w\-.]+')
+        ->name('estadoinscripciones.importar-multievento.reporte.descargar');
+    Route::delete('/estadoinscripciones/importar-multievento/reportes/{archivo}', [ImportarMultieventoController::class, 'eliminarReporte'])
+        ->where('archivo', '[\w\-.]+')
+        ->name('estadoinscripciones.importar-multievento.reporte.eliminar');
     Route::get('/estadoinscripciones/{estadoinscripcion}/editar-data', [EstadoInscripcionesController::class, 'editarData'])
         ->name('estadoinscripciones.editar-data');
     Route::patch('/estadoinscripciones/{estadoinscripcion}/pago', [EstadoInscripcionesController::class, 'marcarPago'])

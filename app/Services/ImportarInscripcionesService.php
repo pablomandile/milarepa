@@ -7,6 +7,7 @@ use App\Models\Entidad;
 use App\Models\Inscripcion;
 use App\Models\Membresia;
 use App\Models\User;
+use App\Services\Concerns\ParseaCsvInscripciones;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,8 @@ use Illuminate\Support\Str;
  */
 class ImportarInscripcionesService
 {
+    use ParseaCsvInscripciones;
+
     /** Mapeo: clave interna => header esperado (se compara normalizado). */
     private const COLUMNAS = [
         'marca_temporal' => 'Marca temporal',
@@ -323,63 +326,6 @@ class ImportarInscripcionesService
         ];
     }
 
-    /**
-     * "TK CORAZÓN CMKA" / "SIN MEMBRESIA" → [membresia_id|null, nombre snapshot, mensaje|null]
-     */
-    private function resolverMembresia(string $raw, array $ctx): array
-    {
-        $up = Str::upper(Str::ascii(trim($raw)));
-        if ($up === '' || Str::contains($up, 'SIN MEMBRESIA')) {
-            return [null, 'Sin membresía', null];
-        }
-
-        // Entidad (token al final): CMKA o Nagaryhuna; default = entidad de la actividad.
-        $entidadId = $ctx['entidadActividad'];
-        if (Str::contains($up, 'NAGAR')) {
-            $entidadId = optional($ctx['entidades']->first(fn ($e) => Str::contains(Str::upper(Str::ascii($e->nombre)), 'NAGAR')))->id ?? $entidadId;
-        } elseif (Str::contains($up, 'CMKA')) {
-            $entidadId = optional($ctx['entidades']->first(fn ($e) => Str::upper((string) $e->abreviacion) === 'CMKA'))->id ?? $entidadId;
-        }
-
-        $tipo = null;
-        if (Str::contains($up, 'CORAZON')) {
-            $tipo = 'corazon';
-        } elseif (Str::contains($up, 'BENEFACTOR')) {
-            $tipo = 'benefactor';
-        } elseif (Str::contains($up, 'CLASE')) {
-            $tipo = 'clases';
-        }
-
-        if ($tipo) {
-            $membresia = $this->buscarMembresia($ctx, $entidadId, $tipo);
-
-            // Fallback: si la entidad resuelta no tiene esa membresía, usar la entidad principal.
-            $mapeadaAPrincipal = false;
-            if (!$membresia && $ctx['entidadPrincipal'] && $ctx['entidadPrincipal'] !== (int) $entidadId) {
-                $membresia = $this->buscarMembresia($ctx, $ctx['entidadPrincipal'], $tipo);
-                $mapeadaAPrincipal = (bool) $membresia;
-            }
-
-            if ($membresia) {
-                $mensaje = $mapeadaAPrincipal
-                    ? "Membresía '" . trim($raw) . "' mapeada a la entidad principal ({$membresia->nombre})"
-                    : null;
-                return [$membresia->id, $membresia->nombre, $mensaje];
-            }
-        }
-
-        return [null, trim($raw), "No se pudo mapear la membresía '" . trim($raw) . "'; se guarda como texto sin asociar"];
-    }
-
-    /** Busca una membresía por entidad + tipo (corazon/benefactor/clases). */
-    private function buscarMembresia(array $ctx, int $entidadId, string $tipo)
-    {
-        return $ctx['membresias']->first(function ($m) use ($entidadId, $tipo) {
-            return (int) $m->entidad_id === $entidadId
-                && Str::contains(Str::lower(Str::ascii($m->nombre)), $tipo);
-        });
-    }
-
     private function armarObservaciones(array $fila, ?string $extra = null): ?string
     {
         $partes = ['Importado de CSV'];
@@ -401,65 +347,6 @@ class ImportarInscripcionesService
         return implode('. ', $partes);
     }
 
-    private function parsearMonto(?string $valor): ?float
-    {
-        $digitos = preg_replace('/[^0-9]/', '', (string) $valor);
-        return $digitos === '' ? null : (float) $digitos;
-    }
-
-    private function parsearFechaPago(?string $valor, int $anio): ?string
-    {
-        $v = trim((string) $valor);
-        if ($v === '') {
-            return null;
-        }
-        // Formato esperado "d/m" (a veces "d/m/Y").
-        $partes = preg_split('/[\/\-]/', $v);
-        if (count($partes) < 2 || !is_numeric($partes[0]) || !is_numeric($partes[1])) {
-            return null;
-        }
-        $dia = (int) $partes[0];
-        $mes = (int) $partes[1];
-        $anioFinal = isset($partes[2]) && is_numeric($partes[2]) ? (int) $partes[2] : $anio;
-        if ($anioFinal < 100) {
-            $anioFinal += 2000;
-        }
-        try {
-            return Carbon::create($anioFinal, $mes, $dia)->toDateString();
-        } catch (\Throwable $e) {
-            return null;
-        }
-    }
-
-    private function parsearMarcaTemporal(?string $valor): ?string
-    {
-        $v = trim((string) $valor);
-        if ($v === '') {
-            return null;
-        }
-        foreach (['d/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y', 'd-m-Y H:i:s'] as $fmt) {
-            try {
-                return Carbon::createFromFormat($fmt, $v)->toDateTimeString();
-            } catch (\Throwable $e) {
-                // probar siguiente formato
-            }
-        }
-        return null;
-    }
-
-    private function parsearSiNo(?string $valor): bool
-    {
-        $v = Str::upper(Str::ascii(trim((string) $valor)));
-        return Str::startsWith($v, 'SI');
-    }
-
-    private function generarPassword(string $apellido): string
-    {
-        $base = $apellido !== '' ? $apellido : 'asistente';
-        $base = preg_replace('/[^A-Za-z0-9]/', '', Str::ascii($base));
-        return ($base === '' ? 'asistente' : $base) . '2026';
-    }
-
     /**
      * @return array{0: array<int, array<string, string>>, 1: array<int, string>}
      *               [filas mapeadas, headers desconocidos (texto crudo)]
@@ -468,81 +355,6 @@ class ImportarInscripcionesService
     {
         $contenido = file_get_contents($archivo->getRealPath());
 
-        $encoding = mb_detect_encoding($contenido, ['UTF-8', 'Windows-1252', 'ISO-8859-1'], true);
-        if ($encoding && $encoding !== 'UTF-8') {
-            $contenido = mb_convert_encoding($contenido, 'UTF-8', $encoding);
-        }
-        $contenido = preg_replace('/^\xEF\xBB\xBF/', '', $contenido);
-
-        // str_getcsv respeta comillas y saltos de línea dentro de celdas, así que
-        // parseamos el contenido completo en filas con un lector que soporta multilínea.
-        $filasCrudas = $this->leerFilasCsv($contenido);
-        if (empty($filasCrudas)) {
-            return [[], []];
-        }
-
-        $headerCrudo = $filasCrudas[0];
-        $header = array_map(fn ($h) => $this->normalizar($h), $headerCrudo);
-
-        $mapeo = [];
-        foreach (self::COLUMNAS as $clave => $etiqueta) {
-            $pos = array_search($this->normalizar($etiqueta), $header, true);
-            $mapeo[$clave] = $pos !== false ? $pos : null;
-        }
-
-        // Columnas desconocidas: headers no mapeados ni en la lista de ignorados conocidos.
-        $conocidas = [];
-        foreach (array_merge(array_values(self::COLUMNAS), self::COLUMNAS_IGNORADAS) as $etiqueta) {
-            $conocidas[$this->normalizar($etiqueta)] = true;
-        }
-        $desconocidas = [];
-        foreach ($headerCrudo as $h) {
-            $norm = $this->normalizar((string) $h);
-            if ($norm !== '' && !isset($conocidas[$norm])) {
-                $desconocidas[] = trim((string) $h);
-            }
-        }
-
-        $filas = [];
-        for ($i = 1; $i < count($filasCrudas); $i++) {
-            $celdas = $filasCrudas[$i];
-            $fila = [];
-            foreach ($mapeo as $clave => $pos) {
-                $fila[$clave] = $pos !== null && isset($celdas[$pos]) ? trim((string) $celdas[$pos]) : '';
-            }
-            $filas[] = $fila;
-        }
-
-        return [$filas, array_values(array_unique($desconocidas))];
-    }
-
-    /** Lee CSV con soporte de comillas y celdas multilínea (DatosEvento/Programa traen HTML con saltos). */
-    private function leerFilasCsv(string $contenido): array
-    {
-        $delimitador = (substr_count(strtok($contenido, "\n"), ';') > substr_count(strtok($contenido, "\n"), ',')) ? ';' : ',';
-
-        $fp = fopen('php://temp', 'r+');
-        fwrite($fp, $contenido);
-        rewind($fp);
-
-        $filas = [];
-        while (($celdas = fgetcsv($fp, 0, $delimitador)) !== false) {
-            // Saltar líneas totalmente vacías.
-            if (count($celdas) === 1 && trim((string) $celdas[0]) === '') {
-                continue;
-            }
-            $filas[] = $celdas;
-        }
-        fclose($fp);
-
-        return $filas;
-    }
-
-    private function normalizar(string $h): string
-    {
-        $h = Str::ascii($h);
-        $h = strtolower($h);
-        $h = preg_replace('/[^a-z0-9]+/', ' ', $h);
-        return trim($h);
+        return $this->mapearCsv($contenido, self::COLUMNAS, self::COLUMNAS_IGNORADAS);
     }
 }

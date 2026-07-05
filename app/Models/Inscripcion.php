@@ -32,6 +32,7 @@ class Inscripcion extends Model
         'envioConfirmacion',
         'envioGrabacion',
         'asistencia',
+        'confirmado_manual',
         'online',
         'hospedaje_id',
         'comida_id',
@@ -51,6 +52,7 @@ class Inscripcion extends Model
         'montoapagar' => 'decimal:2',
         'monto_invitados' => 'decimal:2',
         'online' => 'boolean',
+        'confirmado_manual' => 'boolean',
         'auditoria_fecha' => 'datetime',
         'fecha_pago' => 'date',
     ];
