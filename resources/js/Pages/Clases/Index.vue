@@ -21,7 +21,9 @@ import InputIcon from 'primevue/inputicon';
 import { FilterMatchMode } from 'primevue/api';
 import { computed, ref } from 'vue';
 
-const { clases } = defineProps({
+// No destructurar: en Vue 3.2 el destructuring del prop no es reactivo y la lista
+// no reflejaria los cambios tras una accion (bulk/borrar). Usamos props.clases.
+const props = defineProps({
     clases: {
         type: Array,
         required: true
@@ -38,7 +40,7 @@ const filters = ref({
 
 const entidadOptions = computed(() => {
     const map = new Map();
-    (clases || []).forEach((clase) => {
+    (props.clases || []).forEach((clase) => {
         if (clase?.entidad?.id) {
             map.set(clase.entidad.id, clase.entidad.nombre || `Entidad ${clase.entidad.id}`);
         }
@@ -51,7 +53,7 @@ const entidadOptions = computed(() => {
 
 const maestroOptions = computed(() => {
     const map = new Map();
-    (clases || []).forEach((clase) => {
+    (props.clases || []).forEach((clase) => {
         (clase?.maestros || []).forEach((maestro) => {
             if (maestro?.id) {
                 map.set(maestro.id, maestro.nombre || `Maestro ${maestro.id}`);
@@ -65,7 +67,7 @@ const maestroOptions = computed(() => {
 });
 
 const clasesFiltradas = computed(() => {
-    const rows = clases || [];
+    const rows = props.clases || [];
     const ahora = new Date();
     const inicioMesActual = new Date(ahora.getFullYear(), ahora.getMonth(), 1, 0, 0, 0, 0);
     const inicioMesAnterior = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1, 0, 0, 0, 0);
@@ -216,6 +218,63 @@ const updateEstado = (row, nuevoEstado) => {
         }
     });
 };
+
+// --- Modo selección + acciones masivas (solo desktop) ---
+const modoSeleccion = ref(false);
+const seleccionadas = ref([]);
+
+const toggleModoSeleccion = () => {
+    modoSeleccion.value = !modoSeleccion.value;
+    if (!modoSeleccion.value) {
+        seleccionadas.value = [];
+    }
+};
+
+const idsSeleccionados = () => seleccionadas.value.map((c) => c.id);
+
+const bulkSetActiva = (activa) => {
+    if (!seleccionadas.value.length) return;
+    router.patch(route('clases.bulkEstado'), { ids: idsSeleccionados(), activa }, {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+            toast.add({
+                severity: 'success',
+                summary: 'Estado actualizado',
+                detail: activa ? 'Clases activadas correctamente.' : 'Clases desactivadas correctamente.',
+                life: 3000,
+            });
+            seleccionadas.value = [];
+        },
+        onError: () => Swal.fire('Error', 'No se pudo actualizar el estado.', 'error'),
+    });
+};
+
+const bulkActivar = () => bulkSetActiva(true);
+const bulkDesactivar = () => bulkSetActiva(false);
+
+const bulkBorrar = () => {
+    if (!seleccionadas.value.length) return;
+    Swal.fire({
+        title: 'Estas seguro?',
+        text: `Se eliminaran ${seleccionadas.value.length} clase(s). Esta accion no se puede deshacer.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Si, eliminar',
+        cancelButtonText: 'Cancelar',
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+        router.post(route('clases.bulkDestroy'), { ids: idsSeleccionados() }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                seleccionadas.value = [];
+                Swal.fire('Eliminado!', 'Las clases fueron eliminadas.', 'success');
+            },
+            onError: () => Swal.fire('Error', 'Hubo un problema al eliminar las clases.', 'error'),
+        });
+    });
+};
 </script>
 
 <style scoped>
@@ -227,6 +286,11 @@ const updateEstado = (row, nuevoEstado) => {
 
 :deep(.clases-table .p-datatable-thead > tr.p-filter-row > th) {
     padding-top: 0.1rem;
+}
+
+/* Checkbox de seleccion mas visibles sobre fondo blanco */
+:deep(.p-datatable .p-checkbox .p-checkbox-box) {
+    border: 1px solid #64748b; /* slate-500 */
 }
 </style>
 
@@ -427,8 +491,10 @@ const updateEstado = (row, nuevoEstado) => {
                         </div>
 
                         <DataTable
+                            :key="modoSeleccion ? 'con-seleccion' : 'sin-seleccion'"
                             :value="clasesFiltradas"
                             v-model:filters="filters"
+                            v-model:selection="seleccionadas"
                             filterDisplay="row"
                             :globalFilterFields="['nombre', 'ciclo.nombre', 'entidad.nombre']"
                             class="clases-table hidden sm:block"
@@ -441,22 +507,70 @@ const updateEstado = (row, nuevoEstado) => {
                             v-model:expandedRows="expandedRows"
                         >
                             <template #header>
-                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-                                    <select
-                                        v-model="filtroMesReferencia"
-                                        class="rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
-                                    >
-                                        <option value="mes_actual">Mes actual en adelante</option>
-                                        <option value="ultimo_mes">Ultimo mes</option>
-                                        <option value="ultimos_tres_meses">Ultimos tres meses</option>
-                                        <option value="todo">Mostrar todo</option>
-                                    </select>
-                                    <IconField>
-                                        <InputIcon class="pi pi-search" />
-                                        <InputText v-model="filters.global.value" placeholder="Buscar..." />
-                                    </IconField>
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <!-- Izquierda: modo selección + acciones masivas -->
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <button
+                                            type="button"
+                                            @click="toggleModoSeleccion"
+                                            class="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium"
+                                            :class="modoSeleccion ? 'border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100' : 'border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'"
+                                        >
+                                            <i :class="modoSeleccion ? 'fas fa-xmark' : 'fas fa-check-double'"></i>
+                                            {{ modoSeleccion ? 'Cancelar' : 'Seleccionar' }}
+                                        </button>
+
+                                        <template v-if="modoSeleccion">
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ seleccionadas.length }} seleccionada(s)</span>
+                                            <button
+                                                v-if="$page.props.user.permissions.includes('update clases')"
+                                                type="button"
+                                                :disabled="!seleccionadas.length"
+                                                @click="bulkActivar"
+                                                class="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <i class="fas fa-toggle-on"></i> Activar
+                                            </button>
+                                            <button
+                                                v-if="$page.props.user.permissions.includes('update clases')"
+                                                type="button"
+                                                :disabled="!seleccionadas.length"
+                                                @click="bulkDesactivar"
+                                                class="inline-flex items-center gap-2 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <i class="fas fa-toggle-off"></i> Desactivar
+                                            </button>
+                                            <button
+                                                v-if="$page.props.user.permissions.includes('delete clases')"
+                                                type="button"
+                                                :disabled="!seleccionadas.length"
+                                                @click="bulkBorrar"
+                                                class="inline-flex items-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <i class="fas fa-trash"></i> Borrar
+                                            </button>
+                                        </template>
+                                    </div>
+
+                                    <!-- Derecha: filtros -->
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                        <select
+                                            v-model="filtroMesReferencia"
+                                            class="rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
+                                        >
+                                            <option value="mes_actual">Mes actual en adelante</option>
+                                            <option value="ultimo_mes">Ultimo mes</option>
+                                            <option value="ultimos_tres_meses">Ultimos tres meses</option>
+                                            <option value="todo">Mostrar todo</option>
+                                        </select>
+                                        <IconField>
+                                            <InputIcon class="pi pi-search" />
+                                            <InputText v-model="filters.global.value" placeholder="Buscar..." />
+                                        </IconField>
+                                    </div>
                                 </div>
                             </template>
+                            <Column v-if="modoSeleccion" selectionMode="multiple" headerStyle="width: 3rem" />
                             <Column expander style="width: 3rem" />
                             <Column header="Imagen">
                                 <template #body="slotProps">
@@ -553,7 +667,7 @@ const updateEstado = (row, nuevoEstado) => {
                                     </span>
                                 </template>
                             </Column>
-                            <Column header="Acciones">
+                            <Column v-if="!modoSeleccion" header="Acciones">
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
                                         <Link

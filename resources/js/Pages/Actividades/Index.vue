@@ -39,7 +39,7 @@
 
     const actividadesFiltradas = computed(() => {
         if (filtroFechaInicio.value === 'todo') {
-            return actividades;
+            return props.actividades;
         }
 
         const ahora = new Date();
@@ -57,7 +57,7 @@
             limite.setMonth(limite.getMonth() - 3);
         }
 
-        return actividades.filter((actividad) => {
+        return props.actividades.filter((actividad) => {
             if (!actividad?.fecha_inicio) return false;
             const fechaInicio = new Date(actividad.fecha_inicio);
             if (Number.isNaN(fechaInicio.getTime())) return false;
@@ -70,7 +70,9 @@
         });
     });
     
-    const { actividades } = defineProps({
+    // No destructurar: en Vue 3.2 el destructuring del prop no es reactivo y la lista
+    // no reflejaria los cambios tras una accion (bulk/borrar). Usamos props.actividades.
+    const props = defineProps({
         actividades: {
             type: Array,
             required: true
@@ -93,7 +95,7 @@
     };
 
     const verActividad = (id) => {
-        const actividad = actividades.find((ent) => ent.id === id);
+        const actividad = props.actividades.find((ent) => ent.id === id);
         if (actividad) {
             actividadSeleccionada.value = actividad;
             visible.value = true;
@@ -166,6 +168,63 @@
         });
     };
 
+    // --- Modo selección + acciones masivas (solo desktop) ---
+    const modoSeleccion = ref(false);
+    const seleccionadas = ref([]);
+
+    const toggleModoSeleccion = () => {
+        modoSeleccion.value = !modoSeleccion.value;
+        if (!modoSeleccion.value) {
+            seleccionadas.value = [];
+        }
+    };
+
+    const idsSeleccionados = () => seleccionadas.value.map((a) => a.id);
+
+    const bulkSetEstado = (estado) => {
+        if (!seleccionadas.value.length) return;
+        router.patch(route('actividades.bulkEstado'), { ids: idsSeleccionados(), estado }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                toast.add({
+                    severity: 'success',
+                    summary: 'Estado actualizado',
+                    detail: estado ? 'Actividades activadas correctamente.' : 'Actividades desactivadas correctamente.',
+                    life: 3000,
+                });
+                seleccionadas.value = [];
+            },
+            onError: () => Swal.fire('Error', 'No se pudo actualizar el estado.', 'error'),
+        });
+    };
+
+    const bulkActivar = () => bulkSetEstado(true);
+    const bulkDesactivar = () => bulkSetEstado(false);
+
+    const bulkBorrar = () => {
+        if (!seleccionadas.value.length) return;
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: `Se eliminarán ${seleccionadas.value.length} actividad(es). Esta acción no se puede deshacer.`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar",
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            router.post(route('actividades.bulkDestroy'), { ids: idsSeleccionados() }, {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    seleccionadas.value = [];
+                    Swal.fire("¡Eliminado!", "Las actividades fueron eliminadas.", "success");
+                },
+                onError: () => Swal.fire("Error", "Hubo un problema al eliminar las actividades.", "error"),
+            });
+        });
+    };
+
     const direccionActividad = (actividad) => {
         return actividad?.lugar?.direccion || actividad?.entidad?.direccion || '';
     };
@@ -191,6 +250,11 @@
 
 <style scoped>
 @import '../../../css/datatable-header-style.css';
+
+/* Checkbox de seleccion mas visibles sobre fondo blanco */
+:deep(.p-datatable .p-checkbox .p-checkbox-box) {
+    border: 1px solid #64748b; /* slate-500 */
+}
 </style>
 
 <template>
@@ -457,37 +521,87 @@
                             </div>
                         </div>
 
-                        <DataTable 
-                        :value="actividadesFiltradas" 
+                        <DataTable
+                        :key="modoSeleccion ? 'con-seleccion' : 'sin-seleccion'"
+                        :value="actividadesFiltradas"
                         v-model:filters="filters"
+                        v-model:selection="seleccionadas"
                         :globalFilterFields="['nombre', 'tipo_actividad.abreviacion', 'modalidad.nombre', 'entidad.abreviacion', 'lugar.abreviacion']"
-                        stripedRows 
-                        removableSort 
-                        paginator 
-                        :rows="10" 
+                        stripedRows
+                        removableSort
+                        paginator
+                        :rows="10"
                         v-model:expandedRows="expandedRows"
                         dataKey="id"
-                        :rowsPerPageOptions="[5, 10, 20, 50]" 
+                        :rowsPerPageOptions="[5, 10, 20, 50]"
                         tableStyle="min-width: 50rem"
                         class="hidden sm:block"
                         >
                             <template #header>
-                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-                                    <select
-                                        v-model="filtroFechaInicio"
-                                        class="rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
-                                    >
-                                        <option value="mes_actual">Mes actual en adelante</option>
-                                        <option value="ultimo_mes">Ultimo mes</option>
-                                        <option value="ultimos_tres_meses">Ultimos tres meses</option>
-                                        <option value="todo">Mostrar todo</option>
-                                    </select>
-                                    <IconField>
-                                        <InputIcon class="pi pi-search" />
-                                        <InputText v-model="filters.global.value" placeholder="Buscar..." />
-                                    </IconField>
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <!-- Izquierda: modo selección + acciones masivas -->
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <button
+                                            type="button"
+                                            @click="toggleModoSeleccion"
+                                            class="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium"
+                                            :class="modoSeleccion ? 'border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100' : 'border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'"
+                                        >
+                                            <i :class="modoSeleccion ? 'fas fa-xmark' : 'fas fa-check-double'"></i>
+                                            {{ modoSeleccion ? 'Cancelar' : 'Seleccionar' }}
+                                        </button>
+
+                                        <template v-if="modoSeleccion">
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ seleccionadas.length }} seleccionada(s)</span>
+                                            <button
+                                                v-if="$page.props.user.permissions.includes('update actividades')"
+                                                type="button"
+                                                :disabled="!seleccionadas.length"
+                                                @click="bulkActivar"
+                                                class="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <i class="fas fa-toggle-on"></i> Activar
+                                            </button>
+                                            <button
+                                                v-if="$page.props.user.permissions.includes('update actividades')"
+                                                type="button"
+                                                :disabled="!seleccionadas.length"
+                                                @click="bulkDesactivar"
+                                                class="inline-flex items-center gap-2 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <i class="fas fa-toggle-off"></i> Desactivar
+                                            </button>
+                                            <button
+                                                v-if="$page.props.user.permissions.includes('delete actividades')"
+                                                type="button"
+                                                :disabled="!seleccionadas.length"
+                                                @click="bulkBorrar"
+                                                class="inline-flex items-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <i class="fas fa-trash"></i> Borrar
+                                            </button>
+                                        </template>
+                                    </div>
+
+                                    <!-- Derecha: filtros -->
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                        <select
+                                            v-model="filtroFechaInicio"
+                                            class="rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm focus:border-indigo-400 focus:ring-indigo-400"
+                                        >
+                                            <option value="mes_actual">Mes actual en adelante</option>
+                                            <option value="ultimo_mes">Ultimo mes</option>
+                                            <option value="ultimos_tres_meses">Ultimos tres meses</option>
+                                            <option value="todo">Mostrar todo</option>
+                                        </select>
+                                        <IconField>
+                                            <InputIcon class="pi pi-search" />
+                                            <InputText v-model="filters.global.value" placeholder="Buscar..." />
+                                        </IconField>
+                                    </div>
                                 </div>
                             </template>
+                            <Column v-if="modoSeleccion" selectionMode="multiple" headerStyle="width: 3rem" />
                             <Column expander style="width: 5rem" />
                             <Column header="Imagen">
                                 <template #body="slotProps">
@@ -539,7 +653,7 @@
                                     </div>
                                 </template>
                             </Column>
-                            <Column header="Acciones">
+                            <Column v-if="!modoSeleccion" header="Acciones">
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
                                         <Link

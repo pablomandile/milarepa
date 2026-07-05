@@ -352,5 +352,40 @@ class ClasesController extends Controller
 
         return back()->with('success', 'Estado de la clase actualizado.');
     }
+
+    /**
+     * Activa/desactiva varias clases a la vez.
+     */
+    public function bulkEstado(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:clases,id'],
+            'activa' => ['required', 'boolean'],
+        ]);
+
+        Clase::whereIn('id', $data['ids'])->update(['activa' => $data['activa']]);
+
+        return back()->with('success', 'Estado de las clases actualizado.');
+    }
+
+    /**
+     * Elimina varias clases a la vez (mismo hard delete que el destroy individual).
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:clases,id'],
+        ]);
+
+        try {
+            Clase::whereIn('id', $data['ids'])->delete();
+        } catch (\Throwable $e) {
+            return back()->with('error', 'No se pudieron eliminar algunas clases (pueden tener datos asociados).');
+        }
+
+        return back()->with('success', 'Clases eliminadas con exito.');
+    }
 }
 

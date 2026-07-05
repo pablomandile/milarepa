@@ -450,11 +450,48 @@ class ActividadesController extends Controller
     public function destroy(string $id)
     {
         $actividad = Actividad::findOrFail($id);
-        
+
         // Eliminar la actividad
         $actividad->delete();
-        
+
         return redirect()->route('actividades.index')
             ->with('success', 'Actividad eliminada correctamente.');
+    }
+
+    /**
+     * Cambia el estado (activar/desactivar) de varias actividades a la vez.
+     */
+    public function bulkEstado(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:actividades,id'],
+            'estado' => ['required', 'boolean'],
+        ]);
+
+        Actividad::whereIn('id', $data['ids'])->update(['estado' => $data['estado']]);
+
+        return redirect()->back()->with('success', 'Estado actualizado correctamente.');
+    }
+
+    /**
+     * Elimina varias actividades a la vez. Hard delete (como el destroy individual);
+     * si una FK impide el borrado se informa sin romper la pantalla.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:actividades,id'],
+        ]);
+
+        try {
+            Actividad::whereIn('id', $data['ids'])->delete();
+        } catch (\Throwable $e) {
+            return redirect()->back()
+                ->with('error', 'No se pudieron eliminar algunas actividades (pueden tener datos asociados).');
+        }
+
+        return redirect()->back()->with('success', 'Actividades eliminadas correctamente.');
     }
 }

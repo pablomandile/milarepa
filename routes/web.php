@@ -267,6 +267,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/monedas', MonedasController::class);
     Route::resource('/metodospago', MetodosPagoController::class, [
         'parameters' => ['metodospago' => 'metodopago'],]);
+    // Rutas bulk ANTES del resource: si no, PATCH /actividades/bulk-estado matchearia
+    // el patron PATCH /actividades/{actividad} (update) del resource.
+    Route::patch('/actividades/bulk-estado', [ActividadesController::class, 'bulkEstado'])
+        ->name('actividades.bulkEstado');
+    Route::post('/actividades/bulk-destroy', [ActividadesController::class, 'bulkDestroy'])
+        ->name('actividades.bulkDestroy');
     Route::resource('/actividades', ActividadesController::class, [
         'parameters' => ['actividades' => 'actividad'],]);
     Route::patch('/actividades/{actividad}/estado', [ActividadesController::class, 'updateEstado'])
@@ -504,6 +510,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/ciclos', CiclosController::class, [
         'parameters' => ['ciclos' => 'ciclo'],
     ]);
+    // Rutas bulk ANTES del resource: si no, PATCH /clases/bulk-estado matchearia
+    // el patron PATCH /clases/{clase} (update) del resource.
+    Route::patch('/clases/bulk-estado', [ClasesController::class, 'bulkEstado'])
+        ->name('clases.bulkEstado');
+    Route::post('/clases/bulk-destroy', [ClasesController::class, 'bulkDestroy'])
+        ->name('clases.bulkDestroy');
     Route::resource('/clases', ClasesController::class, [
         'parameters' => ['clases' => 'clase'],
     ]);
