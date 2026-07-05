@@ -90,6 +90,83 @@ const openImageDialog = (imageUrl) => {
     selectedImageUrl.value = imageUrl;
     imageDialogVisible.value = true;
 };
+
+// --- Dialog de configuraciones particulares por mes ---
+const mesLabels = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const ordenDias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+const diasLabelFull = {
+    lunes: 'Lunes', martes: 'Martes', miercoles: 'Miercoles', jueves: 'Jueves',
+    viernes: 'Viernes', sabado: 'Sabado', domingo: 'Domingo',
+};
+
+const detailsDialogVisible = ref(false);
+const selectedOracion = ref(null);
+
+const tieneDetalles = (oracion) =>
+    (Array.isArray(oracion?.configuracion_por_mes) && oracion.configuracion_por_mes.length > 0) ||
+    (Array.isArray(oracion?.excepciones_por_fecha) && oracion.excepciones_por_fecha.length > 0);
+
+const formatFechaLabel = (value) => {
+    if (!value) return '-';
+    const [y, m, d] = String(value).split('-').map(Number);
+    if (!y || !m || !d) return String(value);
+    const raw = new Date(y, m - 1, d).toLocaleDateString('es-AR', {
+        weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric',
+    });
+    return raw.charAt(0).toUpperCase() + raw.slice(1);
+};
+
+const configuracionesDe = (oracion) => {
+    const arr = Array.isArray(oracion?.configuracion_por_mes) ? oracion.configuracion_por_mes : [];
+    return arr
+        .filter((c) => c && Number(c.mes) >= 1 && Number(c.mes) <= 12)
+        .slice()
+        .sort((a, b) => Number(a.mes) - Number(b.mes))
+        .map((c) => {
+            const esDiaria = c.periodicidad === 'Diaria';
+            const horaGeneral = c.hora ? String(c.hora).slice(0, 5) : null;
+            const horarios = c.horarios_por_dia && typeof c.horarios_por_dia === 'object' ? c.horarios_por_dia : {};
+            const dias = Array.isArray(c.dias_semana) ? ordenDias.filter((d) => c.dias_semana.includes(d)) : [];
+
+            return {
+                mesLabel: mesLabels[Number(c.mes)] || `Mes ${c.mes}`,
+                periodicidad: c.periodicidad || '-',
+                esDiaria,
+                diaLabel: !esDiaria ? (c.dia ?? '-') : null,
+                horaLabel: horaGeneral ? `${horaGeneral} hs.` : '-',
+                dias: dias.map((d) => ({
+                    label: diasLabelFull[d] || d,
+                    hora: horarios[d] ? String(horarios[d]).slice(0, 5) : horaGeneral,
+                })),
+            };
+        });
+};
+
+const configuracionesSeleccionadas = computed(() =>
+    selectedOracion.value ? configuracionesDe(selectedOracion.value) : []
+);
+
+const excepcionesDe = (oracion) => {
+    const arr = Array.isArray(oracion?.excepciones_por_fecha) ? oracion.excepciones_por_fecha : [];
+    return arr
+        .filter((e) => e && e.fecha)
+        .slice()
+        .sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)))
+        .map((e) => ({
+            fechaLabel: formatFechaLabel(e.fecha),
+            hora: e.hora ? String(e.hora).slice(0, 5) : null,
+            mensaje: e.mensaje || null,
+        }));
+};
+
+const excepcionesSeleccionadas = computed(() =>
+    selectedOracion.value ? excepcionesDe(selectedOracion.value) : []
+);
+
+const openDetailsDialog = (oracion) => {
+    selectedOracion.value = oracion;
+    detailsDialogVisible.value = true;
+};
 </script>
 
 <style scoped>
@@ -181,6 +258,15 @@ const openImageDialog = (imageUrl) => {
 
                             <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
                                 <div class="flex flex-wrap items-center justify-center gap-2">
+                                    <button
+                                        v-if="tieneDetalles(oracion)"
+                                        @click="openDetailsDialog(oracion)"
+                                        class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-amber-100 text-amber-700 px-3 text-xs font-semibold hover:bg-amber-200 transition"
+                                        title="Ver detalles"
+                                    >
+                                        <i class="fas fa-calendar-days"></i>
+                                        <span>Detalles</span>
+                                    </button>
                                     <Link
                                         :href="`${route('oracionescantadas.show-public', parseInt(oracion.id))}?return_url=${encodeURIComponent(route('oracionescantadas.index'))}`"
                                         target="_blank"
@@ -222,7 +308,7 @@ const openImageDialog = (imageUrl) => {
                             :globalFilterFields="['nombre', 'periodicidad']"
                             stripedRows
                             paginator
-                            :rows="5"
+                            :rows="10"
                             :rowsPerPageOptions="[5, 10, 20, 50]"
                             tableStyle="min-width: 68rem"
                         >
@@ -286,6 +372,14 @@ const openImageDialog = (imageUrl) => {
                             <Column header="Acciones" class="flex justify-center space-x-2">
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
+                                        <button
+                                            v-if="tieneDetalles(slotProps.data)"
+                                            @click="openDetailsDialog(slotProps.data)"
+                                            v-tooltip="'Ver detalles (config. por mes y excepciones)'"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;"
+                                        >
+                                            <i class="fas fa-calendar-days" style="font-size: 18px !important; line-height: 1; color: rgb(217, 119, 6);"></i>
+                                        </button>
                                         <Link
                                             :href="`${route('oracionescantadas.show-public', parseInt(slotProps.data.id))}?return_url=${encodeURIComponent(route('oracionescantadas.index'))}`"
                                             v-tooltip="'Ver landing publica'"
@@ -330,6 +424,71 @@ const openImageDialog = (imageUrl) => {
                     alt="Imagen Oracion Cantada"
                     class="w-full max-h-[70vh] object-contain"
                 />
+            </div>
+        </Dialog>
+
+        <Dialog
+            v-model:visible="detailsDialogVisible"
+            modal
+            :header="selectedOracion ? `Detalles - ${selectedOracion.nombre}` : 'Detalles'"
+            :style="{ width: '640px' }"
+            :breakpoints="{ '640px': '95vw' }"
+        >
+            <div class="space-y-6">
+                <!-- Configuracion personalizada por mes -->
+                <div>
+                    <h3 class="mb-2 text-sm font-semibold text-gray-800 dark:text-gray-100">Configuracion personalizada por mes</h3>
+                    <div v-if="configuracionesSeleccionadas.length" class="grid gap-3 sm:grid-cols-2">
+                        <div
+                            v-for="(cfg, i) in configuracionesSeleccionadas"
+                            :key="`cfg-${i}`"
+                            class="rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-900 p-3"
+                        >
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="font-semibold text-slate-800 dark:text-gray-100">{{ cfg.mesLabel }}</span>
+                                <span class="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">{{ cfg.periodicidad }}</span>
+                            </div>
+
+                            <div v-if="!cfg.esDiaria" class="mt-2 space-y-0.5 text-sm text-slate-700 dark:text-gray-300">
+                                <div><span class="font-medium">Dia del mes:</span> {{ cfg.diaLabel }}</div>
+                                <div><span class="font-medium">Hora:</span> {{ cfg.horaLabel }}</div>
+                            </div>
+
+                            <div v-else class="mt-2 text-sm text-slate-700 dark:text-gray-300">
+                                <div class="mb-1 font-medium">Dias:</div>
+                                <div v-if="cfg.dias.length" class="space-y-0.5">
+                                    <div v-for="d in cfg.dias" :key="`${i}-${d.label}`">
+                                        <span class="font-medium">{{ d.label }}:</span> {{ d.hora ? `${d.hora} hs.` : '-' }}
+                                    </div>
+                                </div>
+                                <div v-else class="text-slate-500">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p v-else class="text-sm text-slate-500 dark:text-gray-400">Sin configuraciones por mes.</p>
+                </div>
+
+                <!-- Excepciones por fecha -->
+                <div>
+                    <h3 class="mb-2 text-sm font-semibold text-gray-800 dark:text-gray-100">Excepciones por fecha</h3>
+                    <div v-if="excepcionesSeleccionadas.length" class="space-y-2">
+                        <div
+                            v-for="(exc, i) in excepcionesSeleccionadas"
+                            :key="`exc-${i}`"
+                            class="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-900 p-3 text-sm"
+                        >
+                            <span class="font-semibold text-slate-800 dark:text-gray-100">{{ exc.fechaLabel }}</span>
+                            <span v-if="exc.hora" class="text-slate-600 dark:text-gray-300">{{ exc.hora }} hs.</span>
+                            <span
+                                v-if="exc.mensaje"
+                                class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+                            >
+                                <i class="pi pi-exclamation-triangle text-xs"></i>{{ exc.mensaje }}
+                            </span>
+                        </div>
+                    </div>
+                    <p v-else class="text-sm text-slate-500 dark:text-gray-400">Sin excepciones por fecha.</p>
+                </div>
             </div>
         </Dialog>
     </AppLayout>

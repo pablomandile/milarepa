@@ -51,6 +51,7 @@ const form = useForm({
         : [],
     excepciones_por_fecha: Array.isArray(props.oracionCantada.excepciones_por_fecha)
         ? props.oracionCantada.excepciones_por_fecha.map((excepcion) => ({
+            anio: excepcion.fecha ? Number(String(excepcion.fecha).slice(0, 4)) : new Date().getFullYear(),
             mes: excepcion.fecha ? Number(String(excepcion.fecha).slice(5, 7)) : null,
             fecha: excepcion.fecha ?? null,
             hora: excepcion.hora ? String(excepcion.hora).slice(0, 5) : '',
@@ -77,15 +78,20 @@ const handleSubmit = () => {
         <div class="py-12">
             <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
-                    <div class="flex justify-end mr-5 mb-6 mt-3">
-                        <Link :href="route('oracionescantadas.index')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
-                            Volver
-                        </Link>
-                    </div>
-
                     <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                        <div class="flex items-start justify-between gap-4 mb-6">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Actualizar Oracion Cantada</h3>
+                                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Actualizando la oracion cantada seleccionada</p>
+                            </div>
+                            <Link :href="route('oracionescantadas.index')" class="shrink-0 text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
+                                Volver
+                            </Link>
+                        </div>
+
                         <OracionCantadaForm
                             :updating="true"
+                            :hide-header="true"
                             :form="form"
                             :streams="props.streams"
                             :modalidades="props.modalidades"

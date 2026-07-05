@@ -73,6 +73,7 @@ const oracionesAgrupadas = computed(() => {
         map.get(key).fechas.push({
             fecha: item.fecha,
             hora: item.hora,
+            mensaje: item.mensaje || null,
             titulo_fecha: item.titulo_fecha || null,
             links: Array.isArray(item.links) ? item.links : [],
         });
@@ -217,10 +218,12 @@ const groupFechasByWeekday = (fechas) => {
         map.get(label).push(fh);
     }
 
-    return Array.from(map.entries()).map(([weekday, items]) => ({
-        weekday,
-        items,
-    }));
+    return Array.from(map.entries())
+        .sort(([a], [b]) => weekdayOrder.indexOf(a) - weekdayOrder.indexOf(b))
+        .map(([weekday, items]) => ({
+            weekday,
+            items,
+        }));
 };
 
 const getWeekdayGroupAnchorId = (sectionKey, itemId, weekday) =>
@@ -414,7 +417,16 @@ const isClaseRowExpanded = (claseId, fh) => {
                                                             class="border-t border-slate-100 dark:border-gray-700 odd:bg-white dark:odd:bg-gray-700 even:bg-slate-50 dark:even:bg-gray-800"
                                                         >
                                                             <td class="px-3 py-2 text-slate-700 dark:text-gray-200">{{ formatMonthDay(fh.fecha) }}</td>
-                                                            <td class="px-3 py-2 text-slate-600 dark:text-gray-300">{{ formatItemTime(fh) }}</td>
+                                                            <td class="px-3 py-2">
+                                                                <span
+                                                                    v-if="fh.mensaje"
+                                                                    class="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-sm font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+                                                                >
+                                                                    <i class="pi pi-exclamation-triangle text-xs"></i>
+                                                                    {{ fh.mensaje }}
+                                                                </span>
+                                                                <span v-else class="text-slate-600 dark:text-gray-300">{{ formatItemTime(fh) }}</span>
+                                                            </td>
                                                             <td class="px-3 py-2 text-slate-600 dark:text-gray-300">
                                                                 <div v-if="fh.links && fh.links.length > 0" class="flex flex-wrap items-center gap-2">
                                                                     <a

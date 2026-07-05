@@ -46,15 +46,20 @@ const form = useForm({
         <div class="py-12">
             <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
-                    <div class="flex justify-end mr-5 mb-6 mt-3">
-                        <Link :href="route('oracionescantadas.index')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
-                            Volver
-                        </Link>
-                    </div>
-
                     <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                        <div class="flex items-start justify-between gap-4 mb-6">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Nueva Oracion Cantada</h3>
+                                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Agregando una nueva oracion cantada al sistema.</p>
+                            </div>
+                            <Link :href="route('oracionescantadas.index')" class="shrink-0 text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
+                                Volver
+                            </Link>
+                        </div>
+
                         <OracionCantadaForm
                             :updating="false"
+                            :hide-header="true"
                             :form="form"
                             :streams="streams"
                             :modalidades="modalidades"

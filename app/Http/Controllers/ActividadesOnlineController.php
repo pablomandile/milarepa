@@ -36,16 +36,6 @@ class ActividadesOnlineController extends Controller
 
     private function buildOracionesOnline(Carbon $monthStart, Carbon $monthEnd): Collection
     {
-        $weekdayMap = [
-            1 => 'lunes',
-            2 => 'martes',
-            3 => 'miercoles',
-            4 => 'jueves',
-            5 => 'viernes',
-            6 => 'sabado',
-            7 => 'domingo',
-        ];
-
         $items = collect();
 
         $oraciones = OracionCantada::query()
@@ -55,49 +45,27 @@ class ActividadesOnlineController extends Controller
             ->with('stream.links')
             ->orderBy('hora')
             ->orderBy('nombre')
-            ->get(['id', 'nombre', 'periodicidad', 'dia', 'dias_semana', 'hora', 'configuracion_por_mes', 'imagen', 'stream_id']);
+            ->get(['id', 'nombre', 'periodicidad', 'dia', 'dias_semana', 'hora', 'horarios_por_dia', 'configuracion_por_mes', 'excepciones_por_fecha', 'imagen', 'stream_id']);
 
         foreach ($oraciones as $oracion) {
-            $configuracion = $oracion->configuracionParaMes($monthStart);
-            $diasSemana = collect($configuracion['dias_semana'] ?? [])->map(fn ($d) => (string) $d)->values();
+            $streamLinks = collect($oracion->stream?->links ?? []);
+            $imageUrl = $this->resolveImagePath($oracion->imagen);
 
-            if ($configuracion['periodicidad'] === 'Diaria' && $diasSemana->isNotEmpty()) {
-                for ($cursor = $monthStart->copy(); $cursor->lte($monthEnd); $cursor->addDay()) {
-                    $weekday = $weekdayMap[$cursor->dayOfWeekIso] ?? null;
-                    if (!$weekday || !$diasSemana->contains($weekday)) {
-                        continue;
-                    }
+            // Fuente única de fechas del mes (misma lógica que grilla y calendario),
+            // ya con las excepciones por fecha aplicadas (override de hora / mensaje).
+            foreach ($oracion->sesionesDelMes($monthStart, $monthEnd) as $sesion) {
+                $mensaje = $sesion['mensaje'] ?? null;
+                $fecha = Carbon::parse($sesion['fecha']);
 
-                    $items->push([
-                        'id' => $oracion->id,
-                        'nombre' => $oracion->nombre,
-                        'fecha' => $cursor->toDateString(),
-                        'hora' => $configuracion['hora'] ? Carbon::parse($configuracion['hora'])->format('H:i') : null,
-                        'image_url' => $this->resolveImagePath($oracion->imagen),
-                        'links' => $this->matchStreamLinks($oracion->nombre, $cursor, collect($oracion->stream?->links ?? [])),
-                    ]);
-                }
-                continue;
-            }
-
-            if ($configuracion['periodicidad'] !== 'Mensual') {
-                continue;
-            }
-
-            $dia = (int) ($configuracion['dia'] ?? 0);
-            if ($dia === 29 && $monthStart->daysInMonth === 28) {
-                $dia = 28;
-            }
-
-            if ($dia >= 1 && $dia <= $monthStart->daysInMonth) {
-                $fecha = $monthStart->copy()->day($dia);
                 $items->push([
                     'id' => $oracion->id,
                     'nombre' => $oracion->nombre,
-                    'fecha' => $fecha->toDateString(),
-                    'hora' => $configuracion['hora'] ? Carbon::parse($configuracion['hora'])->format('H:i') : null,
-                    'image_url' => $this->resolveImagePath($oracion->imagen),
-                    'links' => $this->matchStreamLinks($oracion->nombre, $fecha, collect($oracion->stream?->links ?? [])),
+                    'fecha' => $sesion['fecha'],
+                    'hora' => $sesion['hora'],
+                    'mensaje' => $mensaje,
+                    'image_url' => $imageUrl,
+                    // Si la fecha tiene un mensaje (ej. "Centro cerrado") no exponemos links.
+                    'links' => $mensaje ? [] : $this->matchStreamLinks($oracion->nombre, $fecha, $streamLinks),
                 ]);
             }
         }

@@ -26,6 +26,10 @@ const props = defineProps({
         required: true,
         default: false
     },
+    hideHeader: {
+        type: Boolean,
+        default: false
+    },
     streams: {
         type: Array,
         default: () => []
@@ -126,14 +130,16 @@ const weekdayJsToNombre = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 
 const excepcionesPorFecha = computed(() => Array.isArray(props.form.excepciones_por_fecha) ? props.form.excepciones_por_fecha : []);
 
 const pad2 = (n) => String(n).padStart(2, '0');
+const anioActual = new Date().getFullYear();
 
-// Las excepciones guardan fecha completa (year-specific). Como la grilla publica
-// muestra el mes en curso, por defecto usamos el anio actual; si el mes elegido ya
-// paso este anio, ofrecemos el del anio siguiente para no listar fechas pasadas.
-function anioParaMes(mes) {
-    const now = new Date();
-    const mesActual = now.getMonth() + 1;
-    return mes && mes < mesActual ? now.getFullYear() + 1 : now.getFullYear();
+// Opciones de anio para el select de una excepcion. Rango [actual-1 .. actual+2] mas
+// el anio ya guardado (edicion) para que siga siendo seleccionable si cae fuera.
+function opcionesAnioParaExcepcion(excepcion) {
+    const set = new Set([anioActual - 1, anioActual, anioActual + 1, anioActual + 2]);
+    if (excepcion?.anio) set.add(Number(excepcion.anio));
+    return Array.from(set)
+        .sort((a, b) => a - b)
+        .map((y) => ({ label: String(y), value: y }));
 }
 
 function configEfectivaDelMes(mes) {
@@ -159,7 +165,7 @@ function labelFecha(dia, nombreDia) {
 
 function fechasCandidatasDelMes(mes, anio) {
     if (!mes) return [];
-    const year = anio || anioParaMes(mes);
+    const year = anio || anioActual;
     const config = configEfectivaDelMes(mes);
     const diasEnMes = new Date(year, mes, 0).getDate();
     const opciones = [];
@@ -187,13 +193,12 @@ function fechasCandidatasDelMes(mes, anio) {
     return opciones;
 }
 
-// Opciones del select de fecha de una excepcion. Usa el anio de la fecha ya guardada
-// (edicion) o el heuristico segun el mes, y garantiza que la fecha guardada siga
-// siendo seleccionable aunque ya no matchee la configuracion base.
+// Opciones del select de fecha de una excepcion. Usa el anio elegido en la fila (o el
+// de la fecha ya guardada como fallback) y garantiza que la fecha guardada siga siendo
+// seleccionable aunque ya no matchee la configuracion base.
 function opcionesFechaParaExcepcion(excepcion) {
-    const anio = excepcion?.fecha && /^\d{4}-/.test(excepcion.fecha)
-        ? Number(excepcion.fecha.slice(0, 4))
-        : anioParaMes(excepcion?.mes);
+    const anio = Number(excepcion?.anio)
+        || (excepcion?.fecha && /^\d{4}-/.test(excepcion.fecha) ? Number(excepcion.fecha.slice(0, 4)) : anioActual);
     let opciones = fechasCandidatasDelMes(excepcion?.mes, anio);
 
     if (excepcion?.fecha && !opciones.some((o) => o.value === excepcion.fecha)) {
@@ -205,7 +210,7 @@ function opcionesFechaParaExcepcion(excepcion) {
 }
 
 function nuevaExcepcionPorFecha() {
-    return { mes: null, fecha: null, hora: '', mensaje: '' };
+    return { anio: anioActual, mes: null, fecha: null, hora: '', mensaje: '' };
 }
 
 function agregarExcepcionPorFecha() {
@@ -297,7 +302,7 @@ watch(
 </script>
 
 <template>
-    <FormSection @submitted="$emit('submit')">
+    <FormSection :no-aside="hideHeader" @submitted="$emit('submit')">
         <template #title>
             <SectionTitle>
                 <template #title>
@@ -600,7 +605,21 @@ watch(
                         </button>
                     </div>
 
-                    <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                        <div>
+                            <InputLabel :for="`excepcion_anio_${index}`" value="Año" :required="true" />
+                            <Dropdown
+                                :id="`excepcion_anio_${index}`"
+                                v-model="excepcion.anio"
+                                :options="opcionesAnioParaExcepcion(excepcion)"
+                                optionLabel="label"
+                                optionValue="value"
+                                placeholder="Año"
+                                class="mt-1 w-full border border-gray-300 dark:border-gray-600"
+                                @change="excepcion.fecha = null"
+                            />
+                        </div>
+
                         <div>
                             <InputLabel :for="`excepcion_mes_${index}`" value="Mes" :required="true" />
                             <Dropdown
