@@ -187,6 +187,31 @@ sistema, atendida en recepción), incluyendo a sus **invitados**. Botón **"Crea
   **participante destino**, aunque sea el admin quien la opera. Las reglas de validación del guest se
   comparten con el flujo público vía `GridActividadesController::reglasGuest()`.
 
+### 2.10 Importación de inscripciones desde CSV / planilla
+
+Dos importadores conviven (ambos crean `User` rol `asistant` + `Inscripcion`; sólo admin/editor;
+accesibles desde "Estado de inscripciones" y desde el menú **Configuración**):
+
+- **Importar inscripciones (legacy)** — `ImportarInscripcionesService`. CSV de Google Forms **por
+  evento**; el admin elige **una** actividad; dedupe por email; idempotente.
+- **Importar multievento** — `ImportarMultieventoService`. Lee la **planilla maestra consolidada**
+  (CSV subido o descarga directa de Google Sheets, `config/multievento.php`) con filas de **muchos
+  eventos**. Reglas:
+  - **Corte por fecha:** sólo filas con `FechaEvento ≥ fecha de corte` (config, default `2026-01-01`);
+    las anteriores se descartan y reportan.
+  - **Ruteo semi-manual:** los eventos del archivo se agrupan y el admin confirma la **actividad
+    destino** de cada uno en el preview; se sugiere por el texto entre comillas de `NombreEvento` +
+    fecha. Eventos sin destino → filas "sin actividad" (no se cargan). El match confirmado se
+    **recuerda** (tabla temporal `multievento_mapeos`) y se prellena en la próxima importación.
+  - **Identidad:** usuario por email. Si el email ya es de **otra persona** (nombre distinto;
+    `users.email` es único), se crea un usuario nuevo con **email placeholder** determinístico
+    `{local}.i.{nombre}.{apellido}@import.local` (no entregable). Solución **temporal** del paralelo.
+  - **Dedupe / actualización:** clave = actividad + usuario resuelto. Si la inscripción ya existe,
+    **no se omite**: se **refrescan pago + asistencia + `confirmado_manual`** desde la planilla (el
+    `estado` nunca degrada); si no hay cambios se cuenta como omitida.
+  - **Pago:** deriva de `Valor`/`FechaPago`/`Forma`; `Pago = NO` ⇒ sin costo (Saldado); `CH` es
+    informativo. `MedioComunicacion` → `users.medio_comunicacion` (sólo al crear el usuario).
+
 ---
 
 ## 3. Inscripciones a clases

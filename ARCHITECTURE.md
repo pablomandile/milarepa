@@ -88,7 +88,7 @@ resources/js/
 | Módulo | Páginas Vue principales | Controllers |
 |---|---|---|
 | **Actividades** | Actividades/Index, Edit, Create | ActividadesController, GridActividadesController |
-| **Inscripciones a actividades** | Inscripciones/*, EstadoInscripciones | InscripcionesController, EstadoInscripcionesController |
+| **Inscripciones a actividades** | Inscripciones/*, EstadoInscripciones, Importar, ImportarMultievento | InscripcionesController, EstadoInscripcionesController, ImportarInscripcionesController, ImportarMultieventoController |
 | **Clases y ciclos** | Clases/*, Ciclos/*, InscripcionesClases | ClasesController, InscripcionesClasesController |
 | **Membresías** | Membresias/*, MembresiasGestion, EstadoCuentaMembresias | MembresiasController, MembresiasGestionController, EstadoCuentaMembresiasController |
 | **Biblioteca / Tharpa** | Libros, InventarioLibros, VentasLibros | LibrosController, InventarioLibrosController, VentasLibrosController |
@@ -119,6 +119,9 @@ Entidades centrales:
 - `Membresia` + `MembresiaUsuario` + `EstadoCuentaMembresia`.
 - `Libro` + `InventarioEntidadLibro` + `PrestamoAnexo` + `DevolucionAnexo` + `Venta`.
 - `OracionCantada` con `horarios_por_dia` (horario propio por día de la semana) y `configuracion_por_mes` (JSON) que sobrescribe el calendario base.
+- **Importación multievento** (temporal, paralelo de sistemas): columnas `inscripciones.confirmado_manual`
+  y `users.medio_comunicacion`, y tabla `multievento_mapeos` (memoria de matches evento→actividad).
+  Ver [BUSINESS_RULES.md §2.10](BUSINESS_RULES.md).
 
 Diagrama relacional detallado en [BUSINESS_RULES.md](BUSINESS_RULES.md).
 
@@ -191,6 +194,15 @@ Ver [BUSINESS_RULES.md](BUSINESS_RULES.md) para detalle operativo.
 - 41% de modelos sin `$casts` explícito → tipados implícitos (booleans como strings, JSON sin parse automático).
 - Controladores con lógica de cálculo inline en lugar de Services (ver `GridActividadesController` con 1000+ LOC de queries y cálculos). *Parcialmente mejorado:* el cálculo de servicios/invitados y el cupo de hospedaje se extrajeron a `App\Services\InscripcionServiciosService` y `App\Services\HospedajeCupoService`.
 - Sin error tracking (Sentry, Bugsnag) ni APM.
+
+### Temporal (paralelo de sistemas de inscripciones)
+
+Artefactos **descartables** de la importación multievento, a eliminar cuando todas las inscripciones
+migren al sistema nuevo (ver [BUSINESS_RULES.md §2.10](BUSINESS_RULES.md)):
+- Tabla `multievento_mapeos` + modelo `MultieventoMapeo` (memoria de matches evento→actividad).
+- Emails placeholder `…@import.local` para personas que comparten un email real.
+- El re-import **sobrescribe** pago/asistencia/`confirmado_manual` con lo de la planilla (fuente de
+  verdad durante el paralelo): puede pisar ediciones hechas dentro del sistema.
 
 ---
 

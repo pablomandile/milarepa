@@ -77,12 +77,12 @@ resources/js/
 Desde [AppLayout.vue](resources/js/Layouts/AppLayout.vue):
 - **Gestión**: Entidades, Lugares, Maestros, Coordinadores, Membresías, Libros, Hospedajes, Transportes, Comidas, Imágenes
 - **Actividades**: Cursos/Retiros, Clases, Oraciones Cantadas, Tipos, Ciclos, Descripciones, Programas, Modalidades, Disponibilidades, Streams, Grabaciones, Asistencias
-- **Inscripciones**: Mis Inscripciones, Por Actividad, Por Clases, Estado
+- **Inscripciones**: Mis Inscripciones, Por Actividad, Por Clases, Estado (+ Importar / Importar Multievento)
 - **Membresías**: Tarjetas Kadampa, Estado de Cuenta, Gestión Usuarios
 - **Pagos**: Monedas, Métodos, Esquemas (Precios/Descuentos), Botones, Exenciones
 - **Páginas públicas**: Actividades Online, Calendario, Grilla de Cursos, Membresías Pública
 - **Emails**: Gestión, Histórico, Envío Actividades Online, Plantillas
-- **Configuración**: Usuarios, Roles, Permisos, Config General, Email
+- **Configuración**: Usuarios, Roles, Permisos, Config General, Email, Importar Inscripciones, Importar Multievento
 - **Ayuda**: Centro, Novedades, Versiones, Acerca de
 
 ## 7. Flujos clave
@@ -93,6 +93,7 @@ Desde [AppLayout.vue](resources/js/Layouts/AppLayout.vue):
 4. **Membresías** → estado de cuenta, renovación mensual vía comando Artisan
 5. **Reporte semanal** de inscripciones por actividad → email automático configurable (día/hora/destinatario)
 6. **Oraciones cantadas** → calendarios personalizables por mes
+7. **Importación de inscripciones** → dos vías (importador legacy por evento, e **Importar Multievento** desde la planilla maestra: corte por fecha, ruteo semi-manual con memoria de matches, y actualización de pagos en re-imports). Ver [BUSINESS_RULES §2.10](BUSINESS_RULES.md)
 
 ## 8. Convenciones observadas
 

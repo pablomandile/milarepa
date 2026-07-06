@@ -182,9 +182,45 @@ class ImportarMultieventoTest extends TestCase
 
         $segunda = $service->importar($csv, $mapeo);
         $this->assertSame(0, $segunda['creadas'], 'Re-importar no debe crear duplicados.');
+        $this->assertSame(0, $segunda['actualizadas'], 'Sin cambios en los datos, no debe actualizar.');
         $this->assertSame(5, $segunda['omitidas']);
 
         $this->assertSame(5, Inscripcion::count());
+    }
+
+    public function test_reimportar_actualiza_datos_de_pago_de_inscripciones_existentes(): void
+    {
+        ['curso' => $curso] = $this->escenario();
+        $service = app(ImportarMultieventoService::class);
+        $evento = 'ROSARIO "Curso mensual" con Kelsang Panchen';
+
+        // 1ª importación: Flavio queda pendiente (solo Pendiente, sin pago registrado).
+        $csv1 = $this->armarCsv([
+            ['Nombre' => 'Flavio', 'Apellido' => 'Priotti', 'email' => 'flavio@example.com', 'Membresia' => 'SIN MEMBRESIA', 'Pendiente' => '10000', 'Pago' => 'CH', 'NombreEvento' => $evento, 'FechaEvento' => '6/6/2026'],
+        ]);
+        $mapeo = $this->mapeoDesdeSugerencias($service->previsualizar($csv1));
+        $service->importar($csv1, $mapeo);
+
+        $flavio = User::where('email', 'flavio@example.com')->first();
+        $ins = Inscripcion::where('user_id', $flavio->id)->where('actividad_id', $curso->id)->first();
+        $this->assertSame('Pendiente', $ins->pago);
+        $this->assertSame('Registrada', $ins->estado);
+
+        // 2ª importación: ahora Flavio pagó (Valor + FechaPago + Forma).
+        $csv2 = $this->armarCsv([
+            ['Nombre' => 'Flavio', 'Apellido' => 'Priotti', 'email' => 'flavio@example.com', 'Membresia' => 'SIN MEMBRESIA', 'Valor' => '10000', 'FechaPago' => '5/6/2026', 'Forma' => 'Bco', 'Pago' => 'CH', 'NombreEvento' => $evento, 'FechaEvento' => '6/6/2026'],
+        ]);
+        $resumen = $service->importar($csv2, $this->mapeoDesdeSugerencias($service->previsualizar($csv2)));
+
+        $this->assertSame(0, $resumen['creadas']);
+        $this->assertSame(1, $resumen['actualizadas']);
+        $this->assertSame(1, Inscripcion::count(), 'No debe crear una inscripción nueva.');
+
+        $ins->refresh();
+        $this->assertSame('Saldado', $ins->pago);
+        $this->assertSame('Confirmada', $ins->estado);
+        $this->assertSame('2026-06-05', $ins->fecha_pago->toDateString());
+        $this->assertSame('Bco', $ins->referencia_pago);
     }
 
     public function test_corte_por_fecha_es_configurable(): void

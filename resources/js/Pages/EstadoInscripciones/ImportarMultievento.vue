@@ -112,6 +112,7 @@ function eliminarReporte(archivoNom) {
 function claseAccion(accion) {
     if (accion === 'error') return 'text-red-600 font-semibold';
     if (accion === 'omitir') return 'text-amber-600 font-semibold';
+    if (accion === 'actualizar') return 'text-teal-600 font-semibold';
     if (accion === 'sin_actividad') return 'text-purple-600 font-semibold';
     if (accion === 'descartada_fecha') return 'text-gray-500 font-semibold';
     return 'text-emerald-600 font-semibold';
@@ -123,6 +124,8 @@ function etiquetaAccion(fila) {
             return 'Error';
         case 'omitir':
             return 'Omitir';
+        case 'actualizar':
+            return 'Actualizar (pago/asist.)';
         case 'sin_actividad':
             return 'Sin actividad';
         case 'descartada_fecha':
@@ -225,7 +228,7 @@ function formatoMonto(v) {
                 <div v-if="preview" class="bg-white dark:bg-gray-800 shadow-soft-indigo sm:rounded-lg p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Vista previa</h2>
 
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
                         <div class="border border-gray-200 dark:border-gray-700 rounded p-3">
                             <p class="text-xs text-gray-500 dark:text-gray-400">Filas totales</p>
                             <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ preview.total_filas }}</p>
@@ -233,6 +236,10 @@ function formatoMonto(v) {
                         <div class="border border-emerald-200 dark:border-emerald-800 rounded p-3 bg-emerald-50 dark:bg-emerald-900/20">
                             <p class="text-xs text-emerald-700 dark:text-emerald-300">A crear</p>
                             <p class="text-2xl font-semibold text-emerald-700 dark:text-emerald-300">{{ preview.a_crear }}</p>
+                        </div>
+                        <div class="border border-teal-200 dark:border-teal-800 rounded p-3 bg-teal-50 dark:bg-teal-900/20">
+                            <p class="text-xs text-teal-700 dark:text-teal-300">A actualizar</p>
+                            <p class="text-2xl font-semibold text-teal-700 dark:text-teal-300">{{ preview.actualizadas }}</p>
                         </div>
                         <div class="border border-blue-200 dark:border-blue-800 rounded p-3 bg-blue-50 dark:bg-blue-900/20">
                             <p class="text-xs text-blue-700 dark:text-blue-300">Usuarios nuevos</p>
@@ -344,11 +351,11 @@ function formatoMonto(v) {
                         <button
                             type="button"
                             class="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium py-2 px-6 rounded inline-flex items-center gap-2"
-                            :disabled="procesando || preview.a_crear === 0"
+                            :disabled="procesando || (preview.a_crear + preview.actualizadas) === 0"
                             @click="confirmarImportacion"
                         >
                             <i class="pi pi-check"></i>
-                            {{ procesando ? 'Importando...' : `Confirmar importación (${preview.a_crear} inscripciones)` }}
+                            {{ procesando ? 'Importando...' : `Confirmar importación (${preview.a_crear} nuevas · ${preview.actualizadas} actualizadas)` }}
                         </button>
                     </div>
                 </div>
@@ -356,10 +363,14 @@ function formatoMonto(v) {
                 <!-- Card: Resultado -->
                 <div v-if="resumen" class="bg-white dark:bg-gray-800 shadow-soft-indigo sm:rounded-lg p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Resultado de la importación</h2>
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
                         <div class="border border-emerald-200 dark:border-emerald-800 rounded p-3 bg-emerald-50 dark:bg-emerald-900/20">
                             <p class="text-xs text-emerald-700 dark:text-emerald-300">Creadas</p>
                             <p class="text-2xl font-semibold text-emerald-700 dark:text-emerald-300">{{ resumen.creadas }}</p>
+                        </div>
+                        <div class="border border-teal-200 dark:border-teal-800 rounded p-3 bg-teal-50 dark:bg-teal-900/20">
+                            <p class="text-xs text-teal-700 dark:text-teal-300">Actualizadas</p>
+                            <p class="text-2xl font-semibold text-teal-700 dark:text-teal-300">{{ resumen.actualizadas }}</p>
                         </div>
                         <div class="border border-amber-200 dark:border-amber-800 rounded p-3 bg-amber-50 dark:bg-amber-900/20">
                             <p class="text-xs text-amber-700 dark:text-amber-300">Omitidas</p>
@@ -398,6 +409,9 @@ function formatoMonto(v) {
                         </Column>
                         <Column header="Creadas" style="width: 6rem">
                             <template #body="{ data }">{{ data.creadas }}</template>
+                        </Column>
+                        <Column header="Actualiz." style="width: 6rem">
+                            <template #body="{ data }">{{ data.actualizadas }}</template>
                         </Column>
                         <Column header="Omitidas" style="width: 6rem">
                             <template #body="{ data }">{{ data.omitidas }}</template>

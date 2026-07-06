@@ -161,6 +161,7 @@ class ImportarMultieventoService
             'descartadas_fecha'     => 0,
             'sin_actividad'         => 0,
             'a_crear'               => 0,
+            'actualizadas'          => 0,
             'usuarios_nuevos'       => 0,
             'usuarios_existentes'   => 0,
             'omitidas'              => 0,
@@ -192,11 +193,17 @@ class ImportarMultieventoService
                     case 'omitir':
                         $resultado['omitidas']++;
                         break;
+                    case 'actualizar':
+                        $resultado['actualizadas']++;
+                        if ($ejecutar) {
+                            $this->actualizarInscripcion($info['datos']);
+                        }
+                        break;
                     case 'crear':
                         $resultado['a_crear']++;
                         $info['user_existe'] ? $resultado['usuarios_existentes']++ : $resultado['usuarios_nuevos']++;
                         if ($ejecutar) {
-                            $this->crearInscripcion($info, $ctx);
+                            $this->crearInscripcion($info);
                             $resultado['creadas']++;
                         }
                         break;
@@ -237,16 +244,29 @@ class ImportarMultieventoService
     {
         $entidades = Entidad::select('id', 'nombre', 'abreviacion', 'entidad_principal')->get();
 
-        // Emails ya inscriptos por actividad (para dedupe).
+        // Inscripciones existentes por actividad y email (para dedupe y actualización de pago).
         $inscritos = [];
         Inscripcion::query()
-            ->select('actividad_id', 'user_id', 'guest_user_id')
+            ->select('id', 'actividad_id', 'user_id', 'guest_user_id', 'pago', 'estado', 'fecha_pago', 'referencia_pago', 'montoapagar', 'asistencia', 'confirmado_manual')
             ->with(['user:id,email', 'guestUser:id,email'])
             ->get()
             ->each(function ($i) use (&$inscritos) {
+                $snap = [
+                    'id'                => $i->id,
+                    'pago'              => $i->pago,
+                    'estado'            => $i->estado,
+                    'fecha_pago'        => $i->fecha_pago ? $i->fecha_pago->toDateString() : null,
+                    'referencia_pago'   => $i->referencia_pago,
+                    'montoapagar'       => (float) $i->montoapagar,
+                    'asistencia'        => $i->asistencia,
+                    'confirmado_manual' => (bool) $i->confirmado_manual,
+                ];
                 foreach ([optional($i->user)->email, optional($i->guestUser)->email] as $e) {
                     if ($e) {
-                        $inscritos[$i->actividad_id][strtolower(trim($e))] = true;
+                        $key = strtolower(trim($e));
+                        if (!isset($inscritos[$i->actividad_id][$key])) {
+                            $inscritos[$i->actividad_id][$key] = $snap;
+                        }
                     }
                 }
             });
@@ -349,30 +369,15 @@ class ImportarMultieventoService
             $mensajes[] = 'Email compartido con otra persona; se usa un email placeholder (' . $u['email'] . ')';
         }
 
-        // 4) Dedupe (actividad + usuario resuelto): dentro del archivo y contra la BD.
+        // 4) Dedupe intra-archivo (misma persona en la misma actividad).
         $claveDedupe = $actividad->id . '||' . $u['email'];
         if (isset($vistos[$claveDedupe])) {
             return $this->fila('omitir', $nombreEvento, $fechaEvento->toDateString(), $actividad->id,
                 ['Fila repetida en el archivo (misma persona en la misma actividad)'], $u['existe'], ['email' => $u['email']]);
         }
-        if (isset($ctx['inscritos'][$actividad->id][$u['email']])) {
-            return $this->fila('omitir', $nombreEvento, $fechaEvento->toDateString(), $actividad->id,
-                ['Ya tiene inscripción a esta actividad'], true, ['email' => $u['email']]);
-        }
+        $vistos[$claveDedupe] = true;
 
-        // 5) Membresía + entidad de la actividad ruteada.
-        $ctxMem = [
-            'entidadActividad' => (int) $actividad->entidad_id,
-            'entidades'        => $ctx['entidades'],
-            'membresias'       => $ctx['membresias'],
-            'entidadPrincipal' => $ctx['entidadPrincipal'],
-        ];
-        [$membresiaId, $membresiaNombre, $msgMem] = $this->resolverMembresia((string) ($fila['membresia'] ?? ''), $ctxMem);
-        if ($msgMem) {
-            $mensajes[] = $msgMem;
-        }
-
-        // 6) Montos y estado de pago.
+        // 5) Montos, pago, asistencia y confirmación (comunes a crear y actualizar).
         $anio = $actividad->fecha_inicio ? Carbon::parse($actividad->fecha_inicio)->year : (int) $fechaEvento->year;
         $pendiente = $this->parsearMonto($fila['pendiente'] ?? '');
         $valor = $this->parsearMonto($fila['valor'] ?? '');
@@ -387,8 +392,52 @@ class ImportarMultieventoService
             $monto = 0.0;
         }
         $saldado = $pagado || $monto <= 0;
-
+        $asistencia = $this->parsearAsistencia($fila['asistencia'] ?? '');
+        $confirmado = $this->parsearBooleano($fila['confirmado_manual'] ?? '');
         $online = Str::upper(Str::ascii(trim((string) ($fila['modalidad'] ?? '')))) === 'ONLINE';
+
+        // 6) ¿Ya existe inscripción para esta persona en esta actividad? → actualizar; si no, crear.
+        $existente = $ctx['inscritos'][$actividad->id][$u['email']] ?? null;
+        if ($existente !== null) {
+            // Actualización: pago + asistencia + confirmación (el estado nunca se degrada).
+            $target = [
+                'pago'              => $saldado ? 'Saldado' : 'Pendiente',
+                'estado'            => $saldado ? 'Confirmada' : $existente['estado'],
+                'fecha_pago'        => $fechaPago,
+                'referencia_pago'   => $referencia,
+                'montoapagar'       => $monto,
+                'asistencia'        => $asistencia,
+                'confirmado_manual' => $confirmado,
+            ];
+            $cambios = $this->detectarCambios($existente, $target);
+
+            if (empty($cambios)) {
+                return $this->fila('omitir', $nombreEvento, $fechaEvento->toDateString(), $actividad->id,
+                    ['Ya inscripto; sin cambios'], true,
+                    ['email' => $u['email'], 'name' => $u['nombre'], 'monto' => $monto, 'pago' => $target['pago']]);
+            }
+
+            return $this->fila('actualizar', $nombreEvento, $fechaEvento->toDateString(), $actividad->id,
+                ['Ya inscripto; se actualiza: ' . implode(', ', $cambios)], true,
+                array_merge($target, [
+                    'inscripcion_id' => $existente['id'],
+                    'email'          => $u['email'],
+                    'name'           => $u['nombre'],
+                    'monto'          => $monto,
+                ]));
+        }
+
+        // 7) Nueva inscripción: resolver membresía + entidad de la actividad ruteada y armar los datos.
+        $ctxMem = [
+            'entidadActividad' => (int) $actividad->entidad_id,
+            'entidades'        => $ctx['entidades'],
+            'membresias'       => $ctx['membresias'],
+            'entidadPrincipal' => $ctx['entidadPrincipal'],
+        ];
+        [$membresiaId, $membresiaNombre, $msgMem] = $this->resolverMembresia((string) ($fila['membresia'] ?? ''), $ctxMem);
+        if ($msgMem) {
+            $mensajes[] = $msgMem;
+        }
 
         $datos = [
             'actividad_id'      => $actividad->id,
@@ -408,19 +457,16 @@ class ImportarMultieventoService
             'fecha_pago'        => $fechaPago,
             'referencia_pago'   => $referencia,
             'observaciones'     => $this->armarObservaciones($fila),
-            'asistencia'        => $this->parsearAsistencia($fila['asistencia'] ?? ''),
-            'confirmado_manual' => $this->parsearBooleano($fila['confirmado_manual'] ?? ''),
+            'asistencia'        => $asistencia,
+            'confirmado_manual' => $confirmado,
             'marca_temporal'    => $this->parsearMarcaTemporal($fila['marca_temporal'] ?? ''),
             'online'            => $online,
         ];
 
-        // Reservar la clave para dedupe intra-archivo.
-        $vistos[$claveDedupe] = true;
-
         return $this->fila('crear', $nombreEvento, $fechaEvento->toDateString(), $actividad->id, $mensajes, $u['existe'], $datos);
     }
 
-    private function crearInscripcion(array $info, array $ctx): void
+    private function crearInscripcion(array $info): void
     {
         $datos = $info['datos'];
 
@@ -476,9 +522,55 @@ class ImportarMultieventoService
             $inscripcion->created_at = $datos['marca_temporal'];
             $inscripcion->save();
         }
+    }
 
-        // Registrar el email resuelto como ya inscripto (dedupe en la misma corrida).
-        $ctx['inscritos'][$datos['actividad_id']][$datos['email']] = true;
+    /** Actualiza pago + asistencia + confirmación de una inscripción existente (estado nunca degrada). */
+    private function actualizarInscripcion(array $datos): void
+    {
+        $inscripcion = Inscripcion::find($datos['inscripcion_id']);
+        if (!$inscripcion) {
+            return;
+        }
+
+        $inscripcion->pago = $datos['pago'];
+        $inscripcion->estado = $datos['estado'];
+        $inscripcion->fecha_pago = $datos['fecha_pago'];
+        $inscripcion->referencia_pago = $datos['referencia_pago'];
+        $inscripcion->montoapagar = $datos['montoapagar'];
+        $inscripcion->montoActividad = $datos['montoapagar'];
+        $inscripcion->precioGeneral = $datos['montoapagar'];
+        $inscripcion->asistencia = $datos['asistencia'];
+        $inscripcion->confirmado_manual = $datos['confirmado_manual'];
+        $inscripcion->save();
+    }
+
+    /** Devuelve la lista de campos que cambian entre la inscripción actual y los datos nuevos. */
+    private function detectarCambios(array $actual, array $nuevo): array
+    {
+        $cambios = [];
+        if ((string) $actual['pago'] !== (string) $nuevo['pago']) {
+            $cambios[] = 'pago';
+        }
+        if ((string) $actual['estado'] !== (string) $nuevo['estado']) {
+            $cambios[] = 'estado';
+        }
+        if ((string) ($actual['fecha_pago'] ?? '') !== (string) ($nuevo['fecha_pago'] ?? '')) {
+            $cambios[] = 'fecha_pago';
+        }
+        if ((string) ($actual['referencia_pago'] ?? '') !== (string) ($nuevo['referencia_pago'] ?? '')) {
+            $cambios[] = 'referencia';
+        }
+        if ((float) $actual['montoapagar'] !== (float) $nuevo['montoapagar']) {
+            $cambios[] = 'monto';
+        }
+        if ((string) $actual['asistencia'] !== (string) $nuevo['asistencia']) {
+            $cambios[] = 'asistencia';
+        }
+        if ((bool) $actual['confirmado_manual'] !== (bool) $nuevo['confirmado_manual']) {
+            $cambios[] = 'confirmado';
+        }
+
+        return $cambios;
     }
 
     /**

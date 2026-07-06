@@ -49,9 +49,9 @@ class ImportarMultieventoController extends Controller
 
         $contenido = $this->obtenerContenido($request);
         $resumen = $this->service->importar($contenido, $this->mapeoDe($request));
-        $resumen['mensaje'] = "Importación finalizada: {$resumen['creadas']} creadas, {$resumen['omitidas']} omitidas, "
-            . "{$resumen['sin_actividad']} sin actividad, {$resumen['descartadas_fecha']} fuera de fecha, "
-            . "{$resumen['errores']} con error.";
+        $resumen['mensaje'] = "Importación finalizada: {$resumen['creadas']} creadas, {$resumen['actualizadas']} actualizadas, "
+            . "{$resumen['omitidas']} omitidas, {$resumen['sin_actividad']} sin actividad, "
+            . "{$resumen['descartadas_fecha']} fuera de fecha, {$resumen['errores']} con error.";
 
         $this->guardarReporte($resumen);
 
@@ -200,6 +200,7 @@ class ImportarMultieventoController extends Controller
                     'generado_en'       => $data['generado_en'] ?? null,
                     'usuario'           => $data['usuario'] ?? null,
                     'creadas'           => $r['creadas'] ?? 0,
+                    'actualizadas'      => $r['actualizadas'] ?? 0,
                     'omitidas'          => $r['omitidas'] ?? 0,
                     'sin_actividad'     => $r['sin_actividad'] ?? 0,
                     'descartadas_fecha' => $r['descartadas_fecha'] ?? 0,
