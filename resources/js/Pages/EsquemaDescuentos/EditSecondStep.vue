@@ -5,7 +5,7 @@ import EsquemaMembresiaForm from '@/Components/Formularios/EsquemaMembresiaForm.
 import { Link } from '@inertiajs/vue3';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import { route } from 'ziggy-js';
@@ -31,12 +31,33 @@ const props = defineProps({
     }
 });
 
+function getDefaultMonedaId() {
+  return props.monedas.length ? props.monedas[0].id : null;
+}
+
 // Este form se usará para “Agregar Membresía”
 const formMembresia = useForm({
     membresia_id: null,
     botonpago_id: null,
     precio: null,
-    moneda_id: null
+    moneda_id: getDefaultMonedaId()
+});
+
+// Preselecciona la primera moneda (pesos argentinos), igual que en Esquema de Precios.
+watch(
+  () => props.monedas,
+  (monedas) => {
+    if (!formMembresia.moneda_id && monedas.length) {
+      formMembresia.moneda_id = monedas[0].id;
+    }
+  },
+  { immediate: true }
+);
+
+// Membresías que todavía no tienen precio en este esquema (para el dropdown del alta).
+const membresiasDisponibles = computed(() => {
+  const usadas = new Set((props.esquemaDescuento.membresias || []).map((l) => l.membresia_id));
+  return props.membresias.filter((m) => !usadas.has(m.id));
 });
 
 // Al hacer submit en el formulario de membresía
@@ -50,7 +71,31 @@ function handleAddMembresia() {
     onSuccess: () => {
       // Limpiar
       formMembresia.reset();
+      formMembresia.moneda_id = getDefaultMonedaId();
     }
+  });
+}
+
+// "Todos iguales": copia moneda + importe + botón de pago a todas las membresías
+// de la misma entidad que aún no tengan precio en el esquema.
+function handleAddIguales() {
+  router.post(route('esquemadescuentos.storeMembresiasIguales', props.esquemaDescuento.id), {
+    membresia_id: formMembresia.membresia_id,
+    botonpago_id: formMembresia.botonpago_id,
+    precio: formMembresia.precio,
+    moneda_id: formMembresia.moneda_id,
+  }, {
+    onSuccess: () => {
+      formMembresia.reset();
+      formMembresia.moneda_id = getDefaultMonedaId();
+    }
+  });
+}
+
+// "Gratis con TK": pone en $0 las membresías faltantes de las entidades que ya tienen precio.
+function handleAddGratis() {
+  router.post(route('esquemadescuentos.storeMembresiasGratis', props.esquemaDescuento.id), {}, {
+    preserveScroll: true,
   });
 }
 
@@ -192,10 +237,14 @@ function guardarNombre() {
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg mb-6 mt-6 p-4">
                     <EsquemaMembresiaForm
                         :form="formMembresia"
-                        :membresias="membresias"
+                        :membresias="membresiasDisponibles"
                         :monedas="monedas"
                         :botonesPago="botonesPago"
+                        :acciones-masivas="true"
+                        :tiene-precios="(esquemaDescuento.membresias?.length || 0) > 0"
                         @submit="handleAddMembresia"
+                        @submit-iguales="handleAddIguales"
+                        @submit-gratis="handleAddGratis"
                     />
                 </div>
                 <div class="card p-fluid">

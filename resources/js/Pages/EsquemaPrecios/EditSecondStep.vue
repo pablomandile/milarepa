@@ -35,6 +35,12 @@ const botonesPagoOrdenados = computed(() =>
   [...props.botonesPago].sort((a, b) => Number(b.id) - Number(a.id))
 );
 
+// Membresías que todavía no tienen precio en este esquema (para el dropdown del alta).
+const membresiasDisponibles = computed(() => {
+  const usadas = new Set((props.esquemaPrecio.membresias || []).map((l) => l.membresia_id));
+  return props.membresias.filter((m) => !usadas.has(m.id));
+});
+
 function getDefaultMonedaId() {
   return props.monedas.length ? props.monedas[0].id : null;
 }
@@ -64,6 +70,29 @@ function handleAddMembresia() {
       formMembresia.reset();
       formMembresia.moneda_id = getDefaultMonedaId();
     }
+  });
+}
+
+// "Todos iguales": copia moneda + importe + botón de pago a todas las membresías
+// de la misma entidad que aún no tengan precio en el esquema.
+function handleAddIguales() {
+  router.post(route('esquemaprecios.storeMembresiasIguales', props.esquemaPrecio.id), {
+    membresia_id: formMembresia.membresia_id,
+    botonpago_id: formMembresia.botonpago_id,
+    precio: normalizePrecio(formMembresia.precio),
+    moneda_id: formMembresia.moneda_id,
+  }, {
+    onSuccess: () => {
+      formMembresia.reset();
+      formMembresia.moneda_id = getDefaultMonedaId();
+    }
+  });
+}
+
+// "Gratis con TK": pone en $0 las membresías faltantes de las entidades que ya tienen precio.
+function handleAddGratis() {
+  router.post(route('esquemaprecios.storeMembresiasGratis', props.esquemaPrecio.id), {}, {
+    preserveScroll: true,
   });
 }
 
@@ -212,10 +241,14 @@ function guardarNombre() {
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg mb-6 mt-6 p-4">
                     <EsquemaMembresiaForm
                         :form="formMembresia"
-                        :membresias="membresias"
+                        :membresias="membresiasDisponibles"
                         :monedas="monedas"
                         :botonesPago="botonesPagoOrdenados"
+                        :acciones-masivas="true"
+                        :tiene-precios="(esquemaPrecio.membresias?.length || 0) > 0"
                         @submit="handleAddMembresia"
+                        @submit-iguales="handleAddIguales"
+                        @submit-gratis="handleAddGratis"
                     />
                 </div>
                 <div class="card p-fluid">

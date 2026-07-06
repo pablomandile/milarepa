@@ -547,8 +547,16 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
     Route::post('/esquema-precios/{id}/membresias', [EsquemaPreciosController::class, 'storeMembresia'])
     ->name('esquemaprecios.storeMembresia');
+    Route::post('/esquema-precios/{id}/membresias-iguales', [EsquemaPreciosController::class, 'storeMembresiasIguales'])
+    ->name('esquemaprecios.storeMembresiasIguales');
+    Route::post('/esquema-precios/{id}/membresias-gratis', [EsquemaPreciosController::class, 'storeMembresiasGratis'])
+    ->name('esquemaprecios.storeMembresiasGratis');
     Route::post('/esquema-descuentos/{id}/membresias', [EsquemaDescuentosController::class, 'storeMembresia'])
     ->name('esquemadescuentos.storeMembresia');
+    Route::post('/esquema-descuentos/{id}/membresias-iguales', [EsquemaDescuentosController::class, 'storeMembresiasIguales'])
+    ->name('esquemadescuentos.storeMembresiasIguales');
+    Route::post('/esquema-descuentos/{id}/membresias-gratis', [EsquemaDescuentosController::class, 'storeMembresiasGratis'])
+    ->name('esquemadescuentos.storeMembresiasGratis');
 
     // Editar y eliminar membershipLine
     Route::put('/esquema-precios/membresias/{membershipLineId}', [EsquemaPreciosController::class, 'updateMembresia'])
