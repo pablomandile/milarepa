@@ -17,6 +17,7 @@ use App\Models\EsquemaDescuento;
 use App\Models\EsquemaPrecio;
 use App\Models\Grabacion;
 use App\Models\Hospedaje;
+use App\Models\Imagen;
 use App\Models\Lugar;
 use App\Models\LugarHospedaje;
 use App\Models\Maestro;
@@ -118,7 +119,8 @@ class ActividadesController extends Controller
             'lugaresHospedaje' => $lugarHospedaje,
             'hospedajes' => $hospedajes,
             'comidas' => $comidas,
-            'transportes' => $transportes
+            'transportes' => $transportes,
+            'imagenes' => Imagen::orderByDesc('created_at')->get(['id', 'nombre', 'ruta']),
         ]);
     }
 
@@ -325,7 +327,8 @@ class ActividadesController extends Controller
                 'comidas' => $comidas,
                 'transportes' => $transportes,
                 'maestros' => $maestros,
-                'coordinadores' => $coordinadores
+                'coordinadores' => $coordinadores,
+                'imagenes' => Imagen::orderByDesc('created_at')->get(['id', 'nombre', 'ruta']),
             ]);
     }
 

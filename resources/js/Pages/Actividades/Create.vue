@@ -113,6 +113,10 @@
         coordinadores: {
             type: Array,
             default: () => [],
+        },
+        imagenes: {
+            type: Array,
+            default: () => [],
         }
     });
 
@@ -245,6 +249,7 @@
                               :transportes="transportes"
                               :coordinadores="coordinadores"
                               :maestros="maestros"
+                              :imagenes="imagenes"
                               :form="form"
                               :hide-header="true"
                               @submit="handleSubmit"

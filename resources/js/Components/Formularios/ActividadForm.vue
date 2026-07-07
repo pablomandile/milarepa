@@ -122,6 +122,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  imagenes: {
+    type: Array,
+    default: () => [],
+  },
   // Nuevo prop para ocultar el header interno cuando se renderiza desde una vista que ya muestra el título
   hideHeader: {
     type: Boolean,
@@ -505,6 +509,50 @@ watch(
     conDescuentoAnticipado.value = !!props.form?.esquema_descuento_id || !!props.form?.pagoAmticipado;
   },
   { immediate: true }
+);
+
+// ----- Galería: seleccionar entre imágenes ya cargadas -----
+const mostrarGaleriaDialog = ref(false);
+const galeriaFiltro = ref('');
+const imagenSeleccionadaGaleria = ref(null);
+
+const imagenesFiltradas = computed(() => {
+  const termino = galeriaFiltro.value.trim().toLowerCase();
+  const lista = props.imagenes || [];
+  if (!termino) {
+    return lista;
+  }
+  return lista.filter((img) => String(img?.nombre || '').toLowerCase().includes(termino));
+});
+
+// Preview de la imagen actual: prioriza la elegida de la galería; si no, la guardada.
+const previewActualUrl = computed(() => {
+  if (imagenSeleccionadaGaleria.value) {
+    return `/storage/${imagenSeleccionadaGaleria.value.ruta}`;
+  }
+  return props.imagenPreviewUrl;
+});
+
+const previewActualLabel = computed(() =>
+  imagenSeleccionadaGaleria.value ? 'Elegida de galería' : 'Actual'
+);
+
+function seleccionarImagenGaleria(img) {
+  imagenSeleccionadaGaleria.value = img;
+  props.form.imagen_id = img.id;
+  // Al elegir de la galería descartamos cualquier archivo recién subido.
+  props.form.imagen = null;
+  mostrarGaleriaDialog.value = false;
+}
+
+// Si el usuario sube un archivo nuevo, ese archivo manda: limpiamos la selección de galería.
+watch(
+  () => props.form.imagen,
+  (file) => {
+    if (file) {
+      imagenSeleccionadaGaleria.value = null;
+    }
+  }
 );
 
 </script>
@@ -1378,22 +1426,35 @@ watch(
             :required="false"
           />
 
-          <div class="flex items-start gap-4">
-            <!-- Componente personalizado para subir imágen -->
-            <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
-              <SingleImageUploader 
-                v-model:file="form.imagen"
-              />
+          <div class="flex flex-wrap items-start gap-4">
+            <div class="flex flex-col gap-2">
+              <!-- Componente personalizado para subir imágen -->
+              <div class="flex justify-between" v-if="$page.props.user.permissions.includes('create entidades')">
+                <SingleImageUploader
+                  v-model:file="form.imagen"
+                  folder="img/actividades"
+                />
+              </div>
+              <button
+                type="button"
+                class="inline-flex items-center justify-center gap-2 rounded bg-indigo-500 px-3 py-2 text-sm text-white hover:bg-indigo-600"
+                @click="mostrarGaleriaDialog = true"
+                v-tooltip="'Elegir entre las imágenes ya cargadas'"
+              >
+                <i class="pi pi-images"></i>
+                Elegir de la galería
+              </button>
             </div>
-            <div v-if="imagenPreviewUrl" class="flex items-center gap-2">
+            <div v-if="previewActualUrl" class="flex items-center gap-2">
               <img
-                :src="imagenPreviewUrl"
+                :src="previewActualUrl"
                 alt="Imagen actual"
                 class="h-16 w-16 mt-0 pt-0 rounded border border-gray-200 dark:border-gray-700 object-cover"
               />
-              <span class="text-xs text-gray-500">Actual</span>
+              <span class="text-xs text-gray-500">{{ previewActualLabel }}</span>
             </div>
           <InputError :message="$page.props.errors.imagen" class="mt-2" />
+          <InputError :message="$page.props.errors.imagen_id" class="mt-2" />
           </div>
         </div>
 
@@ -1603,6 +1664,48 @@ watch(
       <i class="pi pi-inbox text-3xl"></i>
       <p class="text-sm">No se encontró la información solicitada.</p>
     </div>
+  </Dialog>
+
+  <!-- Galería: elegir entre imágenes ya cargadas -->
+  <Dialog
+    v-model:visible="mostrarGaleriaDialog"
+    modal
+    header="Elegir imagen de la galería"
+    :style="{ width: '60rem' }"
+    :breakpoints="{ '1199px': '95vw' }"
+    dismissableMask
+  >
+    <div class="mb-4">
+      <TextInput
+        v-model="galeriaFiltro"
+        type="text"
+        class="block w-full"
+        placeholder="Buscar por nombre…"
+      />
+    </div>
+    <div v-if="imagenesFiltradas.length" class="max-h-[60vh] overflow-y-auto">
+      <div class="grid grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
+        <button
+          v-for="img in imagenesFiltradas"
+          :key="img.id"
+          type="button"
+          class="group relative rounded border p-1 transition hover:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          :class="String(form.imagen_id) === String(img.id)
+            ? 'border-indigo-500 ring-2 ring-indigo-500'
+            : 'border-gray-200 dark:border-gray-700'"
+          @click="seleccionarImagenGaleria(img)"
+          :title="img.nombre"
+        >
+          <img
+            :src="`/storage/${img.ruta}`"
+            :alt="img.nombre"
+            class="aspect-square w-full rounded object-cover"
+            loading="lazy"
+          />
+        </button>
+      </div>
+    </div>
+    <p v-else class="text-sm text-gray-500">No hay imágenes que coincidan con la búsqueda.</p>
   </Dialog>
 </template>
 
