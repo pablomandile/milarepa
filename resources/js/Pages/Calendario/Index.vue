@@ -267,7 +267,7 @@ function diaSemanaLargoFromDate(dateStr) {
                   <input
                     v-model="showActividades"
                     type="checkbox"
-                    class="calendar-filter-checkbox checkbox-emerald"
+                    class="calendar-filter-checkbox checkbox-sky-strong"
                   />
                   Cursos y retiros
                 </label>
@@ -283,7 +283,7 @@ function diaSemanaLargoFromDate(dateStr) {
                   <input
                     v-model="showOraciones"
                     type="checkbox"
-                    class="calendar-filter-checkbox checkbox-sky"
+                    class="calendar-filter-checkbox checkbox-emerald"
                   />
                   Oraciones Cantadas
                 </label>
@@ -395,14 +395,14 @@ function diaSemanaLargoFromDate(dateStr) {
                       <Link
                         v-else-if="!actividad.esOracionCantada"
                         :href="actividadHref(actividad.id)"
-                        class="block rounded-md border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-2 text-sm leading-tight text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100 dark:hover:bg-emerald-900/50"
+                        class="block rounded-md border border-sky-400 dark:border-sky-500 bg-sky-200 dark:bg-sky-800/60 px-3 py-2 text-sm leading-tight text-sky-950 dark:text-sky-100 hover:bg-sky-300 dark:hover:bg-sky-800"
                       >
                         {{ itemLabel(actividad) }}
                       </Link>
                       <Link
                         v-else
                         :href="oracionCantadaHref(actividad.id)"
-                        class="block rounded-md border border-sky-200 dark:border-sky-700 bg-sky-50 dark:bg-sky-900/30 px-3 py-2 text-sm leading-tight text-sky-900 dark:text-sky-200"
+                        class="block rounded-md border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-2 text-sm leading-tight text-emerald-900 dark:text-emerald-200"
                       >
                         {{ itemLabel(actividad) }}
                       </Link>
@@ -464,7 +464,7 @@ function diaSemanaLargoFromDate(dateStr) {
                       <Link
                         v-else-if="!actividad.esOracionCantada"
                         :href="actividadHref(actividad.id)"
-                        class="block rounded-md border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 text-xs leading-tight text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100 dark:hover:bg-emerald-900/50"
+                        class="block rounded-md border border-sky-400 dark:border-sky-500 bg-sky-200 dark:bg-sky-800/60 px-2 py-1 text-xs leading-tight text-sky-950 dark:text-sky-100 hover:bg-sky-300 dark:hover:bg-sky-800"
                         :title="itemLabel(actividad)"
                       >
                         {{ itemLabel(actividad) }}
@@ -472,7 +472,7 @@ function diaSemanaLargoFromDate(dateStr) {
                       <Link
                         v-else
                         :href="oracionCantadaHref(actividad.id)"
-                        class="block rounded-md border border-sky-200 dark:border-sky-700 bg-sky-50 dark:bg-sky-900/30 px-2 py-1 text-xs leading-tight text-sky-900 dark:text-sky-200"
+                        class="block rounded-md border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 text-xs leading-tight text-emerald-900 dark:text-emerald-200"
                         :title="itemLabel(actividad)"
                       >
                         {{ itemLabel(actividad) }}
@@ -515,15 +515,15 @@ function diaSemanaLargoFromDate(dateStr) {
   background-image: none !important;
 }
 
-.checkbox-emerald {
-  accent-color: #059669;
-}
-
 .checkbox-amber {
   accent-color: #d97706;
 }
 
-.checkbox-sky {
-  accent-color: #0284c7;
+.checkbox-emerald {
+  accent-color: #059669;
+}
+
+.checkbox-sky-strong {
+  accent-color: #075985;
 }
 </style>
