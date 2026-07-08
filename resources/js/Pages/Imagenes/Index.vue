@@ -9,17 +9,12 @@
     import { Link, router } from '@inertiajs/vue3';
     import Swal from "sweetalert2";
     import { ref } from 'vue';
-    import DataView from 'primevue/dataview';
-    import DataViewLayoutOptions from 'primevue/dataviewlayoutoptions';
     import ImageUploader from '@/Components/ImageUploader.vue';
     import Dialog from 'primevue/dialog';
 
-
-
-    const layout = ref('grid');
     const showDialog = ref(false);
     const selectedImage = ref(null);
-  
+
     defineProps({
         imagenes: {
             type: Array,
@@ -32,6 +27,24 @@
         },
     });
 
+    // Placeholder autocontenido (data-URI): se usa cuando el archivo referenciado no
+    // existe en storage o la ruta está rota. Al ser inline nunca da 404.
+    const IMAGEN_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">' +
+        '<rect width="200" height="200" fill="#e5e7eb"/>' +
+        '<text x="100" y="105" font-family="sans-serif" font-size="14" fill="#6b7280" text-anchor="middle">Sin imagen</text>' +
+        '</svg>'
+    );
+
+    // Si el <img> no puede cargar el archivo, lo reemplaza por el placeholder.
+    // dataset.fallback evita un bucle si el propio placeholder fallara.
+    const onImgError = (event) => {
+        const el = event?.target;
+        if (!el || el.dataset.fallback) return;
+        el.dataset.fallback = '1';
+        el.src = IMAGEN_FALLBACK;
+    };
+
     const deleteImagen = (id) => {
         Swal.fire({
             title: "¿Estás seguro?",
@@ -43,23 +56,28 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(route('imagenes.destroy', id), {
+                        preserveScroll: true,
                         onSuccess: () => {
                         Swal.fire("¡Eliminado!", "La Imagen ha sido eliminada.", "success");
                         },
-                        onError: () => {
-                        Swal.fire("Error", "Hubo un problema al eliminar la Imagen.", "error");
+                        onError: (errors) => {
+                        Swal.fire(
+                            "No se pudo eliminar",
+                            errors?.imagen || "Hubo un problema al eliminar la imagen.",
+                            "warning"
+                        );
                         },
                 });
             }
         });
     };
 
-    // Función para abrir el diálogo con la imagen seleccionada
+    // Abre el diálogo con la imagen seleccionada (visor ampliado)
     function onClickImage(item) {
         selectedImage.value = item;
         showDialog.value = true;
     }
-    
+
 </script>
 
 <template>
@@ -69,92 +87,79 @@
         </template>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-7xl mx-auto">
-                    <!-- Componente personalizado para subir imágenes -->
-                    <div class="flex justify-between mb-6" v-if="$page.props.user.permissions.includes('create entidades')">
-                        <ImageUploader />
+                <div class="p-6 bg-white dark:bg-gray-800 shadow-soft-indigo sm:rounded-lg max-w-7xl mx-auto">
+                    <!-- Barra superior: uploader + contador -->
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div v-if="$page.props.user.permissions.includes('create entidades')">
+                            <ImageUploader />
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 sm:pt-2">
+                            <i class="pi pi-images"></i>
+                            <span>{{ imagenes.length }} imagen(es) en esta página</span>
+                        </div>
                     </div>
 
-                    <div class="mt-4">
-                        <DataView :value="imagenes" :layout="layout">
-                            <template #header>
-                                <div class="flex justify-content-end">
-                                    <DataViewLayoutOptions v-model="layout" />
-                                </div>
-                            </template>
+                    <!-- Grilla uniforme con overlay -->
+                    <div v-if="imagenes.length" class="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                        <div
+                            v-for="item in imagenes"
+                            :key="item.id"
+                            class="group relative aspect-square overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 shadow-sm hover:shadow-md transition"
+                        >
+                            <img
+                                :src="`/storage/${item.ruta}`"
+                                :alt="item.nombre"
+                                loading="lazy"
+                                @error="onImgError"
+                                @click="onClickImage(item)"
+                                class="h-full w-full object-cover cursor-zoom-in transition duration-300 group-hover:scale-105"
+                            />
 
-                            <template #list="slotProps">
-                                <div class="grid grid-nogutter">
-                                    <div v-for="(item, index) in slotProps.items" :key="index" class="col-12 sm:col-6 md:col-4 xl:col-12 p-2">
-                                        <div class="p-4 border-1 surface-border surface-card border-round flex flex-column">
-                                            <div class="surface-50 flex justify-content-left border-round p-3">
-                                                <div class="relative mx-10">
-                                                    <img
-                                                        class="border-round w-full"
-                                                        :src="`/storage/${item.ruta}`"
-                                                        :alt="item.nombre"
-                                                        style="max-width: 50px"
-                                                    />
-                                                </div>
-                                                <div>{{ item.nombre }}</div>
-                                            </div>
-                                            <!-- Botón para eliminar debajo de la imagen -->
-                                            <div class="mt-2 flex justify-content-start">
-                                                <!-- Ejemplo usando un simple botón con Tailwind -->
-                                                <button
-                                                    class="bg-red-400 hover:bg-red-700 text-white py-1 px-2 rounded flex items-center gap-1"
-                                                    @click="deleteImagen(item.id)"
-                                                >
-                                                    <i class="pi pi-trash"></i>
-                                                    Eliminar
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                            <template #grid="slotProps">
-                                <div class="grid grid-nogutter">
-                                    <div v-for="(item, index) in slotProps.items" :key="index" class="col-3 p-2">
-                                        <div class="p-4 border-1 surface-border surface-card border-round flex flex-column">
-                                            <div class="surface-50 flex justify-content-center border-round p-3">
-                                                <div class="relative mx-auto">
-                                                    <img
-                                                        class="border-round w-full cursor-pointer"
-                                                        :src="`/storage/${item.ruta}`"
-                                                        :alt="item.nombre"
-                                                        style="max-width: 140px"
-                                                        @click="onClickImage(item)"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <!-- Botón para eliminar debajo de la imagen -->
-                                            <div class="mt-2 flex justify-content-center">
-                                                <button
-                                                    class="bg-red-400 hover:bg-red-700 text-white py-1 px-2 rounded flex items-center gap-1"
-                                                    @click="deleteImagen(item.id)"
-                                                >
-                                                    <i class="pi pi-trash"></i>
-                                                    Eliminar
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </DataView>
+                            <!-- Overlay con el nombre: visible en mobile, al hover en desktop -->
+                            <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition">
+                                <p class="truncate text-xs font-medium text-white" :title="item.nombre">{{ item.nombre }}</p>
+                            </div>
+
+                            <!-- Acciones arriba-derecha -->
+                            <div class="absolute right-2 top-2 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition">
+                                <button
+                                    type="button"
+                                    @click="onClickImage(item)"
+                                    v-tooltip="'Ver imagen'"
+                                    class="flex h-8 w-8 items-center justify-center rounded-full bg-white/85 text-gray-700 shadow hover:bg-white"
+                                >
+                                    <i class="pi pi-eye"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="deleteImagen(item.id)"
+                                    v-tooltip="'Eliminar imagen'"
+                                    class="flex h-8 w-8 items-center justify-center rounded-full bg-white/85 text-red-600 shadow hover:bg-red-600 hover:text-white"
+                                >
+                                    <i class="pi pi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    <div v-if="links.length > 3" class="mt-6 flex justify-center gap-2">
+                    <!-- Estado vacío -->
+                    <div v-else class="mt-6 flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 py-16 text-center">
+                        <i class="pi pi-images text-4xl text-gray-400 dark:text-gray-500"></i>
+                        <p class="text-base font-medium text-gray-600 dark:text-gray-300">No hay imágenes en la galería</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Subí la primera imagen con el botón de arriba.</p>
+                    </div>
+
+                    <!-- Paginación -->
+                    <div v-if="links.length > 3" class="mt-8 flex justify-center gap-2">
                         <Link
                             v-for="link in links"
                             :key="link.label"
                             :href="link.url || '#'"
                             :class="[
                                 'px-4 py-2 rounded transition',
-                                link.active 
-                                    ? 'bg-indigo-600 text-white' 
-                                    : 'bg-gray-200 text-gray-700 dark:text-gray-300 hover:bg-gray-300',
+                                link.active
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600',
                                 !link.url && 'opacity-50 cursor-not-allowed'
                             ]"
                             v-html="link.label"
@@ -163,22 +168,33 @@
                 </div>
             </div>
         </div>
+
+        <!-- Visor / lightbox -->
         <Dialog
-        v-model:visible="showDialog"
-        modal
-        :style="{ width: '600px' }"
-        dismissableMask
+            v-model:visible="showDialog"
+            modal
+            :header="selectedImage ? selectedImage.nombre : 'Imagen'"
+            :style="{ width: '60rem' }"
+            :breakpoints="{ '1199px': '85vw', '575px': '95vw' }"
+            dismissableMask
         >
             <template v-if="selectedImage">
-                <div class="text-center">
-                <img
-                    :src="`/storage/${selectedImage.ruta}`"
-                    :alt="selectedImage.nombre"
-                    style="max-width: 100%; height: auto;"
-                />
-                <p class="mt-2 font-semibold text-gray-700 dark:text-gray-300">
-                    {{ selectedImage.nombre }}
-                </p>
+                <div class="flex flex-col items-center gap-4">
+                    <img
+                        :src="`/storage/${selectedImage.ruta}`"
+                        :alt="selectedImage.nombre"
+                        @error="onImgError"
+                        class="max-w-full h-auto rounded"
+                    />
+                    <a
+                        :href="`/storage/${selectedImage.ruta}`"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 text-sm text-indigo-500 hover:text-indigo-600 hover:underline"
+                    >
+                        <i class="pi pi-external-link"></i>
+                        Abrir en pestaña nueva
+                    </a>
                 </div>
             </template>
         </Dialog>

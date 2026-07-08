@@ -15,6 +15,13 @@ use Illuminate\Support\Str;
 class ImportarMembresiasService
 {
     /**
+     * Máximo que admite la columna estado_cuenta_membresias.importe (decimal(10,2)).
+     * Un importe mayor casi siempre es un error de tipeo en el CSV: no se registra el
+     * pago y se avisa, en lugar de dejar que la BD tire un error de rango (500).
+     */
+    private const IMPORTE_MAX = 99999999.99;
+
+    /**
      * Columnas esperadas en el CSV (en este orden o por header).
      * Las claves son los nombres internos que usamos en el código.
      */
@@ -49,8 +56,9 @@ class ImportarMembresiasService
      *   'filas' => [['linea' => N, 'datos' => [...], 'accion' => '...', 'mensajes' => [...]], ...]
      * ]
      */
-    public function previsualizar(UploadedFile $archivo, int $entidadId): array
+    public function previsualizar(UploadedFile $archivo, int $entidadId, ?string $mesPagado = null): array
     {
+        $mesPagado ??= now()->format('Y-m');
         $filas = $this->parsearCsv($archivo);
 
         $emailsVistos = [];
@@ -68,7 +76,7 @@ class ImportarMembresiasService
 
         foreach ($filas as $index => $fila) {
             $linea = $index + 2; // +1 por el header, +1 por base 1
-            $info = $this->analizarFila($fila, $emailsVistos, $entidadId);
+            $info = $this->analizarFila($fila, $emailsVistos, $entidadId, $mesPagado);
             $info['linea'] = $linea;
 
             $resultado['filas'][] = $info;
@@ -104,8 +112,9 @@ class ImportarMembresiasService
      * Ejecuta la importación. Devuelve los mismos contadores que previsualizar
      * pero con la operación efectiva ya aplicada.
      */
-    public function importar(UploadedFile $archivo, int $entidadId): array
+    public function importar(UploadedFile $archivo, int $entidadId, ?string $mesPagado = null): array
     {
+        $mesPagado ??= now()->format('Y-m');
         $filas = $this->parsearCsv($archivo);
         $emailsVistos = [];
         $resumen = [
@@ -119,10 +128,10 @@ class ImportarMembresiasService
             'detalle' => [],
         ];
 
-        DB::transaction(function () use ($filas, $entidadId, &$emailsVistos, &$resumen) {
+        DB::transaction(function () use ($filas, $entidadId, $mesPagado, &$emailsVistos, &$resumen) {
             foreach ($filas as $index => $fila) {
                 $linea = $index + 2;
-                $info = $this->analizarFila($fila, $emailsVistos, $entidadId);
+                $info = $this->analizarFila($fila, $emailsVistos, $entidadId, $mesPagado);
 
                 if ($info['accion'] === 'error') {
                     $resumen['errores']++;
@@ -305,7 +314,7 @@ class ImportarMembresiasService
     /**
      * Analiza una fila y devuelve la estructura con la acción a realizar.
      */
-    private function analizarFila(array $fila, array $emailsVistos, int $entidadId): array
+    private function analizarFila(array $fila, array $emailsVistos, int $entidadId, ?string $mesPagado = null): array
     {
         $mensajes = [];
 
@@ -455,10 +464,13 @@ class ImportarMembresiasService
         // Existente sin ningún cambio (ni datos de usuario ni membresía): se omite la actualización.
         $sinCambios = (bool) $userExistente && !$cambiaUsuario && !$asignaraMembresia;
 
-        // Pago del mes en curso (columnas Imp./Día/Modo/Nota). Requiere membresía válida.
-        $pago = $this->parsearPago($fila, $membresiaId);
+        // Pago del período elegido (columnas Imp./Día/Modo/Nota). Requiere membresía válida.
+        $pago = $this->parsearPago($fila, $membresiaId, $mesPagado);
         if (($pago['sin_membresia'] ?? false)) {
             $mensajes[] = 'Se indicó un pago en el CSV pero el usuario no tiene una membresía (TK) válida para la entidad; el pago no se registra';
+        }
+        if (($pago['fuera_rango'] ?? false)) {
+            $mensajes[] = "El importe del pago (\"{$pago['raw']['imp']}\") excede el máximo permitido; el pago no se registra. Revisá el valor en el CSV.";
         }
 
         return [
@@ -520,8 +532,9 @@ class ImportarMembresiasService
      * payload para el estado de cuenta. Solo se registra si hay importe (monto o
      * "Sponsor") y una membresía válida. "--"/vacío => no se registra pago.
      */
-    private function parsearPago(array $fila, ?int $membresiaId): array
+    private function parsearPago(array $fila, ?int $membresiaId, ?string $mesPagado = null): array
     {
+        $mesPagado ??= now()->format('Y-m');
         $raw = [
             'imp' => trim((string) ($fila['imp'] ?? '')),
             'dia' => trim((string) ($fila['dia'] ?? '')),
@@ -537,6 +550,11 @@ class ImportarMembresiasService
             return ['registrar' => false, 'sin_membresia' => false, 'raw' => $raw];
         }
 
+        // Importe fuera del rango de la columna: no se registra el pago (se avisa en la fila).
+        if ($imp['tipo'] === 'monto' && $imp['importe'] > self::IMPORTE_MAX) {
+            return ['registrar' => false, 'sin_membresia' => false, 'fuera_rango' => true, 'raw' => $raw];
+        }
+
         if (!$membresiaId) {
             return ['registrar' => false, 'sin_membresia' => true, 'raw' => $raw];
         }
@@ -550,9 +568,9 @@ class ImportarMembresiasService
             'registrar' => true,
             'sin_membresia' => false,
             'es_sponsor' => $esSponsor,
-            'mes_pagado' => now()->format('Y-m'),
+            'mes_pagado' => $mesPagado,
             'importe' => $imp['importe'],
-            'fecha_pago' => $this->parsearFechaPago($raw['dia']),
+            'fecha_pago' => $this->parsearFechaPago($raw['dia'], $mesPagado),
             'modo' => $modoInfo['modo'],
             'info_pago' => $modoInfo['info_pago'],
             'observaciones' => $observaciones,
@@ -562,7 +580,8 @@ class ImportarMembresiasService
     }
 
     /**
-     * Interpreta el importe del CSV: "$60,000" => 60000; "Sponsor" => tipo sponsor;
+     * Interpreta el importe del CSV respetando el formato argentino ("." miles, "," decimal):
+     * "$60.000" => 60000; "$60.000,50" => 60000.50; "$55,000" => 55000; "Sponsor" => tipo sponsor;
      * vacío o solo guiones ("--") => sin pago.
      */
     private function parsearImporte(string $valor): array
@@ -574,18 +593,58 @@ class ImportarMembresiasService
         if (Str::lower($v) === 'sponsor') {
             return ['tipo' => 'sponsor', 'importe' => 0.0];
         }
-        $digitos = preg_replace('/[^\d]/', '', $v); // quita $, separadores de miles, espacios
-        if ($digitos === '') {
+
+        // Dejamos solo dígitos y separadores; luego decidimos cuál es el decimal.
+        $s = preg_replace('/[^\d.,]/', '', $v);
+        if ($s === '' || preg_replace('/\D/', '', $s) === '') {
             return ['tipo' => 'ninguno', 'importe' => 0.0];
         }
-        return ['tipo' => 'monto', 'importe' => (float) $digitos];
+
+        $tieneP = str_contains($s, '.');
+        $tieneC = str_contains($s, ',');
+
+        if ($tieneP && $tieneC) {
+            // El separador que aparece más a la derecha es el decimal; el otro, de miles.
+            if (strrpos($s, ',') > strrpos($s, '.')) {
+                $s = str_replace('.', '', $s);      // "." = miles
+                $s = str_replace(',', '.', $s);     // "," = decimal
+            } else {
+                $s = str_replace(',', '', $s);      // "," = miles, "." = decimal
+            }
+        } elseif ($tieneC) {
+            $s = $this->normalizarSeparadorUnico($s, ',');
+        } elseif ($tieneP) {
+            $s = $this->normalizarSeparadorUnico($s, '.');
+        }
+
+        if (!is_numeric($s)) {
+            return ['tipo' => 'ninguno', 'importe' => 0.0];
+        }
+
+        return ['tipo' => 'monto', 'importe' => (float) $s];
     }
 
     /**
-     * Parsea "dd/mm" (o "d/m", con o sin año) a fecha Y-m-d. Sin año asume el año
-     * actual; si el mes resultara futuro respecto al mes actual, usa el año anterior.
+     * Normaliza un número con un único tipo de separador ambiguo (solo "." o solo ","):
+     * si hay un único separador seguido de 1-2 dígitos, es decimal; en cualquier otro caso
+     * (grupos de 3, o varios separadores) es separador de miles y se descarta.
      */
-    private function parsearFechaPago(string $valor): ?string
+    private function normalizarSeparadorUnico(string $s, string $sep): string
+    {
+        $partes = explode($sep, $s);
+        if (count($partes) === 2 && strlen($partes[1]) >= 1 && strlen($partes[1]) <= 2) {
+            return $partes[0] . '.' . $partes[1]; // decimal
+        }
+
+        return str_replace($sep, '', $s); // miles
+    }
+
+    /**
+     * Parsea "dd/mm" (o "d/m", con o sin año) a fecha Y-m-d. Sin año, toma como
+     * referencia el período elegido ($mesPagado, "YYYY-MM"; fallback al mes actual):
+     * si el mes del pago resultara posterior al del período, usa el año anterior.
+     */
+    private function parsearFechaPago(string $valor, ?string $mesPagado = null): ?string
     {
         $v = trim($valor);
         if ($v === '' || !preg_match('#^(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?$#', $v, $m)) {
@@ -604,9 +663,15 @@ class ImportarMembresiasService
                 $anio += 2000;
             }
         } else {
-            $anio = (int) now()->format('Y');
-            if ($mes > (int) now()->format('n')) {
-                $anio--; // el mes es futuro => el pago es del año anterior
+            // Sin año en el CSV: elegimos el año que deja la fecha de pago más cerca del
+            // período elegido (el pago suele caer en el mes del período o en uno adyacente).
+            [$anioRef, $mesRef] = $this->partesMesPagado($mesPagado);
+            $anio = $anioRef;
+            $delta = $mes - $mesRef;
+            if ($delta > 6) {
+                $anio--; // ej. período enero + pago en diciembre => año anterior
+            } elseif ($delta < -6) {
+                $anio++; // ej. período diciembre + pago en enero => año siguiente
             }
         }
 
@@ -615,6 +680,18 @@ class ImportarMembresiasService
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    /**
+     * Descompone un período "YYYY-MM" en [año, mes]. Si es inválido/null, usa el mes actual.
+     */
+    private function partesMesPagado(?string $mesPagado): array
+    {
+        if (is_string($mesPagado) && preg_match('/^(\d{4})-(\d{2})$/', $mesPagado, $m)) {
+            return [(int) $m[1], (int) $m[2]];
+        }
+
+        return [(int) now()->format('Y'), (int) now()->format('n')];
     }
 
     /**

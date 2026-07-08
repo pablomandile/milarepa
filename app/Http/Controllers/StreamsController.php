@@ -17,7 +17,7 @@ class StreamsController extends Controller
      */
     public function index()
     {
-        $streams = Stream::with('links')->get();
+        $streams = Stream::with('links')->orderByDesc('created_at')->orderByDesc('id')->get();
        
         return inertia('Streams/Index', [
             'streams' => $streams->toArray()

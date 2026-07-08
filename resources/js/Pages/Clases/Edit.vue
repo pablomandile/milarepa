@@ -77,7 +77,7 @@ const form = useForm({
     activa: props.clase.activa ?? true,
 });
 
-const CATALOGOS_RECARGABLES = new Set(['ciclos', 'entidades']);
+const CATALOGOS_RECARGABLES = new Set(['ciclos', 'entidades', 'esquemaPrecios', 'streams']);
 
 function reloadCatalogo(catalogo) {
     if (!CATALOGOS_RECARGABLES.has(catalogo)) return;

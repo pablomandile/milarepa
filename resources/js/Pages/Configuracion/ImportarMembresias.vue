@@ -7,7 +7,7 @@ export default {
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dropdown from 'primevue/dropdown';
@@ -20,6 +20,10 @@ const props = defineProps({
     },
     entidadSeleccionada: {
         type: Number,
+        default: null,
+    },
+    mesSeleccionado: {
+        type: String,
         default: null,
     },
     membresiasConAbreviacion: {
@@ -43,6 +47,23 @@ const errorGeneral = ref('');
 const entidadId = ref(props.entidadSeleccionada || null);
 const formatoDialogVisible = ref(false);
 
+const mesRegex = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+function mesActual() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+// Período (generación) al que se imputan los pagos del CSV. Default: mes actual.
+const mesPagado = ref(props.mesSeleccionado || mesActual());
+
+const monthFormatter = new Intl.DateTimeFormat('es-AR', { month: 'long', year: 'numeric' });
+const mesPagadoLabel = computed(() => {
+    if (!mesRegex.test(mesPagado.value)) return '';
+    const [year, month] = mesPagado.value.split('-').map(Number);
+    return monthFormatter.format(new Date(year, month - 1, 1));
+});
+
 function seleccionarArchivo(event) {
     const f = event.target.files?.[0];
     if (!f) return;
@@ -56,6 +77,10 @@ function previsualizar() {
         errorGeneral.value = 'Seleccioná una Entidad antes de previsualizar';
         return;
     }
+    if (!mesRegex.test(mesPagado.value)) {
+        errorGeneral.value = 'Seleccioná un mes válido para la generación';
+        return;
+    }
     if (!archivo.value) {
         errorGeneral.value = 'Seleccioná un archivo CSV primero';
         return;
@@ -64,7 +89,7 @@ function previsualizar() {
     errorGeneral.value = '';
     router.post(
         route('configuracion.importar-membresias.preview'),
-        { archivo: archivo.value, entidad_id: entidadId.value },
+        { archivo: archivo.value, entidad_id: entidadId.value, mes_pagado: mesPagado.value },
         {
             forceFormData: true,
             preserveScroll: true,
@@ -83,6 +108,10 @@ function confirmarImportacion() {
         errorGeneral.value = 'Seleccioná una Entidad antes de confirmar';
         return;
     }
+    if (!mesRegex.test(mesPagado.value)) {
+        errorGeneral.value = 'Seleccioná un mes válido para la generación';
+        return;
+    }
     if (!archivo.value) {
         errorGeneral.value = 'Volvé a seleccionar el archivo antes de confirmar';
         return;
@@ -90,7 +119,7 @@ function confirmarImportacion() {
     procesando.value = true;
     router.post(
         route('configuracion.importar-membresias.confirmar'),
-        { archivo: archivo.value, entidad_id: entidadId.value },
+        { archivo: archivo.value, entidad_id: entidadId.value, mes_pagado: mesPagado.value },
         {
             forceFormData: true,
             preserveScroll: true,
@@ -190,14 +219,32 @@ function etiquetaAccion(fila) {
                     </div>
                 </div>
 
+                <!-- Card: Mes / generación -->
+                <div class="bg-white dark:bg-gray-800 shadow-soft-indigo sm:rounded-lg p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                        2. Mes de la generación
+                    </h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        Los pagos incluidos en el CSV (columnas <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">Imp./Día/Modo/Nota</code>) se registran en el estado de cuenta bajo este mes. Elegí el período para el que estás importando.
+                    </p>
+                    <input
+                        v-model="mesPagado"
+                        type="month"
+                        class="w-full md:w-64 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                    <p v-if="mesPagadoLabel" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        Seleccionado: <span class="font-medium capitalize">{{ mesPagadoLabel }}</span>
+                    </p>
+                </div>
+
                 <!-- Card: Upload -->
                 <div class="bg-white dark:bg-gray-800 shadow-soft-indigo sm:rounded-lg p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                        2. Seleccionar archivo CSV
+                        3. Seleccionar archivo CSV
                     </h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
                         Columnas esperadas: <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">Nombre, Apellido, Activo, TK, Programa, ONLINE, Mail, Teléfonos, Ciudad, Newsletter</code>
-                        <span class="block mt-1">Opcionales (pago del mes en curso, al final): <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">Imp., Día, Modo, Nota</code></span>
+                        <span class="block mt-1">Opcionales (pago del período seleccionado, al final): <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">Imp., Día, Modo, Nota</code></span>
                     </p>
 
                     <div class="flex items-center gap-3 flex-wrap">
@@ -241,6 +288,9 @@ function etiquetaAccion(fila) {
                 <div v-if="preview" class="bg-white dark:bg-gray-800 shadow-soft-indigo sm:rounded-lg p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                         Vista previa
+                        <span v-if="mesPagadoLabel" class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                            — pagos del período <span class="capitalize">{{ mesPagadoLabel }}</span>
+                        </span>
                     </h2>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 mb-4">
@@ -367,7 +417,7 @@ function etiquetaAccion(fila) {
                                 <span v-else class="text-gray-300">—</span>
                             </template>
                         </Column>
-                        <Column header="Pago (mes en curso)" style="width: 13rem">
+                        <Column header="Pago (mes elegido)" style="width: 13rem">
                             <template #body="{ data }">
                                 <div v-if="data.pago?.registrar" class="text-xs leading-5">
                                     <div class="font-semibold text-teal-700 dark:text-teal-300">
@@ -558,7 +608,7 @@ function etiquetaAccion(fila) {
                         <li>Si el email ya existe en la BD, se <strong>actualizan</strong> los datos del usuario y se asocia/actualiza la membresía</li>
                         <li>Si el email es nuevo, se crea el usuario con password <code>{Apellido}2026</code> (sin tildes ni espacios)</li>
                         <li>Las filas con email vacío/inválido o email repetido dentro del CSV se omiten y se reportan en el preview</li>
-                        <li>Si vienen las columnas de pago (<code>Imp./Día/Modo/Nota</code>), se registra el pago del <strong>mes en curso</strong> en el estado de cuenta de la membresía (uno por usuario+membresía+mes; reimportar no duplica)</li>
+                        <li>Si vienen las columnas de pago (<code>Imp./Día/Modo/Nota</code>), se registra el pago del <strong>período seleccionado arriba</strong> en el estado de cuenta de la membresía (uno por usuario+membresía+mes; reimportar el mismo mes no duplica)</li>
                         <li>Toda la importación corre dentro de una transacción: si algo falla a nivel BD, se hace rollback completo</li>
                     </ul>
                 </div>

@@ -215,7 +215,32 @@ function buscarNombres(event) {
         : [...todos];
 }
 
-// ----- Ciclo: mostrar el mes en la etiqueta de cada opción -----
+// ----- Orden: del registro más nuevo al más antiguo -----
+function ordenarUltimosRegistros(items = []) {
+    return [...items].sort((a, b) => {
+        const fechaA = a?.created_at ? new Date(a.created_at).getTime() : 0;
+        const fechaB = b?.created_at ? new Date(b.created_at).getTime() : 0;
+        if (fechaA !== fechaB) {
+            return fechaB - fechaA;
+        }
+        return Number(b?.id || 0) - Number(a?.id || 0);
+    });
+}
+
+// ----- Entidad: alfabético, pero con la entidad principal siempre primera -----
+const entidadesOrdenadas = computed(() => {
+    const alfabeticas = [...(props.entidades || [])].sort((a, b) =>
+        String(a?.nombre || '').localeCompare(String(b?.nombre || ''), 'es', { sensitivity: 'base' })
+    );
+    // sort() es estable: al reordenar por "principal" se conserva el orden alfabético dentro de cada grupo.
+    return alfabeticas.sort((a, b) => {
+        const aPrincipal = a?.entidad_principal ? 1 : 0;
+        const bPrincipal = b?.entidad_principal ? 1 : 0;
+        return bPrincipal - aPrincipal;
+    });
+});
+
+// ----- Ciclo: mostrar el mes en la etiqueta de cada opción (más actual primero) -----
 const nombresMeses = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
@@ -227,7 +252,7 @@ function nombreMes(mes) {
 }
 
 const ciclosConEtiqueta = computed(() =>
-    (props.ciclos || []).map((ciclo) => {
+    ordenarUltimosRegistros(props.ciclos || []).map((ciclo) => {
         const mes = nombreMes(ciclo?.mes);
         return {
             ...ciclo,
@@ -247,6 +272,8 @@ const esquemaSeleccionado = computed(() =>
 const streamSeleccionado = computed(() =>
     (props.streams || []).find((item) => String(item?.id) === String(props.form.stream_id)) || null
 );
+
+const streamsOrdenados = computed(() => ordenarUltimosRegistros(props.streams || []));
 
 function formatearPrecio(valor) {
     const numero = Number(valor);
@@ -373,7 +400,7 @@ watch(
                         <Dropdown
                             id="entidad_id"
                             v-model="form.entidad_id"
-                            :options="entidades"
+                            :options="entidadesOrdenadas"
                             optionLabel="nombre"
                             optionValue="id"
                             placeholder="Seleccione una entidad"
@@ -510,28 +537,32 @@ watch(
                     </div>
                 </div>
 
-                <div class="col-span-6 sm:col-span-3">
-                    <InputLabel for="horario_desde" class="text-indigo-400" value="Horario desde" :required="true" />
-                    <input
-                        id="horario_desde"
-                        v-model="form.horario_desde"
-                        type="time"
-                        step="60"
-                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                    <InputError :message="$page.props.errors.horario_desde" class="mt-2" />
-                </div>
+                <div class="col-span-6 sm:col-span-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="min-w-0">
+                            <InputLabel for="horario_desde" class="text-indigo-400" value="Horario desde" :required="true" />
+                            <input
+                                id="horario_desde"
+                                v-model="form.horario_desde"
+                                type="time"
+                                step="60"
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            />
+                            <InputError :message="$page.props.errors.horario_desde" class="mt-2" />
+                        </div>
 
-                <div class="col-span-6 sm:col-span-3">
-                    <InputLabel for="horario_hasta" class="text-indigo-400" value="Horario hasta" :required="true" />
-                    <input
-                        id="horario_hasta"
-                        v-model="form.horario_hasta"
-                        type="time"
-                        step="60"
-                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                    <InputError :message="$page.props.errors.horario_hasta" class="mt-2" />
+                        <div class="min-w-0">
+                            <InputLabel for="horario_hasta" class="text-indigo-400" value="Horario hasta" :required="true" />
+                            <input
+                                id="horario_hasta"
+                                v-model="form.horario_hasta"
+                                type="time"
+                                step="60"
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            />
+                            <InputError :message="$page.props.errors.horario_hasta" class="mt-2" />
+                        </div>
+                    </div>
                 </div>
 
                 <div class="col-span-6 sm:col-span-6">
@@ -590,6 +621,23 @@ watch(
                         >
                             <i class="pi pi-eye"></i>
                         </button>
+                        <a
+                            :href="route('esquemaprecios.create')"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+                            v-tooltip="'Crear nuevo esquema de precios'"
+                        >
+                            <i class="pi pi-file-plus"></i>
+                        </a>
+                        <button
+                            type="button"
+                            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+                            @click="onClickRefresh('esquemaPrecios')"
+                            v-tooltip="'Refrescar esquemas de precios'"
+                        >
+                            <i class="pi pi-refresh"></i>
+                        </button>
                     </div>
                     <InputError :message="$page.props.errors.esquema_precio_id" class="mt-2" />
                 </div>
@@ -615,7 +663,7 @@ watch(
                         <Dropdown
                             id="stream_id"
                             v-model="form.stream_id"
-                            :options="streams"
+                            :options="streamsOrdenados"
                             optionLabel="nombre"
                             optionValue="id"
                             placeholder="Seleccione un stream"
@@ -630,6 +678,23 @@ watch(
                             v-tooltip="'Ver detalle del stream'"
                         >
                             <i class="pi pi-eye"></i>
+                        </button>
+                        <a
+                            :href="route('streams.create')"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+                            v-tooltip="'Crear nuevo stream'"
+                        >
+                            <i class="pi pi-file-plus"></i>
+                        </a>
+                        <button
+                            type="button"
+                            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+                            @click="onClickRefresh('streams')"
+                            v-tooltip="'Refrescar streams'"
+                        >
+                            <i class="pi pi-refresh"></i>
                         </button>
                     </div>
                     <InputError :message="$page.props.errors.stream_id" class="mt-2" />
@@ -775,3 +840,12 @@ watch(
         </template>
     </FormSection>
 </template>
+
+<!-- Estilo global (no scoped): el panel del MultiSelect se teletransporta al body,
+     así que un estilo scoped no lo alcanzaría. Da un borde visible a los checkbox
+     sobre fondo blanco (Maestros, Coordinadores y demás MultiSelect del formulario). -->
+<style>
+.p-multiselect-panel .p-checkbox .p-checkbox-box {
+  border: 1px solid #64748b;
+}
+</style>

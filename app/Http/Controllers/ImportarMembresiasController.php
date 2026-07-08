@@ -22,6 +22,7 @@ class ImportarMembresiasController extends Controller
             preview: session('importMembresiasPreview'),
             resumen: session('importMembresiasResumen'),
             entidadSeleccionada: session('importMembresiasEntidad'),
+            mesSeleccionado: session('importMembresiasMes'),
         );
     }
 
@@ -30,14 +31,20 @@ class ImportarMembresiasController extends Controller
         $validated = $request->validate([
             'archivo' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
             'entidad_id' => ['required', 'integer', 'exists:entidades,id'],
+            'mes_pagado' => ['required', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
         ]);
 
-        $preview = $this->service->previsualizar($request->file('archivo'), (int) $validated['entidad_id']);
+        $preview = $this->service->previsualizar(
+            $request->file('archivo'),
+            (int) $validated['entidad_id'],
+            $validated['mes_pagado'],
+        );
 
         return redirect()
             ->route('configuracion.importar-membresias')
             ->with('importMembresiasPreview', $preview)
-            ->with('importMembresiasEntidad', (int) $validated['entidad_id']);
+            ->with('importMembresiasEntidad', (int) $validated['entidad_id'])
+            ->with('importMembresiasMes', $validated['mes_pagado']);
     }
 
     public function store(Request $request)
@@ -45,18 +52,24 @@ class ImportarMembresiasController extends Controller
         $validated = $request->validate([
             'archivo' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
             'entidad_id' => ['required', 'integer', 'exists:entidades,id'],
+            'mes_pagado' => ['required', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
         ]);
 
-        $resumen = $this->service->importar($request->file('archivo'), (int) $validated['entidad_id']);
-        $resumen['mensaje'] = "Importación finalizada: {$resumen['creados']} creados, {$resumen['actualizados']} actualizados, {$resumen['sin_cambios']} sin cambios, {$resumen['membresias_asignadas']} membresías asignadas, {$resumen['errores']} errores.";
+        $resumen = $this->service->importar(
+            $request->file('archivo'),
+            (int) $validated['entidad_id'],
+            $validated['mes_pagado'],
+        );
+        $resumen['mensaje'] = "Importación finalizada (período {$validated['mes_pagado']}): {$resumen['creados']} creados, {$resumen['actualizados']} actualizados, {$resumen['sin_cambios']} sin cambios, {$resumen['membresias_asignadas']} membresías asignadas, {$resumen['pagos_registrados']} pagos registrados, {$resumen['errores']} errores.";
 
         return redirect()
             ->route('configuracion.importar-membresias')
             ->with('importMembresiasResumen', $resumen)
-            ->with('importMembresiasEntidad', (int) $validated['entidad_id']);
+            ->with('importMembresiasEntidad', (int) $validated['entidad_id'])
+            ->with('importMembresiasMes', $validated['mes_pagado']);
     }
 
-    private function renderVista(?array $preview = null, ?array $resumen = null, ?int $entidadSeleccionada = null)
+    private function renderVista(?array $preview = null, ?array $resumen = null, ?int $entidadSeleccionada = null, ?string $mesSeleccionado = null)
     {
         // Solo entidades cuyo nombre comienza con "Centro" (sedes principales).
         $entidades = Entidad::query()
@@ -78,6 +91,7 @@ class ImportarMembresiasController extends Controller
         return Inertia::render('Configuracion/ImportarMembresias', [
             'entidades' => $entidades,
             'entidadSeleccionada' => $entidadSeleccionada,
+            'mesSeleccionado' => $mesSeleccionado,
             'membresiasConAbreviacion' => $membresias,
             'preview' => $preview,
             'resumen' => $resumen,

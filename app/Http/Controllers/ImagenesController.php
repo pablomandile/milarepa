@@ -9,6 +9,7 @@ use App\Models\Imagen;
 use App\Services\OptimizadorImagenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 
 class ImagenesController extends Controller
@@ -18,7 +19,7 @@ class ImagenesController extends Controller
      */
     public function index()
     {
-        $imagenes = Imagen::paginate(16);
+        $imagenes = Imagen::orderByDesc('created_at')->orderByDesc('id')->paginate(36);
         return inertia('Imagenes/Index', [
             'imagenes' => $imagenes->items(),
             'links' => $imagenes->toArray()['links']
@@ -91,14 +92,61 @@ class ImagenesController extends Controller
      */
     public function destroy($id)
     {
-        try {
-            $imagen = Imagen::findorfail($id);
-            $imagen->delete();
-            Storage::disk('public')->delete($imagen->ruta);
-            return redirect()->route('imagenes.index')->with('success', 'Imagen eliminada con éxito.');
-        } catch (\Exception $e) {
-            return redirect()->route('imagenes.index')->with('error', 'Error al eliminar la Imagen: ' . $e->getMessage());
+        $imagen = Imagen::findOrFail($id);
+
+        // La imagen puede estar referenciada por varias entidades. La FK de `actividades`
+        // es ON DELETE CASCADE (borrar la imagen borraría la actividad, y puede fallar si
+        // ésta tiene inscripciones); las demás son SET NULL. Para no perder datos ni fallar
+        // en silencio, si la imagen está en uso NO la borramos y avisamos con detalle.
+        $usos = $this->usosDeImagen($imagen->id);
+        if ($usos->isNotEmpty()) {
+            $detalle = $usos->map(fn ($u) => "{$u['cantidad']} {$u['etiqueta']}")->implode(', ');
+
+            return back()->withErrors([
+                'imagen' => "No se puede eliminar: la imagen está en uso por {$detalle}. Desvinculála de esas entidades antes de borrarla.",
+            ]);
         }
 
+        try {
+            $ruta = $imagen->ruta;
+            $imagen->delete();
+            if ($ruta) {
+                Storage::disk('public')->delete($ruta);
+            }
+
+            return redirect()->route('imagenes.index')->with('success', 'Imagen eliminada con éxito.');
+        } catch (\Throwable $e) {
+            return back()->withErrors([
+                'imagen' => 'Error al eliminar la imagen: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Cuenta en qué entidades está en uso una imagen (por su FK imagen_id / comprobante_id).
+     * Devuelve solo las que tienen al menos una referencia, con una etiqueta legible.
+     */
+    private function usosDeImagen(int $imagenId)
+    {
+        $referencias = [
+            ['tabla' => 'actividades', 'columna' => 'imagen_id', 'etiqueta' => 'actividad(es)'],
+            ['tabla' => 'clases', 'columna' => 'imagen_id', 'etiqueta' => 'clase(s)'],
+            ['tabla' => 'libros', 'columna' => 'imagen_id', 'etiqueta' => 'libro(s)'],
+            ['tabla' => 'maestros', 'columna' => 'imagen_id', 'etiqueta' => 'maestro(s)'],
+            ['tabla' => 'membresias', 'columna' => 'imagen_id', 'etiqueta' => 'membresía(s)'],
+            ['tabla' => 'metodos_pago', 'columna' => 'imagen_id', 'etiqueta' => 'método(s) de pago'],
+            ['tabla' => 'paginas_actividades_online', 'columna' => 'imagen_id', 'etiqueta' => 'página(s) online'],
+            ['tabla' => 'ventas', 'columna' => 'comprobante_id', 'etiqueta' => 'venta(s)'],
+        ];
+
+        return collect($referencias)
+            ->map(function ($ref) use ($imagenId) {
+                return [
+                    'etiqueta' => $ref['etiqueta'],
+                    'cantidad' => DB::table($ref['tabla'])->where($ref['columna'], $imagenId)->count(),
+                ];
+            })
+            ->filter(fn ($uso) => $uso['cantidad'] > 0)
+            ->values();
     }
 }
