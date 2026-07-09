@@ -122,6 +122,10 @@ Route::get('/email-preview/reporte-semanal-inscripciones-actividad', [EmailPrevi
 // Grid de actividades pÃºblico (solo index + lookup por email)
 Route::get('/grid-actividades', [GridActividadesController::class, 'index'])
     ->name('grid-actividades.index');
+// Versión embebible en iframe (WordPress meditarenargentina.org). Solo lectura:
+// inscribirse/más info abren milarepa.com.ar en pestaña nueva. Headers: config/embed.php.
+Route::get('/grillaembebida', [GridActividadesController::class, 'grillaEmbebida'])
+    ->name('grillaembebida');
 Route::get('/calendario', [CalendarioController::class, 'index'])
     ->name('calendario.index');
 Route::get('/oraciones-cantadas/{oracionCantada}/public', [OracionesCantadasController::class, 'showPublic'])

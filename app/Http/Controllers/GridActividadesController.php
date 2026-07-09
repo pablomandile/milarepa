@@ -42,47 +42,12 @@ class GridActividadesController extends Controller
      */
     public function index(Request $request)
     {
-        $with = [
-            'tipoActividad',
-            'descripcion',
-            'imagen',
-            'entidad',
-            'disponibilidad',
-            'modalidad',
-            'esquemaPrecio.membresias.membresia',
-            'esquemaDescuento.membresias.membresia',
-            'stream',
-            'grabacion',
-            'programa',
-            'metodosPago', 
-            'hospedajes', 
-            'comidas', 
-            'transportes',
-            'maestros',
-            'coordinadores'
-        ];
-        if ($this->canUseLugarRelation()) {
-            $with[] = 'lugar';
-        }
-
-        $actividades = Actividad::with($with)->get();
+        $actividades = $this->actividadesParaGrilla();
 
         $paises = Pais::all();
         $provincias = Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get();
         $municipios = Municipio::all();
         $barrios = Barrio::all();
-
-        // Convertir cada fecha con Carbon a un string amigable:
-        $actividades->transform(function ($actividad) {
-        // Si la columna es â€œfecha_inicioâ€, haz:
-        $date = Carbon::parse($actividad->fecha_inicio);
-
-        // Formato â€œ30 de Enero 00:00 hs.â€
-        // â€œjâ€ = dÃ­a sin cero, â€œFâ€ = Mes completo, â€œH:iâ€ = 24h:mins
-        $actividad->fecha_inicio_formateada = $date->translatedFormat('j \d\e F H:i') . ' hs.';
-
-        return $actividad;
-    });
 
         // Obtener IDs de actividades donde el usuario actual está inscripto
         $userInscripcionesActividadIds = [];
@@ -113,6 +78,64 @@ class GridActividadesController extends Controller
             'municipios' => $municipios,
             'barrios' => $barrios,
             'gridVariante' => $gridVariante,
+        ]);
+    }
+
+    /**
+     * Actividades con las relaciones y el formato de fecha que esperan las cards de la grilla.
+     */
+    private function actividadesParaGrilla(): \Illuminate\Database\Eloquent\Collection
+    {
+        $with = [
+            'tipoActividad',
+            'descripcion',
+            'imagen',
+            'entidad',
+            'disponibilidad',
+            'modalidad',
+            'esquemaPrecio.membresias.membresia',
+            'esquemaDescuento.membresias.membresia',
+            'stream',
+            'grabacion',
+            'programa',
+            'metodosPago', 
+            'hospedajes', 
+            'comidas', 
+            'transportes',
+            'maestros',
+            'coordinadores'
+        ];
+        if ($this->canUseLugarRelation()) {
+            $with[] = 'lugar';
+        }
+
+        $actividades = Actividad::with($with)->get();
+
+        // Convertir cada fecha con Carbon a un string amigable:
+        $actividades->transform(function ($actividad) {
+        // Si la columna es â€œfecha_inicioâ€, haz:
+        $date = Carbon::parse($actividad->fecha_inicio);
+
+        // Formato â€œ30 de Enero 00:00 hs.â€
+        // â€œjâ€ = dÃ­a sin cero, â€œFâ€ = Mes completo, â€œH:iâ€ = 24h:mins
+        $actividad->fecha_inicio_formateada = $date->translatedFormat('j \d\e F H:i') . ' hs.';
+
+        return $actividad;
+    });
+
+        return $actividades;
+    }
+
+    /**
+     * Versión embebible de la grilla (iframe en meditarenargentina.org).
+     * Sin datos de sesión ni catálogos: "Inscribirme" y "Más info" abren
+     * milarepa.com.ar en pestaña nueva desde la vista.
+     */
+    public function grillaEmbebida()
+    {
+        return inertia('GridActividades/GrillaEmbebida', [
+            'actividades' => $this->actividadesParaGrilla()->toArray(),
+            'gridVariante' => ConfiguracionSistema::obtenerTexto('grid_actividades_variante', 'grid1'),
         ]);
     }
 
