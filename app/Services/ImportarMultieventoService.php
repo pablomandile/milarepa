@@ -522,6 +522,8 @@ class ImportarMultieventoService
             $inscripcion->created_at = $datos['marca_temporal'];
             $inscripcion->save();
         }
+
+        $this->sincronizarCobroImport($inscripcion, (float) $datos['monto'], $datos['pago'], $datos['fecha_pago'], $datos['referencia_pago']);
     }
 
     /** Actualiza pago + asistencia + confirmación de una inscripción existente (estado nunca degrada). */
@@ -542,6 +544,30 @@ class ImportarMultieventoService
         $inscripcion->asistencia = $datos['asistencia'];
         $inscripcion->confirmado_manual = $datos['confirmado_manual'];
         $inscripcion->save();
+
+        $this->sincronizarCobroImport($inscripcion, (float) $datos['montoapagar'], $datos['pago'], $datos['fecha_pago'], $datos['referencia_pago']);
+    }
+
+    /**
+     * Registra/actualiza el cobro de una inscripción importada (idempotente por
+     * origen='importacion'), sólo con evidencia de pago real (Saldado con monto > 0).
+     * Medio sin mapear: la columna "Forma" (texto libre) va a `referencia`.
+     */
+    private function sincronizarCobroImport(Inscripcion $inscripcion, float $monto, string $pago, ?string $fechaPago, ?string $referencia): void
+    {
+        if ($pago !== 'Saldado' || $monto <= 0) {
+            return;
+        }
+
+        $inscripcion->cobros()->updateOrCreate(
+            ['origen' => 'importacion'],
+            [
+                'monto' => $monto,
+                'fecha_pago' => $fechaPago,
+                'referencia' => $referencia,
+                'metodo_pago_id' => null,
+            ]
+        );
     }
 
     /** Devuelve la lista de campos que cambian entre la inscripción actual y los datos nuevos. */

@@ -12,6 +12,7 @@ use App\Http\Controllers\MembresiasController;
 use App\Http\Controllers\CoordinadoresController;
 use App\Http\Controllers\MonedasController;
 use App\Http\Controllers\MetodosPagoController;
+use App\Http\Controllers\CobrosController;
 use App\Http\Controllers\EsquemaDescuentosController;
 use App\Http\Controllers\EsquemaPreciosController;
 use App\Http\Controllers\PrecioGruposController;
@@ -272,6 +273,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/monedas', MonedasController::class);
     Route::resource('/metodospago', MetodosPagoController::class, [
         'parameters' => ['metodospago' => 'metodopago'],]);
+    Route::get('/cobros', [CobrosController::class, 'index'])->name('cobros.index');
     // Rutas bulk ANTES del resource: si no, PATCH /actividades/bulk-estado matchearia
     // el patron PATCH /actividades/{actividad} (update) del resource.
     Route::patch('/actividades/bulk-estado', [ActividadesController::class, 'bulkEstado'])

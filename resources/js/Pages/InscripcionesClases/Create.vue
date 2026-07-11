@@ -34,6 +34,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    metodosPago: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const form = useForm({
@@ -58,6 +62,8 @@ const form = useForm({
     libros_tharpa_ids: [],
     montoApagar: 0,
     pago: '',
+    metodo_pago_id: null,
+    monto_cobrado: null,
     online: false,
 });
 
@@ -92,6 +98,7 @@ const submit = () => {
                             :provincias="provincias"
                             :municipios="municipios"
                             :barrios="barrios"
+                            :metodos-pago="metodosPago"
                             button-label="Registrar"
                             @submit="submit"
                         />

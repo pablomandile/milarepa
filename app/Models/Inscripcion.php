@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TieneCobros;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Inscripcion extends Model
 {
-    use HasFactory;
+    use HasFactory, TieneCobros;
 
     protected $table = 'inscripciones';
 
@@ -56,6 +57,11 @@ class Inscripcion extends Model
         'auditoria_fecha' => 'datetime',
         'fecha_pago' => 'date',
     ];
+
+    public function totalAdeudado(): float
+    {
+        return (float) $this->montoapagar;
+    }
 
     public function actividad()
     {

@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TieneCobros;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Venta extends Model
 {
-    use HasFactory;
+    use HasFactory, TieneCobros;
 
     protected $table = 'ventas';
 
@@ -33,6 +34,11 @@ class Venta extends Model
         'comprobante_id' => 'integer',
         'vendedor_id' => 'integer',
     ];
+
+    public function totalAdeudado(): float
+    {
+        return (float) $this->montoTotal;
+    }
 
     public function entidad()
     {

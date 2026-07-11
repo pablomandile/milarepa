@@ -38,6 +38,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    metodosPago: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const persona = props.inscripcionClase.user || props.inscripcionClase.guest_user || {};
@@ -72,6 +76,8 @@ const form = useForm({
     libros_tharpa_ids: librosTharpaSeleccionados,
     montoApagar: Number(props.inscripcionClase.montoApagar || 0),
     pago: props.inscripcionClase.pago || '',
+    metodo_pago_id: null,
+    monto_cobrado: null,
     online: !!props.inscripcionClase.online,
 });
 
@@ -106,6 +112,7 @@ const submit = () => {
                             :provincias="provincias"
                             :municipios="municipios"
                             :barrios="barrios"
+                            :metodos-pago="metodosPago"
                             button-label="Actualizar"
                             @submit="submit"
                         />

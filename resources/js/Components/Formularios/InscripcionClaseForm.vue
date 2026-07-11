@@ -32,6 +32,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    metodosPago: {
+        type: Array,
+        default: () => [],
+    },
     buttonLabel: {
         type: String,
         default: 'Registrar',
@@ -502,6 +506,19 @@ const onMontoTiendaFocus = () => {
                     <option value="Parcial">Parcial</option>
                 </select>
                 <div v-if="form.errors.pago" class="mt-1 text-sm text-red-600">{{ form.errors.pago }}</div>
+            </div>
+
+            <div v-if="form.pago && form.pago !== 'Pendiente'">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Medio de pago</label>
+                <select v-model="form.metodo_pago_id" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm">
+                    <option :value="null">—</option>
+                    <option v-for="m in metodosPago" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+                </select>
+            </div>
+
+            <div v-if="form.pago === 'Parcial'">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Monto cobrado</label>
+                <input v-model.number="form.monto_cobrado" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm" />
             </div>
 
             <div class="flex items-end">

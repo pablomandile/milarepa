@@ -794,6 +794,16 @@
             <p class="text-sm text-gray-700 dark:text-gray-300">
                 ¿Confirmas marcar la inscripción como saldada y dejar el monto en $0?
             </p>
+            <div class="mt-3 flex items-center gap-2">
+                <label class="text-sm text-gray-600 dark:text-gray-300">Medio de pago</label>
+                <select
+                    v-model="saldadoMetodoPagoId"
+                    class="rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-2 py-1 text-sm"
+                >
+                    <option :value="null">—</option>
+                    <option v-for="m in metodosPago" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+                </select>
+            </div>
             <template #footer>
                 <div class="flex justify-end gap-2">
                     <button
@@ -1074,6 +1084,26 @@
                                 <option value="Pendiente">Pendiente</option>
                             </select>
                         </div>
+                        <div v-if="editTitular.pago !== 'Pendiente'" class="flex items-center gap-2">
+                            <label class="text-sm text-gray-600 dark:text-gray-300">Medio de pago</label>
+                            <select
+                                v-model="editTitular.metodo_pago_id"
+                                class="rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-2 py-1 text-sm"
+                            >
+                                <option :value="null">—</option>
+                                <option v-for="m in metodosPago" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+                            </select>
+                        </div>
+                        <div v-if="editTitular.pago === 'Parcial'" class="flex items-center gap-2">
+                            <label class="text-sm text-gray-600 dark:text-gray-300">Monto cobrado</label>
+                            <input
+                                v-model.number="editTitular.monto_cobrado"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                class="w-28 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-2 py-1 text-sm"
+                            />
+                        </div>
                         <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                             <Checkbox v-model="editTitular.online" binary inputId="edit_titular_online" />
                             Cursa online
@@ -1186,6 +1216,7 @@ const props = defineProps({
     provincias: { type: Array, default: () => [] },
     municipios: { type: Array, default: () => [] },
     barrios: { type: Array, default: () => [] },
+    metodosPago: { type: Array, default: () => [] },
 });
 
 const toast = useToast();
@@ -1227,6 +1258,7 @@ const editForm = ref({
     montoapagar: 0,
     pago: 'Pendiente'
 });
+const saldadoMetodoPagoId = ref(null);
 const isSaving = ref(false);
 const comprobanteModalVisible = ref(false);
 const inscripcionParaComprobante = ref(null);
@@ -1350,6 +1382,8 @@ const editModalidadAbierta = ref(false);
 const editTitular = ref({
     online: false,
     pago: 'Pendiente',
+    metodo_pago_id: null,
+    monto_cobrado: null,
     montoActividad: 0,
     precioGeneral: 0,
     grabacion: false,
@@ -1415,6 +1449,8 @@ const guardarEdicionCompleta = async () => {
     try {
         const payload = {
             pago: editTitular.value.pago,
+            metodo_pago_id: editTitular.value.metodo_pago_id,
+            monto_cobrado: editTitular.value.monto_cobrado,
             online: editTitular.value.online,
             incluye_grabacion: editTitular.value.grabacion,
             comidas_ids: editTitular.value.comidas,
@@ -1468,6 +1504,8 @@ const iniciarEdicion = async (inscripcion) => {
         editTitular.value = {
             online: !!data.inscripcion.online,
             pago: data.inscripcion.pago || 'Pendiente',
+            metodo_pago_id: null,
+            monto_cobrado: null,
             montoActividad: Number(data.inscripcion.montoActividad || 0),
             precioGeneral: Number(data.inscripcion.precioGeneral || 0),
             grabacion: !!data.inscripcion.incluye_grabacion,
@@ -1504,6 +1542,7 @@ const guardarEdicion = async (inscripcion) => {
     try {
         const { data } = await axios.patch(route('estadoinscripciones.pago', { estadoinscripcion: inscripcion.id }), {
             pago: editForm.value.pago,
+            metodo_pago_id: editForm.value.metodo_pago_id ?? null,
         });
         inscripcion.pago = editForm.value.pago;
         if (data?.estado) inscripcion.estado = data.estado;
@@ -1577,6 +1616,7 @@ const subirComprobante = () => {
 const abrirConfirmarSaldado = (inscripcion) => {
     if (!canEdit.value || isSaving.value) return;
     inscripcionParaSaldar.value = inscripcion;
+    saldadoMetodoPagoId.value = null;
     confirmSaldadoVisible.value = true;
 };
 
@@ -1586,6 +1626,7 @@ const confirmarSaldado = () => {
     editForm.value = {
         montoapagar: 0,
         pago: 'Saldado',
+        metodo_pago_id: saldadoMetodoPagoId.value,
     };
     confirmSaldadoVisible.value = false;
     inscripcionParaSaldar.value = null;

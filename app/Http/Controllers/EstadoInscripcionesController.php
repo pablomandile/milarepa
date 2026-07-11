@@ -7,10 +7,12 @@ use App\Models\Barrio;
 use App\Models\EmailEnvioConfiguracion;
 use App\Models\EnvioMail;
 use App\Models\Inscripcion;
+use App\Models\MetodoPago;
 use App\Models\Municipio;
 use App\Models\Pais;
 use App\Models\Provincia;
 use App\Models\User;
+use App\Services\CobroService;
 use App\Services\EmailInscripcionService;
 use App\Services\HospedajeCupoService;
 use App\Services\InscripcionServiciosService;
@@ -62,6 +64,7 @@ class EstadoInscripcionesController extends Controller
             'provincias' => Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get(),
             'municipios' => Municipio::all(),
             'barrios' => Barrio::all(),
+            'metodosPago' => MetodoPago::orderBy('nombre')->get(['id', 'nombre']),
         ]);
     }
 
@@ -248,6 +251,8 @@ class EstadoInscripcionesController extends Controller
 
         $data = $request->validate([
             'pago' => ['required', 'in:Saldado,Parcial,Pendiente'],
+            'metodo_pago_id' => ['nullable', 'integer', 'exists:metodos_pago,id'],
+            'monto_cobrado' => ['nullable', 'numeric', 'min:0'],
             'online' => ['nullable', 'boolean'],
             'incluye_grabacion' => ['nullable', 'boolean'],
             'comidas_ids' => ['nullable', 'array'],
@@ -328,6 +333,8 @@ class EstadoInscripcionesController extends Controller
             $servicios->persistirInvitados($inscripcion, $invitadosData);
         });
 
+        $this->registrarCobroAdmin($inscripcion, $data, $user->id);
+
         return response()->json([
             'ok' => true,
             'estado' => $inscripcion->estado,
@@ -349,6 +356,8 @@ class EstadoInscripcionesController extends Controller
 
         $data = $request->validate([
             'pago' => ['required', 'in:Saldado,Parcial,Pendiente'],
+            'metodo_pago_id' => ['nullable', 'integer', 'exists:metodos_pago,id'],
+            'monto_cobrado' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $inscripcion = Inscripcion::findOrFail($id);
@@ -360,7 +369,44 @@ class EstadoInscripcionesController extends Controller
         $inscripcion->auditor = $user->id;
         $inscripcion->save();
 
+        $this->registrarCobroAdmin($inscripcion, $data, $user->id);
+
         return response()->json(['ok' => true, 'estado' => $inscripcion->estado]);
+    }
+
+    /**
+     * Registra en el ledger el importe recibido cuando el admin marca Saldado/Parcial.
+     * No recalcula el estado (recalcular=false): el admin fija el label a mano.
+     * Saldado sin monto explícito ⇒ toma el saldo pendiente; Parcial requiere monto_cobrado.
+     * Sólo registra si el monto es > 0 (evita cobros duplicados al re-marcar Saldado).
+     */
+    private function registrarCobroAdmin(Inscripcion $inscripcion, array $data, int $userId): void
+    {
+        if (!in_array($data['pago'], ['Saldado', 'Parcial'], true)) {
+            return;
+        }
+
+        $monto = isset($data['monto_cobrado']) && $data['monto_cobrado'] !== null
+            ? (float) $data['monto_cobrado']
+            : ($data['pago'] === 'Saldado' ? $inscripcion->saldoPendiente() : 0.0);
+
+        if ($monto <= 0) {
+            return;
+        }
+
+        $svc = app(CobroService::class);
+        // Comprobante subido durante el checkout (queda en inscripcion_comprobantes):
+        // se enlaza el más reciente al cobro al momento de crearlo.
+        $comprobanteId = $svc->resolverComprobanteId(optional($inscripcion->comprobantes()->first())->ruta);
+
+        $svc->registrar($inscripcion, [
+            'monto' => $monto,
+            'fecha_pago' => now()->toDateString(),
+            'metodo_pago_id' => $data['metodo_pago_id'] ?? null,
+            'comprobante_id' => $comprobanteId,
+            'registrado_por' => $userId,
+            'origen' => 'manual',
+        ], recalcular: false);
     }
 
     public function countConfirmacionesPendientes(Request $request)

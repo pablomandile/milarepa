@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inscripcion;
+use App\Services\CobroService;
 use App\Services\InscripcionMailService;
 use App\Services\MercadoPagoService;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Log;
  */
 class MercadoPagoWebhookController extends Controller
 {
-    public function handle(Request $request, MercadoPagoService $mercadoPago, InscripcionMailService $mailService)
+    public function handle(Request $request, MercadoPagoService $mercadoPago, InscripcionMailService $mailService, CobroService $cobros)
     {
         // 1. Validar la firma del webhook (HMAC con MP_WEBHOOK_SECRET).
         if (!$mercadoPago->validarFirmaWebhook($request)) {
@@ -79,6 +80,16 @@ class MercadoPagoWebhookController extends Controller
             'estado' => 'Confirmada',
             'fecha_pago' => now()->toDateString(),
             'referencia_pago' => (string) ($payment->id ?? $paymentId),
+        ]);
+
+        // Ledger unificado: registrar el cobro por MercadoPago (uno por confirmación;
+        // la guarda de idempotencia de arriba evita reprocesar si MP reenvía).
+        $cobros->registrar($inscripcion, [
+            'monto' => (float) $inscripcion->montoapagar,
+            'fecha_pago' => now()->toDateString(),
+            'metodo_pago_id' => $cobros->resolverMetodoPago('Mercado Pago'),
+            'referencia' => (string) ($payment->id ?? $paymentId),
+            'origen' => 'mercadopago',
         ]);
 
         // 5. Mail de confirmación (recarga relaciones que usa la vista del mail).

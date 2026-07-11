@@ -35,6 +35,8 @@ class InscripcionClaseRequest extends FormRequest
             'clase_id' => ['required', 'integer', 'exists:clases,id'],
             'membresia' => ['required', 'string', 'max:255'],
             'pago' => ['required', 'in:Saldado,Pendiente,Parcial'],
+            'metodo_pago_id' => ['nullable', 'integer', 'exists:metodos_pago,id'],
+            'monto_cobrado' => ['nullable', 'numeric', 'min:0'],
             'online' => ['required', 'boolean'],
             'montoTharpa' => ['nullable', 'numeric', 'min:0'],
             'montoTienda' => ['nullable', 'numeric', 'min:0'],

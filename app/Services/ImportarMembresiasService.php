@@ -43,6 +43,10 @@ class ImportarMembresiasService
         'nota' => 'Nota',
     ];
 
+    public function __construct(private CobroService $cobros)
+    {
+    }
+
     /**
      * Parsea el CSV y devuelve un preview sin tocar la BD.
      * Estructura del resultado:
@@ -204,7 +208,7 @@ class ImportarMembresiasService
                 // Pago del mes en curso (estado de cuenta), idempotente por user+membresía+mes.
                 if ($registraPago) {
                     $pago = $info['pago'];
-                    EstadoCuentaMembresia::updateOrCreate(
+                    $cuota = EstadoCuentaMembresia::updateOrCreate(
                         [
                             'user_id' => $user->id,
                             'membresia_id' => $info['membresia_id'],
@@ -220,6 +224,7 @@ class ImportarMembresiasService
                             'modo' => $pago['modo'],
                         ]
                     );
+                    $this->cobros->sincronizarMembresia($cuota);
                     $resumen['pagos_registrados']++;
                 }
 

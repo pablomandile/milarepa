@@ -314,6 +314,18 @@ class ImportarInscripcionesService
             $inscripcion->created_at = $datos['marca_temporal'];
             $inscripcion->save();
         }
+
+        // Ledger: sólo con evidencia de pago real (Saldado con monto > 0; las gratuitas
+        // quedan Saldado con monto <= 0 y no generan cobro). Medio sin mapear: la columna
+        // "Forma" (texto libre) va a `referencia`.
+        if ($datos['pago'] === 'Saldado' && (float) $datos['monto'] > 0) {
+            app(CobroService::class)->registrar($inscripcion, [
+                'monto' => (float) $datos['monto'],
+                'fecha_pago' => $datos['fecha_pago'],
+                'referencia' => $datos['referencia_pago'],
+                'origen' => 'importacion',
+            ], recalcular: false);
+        }
     }
 
     private function fila(string $accion, ?array $datos, bool $userExiste, array $mensajes): array

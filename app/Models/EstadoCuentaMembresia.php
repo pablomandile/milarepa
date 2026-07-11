@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TieneCobros;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EstadoCuentaMembresia extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, TieneCobros;
 
     protected $table = 'estado_cuenta_membresias';
 
@@ -41,6 +42,11 @@ class EstadoCuentaMembresia extends Model
         'Tarjeta Débito',
         'Otro',
     ];
+
+    public function totalAdeudado(): float
+    {
+        return (float) $this->importe;
+    }
 
     public function user()
     {

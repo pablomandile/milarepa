@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EstadoCuentaMembresia;
+use App\Services\CobroService;
 use App\Services\GeneradorEstadosCuentaMembresiaService;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Membresia;
@@ -108,7 +109,7 @@ class EstadoCuentaMembresiasController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EstadoCuentaMembresia $estadoCuentaMembresia)
+    public function update(Request $request, EstadoCuentaMembresia $estadoCuentaMembresia, CobroService $cobroService)
     {
         $validated = $request->validate([
             'pagado' => 'required|boolean',
@@ -146,11 +147,13 @@ class EstadoCuentaMembresiasController extends Controller
 
         $estadoCuentaMembresia->update($validated);
 
+        $cobroService->sincronizarMembresia($estadoCuentaMembresia);
+
         return redirect()->route('estado-cuenta-membresias.index')
             ->with('success', 'Estado de cuenta actualizado correctamente');
     }
 
-    public function uploadComprobante(Request $request, \App\Services\OptimizadorImagenService $optimizador)
+    public function uploadComprobante(Request $request, \App\Services\OptimizadorImagenService $optimizador, CobroService $cobroService)
     {
         $request->validate([
             'comprobante' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
@@ -224,6 +227,8 @@ class EstadoCuentaMembresiasController extends Controller
         $estadoCuenta->modo = $modo;
         $estadoCuenta->fecha_pago = Carbon::today()->toDateString();
         $estadoCuenta->save();
+
+        $cobroService->sincronizarMembresia($estadoCuenta);
 
         return response()->json([
             'ok' => true,

@@ -8,6 +8,7 @@ use App\Models\Entidad;
 use App\Models\HistoricoPedidoLibro;
 use App\Models\InventarioEntidadLibro;
 use App\Models\Venta;
+use App\Services\CobroService;
 use App\Services\OptimizadorImagenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,14 +62,14 @@ class VentasLibrosController extends Controller
         ]);
     }
 
-    public function store(VentaLibroRequest $request, OptimizadorImagenService $optimizador): RedirectResponse
+    public function store(VentaLibroRequest $request, OptimizadorImagenService $optimizador, CobroService $cobroService): RedirectResponse
     {
         $validated = $request->validated();
         unset($validated['comprobante']); // archivo: se procesa aparte, no es columna
 
         // El comprobante se procesa y guarda dentro de la misma transacción:
         // si la venta falla (ej. stock insuficiente) no queda imagen huérfana.
-        $this->guardarConImagen($request->file('comprobante'), 'img/mpago', $optimizador, function ($imagenId) use ($validated) {
+        $this->guardarConImagen($request->file('comprobante'), 'img/mpago', $optimizador, function ($imagenId) use ($validated, $cobroService) {
             $comprobanteId = $imagenId ?? ($validated['comprobante_id'] ?? null);
 
             $entidadId = (int) ($validated['entidad_id'] ?? 0);
@@ -104,7 +105,7 @@ class VentasLibrosController extends Controller
 
             $montoTotal = round($precioUnitario * $cantidad, 2);
 
-            Venta::create([
+            $venta = Venta::create([
                 'fecha' => $validated['fecha'],
                 'entidad_id' => $entidadId,
                 'libro_id' => $libroId,
@@ -127,6 +128,16 @@ class VentasLibrosController extends Controller
                 'importe' => $montoTotal,
                 'vendedor_id' => auth()->id(),
                 'email_comprador' => null,
+            ]);
+
+            // Ledger unificado de cobros: la venta es un cobro cerrado (uno por venta).
+            $cobroService->registrar($venta, [
+                'monto' => $montoTotal,
+                'fecha_pago' => $validated['fecha'],
+                'metodo_pago_id' => $cobroService->resolverMetodoPago($validated['modo']),
+                'comprobante_id' => $comprobanteId,
+                'registrado_por' => auth()->id(),
+                'origen' => 'manual',
             ]);
         });
 

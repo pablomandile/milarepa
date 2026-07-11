@@ -264,6 +264,9 @@ const toggleMobileSection = (key) => {
                                     </template>
 
                                 <template #content>
+                                    <DropdownLink :href="route('cobros.index')" :active="route().current('cobros.*')">
+                                        Cobros
+                                    </DropdownLink>
                                     <DropdownLink :href="route('monedas.index')" :active="route().current('monedas.*')">
                                         Monedas
                                     </DropdownLink>
@@ -783,6 +786,9 @@ const toggleMobileSection = (key) => {
                             <span class="text-lg font-bold leading-none">{{ isMobileSectionOpen('pagos') ? '-' : '+' }}</span>
                         </button>
                         <div v-if="isMobileSectionOpen('pagos')" class="space-y-1">
+                            <ResponsiveNavLink :href="route('cobros.index')" :active="route().current('cobros.*')">
+                                Cobros
+                            </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('monedas.index')" :active="route().current('monedas.*')">
                                 Monedas
                             </ResponsiveNavLink>

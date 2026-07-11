@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TieneCobros;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,6 +11,7 @@ class InscripcionClase extends Model
 {
     use HasFactory;
     use SoftDeletes;
+    use TieneCobros;
 
     protected $table = 'inscripciones_clases';
 
@@ -39,6 +41,11 @@ class InscripcionClase extends Model
         'montoApagar' => 'decimal:2',
         'online' => 'boolean',
     ];
+
+    public function totalAdeudado(): float
+    {
+        return (float) $this->montoApagar;
+    }
 
     public function clase()
     {

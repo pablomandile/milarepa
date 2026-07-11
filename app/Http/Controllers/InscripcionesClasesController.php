@@ -12,9 +12,11 @@ use App\Models\HistoricoPedidoLibro;
 use App\Models\InventarioEntidadLibro;
 use App\Models\InscripcionClase;
 use App\Models\Libro;
+use App\Models\MetodoPago;
 use App\Models\Municipio;
 use App\Models\Provincia;
 use App\Models\User;
+use App\Services\CobroService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
@@ -47,6 +49,7 @@ class InscripcionesClasesController extends Controller
             'provincias' => Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get(['id', 'nombre']),
             'municipios' => Municipio::orderBy('nombre')->get(['id', 'nombre', 'provincia_id']),
             'barrios' => Barrio::orderBy('nombre')->get(['id', 'nombre', 'provincia_id']),
+            'metodosPago' => MetodoPago::orderBy('nombre')->get(['id', 'nombre']),
         ]);
     }
 
@@ -66,6 +69,7 @@ class InscripcionesClasesController extends Controller
             'provincias' => Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get(['id', 'nombre']),
             'municipios' => Municipio::orderBy('nombre')->get(['id', 'nombre', 'provincia_id']),
             'barrios' => Barrio::orderBy('nombre')->get(['id', 'nombre', 'provincia_id']),
+            'metodosPago' => MetodoPago::orderBy('nombre')->get(['id', 'nombre']),
         ]);
     }
 
@@ -428,6 +432,7 @@ class InscripcionesClasesController extends Controller
 
         if ($inscripcionClase) {
             $inscripcionClase->update($payload);
+            $this->registrarCobroClase($inscripcionClase, $validated, $userId);
             return;
         }
 
@@ -442,11 +447,42 @@ class InscripcionesClasesController extends Controller
             if ($inscripcionEliminada) {
                 $inscripcionEliminada->restore();
                 $inscripcionEliminada->update($payload);
+                $this->registrarCobroClase($inscripcionEliminada, $validated, $userId);
                 return;
             }
         }
 
-        InscripcionClase::create($payload);
+        $nueva = InscripcionClase::create($payload);
+        $this->registrarCobroClase($nueva, $validated, $userId);
+    }
+
+    /**
+     * Registra en el ledger el importe cobrado cuando se marca Saldado/Parcial una
+     * inscripción a clase. No recalcula el estado (el operador fija el label a mano).
+     * Saldado sin monto explícito ⇒ saldo pendiente; Parcial requiere monto_cobrado.
+     */
+    private function registrarCobroClase(InscripcionClase $inscripcion, array $validated, ?int $userId): void
+    {
+        $pago = $validated['pago'] ?? null;
+        if (!in_array($pago, ['Saldado', 'Parcial'], true)) {
+            return;
+        }
+
+        $monto = isset($validated['monto_cobrado']) && $validated['monto_cobrado'] !== null
+            ? (float) $validated['monto_cobrado']
+            : ($pago === 'Saldado' ? $inscripcion->saldoPendiente() : 0.0);
+
+        if ($monto <= 0) {
+            return;
+        }
+
+        app(CobroService::class)->registrar($inscripcion, [
+            'monto' => $monto,
+            'fecha_pago' => now()->toDateString(),
+            'metodo_pago_id' => $validated['metodo_pago_id'] ?? null,
+            'registrado_por' => $userId,
+            'origen' => 'manual',
+        ], recalcular: false);
     }
 
     private function resolverDatosPreciosClase(Clase $clase): array

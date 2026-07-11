@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class GeneradorEstadosCuentaMembresiaService
 {
+    public function __construct(private CobroService $cobros)
+    {
+    }
+
     public function generarParaMes(string $mesPagado, ?int $adminId = null): array
     {
         $admin = $adminId ? User::find($adminId) : null;
@@ -62,13 +66,14 @@ class GeneradorEstadosCuentaMembresiaService
                     $existente->fecha_pago = $existente->fecha_pago ?: $hoy;
                     $existente->estado = EstadoCuentaMembresia::ESTADO_ACTIVA;
                     $existente->save();
+                    $this->cobros->sincronizarMembresia($existente);
                     $stats['actualizados']++;
                 }
                 $stats['expirados'] += $this->expirarPreviosDelUsuario($user->id, $mesPagado);
                 return;
             }
 
-            EstadoCuentaMembresia::create([
+            $cuota = EstadoCuentaMembresia::create([
                 'user_id' => $user->id,
                 'membresia_id' => $membresiaId,
                 'mes_pagado' => $mesPagado,
@@ -79,6 +84,7 @@ class GeneradorEstadosCuentaMembresiaService
                 'modo' => $esSuscripcion ? 'Suscripción' : null,
                 'observaciones' => 'Generado por ' . $adminNombre,
             ]);
+            $this->cobros->sincronizarMembresia($cuota);
 
             $stats['creados']++;
             $stats['expirados'] += $this->expirarPreviosDelUsuario($user->id, $mesPagado);
