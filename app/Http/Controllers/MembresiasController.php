@@ -424,8 +424,9 @@ class MembresiasController extends Controller
         }
 
         if ($request->hasFile('comprobante')) {
-            $estadoCuenta->comprobante = app(\App\Services\OptimizadorImagenService::class)
+            $path = app(\App\Services\OptimizadorImagenService::class)
                 ->procesar($request->file('comprobante'), 'comprobantes');
+            $estadoCuenta->comprobante_imagen_id = app(\App\Services\CobroService::class)->resolverComprobanteId($path);
         }
 
         if ($request->hasFile('comprobante') || $modoPago === 'Efectivo') {

@@ -37,7 +37,7 @@ class InscripcionesController extends Controller
                 'comida',
                 'comidas',
             'transporte',
-            'comprobantes',
+            'comprobantes.imagen',
             'invitados',
             'invitados.comidas',
             'invitados.transportes',
@@ -230,7 +230,7 @@ class InscripcionesController extends Controller
             'actividad.modalidad',
             'actividad.stream.links',
             'user',
-            'comprobantes'
+            'comprobantes.imagen'
         ]);
 
         // Enviar email de confirmación
@@ -292,7 +292,7 @@ class InscripcionesController extends Controller
             'comida',
             'comidas',
             'transporte',
-            'comprobantes',
+            'comprobantes.imagen',
             'invitados',
             'invitados.comidas',
             'invitados.transportes',
@@ -462,7 +462,7 @@ class InscripcionesController extends Controller
         $path = $optimizador->procesar($request->file('comprobante'), 'comprobantes');
         InscripcionComprobante::create([
             'inscripcion_id' => $inscripcion->id,
-            'ruta' => $path,
+            'imagen_id' => app(\App\Services\CobroService::class)->resolverComprobanteId($path),
             'descripcion' => $request->input('descripcion'),
         ]);
 

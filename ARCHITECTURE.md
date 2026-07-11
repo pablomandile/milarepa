@@ -185,7 +185,7 @@ Ver [BUSINESS_RULES.md](BUSINESS_RULES.md) para detalle operativo.
 
 - **Cobertura de tests ~5%**: 14 de 18 archivos son scaffolds de Jetstream sin lógica de negocio probada. Sólo `RenovarMembresiasMensualTest` es un test real.
 
-- **Archivo duplicado** `EstadoInscripcionesController - copia.php` en el repo (backup manual).
+- ~~Archivo duplicado `EstadoInscripcionesController - copia.php`~~ — **resuelto**: se borraron los 4 controladores `*- copia.php` (código muerto, misma clase que los vivos → nunca se autocargaban).
 
 - **`console.log` olvidados** en al menos 13 Edit.vue pese al commit `c79c63b` ("quito todos los consolelog").
 
@@ -238,7 +238,7 @@ migren al sistema nuevo (ver [BUSINESS_RULES.md §2.10](BUSINESS_RULES.md)):
 
 1. **Rotar credenciales SMTP** y mover `.env` fuera del repo. Agregar `.env` a `.gitignore` si no está.
 2. **Proteger `/email-preview/{id}`** con middleware `auth` + verificación de rol.
-3. **Eliminar `EstadoInscripcionesController - copia.php`** (archivo de backup manual).
+3. ~~Eliminar `EstadoInscripcionesController - copia.php`~~ — **hecho** (borrados los 4 `*- copia.php`).
 4. **Limpiar `console.log`** restantes en 13 Edit.vue.
 5. **Aplicar rate limiting** (`throttle:60,1`) a `/grid-actividades/lookup-email` y endpoints públicos.
 

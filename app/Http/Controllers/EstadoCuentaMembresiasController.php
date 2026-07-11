@@ -19,7 +19,7 @@ class EstadoCuentaMembresiasController extends Controller
      */
     public function index()
     {
-        $estadoCuentas = EstadoCuentaMembresia::with(['user.membresiaUsuario', 'membresia', 'membresia.entidad'])
+        $estadoCuentas = EstadoCuentaMembresia::with(['user.membresiaUsuario', 'membresia', 'membresia.entidad', 'comprobanteImagen'])
             ->orderBy('mes_pagado', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -102,7 +102,7 @@ class EstadoCuentaMembresiasController extends Controller
     public function edit(EstadoCuentaMembresia $estadoCuentaMembresia)
     {
         return inertia('EstadoCuentaMembresias/Edit', [
-            'estadoCuenta' => $estadoCuentaMembresia->load(['user.membresiaUsuario', 'membresia', 'membresia.entidad'])
+            'estadoCuenta' => $estadoCuentaMembresia->load(['user.membresiaUsuario', 'membresia', 'membresia.entidad', 'comprobanteImagen'])
         ]);
     }
 
@@ -222,7 +222,7 @@ class EstadoCuentaMembresiasController extends Controller
         $path = null;
         if ($request->hasFile('comprobante')) {
             $path = $optimizador->procesar($request->file('comprobante'), 'comprobantes');
-            $estadoCuenta->comprobante = $path;
+            $estadoCuenta->comprobante_imagen_id = $cobroService->resolverComprobanteId($path);
         }
         $estadoCuenta->modo = $modo;
         $estadoCuenta->fecha_pago = Carbon::today()->toDateString();

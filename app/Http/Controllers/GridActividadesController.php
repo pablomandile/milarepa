@@ -632,7 +632,7 @@ class GridActividadesController extends Controller
                 if (!empty($pago['comprobante_path'])) {
                     InscripcionComprobante::create([
                         'inscripcion_id' => $inscripcion->id,
-                        'ruta' => $pago['comprobante_path'],
+                        'imagen_id' => app(\App\Services\CobroService::class)->resolverComprobanteId($pago['comprobante_path']),
                         'descripcion' => $pago['comprobante_descripcion'] ?? null,
                     ]);
                 }
@@ -695,7 +695,7 @@ class GridActividadesController extends Controller
             if (!empty($pago['comprobante_path'])) {
                 InscripcionComprobante::create([
                     'inscripcion_id' => $inscripcion->id,
-                    'ruta' => $pago['comprobante_path'],
+                    'imagen_id' => app(\App\Services\CobroService::class)->resolverComprobanteId($pago['comprobante_path']),
                     'descripcion' => $pago['comprobante_descripcion'] ?? null,
                 ]);
             }
@@ -812,7 +812,7 @@ class GridActividadesController extends Controller
             'comida',
             'comidas',
             'transporte',
-            'comprobantes',
+            'comprobantes.imagen',
             'invitados',
             'invitados.comidas',
             'invitados.transportes',

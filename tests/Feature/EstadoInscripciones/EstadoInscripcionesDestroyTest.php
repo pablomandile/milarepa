@@ -6,6 +6,7 @@ use App\Models\Actividad;
 use App\Models\Entidad;
 use App\Models\EsquemaPrecio;
 use App\Models\Inscripcion;
+use App\Models\Imagen;
 use App\Models\InscripcionComprobante;
 use App\Models\Modalidad;
 use App\Models\TipoActividad;
@@ -76,9 +77,10 @@ class EstadoInscripcionesDestroyTest extends TestCase
 
         // Comprobante con archivo real en el disco fake.
         Storage::disk('public')->put('comprobantes/destroy-test.jpg', 'contenido');
+        $imagen = Imagen::create(['nombre' => 'destroy-test.jpg', 'ruta' => 'comprobantes/destroy-test.jpg']);
         InscripcionComprobante::create([
             'inscripcion_id' => $inscripcion->id,
-            'ruta' => 'comprobantes/destroy-test.jpg',
+            'imagen_id' => $imagen->id,
             'descripcion' => 'Test',
         ]);
         Storage::disk('public')->assertExists('comprobantes/destroy-test.jpg');

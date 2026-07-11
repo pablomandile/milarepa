@@ -43,7 +43,7 @@ class EstadoInscripcionesController extends Controller
                 'guestUser.municipio',
                 'guestUser.barrio',
                 'auditorUser',
-            'comprobantes',
+            'comprobantes.imagen',
             'invitados',
             'invitados.comidas',
             'invitados.transportes',
@@ -397,7 +397,7 @@ class EstadoInscripcionesController extends Controller
         $svc = app(CobroService::class);
         // Comprobante subido durante el checkout (queda en inscripcion_comprobantes):
         // se enlaza el más reciente al cobro al momento de crearlo.
-        $comprobanteId = $svc->resolverComprobanteId(optional($inscripcion->comprobantes()->first())->ruta);
+        $comprobanteId = optional($inscripcion->comprobantes()->first())->imagen_id;
 
         $svc->registrar($inscripcion, [
             'monto' => $monto,
@@ -579,7 +579,7 @@ class EstadoInscripcionesController extends Controller
             abort(403);
         }
 
-        $inscripcion = Inscripcion::with('comprobantes')->findOrFail($id);
+        $inscripcion = Inscripcion::with('comprobantes.imagen')->findOrFail($id);
 
         // Borrar los archivos de comprobantes del disco; las filas hijas
         // (inscripcion_comprobantes, inscripcion_comida) se eliminan por cascadeOnDelete.

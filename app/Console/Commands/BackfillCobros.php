@@ -114,7 +114,7 @@ class BackfillCobros extends Command
                         'fecha_pago' => $ins->fecha_pago ?: optional($ins->updated_at)->toDateString(),
                         'referencia' => $ins->referencia_pago,
                         'metodo_pago_id' => null,
-                        'comprobante_id' => $cobros->resolverComprobanteId(optional($ins->comprobantes()->first())->ruta),
+                        'comprobante_id' => optional($ins->comprobantes()->first())->imagen_id,
                         'observaciones' => 'backfill: medio desconocido',
                         'origen' => 'backfill',
                     ], recalcular: false);

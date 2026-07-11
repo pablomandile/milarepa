@@ -24,13 +24,16 @@ class EstadoCuentaMembresia extends Model
         'pagado',
         'estado',
         'modo',
-        'comprobante'
+        'comprobante_imagen_id',
     ];
 
     protected $casts = [
         'pagado' => 'boolean',
         'fecha_pago' => 'date',
     ];
+
+    // Compat: la UI sigue leyendo `comprobante` (path). Ahora sale de la imagen enlazada.
+    protected $appends = ['comprobante'];
 
     public const ESTADO_ACTIVA = 'Activa';
     public const ESTADO_EXPIRADA = 'Expirada';
@@ -46,6 +49,16 @@ class EstadoCuentaMembresia extends Model
     public function totalAdeudado(): float
     {
         return (float) $this->importe;
+    }
+
+    public function comprobanteImagen()
+    {
+        return $this->belongsTo(Imagen::class, 'comprobante_imagen_id');
+    }
+
+    public function getComprobanteAttribute(): ?string
+    {
+        return $this->comprobanteImagen?->ruta;
     }
 
     public function user()

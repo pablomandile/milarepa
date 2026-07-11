@@ -95,7 +95,7 @@ class CobroService
                 'metodo_pago_id' => $this->resolverMetodoPago($cuota->modo),
                 'referencia' => $cuota->info_pago ?: null,
                 'observaciones' => $cuota->observaciones ?: null,
-                'comprobante_id' => $this->resolverComprobanteId($cuota->comprobante),
+                'comprobante_id' => $cuota->comprobante_imagen_id,
             ]
         );
     }

@@ -5,7 +5,7 @@
 ## Estado de implementación (2026-07-11)
 - **Fases 1–7 implementadas** en dev. Backfill corrido: **688 cobros** (373 actividades con dinero + 314 membresías + 1 venta; las inscripciones gratuitas —montoapagar 0— no generan cobro). Comando `cobros:backfill` idempotente (re-ejecutar no duplica).
 - **Tests**: los 10 tests de `tests/Feature/Cobros/` pasan; el suite Feature completo da 94 verdes. Las 4 fallas de `ImportMultieventoTest` son por **datos en la base de tests** (`milarepa_testing` quedó con las 1632 inscripciones + 46 actividades de dev), no por el código — esos tests asumen esas tablas vacías. Fix: dejar `inscripciones`/`actividades` (y dependientes) vacías en la base de tests, conservando solo datos de referencia.
-- **Comprobantes**: se enlazan a `cobros.comprobante_id` **al crearse el cobro** (membresías y confirmación admin; ventas directo). Los endpoints de subida no se tocaron.
+- **Comprobantes**: se enlazan a `cobros.comprobante_id` al crearse el cobro (membresías y confirmación admin; ventas directo). **Almacenamiento unificado en `imagenes`**: `inscripcion_comprobantes` y membresías guardan `imagen_id`/`comprobante_imagen_id` (FK) en vez de paths crudos; los accessors `ruta`/`comprobante` mantienen las vistas Vue sin cambios.
 - **UI**: selectores de "medio de pago" agregados en el diálogo admin de inscripciones (`EstadoInscripciones/Index.vue`: edición completa + "marcar saldado", con monto en Parcial) y en el form de clases (`InscripcionClaseForm.vue` + Create/Edit + `metodosPago` desde el controlador). Frontend compila OK.
 - **Vista Cobros** (menú Pagos → Cobros): `CobrosController@index` + `resources/js/Pages/Cobros/Index.vue`, DataTable con los cobros de los 4 dominios (fecha, dominio, detalle, monto, medio, referencia, origen, comprobante), buscador global y total. Ruta `cobros.index`.
 
@@ -239,4 +239,4 @@ Cada fase es entregable y el enum `pago` sigue funcionando como caché.
 - Migrar `estado_cuenta_membresias` a `cobros` (se espeja, no se migra).
 - Varios comprobantes por un mismo cobro (se eligió 1:1; multi-comprobante = multi-cobro).
 - Pago online (MercadoPago) para clases/membresías.
-- Borrar `inscripcion_comprobantes`/columna `comprobante` de membresías (quedan legacy read-only) y los `*- copia.php`.
+- Borrar `inscripcion_comprobantes` como tabla / pasar a 1:1 en cobros (hoy se mantiene con `imagen_id` para el staging pre-cobro del checkout). *(Los `*- copia.php` y los paths crudos legacy ya se eliminaron/unificaron en `imagenes`.)*
