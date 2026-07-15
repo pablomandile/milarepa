@@ -47,7 +47,7 @@ class EstadoInscripcionesController extends Controller
             'cobros',
             'cobros.metodoPago',
             'cobros.moneda',
-            'cobros.comprobante',
+            'cobros.comprobantes.imagen',
             'cobros.registrador:id,name',
             'invitados',
             'invitados.comidas',
@@ -400,15 +400,15 @@ class EstadoInscripcionesController extends Controller
         }
 
         $svc = app(CobroService::class);
-        // Comprobante subido durante el checkout (queda en inscripcion_comprobantes):
-        // se enlaza el más reciente al cobro al momento de crearlo.
-        $comprobanteId = optional($inscripcion->comprobantes()->first())->imagen_id;
+        // Comprobantes subidos durante el checkout (quedan en inscripcion_comprobantes):
+        // se enlazan TODOS al cobro al momento de crearlo (1 cobro : N comprobantes).
+        $comprobanteIds = $inscripcion->comprobantes()->pluck('imagen_id')->all();
 
         $svc->registrar($inscripcion, [
             'monto' => $monto,
             'fecha_pago' => now()->toDateString(),
             'metodo_pago_id' => $data['metodo_pago_id'] ?? null,
-            'comprobante_id' => $comprobanteId,
+            'comprobante_ids' => $comprobanteIds,
             'registrado_por' => $userId,
             'origen' => 'manual',
         ], recalcular: false);

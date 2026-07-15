@@ -72,8 +72,7 @@ const comprobanteVisible = ref(false);
 const comprobantePath = ref('');
 const comprobanteIsPdf = computed(() => (comprobantePath.value || '').toLowerCase().endsWith('.pdf'));
 
-const verComprobante = (cobro) => {
-    const ruta = cobro?.comprobante?.ruta;
+const verComprobante = (ruta) => {
     if (!ruta) return;
     comprobantePath.value = ruta;
     comprobanteVisible.value = true;
@@ -148,18 +147,20 @@ const onImgError = (event) => {
                     </div>
                 </div>
 
-                <!-- Comprobante -->
+                <!-- Comprobante(s) -->
                 <div
-                    v-if="cobro.comprobante?.ruta"
-                    class="border-t border-gray-100 px-4 py-3 dark:border-gray-700"
+                    v-if="cobro.comprobantes?.length"
+                    class="flex flex-wrap gap-2 border-t border-gray-100 px-4 py-3 dark:border-gray-700"
                 >
                     <button
+                        v-for="(comp, idx) in cobro.comprobantes"
+                        :key="comp.id"
                         type="button"
-                        @click="verComprobante(cobro)"
+                        @click="verComprobante(comp.ruta)"
                         class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
                     >
                         <i class="fas fa-file-invoice"></i>
-                        Ver comprobante
+                        Ver comprobante{{ cobro.comprobantes.length > 1 ? ` ${idx + 1}` : '' }}
                     </button>
                 </div>
             </div>

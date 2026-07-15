@@ -20,7 +20,6 @@ class Cobro extends Model
         'fecha_pago',
         'metodo_pago_id',
         'referencia',
-        'comprobante_id',
         'observaciones',
         'registrado_por',
         'origen',
@@ -46,9 +45,9 @@ class Cobro extends Model
         return $this->belongsTo(MetodoPago::class, 'metodo_pago_id');
     }
 
-    public function comprobante()
+    public function comprobantes()
     {
-        return $this->belongsTo(Imagen::class, 'comprobante_id');
+        return $this->hasMany(CobroComprobante::class);
     }
 
     public function registrador()

@@ -135,7 +135,7 @@ class VentasLibrosController extends Controller
                 'monto' => $montoTotal,
                 'fecha_pago' => $validated['fecha'],
                 'metodo_pago_id' => $cobroService->resolverMetodoPago($validated['modo']),
-                'comprobante_id' => $comprobanteId,
+                'comprobante_ids' => array_filter([$comprobanteId]),
                 'registrado_por' => auth()->id(),
                 'origen' => 'manual',
             ]);

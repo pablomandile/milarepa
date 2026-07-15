@@ -60,7 +60,7 @@ class BackfillCobros extends Command
                         'monto' => (float) $venta->montoTotal,
                         'fecha_pago' => $venta->fecha,
                         'metodo_pago_id' => $cobros->resolverMetodoPago($venta->modo),
-                        'comprobante_id' => $venta->comprobante_id,
+                        'comprobante_ids' => array_filter([$venta->comprobante_id]),
                         'registrado_por' => $venta->vendedor_id,
                         'origen' => 'backfill',
                     ], recalcular: false);
@@ -114,7 +114,7 @@ class BackfillCobros extends Command
                         'fecha_pago' => $ins->fecha_pago ?: optional($ins->updated_at)->toDateString(),
                         'referencia' => $ins->referencia_pago,
                         'metodo_pago_id' => null,
-                        'comprobante_id' => optional($ins->comprobantes()->first())->imagen_id,
+                        'comprobante_ids' => $ins->comprobantes()->pluck('imagen_id')->all(),
                         'observaciones' => 'backfill: medio desconocido',
                         'origen' => 'backfill',
                     ], recalcular: false);

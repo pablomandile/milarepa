@@ -21,7 +21,7 @@ class CobrosController extends Controller
         $cobros = Cobro::query()
             ->with([
                 'metodoPago:id,nombre',
-                'comprobante:id,ruta',
+                'comprobantes.imagen:id,ruta',
                 'cobrable' => function (MorphTo $morphTo) {
                     $morphTo->morphWith([
                         Inscripcion::class => ['actividad:id,nombre', 'user:id,name', 'guestUser:id,name'],
@@ -48,7 +48,7 @@ class CobrosController extends Controller
                 'referencia' => $cobro->referencia,
                 'observaciones' => $cobro->observaciones,
                 'origen' => $cobro->origen,
-                'comprobante' => $cobro->comprobante?->ruta,
+                'comprobante' => $cobro->comprobantes->first()?->ruta,
             ];
         });
 

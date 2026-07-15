@@ -28,11 +28,16 @@ class CobroService
             'fecha_pago' => $datos['fecha_pago'] ?? null,
             'metodo_pago_id' => $datos['metodo_pago_id'] ?? null,
             'referencia' => $datos['referencia'] ?? null,
-            'comprobante_id' => $datos['comprobante_id'] ?? null,
             'observaciones' => $datos['observaciones'] ?? null,
             'registrado_por' => $datos['registrado_por'] ?? null,
             'origen' => $datos['origen'] ?? 'manual',
         ]);
+
+        // Comprobantes (1:N). Acepta `comprobante_ids` (array de imagenes.id) o el
+        // legacy `comprobante_id` (uno solo).
+        $comprobanteIds = $datos['comprobante_ids']
+            ?? (isset($datos['comprobante_id']) ? [$datos['comprobante_id']] : []);
+        $this->sincronizarComprobantes($cobro, $comprobanteIds);
 
         // El admin puede fijar el estado de pago a mano; en ese caso se registra el
         // cobro sin recalcular (recalcular=false) para no pisar su elección.
@@ -41,6 +46,20 @@ class CobroService
         }
 
         return $cobro;
+    }
+
+    /**
+     * Reemplaza el set de comprobantes de un cobro por los `imagenes.id` dados
+     * (filtra nulos y duplicados). Idempotente.
+     */
+    public function sincronizarComprobantes(Cobro $cobro, array $imagenIds): void
+    {
+        $ids = array_values(array_unique(array_filter($imagenIds)));
+
+        $cobro->comprobantes()->delete();
+        foreach ($ids as $imagenId) {
+            $cobro->comprobantes()->create(['imagen_id' => $imagenId]);
+        }
     }
 
     /**
@@ -87,7 +106,7 @@ class CobroService
             return;
         }
 
-        $cuota->cobros()->updateOrCreate(
+        $cobro = $cuota->cobros()->updateOrCreate(
             ['origen' => 'membresia'],
             [
                 'monto' => (float) $cuota->importe,
@@ -95,9 +114,10 @@ class CobroService
                 'metodo_pago_id' => $this->resolverMetodoPago($cuota->modo),
                 'referencia' => $cuota->info_pago ?: null,
                 'observaciones' => $cuota->observaciones ?: null,
-                'comprobante_id' => $cuota->comprobante_imagen_id,
             ]
         );
+
+        $this->sincronizarComprobantes($cobro, array_filter([$cuota->comprobante_imagen_id]));
     }
 
     /**
