@@ -132,15 +132,35 @@ class EstadoCuentaMembresiasController extends Controller
 
         unset($validated['estado_activo']);
 
-        if (!empty($validated['modalidad']) && $estadoCuentaMembresia->user) {
-            $usuario = $estadoCuentaMembresia->user;
+        // Al marcar la cuota con modo "Suscripción" se activa la suscripción del perfil
+        // del usuario (para que el generador mensual dé el próximo mes por saldado). Es
+        // one-way: ningún otro modo la desactiva. Se preservan TODOS los campos del perfil,
+        // porque updateMembresiaUsuario reconstruye el registro completo desde sus defaults
+        // (si no se pasa un campo, lo pisa a su valor por defecto).
+        $usuario = $estadoCuentaMembresia->user;
+        $esSuscripcion = ($validated['modo'] ?? null) === 'Suscripción';
+        $suscripcionActivada = false;
+
+        if ($usuario && ($esSuscripcion || !empty($validated['modalidad']))) {
+            $perfil = $usuario->membresiaUsuario;
+
+            $online = !empty($validated['modalidad'])
+                ? $validated['modalidad'] === 'online'
+                : (bool) ($perfil?->membresia_online ?? false);
+
+            $suscripcionActivada = $esSuscripcion && !($perfil?->suscripcion ?? false);
+
             $usuario->updateMembresiaUsuario([
-                'membresia_id' => $usuario->membresia_id,
-                'membresia_inscripcion_fecha' => $usuario->membresia_inscripcion_fecha,
-                'membresia_online' => $validated['modalidad'] === 'online',
-                'membresia_online_motivo' => $usuario->membresia_online_motivo,
-                'info_tarjetas_kadampa' => (bool) ($usuario->info_tarjetas_kadampa ?? false),
-                'envioInfoTk' => $usuario->envioInfoTk,
+                'membresia_id' => $esSuscripcion
+                    ? $estadoCuentaMembresia->membresia_id
+                    : ($perfil?->membresia_id),
+                'suscripcion' => $esSuscripcion ? true : (bool) ($perfil?->suscripcion ?? false),
+                'membresia_inscripcion_fecha' => $perfil?->membresia_inscripcion_fecha,
+                'membresia_online' => $online,
+                'membresia_online_motivo' => $perfil?->membresia_online_motivo,
+                'info_tarjetas_kadampa' => (bool) ($perfil?->info_tarjetas_kadampa ?? false),
+                'envioInfoTk' => $perfil?->envioInfoTk,
+                'envioActOnline' => $perfil?->envioActOnline,
             ]);
         }
 
@@ -150,8 +170,13 @@ class EstadoCuentaMembresiasController extends Controller
 
         $cobroService->sincronizarMembresia($estadoCuentaMembresia);
 
+        $mensaje = 'Estado de cuenta actualizado correctamente';
+        if ($suscripcionActivada) {
+            $mensaje .= '. Se activó la suscripción del usuario.';
+        }
+
         return redirect()->route('estado-cuenta-membresias.index')
-            ->with('success', 'Estado de cuenta actualizado correctamente');
+            ->with('success', $mensaje);
     }
 
     public function uploadComprobante(Request $request, \App\Services\OptimizadorImagenService $optimizador, CobroService $cobroService)
