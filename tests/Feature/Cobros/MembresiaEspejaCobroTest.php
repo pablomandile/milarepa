@@ -12,8 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
- * Espejo UNIDIRECCIONAL de membresías: la cuota manda; marcar pagada crea el cobro,
- * despagar lo da de baja. Crear/editar un cobro NO modifica la cuota.
+ * Membresías con el cobro como FUENTE DE VERDAD: marcar pagada crea el cobro,
+ * despagar/anular lo da de baja, y la caché de la cuota (pagado/fecha/modo/info)
+ * se deriva del cobro. Registrar/borrar un cobro recomputa la cuota.
  */
 class MembresiaEspejaCobroTest extends TestCase
 {
@@ -66,16 +67,21 @@ class MembresiaEspejaCobroTest extends TestCase
         $this->assertSame(1, $cuota->cobros()->onlyTrashed()->count());
     }
 
-    public function test_crear_un_cobro_no_modifica_la_cuota(): void
+    public function test_el_cobro_es_fuente_de_verdad_del_pago(): void
     {
-        $cuota = $this->cuota(pagado: true);
-        app(CobroService::class)->sincronizarMembresia($cuota);
+        $cuota = $this->cuota(pagado: false);
+        $svc = app(CobroService::class);
+        $this->assertFalse((bool) $cuota->pagado);
 
-        // Alta directa de otro cobro: no debe tocar el estado de la cuota (unidireccional).
-        app(CobroService::class)->registrar($cuota, ['monto' => 100, 'origen' => 'manual']);
-
+        // Registrar un cobro marca la cuota como pagada (cobro → cuota).
+        $svc->registrar($cuota, ['monto' => 8000, 'origen' => 'manual']);
         $cuota->refresh();
         $this->assertTrue((bool) $cuota->pagado);
-        $this->assertSame(EstadoCuentaMembresia::ESTADO_ACTIVA, $cuota->estado);
+
+        // Anular (borrar) el cobro la vuelve a dejar impaga.
+        $cuota->cobros()->delete();
+        $svc->recalcularMembresia($cuota);
+        $cuota->refresh();
+        $this->assertFalse((bool) $cuota->pagado);
     }
 }

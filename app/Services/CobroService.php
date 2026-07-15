@@ -63,11 +63,19 @@ class CobroService
     }
 
     /**
-     * Recalcula el enum `pago` (caché) a partir de la suma de cobros vs el total adeudado.
-     * Solo aplica a inscripciones (actividades y clases); ventas y membresías no derivan estado.
+     * Recalcula la caché de estado de pago del cobrable a partir de sus cobros.
+     * Inscripciones (actividades y clases): enum `pago` (Saldado/Parcial/Pendiente).
+     * Membresías: delega en recalcularMembresia (el cobro es la fuente de verdad).
+     * Ventas no derivan estado.
      */
     public function recalcularEstadoPago(Model $cobrable): void
     {
+        if ($cobrable instanceof EstadoCuentaMembresia) {
+            $this->recalcularMembresia($cobrable);
+
+            return;
+        }
+
         if (!($cobrable instanceof Inscripcion) && !($cobrable instanceof InscripcionClase)) {
             return;
         }
@@ -94,30 +102,57 @@ class CobroService
     }
 
     /**
-     * Espejo UNIDIRECCIONAL de una cuota de membresía en el ledger.
-     * Si la cuota está pagada, crea/actualiza su cobro espejo (uno por cuota);
-     * si no, lo da de baja (soft-delete). Crear/editar un cobro NUNCA modifica la cuota.
+     * Recomputa la caché de pago de una cuota de membresía DESDE su cobro (fuente de verdad):
+     * `pagado` = existe un cobro. Cuando hay cobro, `fecha_pago`/`info_pago` y `modo` (si el
+     * método resuelve) se derivan de él y el comprobante stageado se adjunta al cobro.
+     * Sin cobro NO se limpian fecha/modo/info: pueden ser metadata de un pago informado y
+     * pendiente de aprobación (comprobante subido con `pagado=false`).
+     */
+    public function recalcularMembresia(EstadoCuentaMembresia $cuota): void
+    {
+        $cobro = $cuota->cobros()->orderByDesc('fecha_pago')->orderByDesc('id')->first();
+
+        $cuota->pagado = (bool) $cobro;
+
+        if ($cobro) {
+            $cuota->fecha_pago = $cobro->fecha_pago;
+            $cuota->info_pago = $cobro->referencia;
+            // 'modo' se deriva del método del cobro sólo si resuelve (no nulea un modo válido).
+            if ($cobro->metodo_pago_id) {
+                $cuota->modo = $cobro->metodoPago?->nombre ?: $cuota->modo;
+            }
+            if ($cuota->comprobante_imagen_id) {
+                $this->sincronizarComprobantes($cobro, [$cuota->comprobante_imagen_id]);
+            }
+        }
+
+        $cuota->save();
+    }
+
+    /**
+     * Aplica los datos de pago de la cuota al ledger y recomputa su caché.
+     * Si la cuota está marcada como pagada, crea/actualiza su cobro (uno por cuota, origen
+     * `membresia`); si no, lo da de baja (soft-delete). Luego `recalcularMembresia` deja la
+     * caché de la cuota derivada del cobro (el cobro es la fuente de verdad).
      */
     public function sincronizarMembresia(EstadoCuentaMembresia $cuota): void
     {
-        if (!$cuota->pagado) {
+        if ($cuota->pagado) {
+            $cuota->cobros()->updateOrCreate(
+                ['origen' => 'membresia'],
+                [
+                    'monto' => (float) $cuota->importe,
+                    'fecha_pago' => $cuota->fecha_pago,
+                    'metodo_pago_id' => $this->resolverMetodoPago($cuota->modo),
+                    'referencia' => $cuota->info_pago ?: null,
+                    'observaciones' => $cuota->observaciones ?: null,
+                ]
+            );
+        } else {
             $cuota->cobros()->delete();
-
-            return;
         }
 
-        $cobro = $cuota->cobros()->updateOrCreate(
-            ['origen' => 'membresia'],
-            [
-                'monto' => (float) $cuota->importe,
-                'fecha_pago' => $cuota->fecha_pago,
-                'metodo_pago_id' => $this->resolverMetodoPago($cuota->modo),
-                'referencia' => $cuota->info_pago ?: null,
-                'observaciones' => $cuota->observaciones ?: null,
-            ]
-        );
-
-        $this->sincronizarComprobantes($cobro, array_filter([$cuota->comprobante_imagen_id]));
+        $this->recalcularMembresia($cuota);
     }
 
     /**
