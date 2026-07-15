@@ -19,7 +19,8 @@ class EstadoCuentaMembresiasController extends Controller
      */
     public function index()
     {
-        $estadoCuentas = EstadoCuentaMembresia::with(['user.membresiaUsuario', 'membresia', 'membresia.entidad', 'comprobanteImagen'])
+        $estadoCuentas = EstadoCuentaMembresia::with(['user.membresiaUsuario', 'membresia', 'membresia.entidad', 'comprobanteImagen',
+                'cobros', 'cobros.metodoPago', 'cobros.moneda', 'cobros.comprobante', 'cobros.registrador:id,name'])
             ->orderBy('mes_pagado', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();

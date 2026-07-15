@@ -165,7 +165,16 @@
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Pago</p>
-                                                <p>{{ cuenta.fecha_pago ? formatearFecha(cuenta.fecha_pago) : '-' }}</p>
+                                                <button
+                                                    v-if="cuenta.cobros?.length"
+                                                    type="button"
+                                                    @click="abrirDetalleCobros(cuenta)"
+                                                    class="text-indigo-600 hover:text-indigo-800 hover:underline"
+                                                    title="Ver detalle del pago"
+                                                >
+                                                    {{ cuenta.fecha_pago ? formatearFecha(cuenta.fecha_pago) : 'Ver pago' }}
+                                                </button>
+                                                <p v-else>{{ cuenta.fecha_pago ? formatearFecha(cuenta.fecha_pago) : '-' }}</p>
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Comprobante</p>
@@ -286,7 +295,16 @@
                                             {{ cuenta.modo || '-' }}
                                         </td>
                                         <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-sm">
-                                            {{ cuenta.fecha_pago ? formatearFecha(cuenta.fecha_pago) : '-' }}
+                                            <button
+                                                v-if="cuenta.cobros?.length"
+                                                type="button"
+                                                @click="abrirDetalleCobros(cuenta)"
+                                                class="text-indigo-600 hover:text-indigo-800 hover:underline"
+                                                title="Ver detalle del pago"
+                                            >
+                                                {{ cuenta.fecha_pago ? formatearFecha(cuenta.fecha_pago) : 'Ver pago' }}
+                                            </button>
+                                            <span v-else>{{ cuenta.fecha_pago ? formatearFecha(cuenta.fecha_pago) : '-' }}</span>
                                         </td>
                                         <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center">
                                             <button
@@ -356,6 +374,12 @@
             </template>
         </div>
     </Dialog>
+
+    <CobroDetalleDialog
+        v-model:visible="cobroDetalleVisible"
+        :cobros="cobrosSeleccionados"
+        :contexto="contextoCobro"
+    />
 </template>
 
 <script setup>
@@ -367,6 +391,7 @@ import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Swal from 'sweetalert2';
+import CobroDetalleDialog from '@/Components/Dialogs/CobroDetalleDialog.vue';
 
 const props = defineProps({
     estadoCuentas: Array,
@@ -535,6 +560,17 @@ const toggleCardExpanded = (id) => {
 const abrirComprobante = (path) => {
     comprobantePath.value = path;
     comprobanteModal.value = true;
+};
+
+// --- Detalle del cobro (ledger) de la cuota ---
+const cobroDetalleVisible = ref(false);
+const cobrosSeleccionados = ref([]);
+const contextoCobro = ref('');
+
+const abrirDetalleCobros = (cuenta) => {
+    cobrosSeleccionados.value = cuenta?.cobros || [];
+    contextoCobro.value = [cuenta?.user?.name, cuenta?.membresia?.nombre].filter(Boolean).join(' · ');
+    cobroDetalleVisible.value = true;
 };
 
 const eliminarEstado = (cuenta) => {

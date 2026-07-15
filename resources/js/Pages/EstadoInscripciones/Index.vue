@@ -183,7 +183,16 @@
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Fecha de pago</p>
-                                                <p>{{ formatearSoloFecha(inscripcion.fecha_pago) }}</p>
+                                                <button
+                                                    v-if="inscripcion.cobros?.length"
+                                                    type="button"
+                                                    @click="abrirDetalleCobros(inscripcion)"
+                                                    class="text-indigo-600 hover:text-indigo-800 hover:underline"
+                                                    title="Ver detalle del pago"
+                                                >
+                                                    {{ formatearSoloFecha(fechaUltimoCobro(inscripcion)) }}
+                                                </button>
+                                                <p v-else>{{ formatearSoloFecha(inscripcion.fecha_pago) }}</p>
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Referencia de pago</p>
@@ -228,42 +237,6 @@
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Envio Grabacion</p>
                                                 <p>{{ envioEstado(inscripcion, 'envioGrabacion') }}</p>
-                                            </div>
-                                            <div>
-                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Comprobante</p>
-                                                <div class="flex items-center gap-2">
-                                                    <button
-                                                        v-if="canEdit"
-                                                        type="button"
-                                                        @click="openComprobanteModal(inscripcion)"
-                                                        class="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sky-700"
-                                                        title="Subir comprobante"
-                                                        aria-label="Subir comprobante"
-                                                    >
-                                                        <i class="pi pi-upload"></i>
-                                                        <span class="text-xs font-semibold">Subir comprobante</span>
-                                                    </button>
-                                                    <template v-else>
-                                                        <button
-                                                            v-if="urlComprobante(inscripcion)"
-                                                            type="button"
-                                                            @click="abrirComprobante(inscripcion)"
-                                                            class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-indigo-600"
-                                                            title="Ver comprobante"
-                                                            aria-label="Ver comprobante"
-                                                        >
-                                                            <i class="fas fa-file-alt"></i>
-                                                            <span class="text-xs font-semibold">Ver comprobante</span>
-                                                        </button>
-                                                        <span
-                                                            v-if="comprobantesExtras(inscripcion) > 0"
-                                                            class="text-xs font-semibold text-gray-500"
-                                                        >
-                                                            +{{ comprobantesExtras(inscripcion) }}
-                                                        </span>
-                                                        <span v-else-if="!urlComprobante(inscripcion)" class="text-xs text-gray-400">Sin comprobante</span>
-                                                    </template>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -359,9 +332,9 @@
                                     </div>
                                 </template>
 
-                                <Column expander style="width: 3rem" />
+                                <Column expander style="width: 2.5rem" />
 
-                                <Column header="Fecha" field="created_at" sortable :showFilterMenu="false" style="width: 8rem">
+                                <Column header="Fecha" field="created_at" sortable :showFilterMenu="false" style="width: 7rem">
                                     <template #body="{ data }">
                                         <span class="text-sm whitespace-nowrap">{{ formatearSoloFecha(data.created_at) }}</span>
                                     </template>
@@ -456,6 +429,16 @@
                                             <option value="Parcial">Parcial</option>
                                             <option value="Pendiente">Pendiente</option>
                                         </select>
+                                        <button
+                                            v-else-if="data.cobros?.length"
+                                            type="button"
+                                            @click="abrirDetalleCobros(data)"
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium cursor-pointer hover:ring-2 hover:ring-indigo-300 transition"
+                                            :class="badgePagoClass(data.pago)"
+                                            title="Ver detalle del pago"
+                                        >
+                                            {{ data.pago || '-' }}
+                                        </button>
                                         <span
                                             v-else
                                             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
@@ -473,38 +456,6 @@
                                             :showClear="true"
                                             @change="filterCallback()"
                                         />
-                                    </template>
-                                </Column>
-
-                                <Column header="Comprobante" class="text-center">
-                                    <template #body="{ data }">
-                                        <button
-                                            v-if="canEdit"
-                                            type="button"
-                                            @click="openComprobanteModal(data)"
-                                            class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200"
-                                            title="Subir comprobante"
-                                        >
-                                            <i class="pi pi-upload"></i>
-                                        </button>
-                                        <template v-else>
-                                            <button
-                                                v-if="urlComprobante(data)"
-                                                type="button"
-                                                @click="abrirComprobante(data)"
-                                                class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200"
-                                                title="Ver comprobante"
-                                            >
-                                                <i class="fas fa-file-alt"></i>
-                                            </button>
-                                            <span
-                                                v-if="comprobantesExtras(data) > 0"
-                                                class="text-xs font-semibold text-gray-500"
-                                            >
-                                                +{{ comprobantesExtras(data) }}
-                                            </span>
-                                            <span v-else-if="!urlComprobante(data)" class="text-xs text-gray-400">Sin comprobante</span>
-                                        </template>
                                     </template>
                                 </Column>
 
@@ -529,7 +480,7 @@
                                     </template>
                                 </Column>
 
-                                <Column v-if="cols.envioConfirmacion" header="Envío Confirmación" field="envioConfirmacion" :showFilterMenu="false">
+                                <Column v-if="cols.envioConfirmacion" header="Confirmación" field="envioConfirmacion" :showFilterMenu="false">
                                     <template #body="{ data }">
                                         <span
                                             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
@@ -550,10 +501,10 @@
                                     </template>
                                 </Column>
 
-                                <Column header="Acciones" class="text-center">
+                                <Column header="Acciones" class="text-center" style="width: 7.5rem">
                                     <template #body="{ data }">
-                                        <div v-if="canEdit" class="flex justify-center gap-2">
-                                            
+                                        <div v-if="canEdit" class="flex justify-center gap-1">
+
                                             <template v-if="isEditing(data)">
                                                 <button
                                                     class="inline-flex items-center justify-center rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700 disabled:opacity-60"
@@ -632,7 +583,16 @@
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Fecha de pago</p>
-                                                <p class="text-sm text-gray-800 dark:text-gray-100">{{ formatearSoloFecha(data.fecha_pago) }}</p>
+                                                <button
+                                                    v-if="data.cobros?.length"
+                                                    type="button"
+                                                    @click="abrirDetalleCobros(data)"
+                                                    class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
+                                                    title="Ver detalle del pago"
+                                                >
+                                                    {{ formatearSoloFecha(fechaUltimoCobro(data)) }}
+                                                </button>
+                                                <p v-else class="text-sm text-gray-800 dark:text-gray-100">{{ formatearSoloFecha(data.fecha_pago) }}</p>
                                             </div>
                                             <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Referencia de pago</p>
@@ -769,21 +729,11 @@
             </div>
         </div>
 
-        <Dialog v-model:visible="comprobanteModal" modal header="Comprobante" :style="{ width: '700px' }">
-            <div class="max-h-[70vh] overflow-y-auto space-y-4">
-                <div
-                    v-for="(item, index) in comprobantesParaVer"
-                    :key="`${item.url}-${index}`"
-                    class="rounded border border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800"
-                >
-                    <p v-if="item.descripcion" class="text-xs text-gray-500 mb-2">
-                        {{ item.descripcion }}
-                    </p>
-                    <iframe v-if="item.isPdf" :src="item.url" class="w-full h-[60vh] rounded"></iframe>
-                    <img v-else :src="item.url" class="w-full rounded" alt="Comprobante" />
-                </div>
-            </div>
-        </Dialog>
+        <CobroDetalleDialog
+            v-model:visible="cobroDetalleVisible"
+            :cobros="cobrosSeleccionados"
+            :contexto="contextoCobro"
+        />
 
         <Dialog
             v-model:visible="confirmSaldadoVisible"
@@ -1175,6 +1125,24 @@
                 <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800/50">
                     <p class="text-base text-gray-800 dark:text-gray-100">Total a pagar: <span class="font-bold text-green-700">{{ formatMoneyEdit(totalEdit) }}</span></p>
                 </div>
+
+                <!-- Comprobante: se sube acá y se enlaza al cobro al marcar el pago -->
+                <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">Comprobante</p>
+                            <p class="mt-1 text-xs text-gray-500">Queda asociado a la inscripción y se enlaza al cobro al marcar el pago.</p>
+                        </div>
+                        <button
+                            type="button"
+                            class="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sky-700 text-xs font-semibold hover:bg-sky-100 whitespace-nowrap"
+                            @click="abrirSubidaComprobanteEdicion"
+                        >
+                            <i class="pi pi-upload"></i>
+                            Subir comprobante
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <template #footer>
@@ -1208,6 +1176,7 @@ import RadioButton from 'primevue/radiobutton';
 import AutoComplete from 'primevue/autocomplete';
 import ServiciosActividadSelector from '@/Components/Actividades/ServiciosActividadSelector.vue';
 import GuestUserForm from '@/Components/Formularios/GuestUserForm.vue';
+import CobroDetalleDialog from '@/Components/Dialogs/CobroDetalleDialog.vue';
 
 const props = defineProps({
     inscripciones: Array,
@@ -1241,14 +1210,13 @@ onUnmounted(() => window.removeEventListener('resize', onResize));
 
 const cols = computed(() => {
     const w = windowWidth.value;
-    // Umbrales pensados para que en pantallas de 1366px (innerWidth ~1349 al
-    // descontar la scrollbar) NO haya scroll horizontal: a ese ancho se muestran
-    // las columnas núcleo + Membresía, y Estado/Envío Confirmación se colapsan a
-    // la fila expandible. Se vuelven a mostrar en pantallas más anchas.
+    // Umbrales pensados para que NO haya scroll horizontal: a 1366px se muestran
+    // las columnas núcleo + Membresía; Estado y Confirmación (2 columnas extra ~220px)
+    // se muestran recién a ≥1600px, cuando hay lugar real para ambas sin desbordar.
     return {
         membresia: w >= 1080,
-        estado: w >= 1500,
-        envioConfirmacion: w >= 1500,
+        estado: w >= 1600,
+        envioConfirmacion: w >= 1600,
     };
 });
 const expandedRows = ref([]);
@@ -1582,6 +1550,13 @@ const openComprobanteModal = (inscripcion) => {
     comprobanteModalVisible.value = true;
 };
 
+// Abre el modal de subida para la inscripción que se está editando (el flujo de
+// subida vive en el dialog de edición; el modal de subida se apila encima).
+const abrirSubidaComprobanteEdicion = () => {
+    if (!editInscripcionId.value) return;
+    openComprobanteModal({ id: editInscripcionId.value });
+};
+
 const onComprobanteChange = (event) => {
     const files = event.target.files;
     comprobanteFile.value = files && files[0] ? files[0] : null;
@@ -1763,21 +1738,6 @@ const badgeEnvioClass = (estado) => {
     return 'bg-slate-100 text-slate-700';
 };
 
-const urlComprobante = (inscripcion) => {
-    const raw = inscripcion?.comprobantes?.[0]?.ruta || inscripcion?.comprobante_url || inscripcion?.comprobante;
-    if (!raw) return null;
-    // Si ya es URL absoluta, usarla; de lo contrario, asumir ruta en storage
-    if (/^https?:\/\//i.test(raw)) return raw;
-    return `/storage/${raw}`;
-};
-
-const comprobantesExtras = (inscripcion) => {
-    const count = inscripcion?.comprobantes?.length || 0;
-    return count > 1 ? count - 1 : 0;
-};
-
-const comprobanteModal = ref(false);
-const comprobantesParaVer = ref([]);
 const confirmSaldadoVisible = ref(false);
 const inscripcionParaSaldar = ref(null);
 const confirmDeleteVisible = ref(false);
@@ -1790,32 +1750,22 @@ const confirmEnviosGrabacionesVisible = ref(false);
 const totalGrabacionesPendientes = ref(0);
 const isSendingGrabaciones = ref(false);
 
-const normalizarComprobante = (ruta, descripcion) => {
-    if (!ruta) return null;
-    const url = /^https?:\/\//i.test(ruta) ? ruta : `/storage/${ruta}`;
-    return {
-        url,
-        descripcion: descripcion || '',
-        isPdf: url.toLowerCase().includes('.pdf'),
-    };
+// --- Detalle de cobros del ledger (columna Pago clickeable) ---
+const cobroDetalleVisible = ref(false);
+const cobrosSeleccionados = ref([]);
+const contextoCobro = ref('');
+
+// Fecha del cobro más reciente de la inscripción (lo que se muestra en la columna Pago).
+const fechaUltimoCobro = (inscripcion) => {
+    const cobros = inscripcion?.cobros || [];
+    if (!cobros.length) return null;
+    return cobros.reduce((max, c) => (String(c.fecha_pago || '') > String(max || '') ? c.fecha_pago : max), null);
 };
 
-const abrirComprobante = (inscripcion) => {
-    if (!inscripcion) return;
-    const items = [];
-    if (Array.isArray(inscripcion.comprobantes) && inscripcion.comprobantes.length) {
-        inscripcion.comprobantes.forEach((comprobante) => {
-            const item = normalizarComprobante(comprobante.ruta, comprobante.descripcion);
-            if (item) items.push(item);
-        });
-    } else {
-        const raw = inscripcion?.comprobante_url || inscripcion?.comprobante;
-        const item = normalizarComprobante(raw, '');
-        if (item) items.push(item);
-    }
-    if (!items.length) return;
-    comprobantesParaVer.value = items;
-    comprobanteModal.value = true;
+const abrirDetalleCobros = (inscripcion) => {
+    cobrosSeleccionados.value = inscripcion?.cobros || [];
+    contextoCobro.value = [inscripcion?._nombre, inscripcion?.actividad?.nombre].filter(Boolean).join(' · ');
+    cobroDetalleVisible.value = true;
 };
 
 const abrirDialogoEnvioConfirmaciones = async () => {
