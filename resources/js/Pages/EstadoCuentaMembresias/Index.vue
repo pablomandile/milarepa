@@ -177,21 +177,6 @@
                                                 <p v-else>{{ cuenta.fecha_pago ? formatearFecha(cuenta.fecha_pago) : '-' }}</p>
                                             </div>
                                             <div>
-                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Comprobante</p>
-                                                <button
-                                                    v-if="cuenta.comprobante"
-                                                    type="button"
-                                                    @click="abrirComprobante(cuenta.comprobante)"
-                                                    class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-indigo-600 hover:text-indigo-800"
-                                                    title="Ver comprobante"
-                                                    aria-label="Ver comprobante"
-                                                >
-                                                    <i class="fas fa-file"></i>
-                                                    <span class="text-xs font-semibold">Ver comprobante</span>
-                                                </button>
-                                                <span v-else class="text-gray-400">-</span>
-                                            </div>
-                                            <div>
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Observaciones</p>
                                                 <p>{{ cuenta.observaciones || '-' }}</p>
                                             </div>
@@ -248,7 +233,6 @@
                                         <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-left">
                                             <i class="fas fa-calendar mr-1"></i>Pago
                                         </th>
-                                        <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center">Comprobante</th>
                                         <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-left">Observaciones</th>
                                         <th class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center">Acciones</th>
                                     </tr>
@@ -306,17 +290,6 @@
                                             </button>
                                             <span v-else>{{ cuenta.fecha_pago ? formatearFecha(cuenta.fecha_pago) : '-' }}</span>
                                         </td>
-                                        <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center">
-                                            <button
-                                                v-if="cuenta.comprobante"
-                                                @click="abrirComprobante(cuenta.comprobante)"
-                                                class="inline-flex items-center justify-center px-2 py-1 text-indigo-600 hover:text-indigo-800"
-                                                title="Ver comprobante"
-                                            >
-                                                <i class="fas fa-file"></i>
-                                            </button>
-                                            <span v-else class="text-gray-400">-</span>
-                                        </td>
                                         <td class="border border-gray-300 dark:border-gray-600 px-2 py-2 text-sm">
                                             {{ cuenta.observaciones || '-' }}
                                         </td>
@@ -364,17 +337,6 @@
         </div>
     </AppLayout>
 
-    <Dialog v-model:visible="comprobanteModal" modal header="Comprobante" :style="{ width: '600px' }">
-        <div class="max-h-[70vh] overflow-y-auto">
-            <template v-if="comprobanteIsPdf">
-                <iframe :src="'/storage/' + comprobantePath" class="w-full h-[60vh] rounded"></iframe>
-            </template>
-            <template v-else>
-                <img v-if="comprobantePath" :src="'/storage/' + comprobantePath" class="w-full rounded" alt="Comprobante" />
-            </template>
-        </div>
-    </Dialog>
-
     <CobroDetalleDialog
         v-model:visible="cobroDetalleVisible"
         :cobros="cobrosSeleccionados"
@@ -385,7 +347,6 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
@@ -541,9 +502,6 @@ const formatearFecha = (fecha) => {
     });
 };
 
-const comprobanteModal = ref(false);
-const comprobantePath = ref('');
-const comprobanteIsPdf = computed(() => (comprobantePath.value || '').toLowerCase().endsWith('.pdf'));
 const expandedCardIds = ref([]);
 
 const isCardExpanded = (id) => expandedCardIds.value.includes(id);
@@ -555,11 +513,6 @@ const toggleCardExpanded = (id) => {
     } else {
         expandedCardIds.value.splice(idx, 1);
     }
-};
-
-const abrirComprobante = (path) => {
-    comprobantePath.value = path;
-    comprobanteModal.value = true;
 };
 
 // --- Detalle del cobro (ledger) de la cuota ---
