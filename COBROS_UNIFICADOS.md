@@ -9,6 +9,14 @@
 - **UI**: selectores de "medio de pago" agregados en el diálogo admin de inscripciones (`EstadoInscripciones/Index.vue`: edición completa + "marcar saldado", con monto en Parcial) y en el form de clases (`InscripcionClaseForm.vue` + Create/Edit + `metodosPago` desde el controlador). Frontend compila OK.
 - **Vista Cobros** (menú Pagos → Cobros): `CobrosController@index` + `resources/js/Pages/Cobros/Index.vue`, DataTable con los cobros de los 4 dominios (fecha, dominio, detalle, monto, medio, referencia, origen, comprobante), buscador global y total. Ruta `cobros.index`.
 
+## Actualización (2026-07-15) — evolución post-implementación
+Dos decisiones del plan original se revirtieron tras completar el ledger (commits en `main`):
+
+- **Comprobantes ahora 1:N** (antes 1:1). Nueva tabla hija `cobro_comprobantes` (FK a `imagenes`); `Cobro::comprobantes()` `hasMany`; se dropeó `cobros.comprobante_id` (con backfill). `CobroService::registrar()` acepta `comprobante_ids` (array) + `sincronizarComprobantes()`. `EstadoInscripcionesController::registrarCobroAdmin` enlaza **todos** los comprobantes stageados de la inscripción (antes solo el más reciente). `ImagenesController::usosDeImagen` ahora cuenta las FKs de comprobante (evita borrar una imagen en uso). Test: `CobroMultiComprobanteTest`.
+- **Membresías: el cobro es la fuente de verdad** (antes espejo unidireccional cuota→cobro). `pagado` de la cuota se **deriva** de la existencia de su cobro; `fecha_pago`/`info_pago`/`modo` se derivan del cobro (`modo` solo si el método resuelve, para no perder un valor válido). Nuevo `CobroService::recalcularMembresia()`; `recalcularEstadoPago()` ahora maneja membresías (registrar/anular un cobro recomputa la cuota). La cuota conserva `importe` (deuda) y `comprobante_imagen_id` (staging del pago informado y pendiente de aprobación). `MembresiaEspejaCobroTest` quedó invertido.
+- **Visor de comprobante unificado en las vistas**: el detalle del pago con sus comprobantes se ve desde `CobroDetalleDialog.vue` (clic en la fecha/badge) en Estado de inscripciones y Estado cuenta membresía; se quitaron las columnas/visores de comprobante redundantes.
+- **Suite**: Feature 101/101 verde.
+
 ## Contexto
 
 Hoy **no existe una tabla de cobros**. El dinero está desparramado en cuatro dominios, cada uno con su propia representación, y en tres de ellos el «cobro» son columnas desnormalizadas mezcladas con "lo que se debe":
@@ -27,12 +35,12 @@ El objetivo es introducir un **ledger de cobros único y polimórfico** (`cobros
 - **Cardinalidad**: 1:N — una entidad puede tener varios cobros.
 - **Qué migra**: *solo el cobro realizado*. El desglose de precios / monto adeudado queda en cada entidad.
 - **Alcance**: los 4 dominios, vía relación polimórfica.
-- **Membresías**: **espejo UNIDIRECCIONAL** (`estado_cuenta_membresias → cobros`). La cuota es la fuente de verdad; marcar pagada crea/sincroniza el cobro; crear/editar un cobro NO modifica la cuota.
+- **Membresías**: **espejo UNIDIRECCIONAL** (`estado_cuenta_membresias → cobros`). La cuota es la fuente de verdad; marcar pagada crea/sincroniza el cobro; crear/editar un cobro NO modifica la cuota. **⟶ Actualizado (2026-07-15): se invirtió — el cobro es ahora la fuente de verdad y `pagado`/`fecha_pago`/`modo`/`info_pago` de la cuota se derivan del cobro. Ver "Actualización".**
 - **Histórico**: **backfill completo** vía comando idempotente.
 - **Medio de pago**: FK `metodo_pago_id` → `metodos_pago` (catálogo existente) + `referencia` (texto libre para detalle: códigos de comprobante de transferencia, `payment_id` de MP, etc.).
 - **Enum `pago`**: se mantiene como **caché derivada** (recalculada al cambiar cobros), no se deprecia.
 - **`Parcial` en backfill**: **no aplica** — hay 0 parciales en la base (ver hallazgos). Regla defensiva: loguear para revisión, nunca fabricar importe. Hacia adelante, el flujo nuevo captura el monto cobrado.
-- **Comprobantes**: **unificar ahora** en `cobros.comprobante_id` (FK a `imagenes`), **uno por cobro**.
+- **Comprobantes**: **unificar ahora** en `cobros.comprobante_id` (FK a `imagenes`), **uno por cobro**. **⟶ Actualizado (2026-07-15): ahora 1:N vía la tabla `cobro_comprobantes` (se dropeó `cobros.comprobante_id`). Ver "Actualización".**
 - **`cobrable_type`**: **morph map** con alias cortos y estables.
 - **Moneda**: `moneda_id` nullable (FK a `monedas`, `null`=pesos) como seguro a futuro; hoy todo es pesos.
 
@@ -235,8 +243,10 @@ Cada fase es entregable y el enum `pago` sigue funcionando como caché.
 
 ---
 
-## Fuera de alcance
-- Migrar `estado_cuenta_membresias` a `cobros` (se espeja, no se migra).
-- Varios comprobantes por un mismo cobro (se eligió 1:1; multi-comprobante = multi-cobro).
-- Pago online (MercadoPago) para clases/membresías.
-- Borrar `inscripcion_comprobantes` como tabla / pasar a 1:1 en cobros (hoy se mantiene con `imagen_id` para el staging pre-cobro del checkout). *(Los `*- copia.php` y los paths crudos legacy ya se eliminaron/unificaron en `imagenes`.)*
+## Fuera de alcance (vigente)
+- **Rediseñar el checkout público** para crear el cobro al iniciar el pago (hoy el comprobante se sube y persiste antes de que exista el cobro).
+- **Borrar `inscripcion_comprobantes`** como tabla: se mantiene como *staging* pre-cobro (con `imagen_id`); depende del rediseño del checkout.
+- **Pago online (MercadoPago)** para clases/membresías (hoy MP solo en actividades).
+- (Opcional a futuro) **Editar/anular cobros desde el diálogo del pago**: la inversión de membresías ya dejó el terreno listo (`recalcularEstadoPago`/`recalcularMembresia` recomputan la cuota al crear/borrar un cobro).
+
+> **Ya implementados** (antes fuera de alcance): multi-comprobante por cobro (1:N) y migrar membresías a `cobros` como fuente de verdad — ver **"Actualización (2026-07-15)"**. Los `*- copia.php` y los paths crudos legacy también se eliminaron/unificaron en `imagenes`.
