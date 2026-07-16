@@ -26,6 +26,18 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    oracionesTharpa: {
+        type: Array,
+        default: () => [],
+    },
+    arteTharpa: {
+        type: Array,
+        default: () => [],
+    },
+    otrosTharpa: {
+        type: Array,
+        default: () => [],
+    },
     provincias: {
         type: Array,
         default: () => [],
@@ -46,13 +58,12 @@ const props = defineProps({
 
 const persona = props.inscripcionClase.user || props.inscripcionClase.guest_user || {};
 const claseActual = props.clases.find((clase) => Number(clase.id) === Number(props.inscripcionClase.clase_id));
-const articulosTharpaPrevios = String(props.inscripcionClase.articulos_tharpa || '')
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
-const librosTharpaSeleccionados = (props.librosTharpa || [])
-    .filter((libro) => articulosTharpaPrevios.includes(libro.titulo))
-    .map((libro) => Number(libro.id));
+
+// Precarga por ID desde los items de la inscripción (no por título).
+const itemsPrevios = props.inscripcionClase.items || [];
+const idsPorCategoria = (categoria) => itemsPrevios
+    .filter((item) => item.categoria === categoria)
+    .map((item) => Number(item.producto_id));
 
 const form = useForm({
     email: props.inscripcionClase.email_snapshot || persona.email || '',
@@ -73,7 +84,10 @@ const form = useForm({
     articulos_tharpa: props.inscripcionClase.articulos_tharpa || '',
     montoTienda: Number(props.inscripcionClase.montoTienda || 0),
     articulos_tienda: props.inscripcionClase.articulos_tienda || '',
-    libros_tharpa_ids: librosTharpaSeleccionados,
+    libro_ids: idsPorCategoria('libro'),
+    oracion_ids: idsPorCategoria('oracion'),
+    arte_ids: idsPorCategoria('arte'),
+    otro_ids: idsPorCategoria('otro'),
     montoApagar: Number(props.inscripcionClase.montoApagar || 0),
     pago: props.inscripcionClase.pago || '',
     metodo_pago_id: null,
@@ -109,6 +123,9 @@ const submit = () => {
                             :clases="clases"
                             :entidades="entidades"
                             :libros-tharpa="librosTharpa"
+                            :oraciones-tharpa="oracionesTharpa"
+                            :arte-tharpa="arteTharpa"
+                            :otros-tharpa="otrosTharpa"
                             :provincias="provincias"
                             :municipios="municipios"
                             :barrios="barrios"

@@ -66,4 +66,10 @@ class InscripcionClase extends Model
     {
         return $this->belongsTo(GuestUser::class, 'guest_user_id');
     }
+
+    /** Líneas de producto (Libro/Oracion/Arte/Otro) de la inscripción. */
+    public function items()
+    {
+        return $this->hasMany(InscripcionClaseItem::class, 'inscripcion_clase_id');
+    }
 }

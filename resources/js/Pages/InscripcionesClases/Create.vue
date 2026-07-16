@@ -22,6 +22,18 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    oracionesTharpa: {
+        type: Array,
+        default: () => [],
+    },
+    arteTharpa: {
+        type: Array,
+        default: () => [],
+    },
+    otrosTharpa: {
+        type: Array,
+        default: () => [],
+    },
     provincias: {
         type: Array,
         default: () => [],
@@ -59,7 +71,10 @@ const form = useForm({
     articulos_tharpa: '',
     montoTienda: 0,
     articulos_tienda: '',
-    libros_tharpa_ids: [],
+    libro_ids: [],
+    oracion_ids: [],
+    arte_ids: [],
+    otro_ids: [],
     montoApagar: 0,
     pago: '',
     metodo_pago_id: null,
@@ -95,6 +110,9 @@ const submit = () => {
                             :clases="clases"
                             :entidades="entidades"
                             :libros-tharpa="librosTharpa"
+                            :oraciones-tharpa="oracionesTharpa"
+                            :arte-tharpa="arteTharpa"
+                            :otros-tharpa="otrosTharpa"
                             :provincias="provincias"
                             :municipios="municipios"
                             :barrios="barrios"

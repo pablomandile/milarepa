@@ -78,6 +78,10 @@ use App\Http\Controllers\ArteController;
 use App\Http\Controllers\InventarioArteController;
 use App\Http\Controllers\OtrosController;
 use App\Http\Controllers\InventarioOtrosController;
+use App\Http\Controllers\CategoriasTiendaController;
+use App\Http\Controllers\ArticulosTiendaController;
+use App\Http\Controllers\InventarioArticulosTiendaController;
+use App\Http\Controllers\PosController;
 use App\Http\Controllers\InventarioLibrosController;
 use App\Http\Controllers\HistoricoPedidosLibrosController;
 use App\Http\Controllers\PrestamosAnexosController;
@@ -376,6 +380,23 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/inventario-otros', InventarioOtrosController::class, [
         'parameters' => ['inventario-otros' => 'inventario_otro'],
     ])->except(['show']);
+    // Tienda general (categorías dinámicas + artículos + inventario)
+    Route::resource('/categorias-tienda', CategoriasTiendaController::class, [
+        'parameters' => ['categorias-tienda' => 'categoria_tienda'],
+    ])->except(['show']);
+    Route::resource('/articulos-tienda', ArticulosTiendaController::class, [
+        'parameters' => ['articulos-tienda' => 'articulo_tienda'],
+    ])->except(['show']);
+    Route::resource('/inventario-articulos-tienda', InventarioArticulosTiendaController::class, [
+        'parameters' => ['inventario-articulos-tienda' => 'inventario_articulo_tienda'],
+    ])->except(['show']);
+    // Punto de venta (POS)
+    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+    Route::get('/pos/productos', [PosController::class, 'productos'])->name('pos.productos');
+    Route::get('/pos/buscar-usuarios', [PosController::class, 'buscarUsuarios'])->name('pos.buscar-usuarios');
+    Route::get('/pos/actividad-datos/{actividad}', [PosController::class, 'datosActividad'])->name('pos.actividad-datos');
+    Route::post('/pos/cotizar-actividad', [PosController::class, 'cotizarActividad'])->name('pos.cotizar-actividad');
+    Route::post('/pos', [PosController::class, 'store'])->name('pos.store');
     Route::resource('/inventario-libros', InventarioLibrosController::class, [
         'parameters' => ['inventario-libros' => 'inventario_libro'],
     ])->except(['show']);

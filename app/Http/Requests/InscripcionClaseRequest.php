@@ -42,8 +42,16 @@ class InscripcionClaseRequest extends FormRequest
             'montoTienda' => ['nullable', 'numeric', 'min:0'],
             'articulos_tienda' => ['nullable', 'string'],
             'articulos_tharpa' => ['nullable', 'string'],
-            'libros_tharpa_ids' => ['nullable', 'array'],
+            'libros_tharpa_ids' => ['nullable', 'array'], // compat
             'libros_tharpa_ids.*' => ['integer', 'exists:libros,id'],
+            'libro_ids' => ['nullable', 'array'],
+            'libro_ids.*' => ['integer', 'exists:libros,id'],
+            'oracion_ids' => ['nullable', 'array'],
+            'oracion_ids.*' => ['integer', 'exists:oraciones,id'],
+            'arte_ids' => ['nullable', 'array'],
+            'arte_ids.*' => ['integer', 'exists:arte,id'],
+            'otro_ids' => ['nullable', 'array'],
+            'otro_ids.*' => ['integer', 'exists:otros,id'],
         ];
     }
 

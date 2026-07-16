@@ -19,11 +19,13 @@ const props = defineProps({
 
 const page = usePage();
 const showingNavigationDropdown = ref(false);
-// Sub-bloque "Tharpa" dentro de Gestión (desktop): colapsable, arranca retraído.
+// Sub-bloques "Tharpa" y "Tienda" dentro de Gestión (desktop): colapsables, arrancan retraídos.
 const tharpaExpanded = ref(false);
+const tiendaExpanded = ref(false);
 const mobileMenuSections = ref({
     gestion: false,
     tharpa: false,
+    tienda: false,
     actividades: false,
     inscripciones: false,
     membresias: false,
@@ -98,7 +100,7 @@ const toggleMobileSection = (key) => {
                             <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                                 <Dropdown>
                                     <template #trigger>
-                                        <button @click.prevent="tharpaExpanded = false" class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                        <button @click.prevent="tharpaExpanded = false; tiendaExpanded = false" class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                             Gestión
                                             <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -107,44 +109,25 @@ const toggleMobileSection = (key) => {
                                         </template>
 
                                     <template #content>
-                                        <DropdownLink :href="route('entidades.index')" :active="route().current('entidades.*')">
-                                            Entidades
-                                        </DropdownLink>
-                                        <DropdownLink :href="route('lugares.index')" :active="route().current('lugares.*')">
-                                            Lugares
-                                        </DropdownLink>
-                                        <DropdownLink :href="route('maestros.index')" :active="route().current('maestros.*')">
-                                            Maestros
-                                        </DropdownLink>
-                                        <DropdownLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
-                                            Coordinadores
-                                        </DropdownLink>
-                                        <DropdownLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
-                                            Membresías
-                                        </DropdownLink>
-                                        <DropdownLink :href="route('lugareshospedaje.index')" :active="route().current('lugareshospedaje.*')">
-                                            Lugares de Hospedaje
-                                        </DropdownLink>
-                                        <DropdownLink :href="route('hospedajes.index')" :active="route().current('hospedajes.*')">
-                                            Acomodaciones
-                                        </DropdownLink>
-                                        <DropdownLink :href="route('transportes.index')" :active="route().current('transportes.*')">
-                                            Transportes
-                                        </DropdownLink>
-                                        <DropdownLink :href="route('comidas.index')" :active="route().current('comidas.*')">
-                                            Comidas
-                                        </DropdownLink>
-                                        <DropdownLink :href="route('imagenes.index')" :active="route().current('imagenes.*')">
-                                            Imagenes
-                                        </DropdownLink>
-                                        <DropdownLink
-                                            v-if="$page.props.user?.permissions?.includes('read programa-estudios')"
-                                            :href="route('programa-estudios.index')"
-                                            :active="route().current('programa-estudios.*')"
+                                        <button
+                                            type="button"
+                                            class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+                                            @click.stop="tiendaExpanded = !tiendaExpanded"
                                         >
-                                            Programas de estudio
-                                        </DropdownLink>
-                                        <div class="border-t border-gray-200 dark:border-gray-700 my-1" />
+                                            <span>Tienda</span>
+                                            <span class="text-base font-bold leading-none">{{ tiendaExpanded ? '−' : '+' }}</span>
+                                        </button>
+                                        <div v-show="tiendaExpanded">
+                                            <DropdownLink :href="route('articulos-tienda.index')" :active="route().current('articulos-tienda.*')">
+                                                Artículos
+                                            </DropdownLink>
+                                            <DropdownLink :href="route('inventario-articulos-tienda.index')" :active="route().current('inventario-articulos-tienda.*')">
+                                                Inventario Artículos
+                                            </DropdownLink>
+                                            <DropdownLink :href="route('categorias-tienda.index')" :active="route().current('categorias-tienda.*')">
+                                                Categorías
+                                            </DropdownLink>
+                                        </div>
                                         <button
                                             type="button"
                                             class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
@@ -182,6 +165,48 @@ const toggleMobileSection = (key) => {
                                                 Préstamos
                                             </DropdownLink>
                                         </div>
+                                        <div class="border-t border-gray-200 dark:border-gray-700 my-1" />
+                                        <DropdownLink :href="route('pos.index')" :active="route().current('pos.*')">
+                                            Punto de venta
+                                        </DropdownLink>
+                                        <div class="border-t border-gray-200 dark:border-gray-700 my-1" />
+                                        <DropdownLink :href="route('entidades.index')" :active="route().current('entidades.*')">
+                                            Entidades
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('lugares.index')" :active="route().current('lugares.*')">
+                                            Lugares
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('maestros.index')" :active="route().current('maestros.*')">
+                                            Maestros
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
+                                            Coordinadores
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
+                                            Membresías
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('lugareshospedaje.index')" :active="route().current('lugareshospedaje.*')">
+                                            Lugares de Hospedaje
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('hospedajes.index')" :active="route().current('hospedajes.*')">
+                                            Acomodaciones
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('transportes.index')" :active="route().current('transportes.*')">
+                                            Transportes
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('comidas.index')" :active="route().current('comidas.*')">
+                                            Comidas
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('imagenes.index')" :active="route().current('imagenes.*')">
+                                            Imagenes
+                                        </DropdownLink>
+                                        <DropdownLink
+                                            v-if="$page.props.user?.permissions?.includes('read programa-estudios')"
+                                            :href="route('programa-estudios.index')"
+                                            :active="route().current('programa-estudios.*')"
+                                        >
+                                            Programas de estudio
+                                        </DropdownLink>
                                     </template>
                                 </Dropdown>
                             </div>
@@ -659,49 +684,32 @@ const toggleMobileSection = (key) => {
                             type="button"
                             class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                             :aria-expanded="isMobileSectionOpen('gestion')"
-                            @click="toggleMobileSection('gestion'); mobileMenuSections.tharpa = false"
+                            @click="toggleMobileSection('gestion'); mobileMenuSections.tharpa = false; mobileMenuSections.tienda = false"
                         >
                             <span>Gestión</span>
                             <span class="text-lg font-bold leading-none">{{ isMobileSectionOpen('gestion') ? '-' : '+' }}</span>
                         </button>
                         <div v-if="isMobileSectionOpen('gestion')" class="space-y-1">
-                            <ResponsiveNavLink :href="route('entidades.index')" :active="route().current('entidades.*')">
-                                Entidades
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('lugares.index')" :active="route().current('lugares.*')">
-                                Lugares
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('maestros.index')" :active="route().current('maestros.*')">
-                                Maestros
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
-                                Coordinadores
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
-                                Membresías
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('lugareshospedaje.index')" :active="route().current('lugareshospedaje.*')">
-                                Lugares de Hospedaje
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('hospedajes.index')" :active="route().current('hospedajes.*')">
-                                Acomodaciones
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('transportes.index')" :active="route().current('transportes.*')">
-                                Transportes
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('comidas.index')" :active="route().current('comidas.*')">
-                                Comidas
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('imagenes.index')" :active="route().current('imagenes.*')">
-                                Imagenes
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                v-if="$page.props.user?.permissions?.includes('read programa-estudios')"
-                                :href="route('programa-estudios.index')"
-                                :active="route().current('programa-estudios.*')"
+                            <button
+                                type="button"
+                                class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-400 focus:outline-none"
+                                :aria-expanded="isMobileSectionOpen('tienda')"
+                                @click="toggleMobileSection('tienda')"
                             >
-                                Programas de estudio
-                            </ResponsiveNavLink>
+                                <span>Tienda</span>
+                                <span class="text-lg font-bold leading-none">{{ isMobileSectionOpen('tienda') ? '−' : '+' }}</span>
+                            </button>
+                            <div v-if="isMobileSectionOpen('tienda')" class="space-y-1">
+                                <ResponsiveNavLink :href="route('articulos-tienda.index')" :active="route().current('articulos-tienda.*')">
+                                    Artículos
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink :href="route('inventario-articulos-tienda.index')" :active="route().current('inventario-articulos-tienda.*')">
+                                    Inventario Artículos
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink :href="route('categorias-tienda.index')" :active="route().current('categorias-tienda.*')">
+                                    Categorías
+                                </ResponsiveNavLink>
+                            </div>
                             <button
                                 type="button"
                                 class="flex w-full items-center justify-between px-4 pt-3 text-xs font-semibold uppercase tracking-wide text-gray-400 focus:outline-none"
@@ -740,6 +748,46 @@ const toggleMobileSection = (key) => {
                                     Préstamos
                                 </ResponsiveNavLink>
                             </div>
+                            <ResponsiveNavLink :href="route('pos.index')" :active="route().current('pos.*')" class="pt-3">
+                                Punto de venta
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('entidades.index')" :active="route().current('entidades.*')">
+                                Entidades
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('lugares.index')" :active="route().current('lugares.*')">
+                                Lugares
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('maestros.index')" :active="route().current('maestros.*')">
+                                Maestros
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('coordinadores.index')" :active="route().current('coordinadores.*')">
+                                Coordinadores
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
+                                Membresías
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('lugareshospedaje.index')" :active="route().current('lugareshospedaje.*')">
+                                Lugares de Hospedaje
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('hospedajes.index')" :active="route().current('hospedajes.*')">
+                                Acomodaciones
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('transportes.index')" :active="route().current('transportes.*')">
+                                Transportes
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('comidas.index')" :active="route().current('comidas.*')">
+                                Comidas
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('imagenes.index')" :active="route().current('imagenes.*')">
+                                Imagenes
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink
+                                v-if="$page.props.user?.permissions?.includes('read programa-estudios')"
+                                :href="route('programa-estudios.index')"
+                                :active="route().current('programa-estudios.*')"
+                            >
+                                Programas de estudio
+                            </ResponsiveNavLink>
                         </div>
                     </div>
 

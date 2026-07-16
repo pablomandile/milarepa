@@ -31,6 +31,16 @@ class AppServiceProvider extends ServiceProvider
             'inscripcion_clase' => \App\Models\InscripcionClase::class,
             'membresia_cuota' => \App\Models\EstadoCuentaMembresia::class,
             'venta' => \App\Models\Venta::class,
+            // Catálogos Tharpa (usados como `vendible`/`producto` en POS e inscripciones).
+            'libro' => \App\Models\Libro::class,
+            'oracion' => \App\Models\Oracion::class,
+            'arte' => \App\Models\Arte::class,
+            'otro' => \App\Models\Otro::class,
+            // Tienda general (usado como `vendible` en el POS).
+            'articulo_tienda' => \App\Models\ArticuloTienda::class,
+            // POS.
+            'venta_pos' => \App\Models\VentaPos::class,
+            'venta_pos_item' => \App\Models\VentaPosItem::class,
         ]);
 
         Inertia::share([
