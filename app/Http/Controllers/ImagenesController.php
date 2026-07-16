@@ -68,7 +68,7 @@ class ImagenesController extends Controller
         );
 
         $folder = (string) $request->input('folder', 'img/actividades');
-        $allowedFolders = ['img/actividades', 'img/clases', 'img/maestros', 'img/mpago', 'img/puyas', 'img/membresias', 'img/libros', 'img/oraciones', 'img/arte', 'img/otros'];
+        $allowedFolders = ['img/actividades', 'img/clases', 'img/maestros', 'img/mpago', 'img/puyas', 'img/membresias', 'img/libros', 'img/oraciones', 'img/arte', 'img/otros', 'img/tienda'];
         if (!in_array($folder, $allowedFolders, true)) {
             $folder = 'img/actividades';
         }
@@ -135,6 +135,7 @@ class ImagenesController extends Controller
             ['tabla' => 'oraciones', 'columna' => 'imagen_id', 'etiqueta' => 'oración(es)'],
             ['tabla' => 'arte', 'columna' => 'imagen_id', 'etiqueta' => 'arte'],
             ['tabla' => 'otros', 'columna' => 'imagen_id', 'etiqueta' => 'otro(s)'],
+            ['tabla' => 'articulos_tienda', 'columna' => 'imagen_id', 'etiqueta' => 'artículo(s) de tienda'],
             ['tabla' => 'maestros', 'columna' => 'imagen_id', 'etiqueta' => 'maestro(s)'],
             ['tabla' => 'membresias', 'columna' => 'imagen_id', 'etiqueta' => 'membresía(s)'],
             ['tabla' => 'metodos_pago', 'columna' => 'imagen_id', 'etiqueta' => 'método(s) de pago'],
