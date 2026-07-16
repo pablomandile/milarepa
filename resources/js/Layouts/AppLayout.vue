@@ -19,8 +19,11 @@ const props = defineProps({
 
 const page = usePage();
 const showingNavigationDropdown = ref(false);
+// Sub-bloque "Tharpa" dentro de Gestión (desktop): colapsable, arranca retraído.
+const tharpaExpanded = ref(false);
 const mobileMenuSections = ref({
     gestion: false,
+    tharpa: false,
     actividades: false,
     inscripciones: false,
     membresias: false,
@@ -95,7 +98,7 @@ const toggleMobileSection = (key) => {
                             <div class="hidden sm:-my-px sm:ms-4 lg:ms-6 sm:flex items-center">
                                 <Dropdown>
                                     <template #trigger>
-                                        <button @click.prevent class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
+                                        <button @click.prevent="tharpaExpanded = false" class="inline-flex items-center px-0.5 lg:px-1 pt-1 border-b-2 border-transparent text-xs lg:text-sm font-medium leading-5 text-gray-500 dark:text-gray-100 hover:text-gray-700 dark:hover:text-white focus:outline-none focus:text-gray-700 focus:border-indigo-700 transition duration-150 ease-in-out">
                                             Gestión
                                             <svg class="inline h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -119,12 +122,6 @@ const toggleMobileSection = (key) => {
                                         <DropdownLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
                                             Membresías
                                         </DropdownLink>
-                                        <DropdownLink :href="route('libros.index')" :active="route().current('libros.*')">
-                                            Libros
-                                        </DropdownLink>
-                                        <DropdownLink :href="route('inventario-libros.index')" :active="route().current('inventario-libros.*')">
-                                            Inventario Libros
-                                        </DropdownLink>
                                         <DropdownLink :href="route('lugareshospedaje.index')" :active="route().current('lugareshospedaje.*')">
                                             Lugares de Hospedaje
                                         </DropdownLink>
@@ -147,6 +144,44 @@ const toggleMobileSection = (key) => {
                                         >
                                             Programas de estudio
                                         </DropdownLink>
+                                        <div class="border-t border-gray-200 dark:border-gray-700 my-1" />
+                                        <button
+                                            type="button"
+                                            class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+                                            @click.stop="tharpaExpanded = !tharpaExpanded"
+                                        >
+                                            <span>Tharpa</span>
+                                            <span class="text-base font-bold leading-none">{{ tharpaExpanded ? '−' : '+' }}</span>
+                                        </button>
+                                        <div v-show="tharpaExpanded">
+                                            <DropdownLink :href="route('libros.index')" :active="route().current('libros.*')">
+                                                Libros
+                                            </DropdownLink>
+                                            <DropdownLink :href="route('inventario-libros.index')" :active="route().current('inventario-libros.*')">
+                                                Inventario Libros
+                                            </DropdownLink>
+                                            <DropdownLink :href="route('oraciones.index')" :active="route().current('oraciones.*')">
+                                                Oraciones
+                                            </DropdownLink>
+                                            <DropdownLink :href="route('inventario-oraciones.index')" :active="route().current('inventario-oraciones.*')">
+                                                Inventario Oraciones
+                                            </DropdownLink>
+                                            <DropdownLink :href="route('arte.index')" :active="route().current('arte.*')">
+                                                Arte
+                                            </DropdownLink>
+                                            <DropdownLink :href="route('inventario-arte.index')" :active="route().current('inventario-arte.*')">
+                                                Inventario Arte
+                                            </DropdownLink>
+                                            <DropdownLink :href="route('otros.index')" :active="route().current('otros.*')">
+                                                Otros
+                                            </DropdownLink>
+                                            <DropdownLink :href="route('inventario-otros.index')" :active="route().current('inventario-otros.*')">
+                                                Inventario Otros
+                                            </DropdownLink>
+                                            <DropdownLink :href="route('inventario-libros.prestamos-anexos.index')" :active="route().current('inventario-libros.prestamos-anexos.*')">
+                                                Préstamos
+                                            </DropdownLink>
+                                        </div>
                                     </template>
                                 </Dropdown>
                             </div>
@@ -624,7 +659,7 @@ const toggleMobileSection = (key) => {
                             type="button"
                             class="flex w-full items-center justify-between px-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                             :aria-expanded="isMobileSectionOpen('gestion')"
-                            @click="toggleMobileSection('gestion')"
+                            @click="toggleMobileSection('gestion'); mobileMenuSections.tharpa = false"
                         >
                             <span>Gestión</span>
                             <span class="text-lg font-bold leading-none">{{ isMobileSectionOpen('gestion') ? '-' : '+' }}</span>
@@ -644,12 +679,6 @@ const toggleMobileSection = (key) => {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('membresias.gestion')" :active="route().current('membresias.gestion')">
                                 Membresías
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('libros.index')" :active="route().current('libros.*')">
-                                Libros
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('inventario-libros.index')" :active="route().current('inventario-libros.*')">
-                                Inventario Libros
                             </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('lugareshospedaje.index')" :active="route().current('lugareshospedaje.*')">
                                 Lugares de Hospedaje
@@ -673,6 +702,44 @@ const toggleMobileSection = (key) => {
                             >
                                 Programas de estudio
                             </ResponsiveNavLink>
+                            <button
+                                type="button"
+                                class="flex w-full items-center justify-between px-4 pt-3 text-xs font-semibold uppercase tracking-wide text-gray-400 focus:outline-none"
+                                :aria-expanded="isMobileSectionOpen('tharpa')"
+                                @click="toggleMobileSection('tharpa')"
+                            >
+                                <span>Tharpa</span>
+                                <span class="text-lg font-bold leading-none">{{ isMobileSectionOpen('tharpa') ? '−' : '+' }}</span>
+                            </button>
+                            <div v-if="isMobileSectionOpen('tharpa')" class="space-y-1">
+                                <ResponsiveNavLink :href="route('libros.index')" :active="route().current('libros.*')">
+                                    Libros
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink :href="route('inventario-libros.index')" :active="route().current('inventario-libros.*')">
+                                    Inventario Libros
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink :href="route('oraciones.index')" :active="route().current('oraciones.*')">
+                                    Oraciones
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink :href="route('inventario-oraciones.index')" :active="route().current('inventario-oraciones.*')">
+                                    Inventario Oraciones
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink :href="route('arte.index')" :active="route().current('arte.*')">
+                                    Arte
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink :href="route('inventario-arte.index')" :active="route().current('inventario-arte.*')">
+                                    Inventario Arte
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink :href="route('otros.index')" :active="route().current('otros.*')">
+                                    Otros
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink :href="route('inventario-otros.index')" :active="route().current('inventario-otros.*')">
+                                    Inventario Otros
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink :href="route('inventario-libros.prestamos-anexos.index')" :active="route().current('inventario-libros.prestamos-anexos.*')">
+                                    Préstamos
+                                </ResponsiveNavLink>
+                            </div>
                         </div>
                     </div>
 

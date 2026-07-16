@@ -7,7 +7,6 @@
         </div>
 
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-
             <div class="md:col-span-2">
                 <InputLabel for="descripcion" value="Descripcion" />
                 <textarea
@@ -17,24 +16,6 @@
                     rows="4"
                 />
                 <InputError class="mt-2" :message="form.errors.descripcion" />
-            </div>
-
-            <div>
-                <InputLabel for="isbn" value="ISBN" />
-                <TextInput id="isbn" v-model="form.isbn" type="text" class="mt-1 block w-full" />
-                <InputError class="mt-2" :message="form.errors.isbn" />
-            </div>
-
-            <div>
-                <InputLabel for="autor" value="Autor" />
-                <TextInput id="autor" v-model="form.autor" type="text" class="mt-1 block w-full" />
-                <InputError class="mt-2" :message="form.errors.autor" />
-            </div>
-
-            <div>
-                <InputLabel for="editorial" value="Editorial" />
-                <TextInput id="editorial" v-model="form.editorial" type="text" class="mt-1 block w-full" />
-                <InputError class="mt-2" :message="form.errors.editorial" />
             </div>
 
             <div>
@@ -61,7 +42,7 @@
                 <div class="flex items-start gap-4">
                     <SingleImageUploader
                         v-model:file="form.imagen"
-                        folder="img/libros"
+                        folder="img/arte"
                     />
                     <div v-if="imagenPreviewUrl" class="flex items-center gap-2">
                         <div class="h-16 w-16 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden">
@@ -79,7 +60,7 @@
         </div>
 
         <div class="flex items-center justify-end gap-3">
-            <SecondaryButton type="button" @click="$inertia.visit(route('libros.index'))">
+            <SecondaryButton type="button" @click="$inertia.visit(route('arte.index'))">
                 Cancelar
             </SecondaryButton>
             <PrimaryButton :disabled="form.processing">
@@ -99,7 +80,7 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
 import TextInput from '@/Components/TextInput.vue';
 
 const props = defineProps({
-    libro: {
+    arte: {
         type: Object,
         default: null,
     },
@@ -110,22 +91,19 @@ const props = defineProps({
 });
 
 const form = useForm({
-    titulo: props.libro?.titulo ?? '',
-    descripcion: props.libro?.descripcion ?? '',
-    isbn: props.libro?.isbn ?? '',
-    autor: props.libro?.autor ?? (props.mode === 'create' ? 'Gueshe Kelsang Gyatso' : ''),
-    editorial: props.libro?.editorial ?? (props.mode === 'create' ? 'Tharpa' : ''),
-    tipo: props.libro?.tipo ?? 'Físico',
-    imagen_id: props.libro?.imagen_id ?? null,
+    titulo: props.arte?.titulo ?? '',
+    descripcion: props.arte?.descripcion ?? '',
+    tipo: props.arte?.tipo ?? 'Tarjeta A4',
+    imagen_id: props.arte?.imagen_id ?? null,
     imagen: null,
-    precio: props.libro?.precio ?? 0,
+    precio: props.arte?.precio ?? 0,
 });
 
-const tipos = ['Físico', 'Ebook', 'Audiolibro'];
+const tipos = ['Tarjeta A4', 'Tarjeta A5', 'Tarjeta A6', 'Tarjeta A7', 'Tarjeta Cuadrada'];
 
 const submitLabel = props.mode === 'edit' ? 'Actualizar' : 'Guardar';
 
-const imagenPreviewUrl = props.libro?.imagen?.ruta ? `/storage/${props.libro.imagen.ruta}` : '';
+const imagenPreviewUrl = props.arte?.imagen?.ruta ? `/storage/${props.arte.imagen.ruta}` : '';
 
 const onPrecioFocus = () => {
     if (Number(form.precio) === 0) {
@@ -134,12 +112,12 @@ const onPrecioFocus = () => {
 };
 
 const submit = () => {
-    if (props.mode === 'edit' && props.libro) {
+    if (props.mode === 'edit' && props.arte) {
         form.transform((data) => ({ ...data, _method: 'put' }))
-            .post(route('libros.update', props.libro.id), { forceFormData: true });
+            .post(route('arte.update', props.arte.id), { forceFormData: true });
         return;
     }
 
-    form.post(route('libros.store'));
+    form.post(route('arte.store'));
 };
 </script>

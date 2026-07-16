@@ -2,23 +2,16 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Libro;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class LibroRequest extends FormRequest
+class OtroRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
@@ -26,10 +19,7 @@ class LibroRequest extends FormRequest
         return [
             'titulo' => ['required', 'string', 'max:255'],
             'descripcion' => ['nullable', 'string'],
-            'isbn' => ['nullable', 'string', 'max:100'],
-            'autor' => ['nullable', 'string', 'max:255'],
-            'editorial' => ['nullable', 'string', 'max:255'],
-            'tipo' => ['required', Rule::in(Libro::TIPOS)],
+            'tipo' => ['nullable', 'string', 'max:60'],
             'imagen_id' => ['nullable', 'integer', 'exists:imagenes,id'],
             'imagen' => ['nullable', 'image', 'max:4096'],
             'precio' => ['required', 'numeric', 'min:0'],

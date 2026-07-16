@@ -20,6 +20,7 @@ class LibroImageUploadTest extends ImageUploadTestCase
         $response = $this->actingAs($user)->post(route('libros.store'), [
             'titulo' => 'El camino gozoso de buena fortuna',
             'precio' => 12000,
+            'tipo' => 'Físico',
             'imagen' => UploadedFile::fake()->image('libro.jpg'),
         ]);
 

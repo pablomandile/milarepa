@@ -72,6 +72,12 @@ use App\Http\Controllers\ProgramaGrabacionController;
 use App\Http\Controllers\AsistenciasController;
 use App\Http\Controllers\InscripcionesClasesController;
 use App\Http\Controllers\LibrosController;
+use App\Http\Controllers\OracionesController;
+use App\Http\Controllers\InventarioOracionesController;
+use App\Http\Controllers\ArteController;
+use App\Http\Controllers\InventarioArteController;
+use App\Http\Controllers\OtrosController;
+use App\Http\Controllers\InventarioOtrosController;
 use App\Http\Controllers\InventarioLibrosController;
 use App\Http\Controllers\HistoricoPedidosLibrosController;
 use App\Http\Controllers\PrestamosAnexosController;
@@ -352,6 +358,24 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         ->name('membresias.eliminar');
     Route::resource('/comidas', ComidasController::class);
     Route::resource('/libros', LibrosController::class)->except(['show']);
+    Route::resource('/oraciones', OracionesController::class, [
+        'parameters' => ['oraciones' => 'oracion'],
+    ])->except(['show']);
+    Route::resource('/inventario-oraciones', InventarioOracionesController::class, [
+        'parameters' => ['inventario-oraciones' => 'inventario_oracion'],
+    ])->except(['show']);
+    Route::resource('/arte', ArteController::class, [
+        'parameters' => ['arte' => 'arte'],
+    ])->except(['show']);
+    Route::resource('/inventario-arte', InventarioArteController::class, [
+        'parameters' => ['inventario-arte' => 'inventario_arte'],
+    ])->except(['show']);
+    Route::resource('/otros', OtrosController::class, [
+        'parameters' => ['otros' => 'otro'],
+    ])->except(['show']);
+    Route::resource('/inventario-otros', InventarioOtrosController::class, [
+        'parameters' => ['inventario-otros' => 'inventario_otro'],
+    ])->except(['show']);
     Route::resource('/inventario-libros', InventarioLibrosController::class, [
         'parameters' => ['inventario-libros' => 'inventario_libro'],
     ])->except(['show']);

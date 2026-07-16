@@ -10,7 +10,7 @@ import { FilterMatchMode } from 'primevue/api';
 import { computed, ref } from 'vue';
 
 const props = defineProps({
-    libros: {
+    oraciones: {
         type: Array,
         default: () => [],
     },
@@ -20,21 +20,21 @@ const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 
-const librosFiltradosMobile = computed(() => {
+const oracionesFiltradasMobile = computed(() => {
     const term = (filters.value.global.value || '').toString().trim().toLowerCase();
-    if (!term) return props.libros;
-    return props.libros.filter((l) => {
-        const campos = [l.titulo, l.autor, l.editorial, l.isbn, l.tipo];
+    if (!term) return props.oraciones;
+    return props.oraciones.filter((o) => {
+        const campos = [o.titulo, o.tipo];
         return campos.some((v) => String(v ?? '').toLowerCase().includes(term));
     });
 });
 
 const eliminar = (id) => {
-    if (!window.confirm('Desea eliminar este libro?')) {
+    if (!window.confirm('Desea eliminar esta oración?')) {
         return;
     }
 
-    router.delete(route('libros.destroy', id));
+    router.delete(route('oraciones.destroy', id));
 };
 
 const formatPrice = (value) => {
@@ -45,9 +45,9 @@ const formatPrice = (value) => {
     }).format(Number(value || 0));
 };
 
-const portadaUrl = (libro) => {
-    if (libro?.imagen?.ruta) {
-        return `/storage/${libro.imagen.ruta}`;
+const portadaUrl = (oracion) => {
+    if (oracion?.imagen?.ruta) {
+        return `/storage/${oracion.imagen.ruta}`;
     }
 
     return '/storage/img/actividades/imagen-no-disponible.jpg';
@@ -59,11 +59,11 @@ const portadaUrl = (libro) => {
 </style>
 
 <template>
-    <Head title="Libros" />
+    <Head title="Oraciones" />
 
     <AppLayout>
         <template #header>
-            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Libros</h1>
+            <h1 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">Oraciones</h1>
         </template>
 
         <div class="py-12">
@@ -71,17 +71,14 @@ const portadaUrl = (libro) => {
                 <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-6xl mx-auto">
                     <div class="flex justify-between flex-wrap gap-2">
                         <div class="flex gap-2">
-                            <Link :href="route('libros.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
-                                NUEVO LIBRO
-                            </Link>
-                            <Link :href="route('inventario-libros.ventas.index')" class="text-white bg-emerald-600 hover:bg-emerald-700 py-2 px-4 rounded">
-                                VENTA
+                            <Link :href="route('oraciones.create')" class="text-white bg-indigo-500 hover:bg-indigo-700 py-2 px-4 rounded">
+                                NUEVA ORACIÓN
                             </Link>
                         </div>
                     </div>
 
                     <!-- Buscador móvil -->
-                    <div v-if="libros.length > 0" class="sm:hidden mt-4">
+                    <div v-if="oraciones.length > 0" class="sm:hidden mt-4">
                         <IconField iconPosition="right" class="w-full">
                             <InputIcon>
                                 <i class="pi pi-search" />
@@ -91,43 +88,34 @@ const portadaUrl = (libro) => {
                     </div>
 
                     <!-- Tarjetas móvil -->
-                    <div v-if="librosFiltradosMobile.length > 0" class="space-y-4 sm:hidden mt-4">
+                    <div v-if="oracionesFiltradasMobile.length > 0" class="space-y-4 sm:hidden mt-4">
                         <div
-                            v-for="libro in librosFiltradosMobile"
-                            :key="libro.id"
+                            v-for="oracion in oracionesFiltradasMobile"
+                            :key="oracion.id"
                             class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
                         >
                             <div class="space-y-3 p-4">
                                 <div class="flex items-start gap-3">
                                     <div class="h-20 w-14 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
                                         <img
-                                            :src="portadaUrl(libro)"
-                                            :alt="`Portada de ${libro.titulo || 'libro'}`"
+                                            :src="portadaUrl(oracion)"
+                                            :alt="`Portada de ${oracion.titulo || 'oración'}`"
                                             class="max-h-full max-w-full object-contain"
                                         />
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100 break-words">{{ libro.titulo || '-' }}</p>
-                                        <p v-if="libro.autor" class="text-sm text-gray-600 dark:text-gray-400">{{ libro.autor }}</p>
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100 break-words">{{ oracion.titulo || '-' }}</p>
                                     </div>
                                 </div>
 
                                 <div class="space-y-2">
                                     <div class="flex items-center justify-between gap-3 text-sm">
-                                        <span class="text-gray-500">Editorial</span>
-                                        <span class="text-right">{{ libro.editorial || '-' }}</span>
-                                    </div>
-                                    <div class="flex items-center justify-between gap-3 text-sm">
                                         <span class="text-gray-500">Tipo</span>
-                                        <span class="text-right">{{ libro.tipo || '-' }}</span>
-                                    </div>
-                                    <div class="flex items-center justify-between gap-3 text-sm">
-                                        <span class="text-gray-500">ISBN</span>
-                                        <span class="text-right break-all">{{ libro.isbn || '-' }}</span>
+                                        <span class="text-right">{{ oracion.tipo || '-' }}</span>
                                     </div>
                                     <div class="flex items-center justify-between gap-3 text-sm">
                                         <span class="text-gray-500">Precio</span>
-                                        <span class="text-right font-semibold">{{ formatPrice(libro.precio) }}</span>
+                                        <span class="text-right font-semibold">{{ formatPrice(oracion.precio) }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -135,17 +123,17 @@ const portadaUrl = (libro) => {
                             <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
                                 <div class="flex flex-wrap items-center justify-center gap-2">
                                     <Link
-                                        :href="route('libros.edit', libro.id)"
+                                        :href="route('oraciones.edit', oracion.id)"
                                         class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-indigo-500 text-white px-3 text-xs font-semibold hover:bg-indigo-600 transition"
-                                        title="Editar libro"
+                                        title="Editar oración"
                                     >
                                         <i class="fas fa-pen-to-square"></i>
                                         <span>Editar</span>
                                     </Link>
                                     <button
-                                        @click="eliminar(libro.id)"
+                                        @click="eliminar(oracion.id)"
                                         class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-red-500 text-white px-3 text-xs font-semibold hover:bg-red-600 transition"
-                                        title="Borrar libro"
+                                        title="Borrar oración"
                                     >
                                         <i class="fas fa-trash"></i>
                                         <span>Borrar</span>
@@ -154,16 +142,16 @@ const portadaUrl = (libro) => {
                             </div>
                         </div>
                     </div>
-                    <div v-else-if="libros.length > 0" class="sm:hidden mt-4 text-center py-8 text-gray-500 dark:text-gray-400">
+                    <div v-else-if="oraciones.length > 0" class="sm:hidden mt-4 text-center py-8 text-gray-500 dark:text-gray-400">
                         No hay resultados con los filtros actuales
                     </div>
 
                     <!-- Tabla desktop -->
                     <div class="mt-4 hidden sm:block">
                         <DataTable
-                            :value="libros"
+                            :value="oraciones"
                             v-model:filters="filters"
-                            :globalFilterFields="['titulo', 'autor', 'editorial', 'isbn', 'tipo']"
+                            :globalFilterFields="['titulo', 'tipo']"
                             stripedRows
                             paginator
                             :rows="10"
@@ -185,17 +173,14 @@ const portadaUrl = (libro) => {
                                 <div class="h-16 w-12 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden">
                                     <img
                                         :src="portadaUrl(data)"
-                                        :alt="`Portada de ${data.titulo || 'libro'}`"
+                                        :alt="`Portada de ${data.titulo || 'oración'}`"
                                         class="max-h-full max-w-full object-contain"
                                     />
                                 </div>
                             </template>
                         </Column>
                         <Column field="titulo" header="Titulo" />
-                        <Column field="autor" header="Autor" />
-                        <Column field="editorial" header="Editorial" />
                         <Column field="tipo" header="Tipo" />
-                        <Column field="isbn" header="ISBN" />
                         <Column header="Precio">
                             <template #body="{ data }">
                                 {{ formatPrice(data.precio) }}
@@ -205,8 +190,8 @@ const portadaUrl = (libro) => {
                             <template #body="{ data }">
                                 <div class="flex justify-center items-center space-x-4">
                                     <Link
-                                        :href="route('libros.edit', data.id)"
-                                        v-tooltip="'Editar libro'"
+                                        :href="route('oraciones.edit', data.id)"
+                                        v-tooltip="'Editar oración'"
                                         class="text-indigo-600 hover:text-indigo-800"
                                         style="display: flex; align-items: center;"
                                     >
@@ -214,7 +199,7 @@ const portadaUrl = (libro) => {
                                     </Link>
                                     <button
                                         @click="eliminar(data.id)"
-                                        v-tooltip="'Borrar libro'"
+                                        v-tooltip="'Borrar oración'"
                                         class="text-red-600 hover:text-red-800"
                                         style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;"
                                     >

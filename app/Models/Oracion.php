@@ -5,21 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Libro extends Model
+class Oracion extends Model
 {
     use HasFactory;
 
-    protected $table = 'libros';
+    protected $table = 'oraciones';
 
-    /** Formatos posibles de un libro (categoría "Libros" de la tienda Tharpa). */
-    public const TIPOS = ['Físico', 'Ebook', 'Audiolibro'];
+    /** Formatos posibles (categoría "Oraciones" de la tienda Tharpa). */
+    public const TIPOS = ['Librillo', 'Audio'];
 
     protected $fillable = [
         'titulo',
         'descripcion',
-        'isbn',
-        'autor',
-        'editorial',
         'tipo',
         'imagen_id',
         'precio',
@@ -36,6 +33,6 @@ class Libro extends Model
 
     public function inventariosEntidad()
     {
-        return $this->hasMany(InventarioEntidadLibro::class, 'libro_id');
+        return $this->hasMany(InventarioEntidadOracion::class, 'oracion_id');
     }
 }
