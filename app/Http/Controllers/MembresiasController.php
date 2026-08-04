@@ -71,10 +71,15 @@ class MembresiasController extends Controller
                     ->orderBy('mes_pagado', 'desc')
                     ->orderBy('fecha_pago', 'desc')
                     ->first();
+                // `comprobante` ya no es columna: es un atributo virtual ($appends) que sale de
+                // la imagen enlazada por `comprobante_imagen_id`. No lo seleccionamos como columna
+                // (rompería donde la migración a comprobante_imagen_id ya corrió); cargamos la
+                // relación y el accessor arma el path.
                 $estadosCuenta = EstadoCuentaMembresia::where('user_id', auth()->id())
                     ->where('membresia_id', $userMembresia->id)
                     ->orderBy('mes_pagado', 'desc')
-                    ->get(['id', 'mes_pagado', 'pagado', 'comprobante']);
+                    ->with('comprobanteImagen:id,ruta')
+                    ->get();
             }
         }
 
