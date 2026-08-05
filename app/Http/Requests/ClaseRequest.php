@@ -16,7 +16,7 @@ class ClaseRequest extends FormRequest
     {
         return [
             'nombre' => ['required', 'string', 'max:120'],
-            'ciclo_id' => ['required', 'exists:ciclos,id'],
+            'ciclo_id' => ['nullable', 'exists:ciclos,id'],
             'entidad_id' => ['required', 'exists:entidades,id'],
             'mes_referencia' => ['required', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
             'descripcion' => ['nullable', 'string', 'max:5000'],
@@ -44,7 +44,6 @@ class ClaseRequest extends FormRequest
     {
         return [
             'nombre.required' => __('El nombre no puede quedar vacio'),
-            'ciclo_id.required' => __('Debe seleccionar un ciclo'),
             'entidad_id.required' => __('Debe seleccionar una entidad'),
             'mes_referencia.required' => __('Debe seleccionar el mes de la clase'),
             'mes_referencia.regex' => __('El mes debe tener formato YYYY-MM'),

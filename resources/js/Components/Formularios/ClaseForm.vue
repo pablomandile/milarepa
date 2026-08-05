@@ -362,7 +362,7 @@ watch(
                 </div>
 
                 <div class="col-span-6 sm:col-span-6">
-                    <InputLabel for="ciclo_id" class="text-indigo-400" value="Ciclo" :required="true" />
+                    <InputLabel for="ciclo_id" class="text-indigo-400" value="Ciclo" />
                     <div class="flex gap-2 items-center mt-1">
                         <Dropdown
                             id="ciclo_id"
@@ -370,8 +370,9 @@ watch(
                             :options="ciclosConEtiqueta"
                             optionLabel="etiqueta"
                             optionValue="id"
-                            placeholder="Seleccione un ciclo"
+                            placeholder="Seleccione un ciclo (opcional)"
                             class="w-full border border-gray-300 dark:border-gray-600"
+                            showClear
                         />
                         <a
                             :href="route('ciclos.create')"

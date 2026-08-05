@@ -324,8 +324,8 @@ const isClaseRowExpanded = (claseId, fh) => {
                     </div>
                     <div v-if="weekdayNavigation.length > 0" class="px-0 sm:px-6 pt-5">
                         <div class="mb-6 px-2 text-center">
-                            <p class="text-2xl font-semibold text-indigo-800">
-                                {{ `📚 Tema de ${monthLabel.toLowerCase()}: "${cycleName || 'Ciclo del mes'}"` }}
+                            <p v-if="cycleName" class="text-2xl font-semibold text-indigo-800">
+                                {{ `📚 Tema de ${monthLabel.toLowerCase()}: "${cycleName}"` }}
                             </p>
                             <p class="mt-2 text-2xl text-indigo-700">
                                 Clases semanales: Enseñanzas + meditaciones para cultivar más paz interior
