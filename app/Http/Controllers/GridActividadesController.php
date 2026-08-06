@@ -332,7 +332,7 @@ class GridActividadesController extends Controller
         }
 
         $actividad->load([
-            'metodosPago',
+            'metodosPago.imagen',
             'lugar',
             'entidad',
             'modalidad',
@@ -455,7 +455,7 @@ class GridActividadesController extends Controller
         ]);
 
         $data['pago_metodo'] = $this->normalizarMetodoPagoFinal((string) ($data['pago_metodo'] ?? ''));
-        if (!in_array($data['pago_metodo'], ['efectivo', 'comprobante', 'transferencia', 'getnet', 'mercadopago'], true)) {
+        if (!in_array($data['pago_metodo'], ['efectivo', 'comprobante', 'transferencia', 'getnet', 'mercadopago', 'qr'], true)) {
             return response()->json([
                 'ok' => false,
                 'message' => 'The selected pago metodo is invalid.',
@@ -1366,6 +1366,10 @@ class GridActividadesController extends Controller
 
         if ($normalizado === 'gratis') {
             return 'efectivo';
+        }
+
+        if (str_contains($normalizado, 'qr')) {
+            return 'qr';
         }
 
         if (in_array($normalizado, ['mercado pago', 'mercadopago', 'mercado-pago'], true)) {

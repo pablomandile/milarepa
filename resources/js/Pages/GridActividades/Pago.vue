@@ -49,6 +49,7 @@ const metodosPago = computed(() =>
     nombre: metodo.nombre,
     tipo: metodo.tipo_de_pago || '',
     descripcion: metodo.descripcion || '',
+    imagen: metodo.imagen?.ruta ? `/storage/${metodo.imagen.ruta}` : null,
     label: metodo.tipo_de_pago ? `${metodo.nombre} (${metodo.tipo_de_pago})` : metodo.nombre,
     value: normalizarMetodoPago(metodo.nombre || ''),
   }))
@@ -387,6 +388,7 @@ const puedeFinalizar = computed(() => {
   if (!pagoMetodo.value) return false;
   if (esMetodoTipoEfectivo.value) return true;
   if (esMercadoPagoSeleccionado.value) return true;
+  if (esQrSeleccionado.value) return true;
   return ['transferencia', 'getnet'].includes(pagoMetodo.value) || !!comprobantePath.value;
 });
 const esEfectivoSeleccionado = computed(() => metodoSeleccionado.value === 'efectivo');
@@ -400,6 +402,9 @@ const mostrarInfoEfectivo = computed(() => !esPagoCero.value && esMetodoTipoEfec
 const mostrarInfoTransferencia = computed(() => !esPagoCero.value && esTransferenciaSeleccionado.value);
 const mostrarInfoGetnet = computed(() => !esPagoCero.value && esGetnetSeleccionado.value);
 const mostrarInfoMercadoPago = computed(() => !esPagoCero.value && esMercadoPagoSeleccionado.value);
+const esQrSeleccionado = computed(() => metodoSeleccionado.value.includes('qr'));
+const imagenQrSeleccionado = computed(() => metodoPagoSeleccionado.value?.imagen || null);
+const mostrarInfoQr = computed(() => !esPagoCero.value && esQrSeleccionado.value);
 
 const descripcionEfectivo = computed(() => {
   const metodo = props.actividad.metodos_pago?.find(
@@ -715,6 +720,29 @@ watch(
                 (tarjetas, dinero en cuenta, etc.). Tu inscripción se confirmará automáticamente
                 cuando el pago se acredite.
               </p>
+            </div>
+            <div v-if="mostrarInfoQr && imagenQrSeleccionado" class="border rounded-lg p-4">
+              <h3 class="text-sm font-semibold text-gray-700">Pago con QR de Mercado Pago</h3>
+              <p class="text-sm text-green-600 mt-1">
+                Escaneá el QR con la app de Mercado Pago para pagar. Subir el comprobante es
+                opcional; tu inscripción quedará pendiente para aprobación.
+              </p>
+              <div class="mt-3 flex justify-center">
+                <img
+                  :src="imagenQrSeleccionado"
+                  alt="QR de pago"
+                  class="rounded border border-gray-200 bg-white p-2"
+                  style="max-width: 260px; max-height: 260px;"
+                />
+              </div>
+              <div class="mt-4 flex flex-wrap gap-2">
+                <button
+                  class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                  @click="comprobanteModal = true"
+                >
+                  Subir comprobante
+                </button>
+              </div>
             </div>
           </div>
 
