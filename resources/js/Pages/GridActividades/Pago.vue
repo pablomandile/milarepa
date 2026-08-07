@@ -226,6 +226,19 @@ const actividadPrecio = computed(() => {
   return parseFloat(props.saldo || 0) || 0;
 });
 const actividadSimbolo = computed(() => lineaActividadActual.value?.moneda?.simbolo || simboloMoneda.value);
+const lineaActividadGeneral = computed(() =>
+  obtenerLineaPrecio(esquemaVigente.value?.membresias || [], null, monedaSeleccionadaId.value)
+);
+const actividadPrecioGeneral = computed(() => {
+  if (lineaActividadGeneral.value?.precio !== undefined && lineaActividadGeneral.value?.precio !== null) {
+    return Number(lineaActividadGeneral.value.precio) || 0;
+  }
+  return actividadPrecio.value;
+});
+const descuentoMembresia = computed(() => {
+  const dif = actividadPrecioGeneral.value - actividadPrecio.value;
+  return dif > 0 ? dif : 0;
+});
 const grabacionDisponible = computed(() => !!props.actividad?.grabacion_id && !!props.actividad?.grabacion);
 const grabacionPrecio = computed(() => {
   return resolverPrecioItemEnMoneda(props.actividad?.grabacion || {}, 'valor').precio;
@@ -619,10 +632,10 @@ watch(
             Esta actividad está incluída con tu membresía
           </h2>
           <p v-else class="text-lg text-gray-600 mt-4">
-            Valor de la actividad: <span class="font-semibold text-gray-800">{{ formatMoney(actividadPrecio, actividadSimbolo) }}</span>
+            Valor de la actividad: <span class="font-semibold text-gray-800">{{ formatMoney(actividadPrecioGeneral, actividadSimbolo) }}</span>
           </p>
           <p v-if="!actividadEsGratuita" class="text-lg text-green-600 mt-1">
-            Membresía aplicada: {{ membresia }}
+            Membresía aplicada: {{ membresia }}<template v-if="descuentoMembresia > 0"> * descuento de {{ formatMoney(descuentoMembresia, actividadSimbolo) }}</template>
           </p>
 
           <div v-if="mostrarSelectorMoneda" class="mt-4">
