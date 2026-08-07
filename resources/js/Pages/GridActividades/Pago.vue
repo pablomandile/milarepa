@@ -635,7 +635,7 @@ watch(
             Valor de la actividad: <span class="font-semibold text-gray-800">{{ formatMoney(actividadPrecioGeneral, actividadSimbolo) }}</span>
           </p>
           <p v-if="!actividadEsGratuita" class="text-lg text-green-600 mt-1">
-            Membresía aplicada: {{ membresia }}<span v-if="descuentoMembresia > 0" class="text-[0.5em]"> * descuento de {{ formatMoney(descuentoMembresia, actividadSimbolo) }}</span>
+            Membresía aplicada: {{ membresia }}<span v-if="descuentoMembresia > 0" class="text-[0.7em]"> * descuento de {{ formatMoney(descuentoMembresia, actividadSimbolo) }}</span>
           </p>
 
           <div v-if="mostrarSelectorMoneda" class="mt-4">
