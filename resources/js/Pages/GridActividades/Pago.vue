@@ -25,6 +25,10 @@ const props = defineProps({
     type: String,
     default: 'Sin membresía',
   },
+  membresiaId: {
+    type: [Number, String],
+    default: null,
+  },
   mostrarSelectorModalidad: {
     type: Boolean,
     default: false,
@@ -81,6 +85,7 @@ const normalizarNombre = (value) => String(value || '')
 
 const membresiaIdUsuario = computed(() => {
   return (
+    props.membresiaId ||
     page.props?.auth?.user?.membresia?.id ||
     page.props?.auth?.user?.membresia_id ||
     null

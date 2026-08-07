@@ -392,6 +392,7 @@ class GridActividadesController extends Controller
             'pago' => $pago,
             'saldo' => $saldo,
             'membresia' => $membresiaNombre,
+            'membresiaId' => $userContext?->membresia_id,
             'mostrarSelectorModalidad' => $mostrarSelectorModalidad,
             'inscripcion' => $inscripcionExistente,
         ]);
