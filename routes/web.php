@@ -591,6 +591,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         ->name('asistencias.registrar-qr');
     Route::patch('/clases/{clase}/estado', [ClasesController::class, 'updateEstado'])
         ->name('clases.updateEstado');
+    Route::post('/clases/{clase}/clonar', [ClasesController::class, 'clonar'])
+        ->name('clases.clonar');
     Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');
 
     Route::resource('/esquemaprecios', EsquemaPreciosController::class);

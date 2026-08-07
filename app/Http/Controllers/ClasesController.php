@@ -354,6 +354,29 @@ class ClasesController extends Controller
     }
 
     /**
+     * Clona una clase con toda su estructura: campos, FKs compartidas (imagen,
+     * esquema de precios, stream, etc.) y los pivotes de maestros/coordinadores.
+     * El clon nace SIEMPRE inactivo (activa=false) hasta activarlo a mano.
+     * No se copian las inscripciones (datos transaccionales).
+     */
+    public function clonar(Clase $clase)
+    {
+        $clase->load(['maestros', 'coordinadores']);
+
+        $clon = $clase->replicate();
+        $clon->nombre = mb_substr($clase->nombre . ' (copia)', 0, 120);
+        $clon->activa = false;
+        $clon->save();
+
+        $clon->maestros()->sync($clase->maestros->pluck('id'));
+        $clon->coordinadores()->sync($clase->coordinadores->pluck('id'));
+
+        // Directo al form de edición del clon: el objetivo es ajustarla ya mismo.
+        return redirect()->route('clases.edit', $clon->id)
+            ->with('success', 'Clase clonada (inactiva). Ajustá los datos y activala cuando esté lista.');
+    }
+
+    /**
      * Activa/desactiva varias clases a la vez.
      */
     public function bulkEstado(Request $request)

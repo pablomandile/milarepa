@@ -10,7 +10,6 @@ import { Link, router } from '@inertiajs/vue3';
 import Swal from 'sweetalert2';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Dialog from 'primevue/dialog';
 import InputSwitch from 'primevue/inputswitch';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
@@ -133,16 +132,8 @@ const formatMes = (mesReferencia) => {
     return new Date(year, month - 1, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
 };
 
-const imageDialogVisible = ref(false);
-const selectedImageUrl = ref('');
 const expandedRows = ref([]);
 const expandedCardIds = ref([]);
-
-const openImageDialog = (imageUrl) => {
-    if (!imageUrl) return;
-    selectedImageUrl.value = imageUrl;
-    imageDialogVisible.value = true;
-};
 
 const isCardExpanded = (id) => expandedCardIds.value.includes(id);
 
@@ -191,6 +182,23 @@ const deleteClase = (id) => {
             router.delete(route('clases.destroy', id), {
                 onSuccess: () => Swal.fire('Eliminado!', 'La clase ha sido eliminada.', 'success'),
                 onError: () => Swal.fire('Error', 'Hubo un problema al eliminar la clase.', 'error'),
+            });
+        }
+    });
+};
+
+const clonarClase = (clase) => {
+    Swal.fire({
+        title: 'Clonar esta clase?',
+        text: `Se creara una copia inactiva de "${clase.nombre}" con toda su estructura, lista para editar.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Si, clonar',
+        cancelButtonText: 'Cancelar',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.post(route('clases.clonar', parseInt(clase.id)), {}, {
+                onError: () => Swal.fire('Error', 'Hubo un problema al clonar la clase.', 'error'),
             });
         }
     });
@@ -351,11 +359,10 @@ const bulkBorrar = () => {
                                 :key="clase.id"
                                 class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
                             >
-                                <button
-                                    type="button"
+                                <Link
+                                    :href="`${route('clases.show-public', { clase: parseInt(clase.id) })}?return_url=${encodeURIComponent(route('clases.index'))}`"
                                     class="block w-full bg-gray-100 dark:bg-gray-900"
-                                    title="Ver imagen"
-                                    @click="openImageDialog(clase.imagen ? '/storage/' + clase.imagen.ruta : '')"
+                                    title="Ver landing"
                                 >
                                     <img
                                         v-if="clase.imagen"
@@ -369,7 +376,7 @@ const bulkBorrar = () => {
                                         alt="Sin imagen"
                                         class="h-auto w-full object-contain"
                                     />
-                                </button>
+                                </Link>
 
                                 <div class="space-y-3 p-4">
                                     <div class="space-y-1">
@@ -455,15 +462,17 @@ const bulkBorrar = () => {
 
                                 <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
                                     <div class="flex flex-wrap items-center justify-center gap-2">
-                                        <Link
-                                            :href="`${route('clases.show-public', { clase: parseInt(clase.id) })}?return_url=${encodeURIComponent(route('clases.index'))}`"
-                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-3"
-                                            title="Ver landing publica"
-                                            aria-label="Ver landing publica"
+                                        <button
+                                            v-if="$page.props.user.permissions.includes('create clases')"
+                                            type="button"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3"
+                                            title="Clonar clase"
+                                            aria-label="Clonar clase"
+                                            @click="clonarClase(clase)"
                                         >
-                                            <i class="fas fa-eye"></i>
-                                            <span class="text-xs font-semibold">Ver landing publica</span>
-                                        </Link>
+                                            <i class="fas fa-clone"></i>
+                                            <span class="text-xs font-semibold">Clonar clase</span>
+                                        </button>
                                         <Link
                                             v-if="$page.props.user.permissions.includes('update clases')"
                                             :href="route('clases.edit', parseInt(clase.id))"
@@ -575,20 +584,26 @@ const bulkBorrar = () => {
                             <Column header="Imagen">
                                 <template #body="slotProps">
                                     <div class="flex items-center justify-center">
-                                        <button
+                                        <Link
                                             v-if="slotProps.data.imagen"
-                                            type="button"
+                                            :href="`${route('clases.show-public', { clase: parseInt(slotProps.data.id) })}?return_url=${encodeURIComponent(route('clases.index'))}`"
                                             class="inline-flex"
-                                            v-tooltip="'Ver imagen'"
-                                            @click="openImageDialog('/storage/' + slotProps.data.imagen.ruta)"
+                                            v-tooltip="'Ver landing'"
                                         >
                                             <img
                                                 :src="'/storage/' + slotProps.data.imagen.ruta"
                                                 alt="Imagen de clase"
                                                 class="h-12 w-12 rounded object-cover border border-gray-200 dark:border-gray-700"
                                             />
-                                        </button>
-                                        <span v-else class="text-sm text-gray-400">Sin imagen</span>
+                                        </Link>
+                                        <Link
+                                            v-else
+                                            :href="`${route('clases.show-public', { clase: parseInt(slotProps.data.id) })}?return_url=${encodeURIComponent(route('clases.index'))}`"
+                                            class="text-sm text-gray-400 hover:text-sky-600 underline decoration-dotted"
+                                            v-tooltip="'Ver landing'"
+                                        >
+                                            Sin imagen
+                                        </Link>
                                     </div>
                                 </template>
                             </Column>
@@ -670,13 +685,14 @@ const bulkBorrar = () => {
                             <Column v-if="!modoSeleccion" header="Acciones">
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
-                                        <Link
-                                            :href="`${route('clases.show-public', { clase: parseInt(slotProps.data.id) })}?return_url=${encodeURIComponent(route('clases.index'))}`"
-                                            v-tooltip="'Ver landing publica'"
-                                            style="display: flex; align-items: center;"
+                                        <button
+                                            @click="clonarClase(slotProps.data)"
+                                            v-if="$page.props.user.permissions.includes('create clases')"
+                                            v-tooltip="'Clonar clase'"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;"
                                         >
-                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1; color: rgb(14, 116, 144);"></i>
-                                        </Link>
+                                            <i class="fas fa-clone" style="font-size: 18px !important; line-height: 1; color: rgb(5, 150, 105);"></i>
+                                        </button>
                                         <Link
                                             :href="route('clases.edit', parseInt(slotProps.data.id))"
                                             v-if="$page.props.user.permissions.includes('update clases')"
@@ -716,20 +732,5 @@ const bulkBorrar = () => {
             </div>
         </div>
 
-        <Dialog
-            v-model:visible="imageDialogVisible"
-            modal
-            header="Imagen de Clase"
-            :style="{ width: '720px' }"
-        >
-            <div class="w-full">
-                <img
-                    v-if="selectedImageUrl"
-                    :src="selectedImageUrl"
-                    alt="Imagen de Clase"
-                    class="w-full max-h-[70vh] object-contain"
-                />
-            </div>
-        </Dialog>
     </AppLayout>
 </template>
