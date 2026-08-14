@@ -6,16 +6,25 @@
 
 ## Estado de avance
 
-**✅ IMPLEMENTACIÓN COMPLETA (2026-08-14).** Todo lo listado abajo está hecho y verificado
-en local: suite 144 verdes (+11 tests nuevos; los únicos fallos son los 4 preexistentes de
-ImportarMultievento), `npm run build` OK, `cobros:migrar-staging` corrido en local
-(2 comprobantes migrados, re-corrida idempotente en 0). **Sin commitear.**
+**✅ DEPLOYADO A PRODUCCIÓN (2026-08-14).** Commits `f4440fb` (refactor) + `d96e88b`
+(recuperación de cambios que estaban en prod sin commitear). En el server (PHP 8.4):
+`composer install --no-dev`, migración `cobros.estado` corrida con `--path`, backend +
+build subidos a ambos lados del docroot (bundle `app-dlaO8DnH.js` verificado por HTTPS),
+`cobros:migrar-staging` corrido (2 comprobantes → cobros a revisar; re-corrida
+idempotente en 0). **Backup pre-deploy en el server: `~/milarepa_bak_1786741196`**
+(builds de ambos lados + PHP reemplazados + composer.lock) — rollback: restaurar de ahí.
 
-**Checklist de deploy a producción** (Hostinger, PHP web 8.3 — alcanza, el lock exige ≥8.2):
-1. Subir código + `public/build` (a `milarepa/public/build` Y `public_html/build`).
-2. `/opt/alt/php83/usr/bin/php` + `composer install` (bump de nette/schema en el lock).
-3. `php artisan migrate` (agrega `cobros.estado`).
-4. `php artisan cobros:migrar-staging --dry-run` → revisar conteos → corrida real.
+**⚠️ Minas descubiertas durante el deploy (para futuros deploys):**
+- **Prod estaba adelante del repo**: el deploy del 11/08 tenía sin commitear el fix del
+  whitelist de medios de pago del checkout (422 con medios nuevos), validaciones WebP y
+  el visor `ComprobanteVisor`. Recuperado en `d96e88b`. Siempre correr el chequeo
+  "producción adelante del repo" del skill deploy-hostinger antes de pisar.
+- **`php artisan migrate` a secas revienta en prod**: hay ~75 migraciones viejas nunca
+  registradas en la tabla `migrations` (la BD se armó por fuera de ellas). Usar
+  `migrate --force --path=database/migrations/<archivo>.php` para las nuevas.
+  Deuda: registrar las viejas para normalizar.
+- En el server quedan `*- copia.php` y duplicados de case (`Actividad.php`/`actividad.php`)
+  — basura histórica, ignorarla en comparaciones.
 
 ### Hecho ✅
 1. **Entorno local migrado a PHP 8.4** (requisito de `mercadopago/dx-php` ≥8.2):
