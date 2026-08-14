@@ -70,6 +70,16 @@ tiene ese valor (lo consumen reportes, mails y el webhook de MP). Los medios de 
 checkout salen del ABM `metodos_pago` de la actividad (+ `efectivo`/`comprobante` como sentinelas),
 no de una lista fija.
 
+**No hay inscripciones duplicadas por actividad (desde 2026-08-14):** una persona no puede
+inscribirse dos veces a la misma actividad — el dedup es por `user_id` y por **email normalizado**
+(cubre inscripciones previas como guest y como usuario registrado; las guest comparten el user
+owner `guest@milarepa.local`, por eso el email es el criterio). Se rechaza con "Ya estás inscripto
+a esta actividad." lo antes posible: aviso inline en el diálogo de la grilla, 422 en `preparePago`,
+redirect en `pago()` (solo autenticados titulares) y guard final en `finalizarPago`
+(`GridActividadesController::yaInscriptoEnActividad()`). Excepción: el flujo "Pagar" de Mis
+inscripciones **actualiza** la inscripción existente (`grid_pago.inscripcion_id` la excluye del
+dedup). Tests: `tests/Feature/GridActividades/InscripcionDuplicadaTest.php`.
+
 ### 2.4 Usuario registrado vs. invitado (GuestUser)
 
 `GridActividadesController` líneas ~915-1033:
