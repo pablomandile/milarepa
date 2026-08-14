@@ -260,18 +260,39 @@ function seleccionarModoInscripcion(mode) {
   }
 }
 
+// Muestra un error del flujo de inscripción donde el usuario lo pueda ver:
+// inline en el diálogo si está abierto, o como toast (autenticados saltean el diálogo).
+function mostrarErrorInscripcion(mensaje) {
+  if (guestModalVisible.value) {
+    lookupError.value = mensaje;
+  } else {
+    toast.add({ severity: 'warn', summary: 'Inscripción', detail: mensaje, life: 6000 });
+  }
+}
+
 async function continuarUsuarioRegistrado() {
   if (!actividadAInscribir.value) return;
   lookupError.value = '';
   const user = await buscarPorEmail();
   if (!user) return;
 
-  await axios.post(route('grid-actividades.pago.prepare'), {
-    actividad_id: actividadAInscribir.value.id,
-    // Token opaco (TTL 15 min) emitido por lookup-email. Reemplaza user_id
-    // numérico para que el backend no acepte ids ajenos vía IDOR.
-    user_lookup_token: user.lookup_token,
-  });
+  // Aviso temprano: el lookup ya trae las actividades donde este email está inscripto.
+  if ((user.inscripciones_actividad_ids || []).includes(actividadAInscribir.value.id)) {
+    mostrarErrorInscripcion('Ya estás inscripto a esta actividad.');
+    return;
+  }
+
+  try {
+    await axios.post(route('grid-actividades.pago.prepare'), {
+      actividad_id: actividadAInscribir.value.id,
+      // Token opaco (TTL 15 min) emitido por lookup-email. Reemplaza user_id
+      // numérico para que el backend no acepte ids ajenos vía IDOR.
+      user_lookup_token: user.lookup_token,
+    });
+  } catch (error) {
+    mostrarErrorInscripcion(error?.response?.data?.message || 'No se pudo iniciar la inscripción. Intentá nuevamente.');
+    return;
+  }
 
   guestModalVisible.value = false;
   router.visit(route('grid-actividades.pago', actividadAInscribir.value.id));
@@ -300,17 +321,30 @@ async function iniciarSesionYContinuar() {
       password,
       remember: false,
     });
-
-    guestModalVisible.value = false;
-    router.visit(route('grid-actividades.pago', actividadAInscribir.value.id));
   } catch (error) {
     const status = error?.response?.status;
     loginError.value = status === 422
       ? 'Email o contraseña inválidos.'
       : 'No se pudo iniciar sesión. Intentá nuevamente.';
-  } finally {
     isLoggingIn.value = false;
+    return;
   }
+
+  // Login OK: preparar el pago acá mismo para que el guard de duplicados
+  // ("ya estás inscripto") se muestre inline en el diálogo y no después.
+  try {
+    await axios.post(route('grid-actividades.pago.prepare'), {
+      actividad_id: actividadAInscribir.value.id,
+    });
+  } catch (error) {
+    loginError.value = error?.response?.data?.message || 'No se pudo iniciar la inscripción. Intentá nuevamente.';
+    isLoggingIn.value = false;
+    return;
+  }
+
+  isLoggingIn.value = false;
+  guestModalVisible.value = false;
+  router.visit(route('grid-actividades.pago', actividadAInscribir.value.id));
 }
 
 onMounted(() => {

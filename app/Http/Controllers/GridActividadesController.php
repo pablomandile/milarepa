@@ -36,6 +36,10 @@ use Illuminate\Validation\ValidationException;
 
 class GridActividadesController extends Controller
 {
+    // Mensaje único de duplicado, usado por los guards de preparePago/pago/finalizarPago
+    // y asserteado por tests. Para autenticados se le suma el hint de "Mis inscripciones".
+    public const MSG_YA_INSCRIPTO = 'Ya estás inscripto a esta actividad.';
+
     /**
      * Display a listing of the resource.
      */
@@ -212,6 +216,15 @@ class GridActividadesController extends Controller
             ->pluck('actividad_id')
             ->toArray();
 
+        // Sumar inscripciones hechas como guest con este mismo email, para que el
+        // aviso temprano del frontend ("ya estás inscripto") también las atrape.
+        $emailNorm = mb_strtolower(trim($data['email']));
+        $idsComoGuest = Inscripcion::whereHas('guestUser', fn ($g) => $g->whereRaw('LOWER(TRIM(email)) = ?', [$emailNorm]))
+            ->whereHas('actividad', fn ($q) => $q->where('estado', true)->orWhere('estado', 1))
+            ->pluck('actividad_id')
+            ->toArray();
+        $inscripcionesIds = array_values(array_unique(array_merge($inscripcionesIds, $idsComoGuest)));
+
         $membresiaActiva = $this->resolverMembresiaActivaUsuario($user);
         $membresiaRespuesta = $membresiaActiva ?: $user->membresia;
 
@@ -277,6 +290,14 @@ class GridActividadesController extends Controller
 
         $guest = $data['guest'] ?? null;
         $registrarDatos = (bool) ($guest['registrar_datos'] ?? false);
+
+        // Duplicado por email del guest (cubre inscripciones previas como guest
+        // o como usuario registrado con ese mail). Va antes del chequeo de
+        // "correo ya registrado" porque es el mensaje más específico.
+        if (!empty($guest['email']) && $this->yaInscriptoEnActividad((int) $data['actividad_id'], null, $guest['email'])) {
+            return response()->json(['ok' => false, 'message' => self::MSG_YA_INSCRIPTO], 422);
+        }
+
         if ($registrarDatos && !empty($guest['email']) && User::where('email', $guest['email'])->exists()) {
             throw ValidationException::withMessages([
                 'guest.email' => ['Este correo electrónico ya está registrado. Elegí "Ya estoy registrado" o iniciá sesión.'],
@@ -294,6 +315,17 @@ class GridActividadesController extends Controller
                     'ok' => false,
                     'message' => 'Token de identificación inválido o vencido. Volvé a verificar tu email.',
                 ], 422);
+            }
+        }
+
+        // Duplicado del usuario resuelto (token o sesión): corta ANTES de la
+        // pantalla de pago, en vez del 422 tardío de finalizarPago.
+        if ($resolvedUserId) {
+            $resolvedEmail = User::find($resolvedUserId)?->email;
+            if ($this->yaInscriptoEnActividad((int) $data['actividad_id'], $resolvedUserId, $resolvedEmail)) {
+                $hint = auth()->check() ? ' Podés verla en "Mis inscripciones".' : '';
+
+                return response()->json(['ok' => false, 'message' => self::MSG_YA_INSCRIPTO . $hint], 422);
             }
         }
 
@@ -328,6 +360,18 @@ class GridActividadesController extends Controller
                 return redirect()->route('grid-actividades.index')
                     ->with('error', 'No hay datos de pago para esta actividad.');
             }
+        }
+
+        // Autenticado titular de la sesión y ya inscripto → afuera con mensaje.
+        // Restringido a titularidad para no tocar el flujo admin (crearInscripcionPrepare
+        // arma la sesión con el user_id de OTRA persona) ni el flujo update
+        // (`inscripcion_id` presente, viene de "Pagar" en Mis inscripciones).
+        if (empty($pago['inscripcion_id'])
+            && auth()->check()
+            && (int) ($pago['user_id'] ?? 0) === (int) auth()->id()
+            && $this->yaInscriptoEnActividad((int) $actividad->id, (int) auth()->id(), auth()->user()->email)) {
+            return redirect()->route('grid-actividades.index')
+                ->with('error', self::MSG_YA_INSCRIPTO . ' Podés verla en "Mis inscripciones".');
         }
 
         $actividad->load([
@@ -497,6 +541,16 @@ class GridActividadesController extends Controller
             ], 422);
         }
 
+        // Guard de duplicados ANTES de crear User/GuestUser (si no, el flujo guest
+        // creaba un GuestUser nuevo por intento y el chequeo nunca matcheaba).
+        // Excluye la inscripción en edición para no bloquear el flujo update.
+        $dedupUserId = !empty($pago['user_id']) ? (int) $pago['user_id'] : null;
+        $dedupEmail = $pago['guest']['email'] ?? ($dedupUserId ? User::find($dedupUserId)?->email : null);
+        $ignorarId = !empty($pago['inscripcion_id']) ? (int) $pago['inscripcion_id'] : null;
+        if ($this->yaInscriptoEnActividad((int) $actividad->id, $dedupUserId, $dedupEmail, $ignorarId)) {
+            return response()->json(['ok' => false, 'message' => self::MSG_YA_INSCRIPTO], 422);
+        }
+
         $user = null;
         $guestUser = null;
         $registrado = false;
@@ -559,17 +613,6 @@ class GridActividadesController extends Controller
 
         if (!$user) {
             return response()->json(['ok' => false, 'message' => 'No hay usuario para registrar.'], 422);
-        }
-
-        $yaInscriptoQuery = Inscripcion::where('actividad_id', $actividad->id);
-        if ($guestUser) {
-            $yaInscriptoQuery->where('guest_user_id', $guestUser->id);
-        } else {
-            $yaInscriptoQuery->where('user_id', $user->id);
-        }
-        $yaInscripto = $yaInscriptoQuery->exists();
-        if ($yaInscripto) {
-            return response()->json(['ok' => false, 'message' => 'Ya estás inscripto a esta actividad.'], 422);
         }
 
         $monedaIdSeleccionada = isset($data['moneda_id']) ? (int) $data['moneda_id'] : null;
@@ -1182,6 +1225,38 @@ class GridActividadesController extends Controller
                 'password' => Hash::make(Str::random(32)),
             ]
         );
+    }
+
+    /**
+     * ¿Ya existe una inscripción a la actividad para este usuario y/o email?
+     * Dedup por `user_id` (solo inscripciones de usuarios reales: las guest
+     * comparten el user owner guest@milarepa.local, de ahí el whereNull) y por
+     * email normalizado contra users Y guest_users (mismo criterio que el dedup
+     * del importador multievento). `$ignorarInscripcionId` excluye la inscripción
+     * en edición (flujo "Pagar" de Mis inscripciones, que actualiza en vez de crear).
+     * Nota: chequeo check-then-act sin unique en BD (imposible por el guest owner);
+     * la ventana de carrera entre requests simultáneos es de ms y se acepta.
+     */
+    private function yaInscriptoEnActividad(int $actividadId, ?int $userId, ?string $email, ?int $ignorarInscripcionId = null): bool
+    {
+        $emailNorm = $email !== null ? mb_strtolower(trim($email)) : null;
+        if (!$userId && ($emailNorm === null || $emailNorm === '')) {
+            return false;
+        }
+
+        return Inscripcion::where('actividad_id', $actividadId)
+            ->when($ignorarInscripcionId, fn ($q) => $q->where('id', '!=', $ignorarInscripcionId))
+            ->where(function ($q) use ($userId, $emailNorm) {
+                if ($userId) {
+                    $q->orWhere(fn ($s) => $s->where('user_id', $userId)->whereNull('guest_user_id'));
+                }
+                if ($emailNorm) {
+                    $q->orWhere(fn ($s) => $s->whereNull('guest_user_id')
+                        ->whereHas('user', fn ($u) => $u->whereRaw('LOWER(TRIM(email)) = ?', [$emailNorm])));
+                    $q->orWhereHas('guestUser', fn ($g) => $g->whereRaw('LOWER(TRIM(email)) = ?', [$emailNorm]));
+                }
+            })
+            ->exists();
     }
 
     private function calcularPrecios(Actividad $actividad, ?User $user, ?int $monedaId = null): array
