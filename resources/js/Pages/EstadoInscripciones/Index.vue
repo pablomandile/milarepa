@@ -190,7 +190,7 @@
                                                     class="text-indigo-600 hover:text-indigo-800 hover:underline"
                                                     title="Ver detalle del pago"
                                                 >
-                                                    {{ formatearSoloFecha(fechaUltimoCobro(inscripcion)) }}
+                                                    {{ fechaUltimoCobro(inscripcion) ? formatearSoloFecha(fechaUltimoCobro(inscripcion)) : 'Ver pago' }}
                                                 </button>
                                                 <p v-else>{{ formatearSoloFecha(inscripcion.fecha_pago) }}</p>
                                             </div>
@@ -305,7 +305,7 @@
                                 v-model:expandedRows="expandedRows"
                                 v-model:filters="filters"
                                 filterDisplay="row"
-                                :globalFilterFields="['_nombre', 'actividad.nombre', 'membresia', 'pago', 'estado']"
+                                :globalFilterFields="['_nombre', 'actividad.nombre', 'membresia', 'pago_visible', 'estado']"
                                 responsiveLayout="scroll"
                                 paginator
                                 :rows="20"
@@ -418,7 +418,7 @@
                                     </template>
                                 </Column>
 
-                                <Column header="Pago" field="pago" class="text-center" :showFilterMenu="false">
+                                <Column header="Pago" field="pago_visible" class="text-center" :showFilterMenu="false">
                                     <template #body="{ data }">
                                         <select
                                             v-if="isEditing(data)"
@@ -434,17 +434,17 @@
                                             type="button"
                                             @click="abrirDetalleCobros(data)"
                                             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium cursor-pointer hover:ring-2 hover:ring-indigo-300 transition"
-                                            :class="badgePagoClass(data.pago)"
+                                            :class="badgePagoClass(data.pago_visible)"
                                             title="Ver detalle del pago"
                                         >
-                                            {{ data.pago || '-' }}
+                                            {{ data.pago_visible || '-' }}
                                         </button>
                                         <span
                                             v-else
                                             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                                            :class="badgePagoClass(data.pago)"
+                                            :class="badgePagoClass(data.pago_visible)"
                                         >
-                                            {{ data.pago || '-' }}
+                                            {{ data.pago_visible || '-' }}
                                         </span>
                                     </template>
                                     <template #filter="{ filterModel, filterCallback }">
@@ -590,7 +590,7 @@
                                                     class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
                                                     title="Ver detalle del pago"
                                                 >
-                                                    {{ formatearSoloFecha(fechaUltimoCobro(data)) }}
+                                                    {{ fechaUltimoCobro(data) ? formatearSoloFecha(fechaUltimoCobro(data)) : 'Ver pago' }}
                                                 </button>
                                                 <p v-else class="text-sm text-gray-800 dark:text-gray-100">{{ formatearSoloFecha(data.fecha_pago) }}</p>
                                             </div>
@@ -733,6 +733,12 @@
             v-model:visible="cobroDetalleVisible"
             :cobros="cobrosSeleccionados"
             :contexto="contextoCobro"
+        />
+
+        <!-- Visor de comprobante desde el diálogo de edición -->
+        <ComprobanteVisorDialog
+            v-model:visible="comprobanteVisorVisible"
+            :path="comprobanteVisorPath"
         />
 
         <Dialog
@@ -1126,12 +1132,12 @@
                     <p class="text-base text-gray-800 dark:text-gray-100">Total a pagar: <span class="font-bold text-green-700">{{ formatMoneyEdit(totalEdit) }}</span></p>
                 </div>
 
-                <!-- Comprobante: se sube acá y se enlaza al cobro al marcar el pago -->
+                <!-- Comprobante: la subida crea un cobro "a revisar" que se confirma al marcar el pago -->
                 <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                     <div class="flex items-center justify-between gap-3">
                         <div>
                             <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">Comprobante</p>
-                            <p class="mt-1 text-xs text-gray-500">Queda asociado a la inscripción y se enlaza al cobro al marcar el pago.</p>
+                            <p class="mt-1 text-xs text-gray-500">La subida queda como cobro a revisar y se confirma al marcar el pago.</p>
                         </div>
                         <button
                             type="button"
@@ -1142,6 +1148,20 @@
                             Subir comprobante
                         </button>
                     </div>
+                    <div v-if="comprobantesEdicion.length" class="mt-3 flex flex-wrap gap-2">
+                        <button
+                            v-for="(comp, idx) in comprobantesEdicion"
+                            :key="idx"
+                            type="button"
+                            @click="verComprobanteEdicion(comp.ruta)"
+                            class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
+                            :title="comp.descripcion || 'Ver comprobante'"
+                        >
+                            <i class="fas fa-file-invoice"></i>
+                            {{ comp.descripcion || `Comprobante${comprobantesEdicion.length > 1 ? ' ' + (idx + 1) : ''}` }}
+                        </button>
+                    </div>
+                    <p v-else class="mt-3 text-xs text-gray-400">Sin comprobantes subidos.</p>
                 </div>
             </div>
 
@@ -1177,6 +1197,7 @@ import AutoComplete from 'primevue/autocomplete';
 import ServiciosActividadSelector from '@/Components/Actividades/ServiciosActividadSelector.vue';
 import GuestUserForm from '@/Components/Formularios/GuestUserForm.vue';
 import CobroDetalleDialog from '@/Components/Dialogs/CobroDetalleDialog.vue';
+import ComprobanteVisorDialog from '@/Components/Dialogs/ComprobanteVisorDialog.vue';
 
 const props = defineProps({
     inscripciones: Array,
@@ -1196,7 +1217,7 @@ const filters = ref({
     _nombre: { value: null, matchMode: FilterMatchMode.CONTAINS },
     'actividad.nombre': { value: null, matchMode: FilterMatchMode.EQUALS },
     membresia: { value: null, matchMode: FilterMatchMode.EQUALS },
-    pago: { value: null, matchMode: FilterMatchMode.EQUALS },
+    pago_visible: { value: null, matchMode: FilterMatchMode.EQUALS },
     estado: { value: null, matchMode: FilterMatchMode.EQUALS },
     envioConfirmacion: { value: null, matchMode: FilterMatchMode.EQUALS },
 });
@@ -1557,6 +1578,24 @@ const abrirSubidaComprobanteEdicion = () => {
     openComprobanteModal({ id: editInscripcionId.value });
 };
 
+// Comprobantes ya subidos de la inscripción en edición, aplanados desde sus cobros
+// (tras subir, Inertia recarga props y la lista se refresca sola).
+const comprobantesEdicion = computed(() => {
+    const inscripcion = (props.inscripciones || []).find((i) => i.id === editInscripcionId.value);
+    return (inscripcion?.cobros || [])
+        .flatMap((cobro) => cobro.comprobantes || [])
+        .map((comp) => ({ ruta: comp.ruta, descripcion: comp.descripcion }))
+        .filter((comp) => comp.ruta);
+});
+
+const comprobanteVisorVisible = ref(false);
+const comprobanteVisorPath = ref('');
+const verComprobanteEdicion = (ruta) => {
+    if (!ruta) return;
+    comprobanteVisorPath.value = ruta;
+    comprobanteVisorVisible.value = true;
+};
+
 const onComprobanteChange = (event) => {
     const files = event.target.files;
     comprobanteFile.value = files && files[0] ? files[0] : null;
@@ -1714,6 +1753,7 @@ const badgePagoClass = (pago) => {
     if (pago === 'Saldado') return 'bg-green-100 text-green-800';
     if (pago === 'Parcial') return 'bg-yellow-100 text-yellow-800';
     if (pago === 'Pendiente') return 'bg-red-100 text-red-800';
+    if (pago === 'A revisar') return 'bg-orange-100 text-orange-800';
     return 'bg-gray-100 text-gray-700';
 };
 
@@ -1916,7 +1956,7 @@ const actividadNombres = computed(() => {
 const pagoOptions = computed(() => {
     const set = new Set();
     filtradas.value.forEach((i) => {
-        if (i.pago) set.add(i.pago);
+        if (i.pago_visible || i.pago) set.add(i.pago_visible || i.pago);
     });
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'es'));
 });

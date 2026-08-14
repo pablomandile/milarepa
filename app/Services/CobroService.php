@@ -31,6 +31,7 @@ class CobroService
             'observaciones' => $datos['observaciones'] ?? null,
             'registrado_por' => $datos['registrado_por'] ?? null,
             'origen' => $datos['origen'] ?? 'manual',
+            'estado' => $datos['estado'] ?? Cobro::ESTADO_CONFIRMADO,
         ]);
 
         // Comprobantes (1:N). Acepta `comprobante_ids` (array de imagenes.id) o el
@@ -60,6 +61,120 @@ class CobroService
         foreach ($ids as $imagenId) {
             $cobro->comprobantes()->create(['imagen_id' => $imagenId]);
         }
+    }
+
+    /**
+     * Agrega comprobantes a un cobro sin tocar los que ya tiene (a diferencia de
+     * sincronizarComprobantes, que reemplaza el set completo).
+     */
+    public function agregarComprobantes(Cobro $cobro, array $imagenIds, ?string $descripcion = null): void
+    {
+        $ids = array_values(array_unique(array_filter($imagenIds)));
+        $existentes = $cobro->comprobantes()->pluck('imagen_id')->all();
+
+        foreach (array_diff($ids, $existentes) as $imagenId) {
+            $cobro->comprobantes()->create([
+                'imagen_id' => $imagenId,
+                'descripcion' => $descripcion,
+            ]);
+        }
+    }
+
+    /**
+     * Registra un comprobante informado por el usuario como cobro `a_revisar`
+     * (nunca hay comprobante sin cobro). El monto es provisional (saldo pendiente
+     * al momento de la subida) y NO suma al saldo hasta que el admin lo confirme.
+     * Invariante: a lo sumo un cobro a revisar por cobrable — una segunda subida
+     * agrega el comprobante al existente. Si la deuda ya está saldada, el
+     * comprobante documenta el cobro confirmado existente (no inventa deuda).
+     */
+    public function registrarComprobanteARevisar(
+        Model $cobrable,
+        int $imagenId,
+        ?string $descripcion = null,
+        string $origen = 'checkout',
+        ?int $registradoPor = null
+    ): Cobro {
+        $aRevisar = $cobrable->cobros()->aRevisar()->latest('id')->first();
+        if ($aRevisar) {
+            $this->agregarComprobantes($aRevisar, [$imagenId], $descripcion);
+            $aRevisar->update(['monto' => max(0, $cobrable->saldoPendiente())]);
+
+            return $aRevisar;
+        }
+
+        if ($cobrable->saldoPendiente() <= 0) {
+            $confirmado = $cobrable->cobros()->confirmados()->latest('id')->first();
+            if ($confirmado) {
+                $this->agregarComprobantes($confirmado, [$imagenId], $descripcion);
+
+                return $confirmado;
+            }
+        }
+
+        $cobro = $this->registrar($cobrable, [
+            'monto' => max(0, $cobrable->saldoPendiente()),
+            'fecha_pago' => null,
+            'origen' => $origen,
+            'estado' => Cobro::ESTADO_A_REVISAR,
+            'registrado_por' => $registradoPor,
+        ], recalcular: false);
+
+        $this->agregarComprobantes($cobro, [$imagenId], $descripcion);
+
+        return $cobro;
+    }
+
+    /**
+     * Punto de entrada del flujo admin (marcar Saldado/Parcial): si hay un cobro
+     * a revisar lo CONFIRMA con los datos reales (monto/fecha/método/registrador,
+     * origen y comprobantes intactos) en vez de crear uno nuevo. Sin cobros a
+     * revisar, se comporta como registrar() (sólo si monto > 0). Con monto <= 0
+     * (ej. el saldo ya se cubrió por MP) el pendiente se cierra sin duplicar plata:
+     * sus comprobantes pasan al último cobro confirmado y se soft-deletea.
+     */
+    public function confirmarORegistrar(Model $cobrable, array $datos): ?Cobro
+    {
+        $monto = (float) ($datos['monto'] ?? 0);
+
+        $pendientes = $cobrable->cobros()->aRevisar()->orderByDesc('id')->get();
+
+        if ($pendientes->isEmpty()) {
+            if ($monto <= 0) {
+                return null;
+            }
+
+            return $this->registrar($cobrable, $datos, recalcular: false);
+        }
+
+        // Defensa por si el invariante "un solo a_revisar" se violó: los extras
+        // vuelcan sus comprobantes en el principal y se dan de baja.
+        $principal = $pendientes->first();
+        foreach ($pendientes->slice(1) as $extra) {
+            $this->agregarComprobantes($principal, $extra->comprobantes()->pluck('imagen_id')->all());
+            $extra->delete();
+        }
+
+        if ($monto <= 0) {
+            $confirmado = $cobrable->cobros()->confirmados()->latest('id')->first();
+            if ($confirmado) {
+                $this->agregarComprobantes($confirmado, $principal->comprobantes()->pluck('imagen_id')->all());
+            }
+            $principal->delete();
+
+            return $confirmado;
+        }
+
+        $principal->update([
+            'monto' => $monto,
+            'fecha_pago' => $datos['fecha_pago'] ?? now()->toDateString(),
+            'metodo_pago_id' => $datos['metodo_pago_id'] ?? $principal->metodo_pago_id,
+            'referencia' => $datos['referencia'] ?? $principal->referencia,
+            'registrado_por' => $datos['registrado_por'] ?? $principal->registrado_por,
+            'estado' => Cobro::ESTADO_CONFIRMADO,
+        ]);
+
+        return $principal;
     }
 
     /**
@@ -110,7 +225,7 @@ class CobroService
      */
     public function recalcularMembresia(EstadoCuentaMembresia $cuota): void
     {
-        $cobro = $cuota->cobros()->orderByDesc('fecha_pago')->orderByDesc('id')->first();
+        $cobro = $cuota->cobros()->confirmados()->orderByDesc('fecha_pago')->orderByDesc('id')->first();
 
         $cuota->pagado = (bool) $cobro;
 
@@ -149,6 +264,8 @@ class CobroService
                 ]
             );
         } else {
+            // OJO si membresías adopta cobros a_revisar: este delete arrasaría
+            // también los cobros en revisión (hoy las cuotas sólo tienen confirmados).
             $cuota->cobros()->delete();
         }
 

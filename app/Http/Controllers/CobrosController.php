@@ -48,7 +48,8 @@ class CobrosController extends Controller
                 'referencia' => $cobro->referencia,
                 'observaciones' => $cobro->observaciones,
                 'origen' => $cobro->origen,
-                'comprobante' => $cobro->comprobantes->first()?->ruta,
+                'estado' => $cobro->estado,
+                'comprobantes' => $cobro->comprobantes->pluck('ruta')->filter()->values(),
             ];
         });
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Actividad;
 use App\Models\Barrio;
+use App\Models\Cobro;
 use App\Models\EmailEnvioConfiguracion;
 use App\Models\EnvioMail;
 use App\Models\Inscripcion;
@@ -43,7 +44,6 @@ class EstadoInscripcionesController extends Controller
                 'guestUser.municipio',
                 'guestUser.barrio',
                 'auditorUser',
-            'comprobantes.imagen',
             'cobros',
             'cobros.metodoPago',
             'cobros.moneda',
@@ -56,6 +56,16 @@ class EstadoInscripcionesController extends Controller
             ])
             ->orderBy('created_at', 'desc')
             ->get();
+
+        // Estado de pago para la UI: "A revisar" cuando hay un cobro sin verificar
+        // (comprobante informado) y la inscripción no está saldada. No pisa el enum
+        // `pago` (Saldado/Parcial/Pendiente), que siguen consumiendo reportes y mails.
+        $inscripciones->each(function (Inscripcion $inscripcion) {
+            $tieneARevisar = $inscripcion->cobros->contains('estado', Cobro::ESTADO_A_REVISAR);
+            $inscripcion->pago_visible = ($tieneARevisar && $inscripcion->pago !== 'Saldado')
+                ? 'A revisar'
+                : $inscripcion->pago;
+        });
 
         return Inertia::render('EstadoInscripciones/Index', [
             'inscripciones' => $inscripciones,
@@ -381,9 +391,10 @@ class EstadoInscripcionesController extends Controller
 
     /**
      * Registra en el ledger el importe recibido cuando el admin marca Saldado/Parcial.
-     * No recalcula el estado (recalcular=false): el admin fija el label a mano.
+     * No recalcula el estado: el admin fija el label a mano.
      * Saldado sin monto explícito ⇒ toma el saldo pendiente; Parcial requiere monto_cobrado.
-     * Sólo registra si el monto es > 0 (evita cobros duplicados al re-marcar Saldado).
+     * Si la inscripción tiene un cobro "a revisar" (comprobante subido en el checkout),
+     * el servicio CONFIRMA ese cobro con los datos reales en vez de crear uno nuevo.
      */
     private function registrarCobroAdmin(Inscripcion $inscripcion, array $data, int $userId): void
     {
@@ -395,23 +406,13 @@ class EstadoInscripcionesController extends Controller
             ? (float) $data['monto_cobrado']
             : ($data['pago'] === 'Saldado' ? $inscripcion->saldoPendiente() : 0.0);
 
-        if ($monto <= 0) {
-            return;
-        }
-
-        $svc = app(CobroService::class);
-        // Comprobantes subidos durante el checkout (quedan en inscripcion_comprobantes):
-        // se enlazan TODOS al cobro al momento de crearlo (1 cobro : N comprobantes).
-        $comprobanteIds = $inscripcion->comprobantes()->pluck('imagen_id')->all();
-
-        $svc->registrar($inscripcion, [
+        app(CobroService::class)->confirmarORegistrar($inscripcion, [
             'monto' => $monto,
             'fecha_pago' => now()->toDateString(),
             'metodo_pago_id' => $data['metodo_pago_id'] ?? null,
-            'comprobante_ids' => $comprobanteIds,
             'registrado_por' => $userId,
             'origen' => 'manual',
-        ], recalcular: false);
+        ]);
     }
 
     public function countConfirmacionesPendientes(Request $request)
@@ -584,15 +585,27 @@ class EstadoInscripcionesController extends Controller
             abort(403);
         }
 
-        $inscripcion = Inscripcion::with('comprobantes.imagen')->findOrFail($id);
+        $inscripcion = Inscripcion::with(['comprobantes.imagen', 'cobros.comprobantes.imagen'])->findOrFail($id);
 
-        // Borrar los archivos de comprobantes del disco; las filas hijas
-        // (inscripcion_comprobantes, inscripcion_comida) se eliminan por cascadeOnDelete.
+        // Borrar los archivos de comprobantes del disco (staging legacy + los de los
+        // cobros); las filas hijas (inscripcion_comprobantes, inscripcion_comida) se
+        // eliminan por cascadeOnDelete.
         foreach ($inscripcion->comprobantes as $comprobante) {
             if ($comprobante->ruta) {
                 Storage::disk('public')->delete($comprobante->ruta);
             }
         }
+        foreach ($inscripcion->cobros as $cobro) {
+            foreach ($cobro->comprobantes as $comprobante) {
+                if ($comprobante->ruta) {
+                    Storage::disk('public')->delete($comprobante->ruta);
+                }
+            }
+        }
+
+        // El hard-delete de la inscripción no cascadea al ledger polimórfico:
+        // dar de baja sus cobros para no dejar huérfanos.
+        $inscripcion->cobros()->delete();
 
         $inscripcion->delete();
 

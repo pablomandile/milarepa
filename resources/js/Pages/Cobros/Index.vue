@@ -33,7 +33,18 @@ const formatDate = (value) => {
     return String(value).split('T')[0];
 };
 
-const total = computed(() => props.cobros.reduce((acc, c) => acc + Number(c.monto || 0), 0));
+// El total sólo suma cobros confirmados; lo "a revisar" se informa aparte.
+const total = computed(() => props.cobros.reduce(
+    (acc, c) => acc + (c.estado === 'a_revisar' ? 0 : Number(c.monto || 0)),
+    0
+));
+
+const cantidadARevisar = computed(() => props.cobros.filter((c) => c.estado === 'a_revisar').length);
+
+const estadoLabel = (estado) => (estado === 'a_revisar' ? 'A revisar' : 'Confirmado');
+const estadoClass = (estado) => (estado === 'a_revisar'
+    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300');
 </script>
 
 <style scoped>
@@ -53,8 +64,11 @@ const total = computed(() => props.cobros.reduce((acc, c) => acc + Number(c.mont
                 <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 max-w-[108rem] mx-auto">
                     <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
                         <div class="text-sm text-gray-600 dark:text-gray-300">
-                            {{ cobros.length }} cobros · Total:
+                            {{ cobros.length }} cobros · Total confirmado:
                             <span class="font-semibold text-green-700 dark:text-green-400">{{ formatMoney(total) }}</span>
+                            <span v-if="cantidadARevisar" class="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                                {{ cantidadARevisar }} a revisar
+                            </span>
                         </div>
                         <InputText
                             v-model="filters['global'].value"
@@ -66,7 +80,7 @@ const total = computed(() => props.cobros.reduce((acc, c) => acc + Number(c.mont
                     <DataTable
                         :value="cobros"
                         :filters="filters"
-                        :global-filter-fields="['dominio', 'detalle', 'medio', 'referencia', 'origen', 'observaciones']"
+                        :global-filter-fields="['dominio', 'detalle', 'medio', 'referencia', 'origen', 'estado', 'observaciones']"
                         stripedRows
                         paginator
                         :rows="15"
@@ -99,17 +113,30 @@ const total = computed(() => props.cobros.reduce((acc, c) => acc + Number(c.mont
                             <template #body="{ data }">{{ data.referencia ?? '-' }}</template>
                         </Column>
                         <Column field="origen" header="Origen" sortable />
+                        <Column field="estado" header="Estado" sortable>
+                            <template #body="{ data }">
+                                <span
+                                    class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                                    :class="estadoClass(data.estado)"
+                                >
+                                    {{ estadoLabel(data.estado) }}
+                                </span>
+                            </template>
+                        </Column>
                         <Column header="Comprobante">
                             <template #body="{ data }">
-                                <a
-                                    v-if="data.comprobante"
-                                    :href="`/storage/${data.comprobante}`"
-                                    target="_blank"
-                                    rel="noopener"
-                                    class="text-indigo-600 hover:text-indigo-800"
-                                >
-                                    Ver
-                                </a>
+                                <template v-if="data.comprobantes?.length">
+                                    <a
+                                        v-for="(ruta, idx) in data.comprobantes"
+                                        :key="idx"
+                                        :href="`/storage/${ruta}`"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="mr-2 text-indigo-600 hover:text-indigo-800"
+                                    >
+                                        Ver{{ data.comprobantes.length > 1 ? ` ${idx + 1}` : '' }}
+                                    </a>
+                                </template>
                                 <span v-else>-</span>
                             </template>
                         </Column>

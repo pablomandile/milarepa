@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import Dialog from 'primevue/dialog';
+import ComprobanteVisorDialog from '@/Components/Dialogs/ComprobanteVisorDialog.vue';
 
 const props = defineProps({
     // v-model:visible del diálogo de detalle.
@@ -18,12 +19,19 @@ const visibleProxy = computed({
     set: (v) => emit('update:visible', v),
 });
 
+const esARevisar = (cobro) => cobro.estado === 'a_revisar';
+
 const cobrosOrdenados = computed(() =>
     [...(props.cobros || [])].sort((a, b) => String(b.fecha_pago || '').localeCompare(String(a.fecha_pago || '')))
 );
 
+// El total sólo suma plata verificada; lo informado "a revisar" se muestra aparte.
 const totalCobrado = computed(() =>
-    cobrosOrdenados.value.reduce((acc, c) => acc + Number(c.monto || 0), 0)
+    cobrosOrdenados.value.reduce((acc, c) => acc + (esARevisar(c) ? 0 : Number(c.monto || 0)), 0)
+);
+
+const totalARevisar = computed(() =>
+    cobrosOrdenados.value.reduce((acc, c) => acc + (esARevisar(c) ? Number(c.monto || 0) : 0), 0)
 );
 
 // --- Formateo (mismo criterio que Cobros/Index.vue) ---
@@ -53,43 +61,32 @@ const camposDe = (cobro) => [
 // --- Origen (etiqueta + color de badge) ---
 const ORIGEN_LABEL = {
     manual: 'Manual',
-    import: 'Importación',
+    checkout: 'Checkout',
+    mercadopago: 'Mercado Pago',
+    importacion: 'Importación',
     backfill: 'Migración',
-    webhook: 'Online',
     membresia: 'Membresía',
+    pos: 'POS',
 };
 const origenLabel = (o) => ORIGEN_LABEL[o] || o || '—';
 const origenClass = (o) => ({
     manual: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
-    import: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+    checkout: 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300',
+    mercadopago: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    importacion: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
     backfill: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
-    webhook: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
     membresia: 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
+    pos: 'bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-300',
 }[o] || 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300');
 
 // --- Visor de comprobante (2º diálogo, apilado) ---
 const comprobanteVisible = ref(false);
 const comprobantePath = ref('');
-const comprobanteIsPdf = computed(() => (comprobantePath.value || '').toLowerCase().endsWith('.pdf'));
 
 const verComprobante = (ruta) => {
     if (!ruta) return;
     comprobantePath.value = ruta;
     comprobanteVisible.value = true;
-};
-
-// Fallback autocontenido (data-URI) si la imagen del comprobante está rota.
-const IMAGEN_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">' +
-    '<rect width="200" height="200" fill="#e5e7eb"/>' +
-    '<text x="100" y="105" font-family="sans-serif" font-size="14" fill="#6b7280" text-anchor="middle">Sin imagen</text>' +
-    '</svg>'
-);
-const onImgError = (event) => {
-    const el = event?.target;
-    if (!el || el.dataset.fallback) return;
-    el.dataset.fallback = '1';
-    el.src = IMAGEN_FALLBACK;
 };
 </script>
 
@@ -109,25 +106,40 @@ const onImgError = (event) => {
             <div
                 v-for="cobro in cobrosOrdenados"
                 :key="cobro.id"
-                class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700"
+                class="overflow-hidden rounded-xl border"
+                :class="esARevisar(cobro) ? 'border-amber-300 dark:border-amber-500/50' : 'border-gray-200 dark:border-gray-700'"
             >
-                <!-- Cabecera: monto + fecha + origen -->
+                <!-- Cabecera: monto + fecha + estado/origen -->
                 <div class="flex items-start justify-between gap-3 border-b border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800/60">
                     <div>
-                        <p class="text-2xl font-bold leading-none text-emerald-600 dark:text-emerald-400">
+                        <p
+                            class="text-2xl font-bold leading-none"
+                            :class="esARevisar(cobro) ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'"
+                        >
                             {{ formatMoney(cobro.monto) }}
                         </p>
                         <p class="mt-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                             <i class="far fa-calendar"></i>
-                            {{ formatDate(cobro.fecha_pago) }}
+                            {{ esARevisar(cobro) ? 'Informado, pendiente de verificación' : formatDate(cobro.fecha_pago) }}
                         </p>
                     </div>
-                    <span
-                        class="inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium"
-                        :class="origenClass(cobro.origen)"
-                    >
-                        {{ origenLabel(cobro.origen) }}
-                    </span>
+                    <div class="flex shrink-0 flex-col items-end gap-1.5">
+                        <span
+                            v-if="cobro.estado"
+                            class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                            :class="esARevisar(cobro)
+                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+                                : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'"
+                        >
+                            {{ esARevisar(cobro) ? 'A revisar' : 'Confirmado' }}
+                        </span>
+                        <span
+                            class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                            :class="origenClass(cobro.origen)"
+                        >
+                            {{ origenLabel(cobro.origen) }}
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Detalle: grilla de campos -->
@@ -165,13 +177,19 @@ const onImgError = (event) => {
                 </div>
             </div>
 
-            <!-- Total (solo si hay más de un cobro) -->
+            <!-- Totales (solo si hay más de un cobro o hay monto a revisar) -->
             <div
-                v-if="cobrosOrdenados.length > 1"
-                class="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3 text-sm dark:bg-gray-800/60"
+                v-if="cobrosOrdenados.length > 1 || totalARevisar > 0"
+                class="space-y-1 rounded-xl bg-gray-50 px-4 py-3 text-sm dark:bg-gray-800/60"
             >
-                <span class="font-medium text-gray-600 dark:text-gray-300">Total cobrado</span>
-                <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400">{{ formatMoney(totalCobrado) }}</span>
+                <div class="flex items-center justify-between">
+                    <span class="font-medium text-gray-600 dark:text-gray-300">Total cobrado</span>
+                    <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400">{{ formatMoney(totalCobrado) }}</span>
+                </div>
+                <div v-if="totalARevisar > 0" class="flex items-center justify-between">
+                    <span class="font-medium text-gray-600 dark:text-gray-300">Informado a revisar</span>
+                    <span class="font-semibold text-amber-600 dark:text-amber-400">{{ formatMoney(totalARevisar) }}</span>
+                </div>
             </div>
         </div>
 
@@ -182,27 +200,5 @@ const onImgError = (event) => {
     </Dialog>
 
     <!-- Diálogo 2: visor del comprobante (imagen o PDF) -->
-    <Dialog
-        v-model:visible="comprobanteVisible"
-        modal
-        header="Comprobante"
-        :style="{ width: '600px' }"
-        :breakpoints="{ '575px': '95vw' }"
-        dismissableMask
-    >
-        <div class="max-h-[70vh] overflow-y-auto">
-            <template v-if="comprobanteIsPdf">
-                <iframe :src="'/storage/' + comprobantePath" class="w-full h-[60vh] rounded"></iframe>
-            </template>
-            <template v-else>
-                <img
-                    v-if="comprobantePath"
-                    :src="'/storage/' + comprobantePath"
-                    class="w-full rounded"
-                    alt="Comprobante"
-                    @error="onImgError"
-                />
-            </template>
-        </div>
-    </Dialog>
+    <ComprobanteVisorDialog v-model:visible="comprobanteVisible" :path="comprobantePath" />
 </template>

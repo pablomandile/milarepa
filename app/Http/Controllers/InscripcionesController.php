@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Actividad;
 use App\Models\EmailEnvioConfiguracion;
 use App\Models\Inscripcion;
-use App\Models\InscripcionComprobante;
 use App\Mail\InscripcionConfirmada;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -37,7 +36,7 @@ class InscripcionesController extends Controller
                 'comida',
                 'comidas',
             'transporte',
-            'comprobantes.imagen',
+            'cobros.comprobantes.imagen',
             'invitados',
             'invitados.comidas',
             'invitados.transportes',
@@ -51,6 +50,9 @@ class InscripcionesController extends Controller
         $inscripciones->transform(function ($inscripcion) {
             $date = Carbon::parse($inscripcion->actividad->fecha_inicio);
             $inscripcion->actividad->fecha_inicio_formateada = $date->translatedFormat('j \d\e F H:i') . ' hs.';
+            // La vista consume `comprobantes` plano; ahora viven en los cobros.
+            $inscripcion->setRelation('comprobantes', $inscripcion->comprobantesDeCobros());
+            $inscripcion->unsetRelation('cobros');
             return $inscripcion;
         });
 
@@ -230,7 +232,6 @@ class InscripcionesController extends Controller
             'actividad.modalidad',
             'actividad.stream.links',
             'user',
-            'comprobantes.imagen'
         ]);
 
         // Enviar email de confirmación
@@ -292,7 +293,7 @@ class InscripcionesController extends Controller
             'comida',
             'comidas',
             'transporte',
-            'comprobantes.imagen',
+            'cobros.comprobantes.imagen',
             'invitados',
             'invitados.comidas',
             'invitados.transportes',
@@ -313,6 +314,10 @@ class InscripcionesController extends Controller
                 $inscripcion->actividad->fecha_inicio_formateada = $inscripcion->actividad->fecha_inicio;
             }
         }
+
+        // La vista consume `comprobantes` plano; ahora viven en los cobros.
+        $inscripcion->setRelation('comprobantes', $inscripcion->comprobantesDeCobros());
+        $inscripcion->unsetRelation('cobros');
 
         return Inertia::render('Inscripcion/Show', [
             'inscripcion' => $inscripcion,
@@ -460,11 +465,17 @@ class InscripcionesController extends Controller
         ]);
 
         $path = $optimizador->procesar($request->file('comprobante'), 'comprobantes');
-        InscripcionComprobante::create([
-            'inscripcion_id' => $inscripcion->id,
-            'imagen_id' => app(\App\Services\CobroService::class)->resolverComprobanteId($path),
-            'descripcion' => $request->input('descripcion'),
-        ]);
+
+        // Nunca hay comprobante sin cobro: la subida crea (o alimenta) un cobro
+        // "a revisar" que el admin confirma al marcar el pago.
+        $svc = app(\App\Services\CobroService::class);
+        $svc->registrarComprobanteARevisar(
+            $inscripcion,
+            $svc->resolverComprobanteId($path),
+            $request->input('descripcion'),
+            origen: $esAdmin ? 'manual' : 'checkout',
+            registradoPor: $esAdmin ? $user->id : null,
+        );
 
         return back()->with('success', 'Comprobante subido correctamente.');
     }

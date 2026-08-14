@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\Actividad;
 use App\Models\GuestUser;
 use App\Models\Inscripcion;
-use App\Models\InscripcionComprobante;
 use App\Models\Invitado;
 use App\Services\InscripcionServiciosService;
 use App\Services\HospedajeCupoService;
@@ -631,11 +630,14 @@ class GridActividadesController extends Controller
                 $servicios->persistirInvitados($inscripcion, $invitadosData);
 
                 if (!empty($pago['comprobante_path'])) {
-                    InscripcionComprobante::create([
-                        'inscripcion_id' => $inscripcion->id,
-                        'imagen_id' => app(\App\Services\CobroService::class)->resolverComprobanteId($pago['comprobante_path']),
-                        'descripcion' => $pago['comprobante_descripcion'] ?? null,
-                    ]);
+                    // El comprobante del checkout entra como cobro "a revisar".
+                    $svc = app(\App\Services\CobroService::class);
+                    $svc->registrarComprobanteARevisar(
+                        $inscripcion,
+                        $svc->resolverComprobanteId($pago['comprobante_path']),
+                        $pago['comprobante_descripcion'] ?? null,
+                        origen: 'checkout',
+                    );
                 }
             });
 
@@ -694,11 +696,14 @@ class GridActividadesController extends Controller
             $servicios->persistirInvitados($inscripcion, $invitadosData);
 
             if (!empty($pago['comprobante_path'])) {
-                InscripcionComprobante::create([
-                    'inscripcion_id' => $inscripcion->id,
-                    'imagen_id' => app(\App\Services\CobroService::class)->resolverComprobanteId($pago['comprobante_path']),
-                    'descripcion' => $pago['comprobante_descripcion'] ?? null,
-                ]);
+                // El comprobante del checkout entra como cobro "a revisar".
+                $svc = app(\App\Services\CobroService::class);
+                $svc->registrarComprobanteARevisar(
+                    $inscripcion,
+                    $svc->resolverComprobanteId($pago['comprobante_path']),
+                    $pago['comprobante_descripcion'] ?? null,
+                    origen: 'checkout',
+                );
             }
 
             return $inscripcion;
@@ -813,7 +818,7 @@ class GridActividadesController extends Controller
             'comida',
             'comidas',
             'transporte',
-            'comprobantes.imagen',
+            'cobros.comprobantes.imagen',
             'invitados',
             'invitados.comidas',
             'invitados.transportes',
@@ -823,6 +828,10 @@ class GridActividadesController extends Controller
             $inscripcionLoad[] = 'actividad.lugar';
         }
         $inscripcion->load($inscripcionLoad);
+
+        // La vista consume `comprobantes` plano; ahora viven en los cobros.
+        $inscripcion->setRelation('comprobantes', $inscripcion->comprobantesDeCobros());
+        $inscripcion->unsetRelation('cobros');
 
         if (!empty($inscripcion->actividad) && !empty($inscripcion->actividad->fecha_inicio)) {
             try {
