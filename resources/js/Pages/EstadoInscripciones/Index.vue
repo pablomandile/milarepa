@@ -739,6 +739,7 @@
         <ComprobanteVisorDialog
             v-model:visible="comprobanteVisorVisible"
             :path="comprobanteVisorPath"
+            :descripcion="comprobanteVisorDescripcion"
         />
 
         <Dialog
@@ -1153,7 +1154,7 @@
                             v-for="(comp, idx) in comprobantesEdicion"
                             :key="idx"
                             type="button"
-                            @click="verComprobanteEdicion(comp.ruta)"
+                            @click="verComprobanteEdicion(comp)"
                             class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
                             :title="comp.descripcion || 'Ver comprobante'"
                         >
@@ -1590,9 +1591,11 @@ const comprobantesEdicion = computed(() => {
 
 const comprobanteVisorVisible = ref(false);
 const comprobanteVisorPath = ref('');
-const verComprobanteEdicion = (ruta) => {
-    if (!ruta) return;
-    comprobanteVisorPath.value = ruta;
+const comprobanteVisorDescripcion = ref('');
+const verComprobanteEdicion = (comp) => {
+    if (!comp?.ruta) return;
+    comprobanteVisorPath.value = comp.ruta;
+    comprobanteVisorDescripcion.value = comp.descripcion || '';
     comprobanteVisorVisible.value = true;
 };
 

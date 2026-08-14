@@ -182,13 +182,13 @@ class EstadoCuentaMembresiasController extends Controller
     public function uploadComprobante(Request $request, \App\Services\OptimizadorImagenService $optimizador, CobroService $cobroService)
     {
         $request->validate([
-            'comprobante' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
+            'comprobante' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:4096'],
             'estado_cuenta_id' => ['nullable', 'exists:estado_cuenta_membresias,id'],
             'mes_pagado' => ['nullable', 'date_format:Y-m'],
             'modo' => ['nullable', Rule::in(EstadoCuentaMembresia::MODOS_PAGO)],
         ], [
             'comprobante.max' => 'El comprobante supera el tamaÃ±o mÃ¡ximo permitido (4 MB).',
-            'comprobante.mimes' => 'El comprobante debe ser PDF, JPG o PNG.',
+            'comprobante.mimes' => 'El comprobante debe ser PDF, JPG, PNG o WebP.',
         ]);
 
 

@@ -412,10 +412,12 @@ class GridActividadesController extends Controller
 
         $path = $optimizador->procesar($request->file('comprobante'), 'comprobantes');
 
+        // Ojo: no se toca `pago_metodo`. El comprobante es opcional para todos los
+        // medios de pago y es ortogonal al medio elegido por el usuario; la
+        // persistencia en finalizarPago depende de `comprobante_path`, no del medio.
         $pago = $request->session()->get('grid_pago', []);
         $pago['comprobante_path'] = $path;
         $pago['comprobante_descripcion'] = $request->input('descripcion');
-        $pago['pago_metodo'] = 'comprobante';
         $request->session()->put('grid_pago', $pago);
 
         return response()->json([
@@ -455,12 +457,6 @@ class GridActividadesController extends Controller
         ]);
 
         $data['pago_metodo'] = $this->normalizarMetodoPagoFinal((string) ($data['pago_metodo'] ?? ''));
-        if (!in_array($data['pago_metodo'], ['efectivo', 'comprobante', 'transferencia', 'getnet', 'mercadopago', 'qr'], true)) {
-            return response()->json([
-                'ok' => false,
-                'message' => 'The selected pago metodo is invalid.',
-            ], 422);
-        }
 
         $pago = $request->session()->get('grid_pago');
         if (!$pago) {
@@ -477,7 +473,29 @@ class GridActividadesController extends Controller
             'comidas',
             'transportes',
             'hospedajes',
+            'metodosPago',
         ])->findOrFail($pago['actividad_id']);
+
+        // Los medios de pago son filas de `metodos_pago` (ABM), así que la lista
+        // válida sale de la actividad y no de un whitelist fijo: de lo contrario
+        // cada medio nuevo ("MercadoPago Alias", etc.) rompía el checkout con un 422.
+        // Se suman las sentinelas internas que no son filas de la tabla.
+        // pluck() devuelve una Collection base: map() sobre la Eloquent Collection
+        // conservaria su clase y unique() reventaria al tratar strings como modelos.
+        $metodosValidos = $actividad->metodosPago
+            ->pluck('nombre')
+            ->map(fn ($nombre) => $this->normalizarMetodoPagoFinal((string) $nombre))
+            ->push('efectivo')
+            ->push('comprobante')
+            ->unique()
+            ->all();
+
+        if (!in_array($data['pago_metodo'], $metodosValidos, true)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'The selected pago metodo is invalid.',
+            ], 422);
+        }
 
         $user = null;
         $guestUser = null;

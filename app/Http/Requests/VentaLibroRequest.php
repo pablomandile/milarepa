@@ -55,7 +55,7 @@ class VentaLibroRequest extends FormRequest
             'montoTotal' => ['required', 'numeric', 'min:0'],
             'modo' => ['required', 'string', 'max:80'],
             'comprobante_id' => ['nullable', 'integer', 'exists:imagenes,id'],
-            'comprobante' => ['nullable', 'image', 'max:4096'],
+            'comprobante' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:4096'],
         ];
     }
 
@@ -70,6 +70,8 @@ class VentaLibroRequest extends FormRequest
             'cantidad.min' => 'La cantidad debe ser mayor o igual a 1.',
             'montoTotal.required' => 'El monto total es obligatorio.',
             'modo.required' => 'Debe seleccionar un modo de pago.',
+            'comprobante.max' => 'El comprobante supera el tamaño máximo permitido (4 MB).',
+            'comprobante.mimes' => 'El comprobante debe ser PDF, JPG, PNG o WebP.',
         ];
     }
 }

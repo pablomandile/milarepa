@@ -82,10 +82,12 @@ const origenClass = (o) => ({
 // --- Visor de comprobante (2º diálogo, apilado) ---
 const comprobanteVisible = ref(false);
 const comprobantePath = ref('');
+const comprobanteDescripcion = ref('');
 
-const verComprobante = (ruta) => {
-    if (!ruta) return;
-    comprobantePath.value = ruta;
+const verComprobante = (comp) => {
+    if (!comp?.ruta) return;
+    comprobantePath.value = comp.ruta;
+    comprobanteDescripcion.value = comp.descripcion || '';
     comprobanteVisible.value = true;
 };
 </script>
@@ -168,7 +170,7 @@ const verComprobante = (ruta) => {
                         v-for="(comp, idx) in cobro.comprobantes"
                         :key="comp.id"
                         type="button"
-                        @click="verComprobante(comp.ruta)"
+                        @click="verComprobante(comp)"
                         class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
                     >
                         <i class="fas fa-file-invoice"></i>
@@ -200,5 +202,5 @@ const verComprobante = (ruta) => {
     </Dialog>
 
     <!-- Diálogo 2: visor del comprobante (imagen o PDF) -->
-    <ComprobanteVisorDialog v-model:visible="comprobanteVisible" :path="comprobantePath" />
+    <ComprobanteVisorDialog v-model:visible="comprobanteVisible" :path="comprobantePath" :descripcion="comprobanteDescripcion" />
 </template>

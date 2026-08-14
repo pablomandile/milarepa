@@ -329,7 +329,7 @@ class MembresiasController extends Controller
             'membresia_id' => ['required', 'exists:membresias,id'],
             'modalidad' => ['required', 'in:PRESENCIAL,ONLINE'],
             'motivo_online' => ['nullable', 'string', 'max:255'],
-            'comprobante' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:4096'],
+            'comprobante' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:4096'],
             'modo_pago' => ['nullable', 'in:Efectivo,Transferencia'],
             // Token opaco emitido por lookupEmail (reemplaza user_id numérico).
             'user_lookup_token' => ['nullable', 'string'],

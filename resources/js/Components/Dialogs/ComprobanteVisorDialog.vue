@@ -8,6 +8,8 @@ const props = defineProps({
     visible: { type: Boolean, default: false },
     // Ruta relativa al disk público (ej. "comprobantes/abc.jpg").
     path: { type: String, default: '' },
+    // Descripción opcional del comprobante (ej. "Transferencia febrero").
+    descripcion: { type: String, default: '' },
 });
 
 const emit = defineEmits(['update:visible']);
@@ -17,7 +19,9 @@ const visibleProxy = computed({
     set: (v) => emit('update:visible', v),
 });
 
-const isPdf = computed(() => (props.path || '').toLowerCase().endsWith('.pdf'));
+const url = computed(() => (props.path ? '/storage/' + props.path : ''));
+// Tolerante a querystring/anchor (ej. ".pdf?v=2").
+const isPdf = computed(() => /\.pdf(\?|#|$)/i.test(props.path || ''));
 
 // Fallback autocontenido (data-URI) si la imagen del comprobante está rota.
 const IMAGEN_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
@@ -43,14 +47,28 @@ const onImgError = (event) => {
         :breakpoints="{ '575px': '95vw' }"
         dismissableMask
     >
+        <div class="mb-2 flex items-start justify-between gap-3">
+            <p v-if="descripcion" class="text-sm text-gray-500 dark:text-gray-400">{{ descripcion }}</p>
+            <a
+                v-if="url"
+                :href="url"
+                target="_blank"
+                rel="noopener"
+                class="ml-auto inline-flex shrink-0 items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 hover:underline dark:text-indigo-400"
+                title="Abrir en pestaña nueva"
+            >
+                <i class="fas fa-external-link-alt"></i>
+                Abrir
+            </a>
+        </div>
         <div class="max-h-[70vh] overflow-y-auto">
             <template v-if="isPdf">
-                <iframe :src="'/storage/' + path" class="w-full h-[60vh] rounded"></iframe>
+                <iframe :src="url" class="w-full h-[60vh] rounded"></iframe>
             </template>
             <template v-else>
                 <img
-                    v-if="path"
-                    :src="'/storage/' + path"
+                    v-if="url"
+                    :src="url"
                     class="w-full rounded"
                     alt="Comprobante"
                     @error="onImgError"

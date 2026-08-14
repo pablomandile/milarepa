@@ -23,7 +23,7 @@ class PosRequest extends FormRequest
             'entidad_id' => ['required', 'integer', 'exists:entidades,id'],
             'metodo_pago_id' => ['required', 'integer', 'exists:metodos_pago,id'],
             'observaciones' => ['nullable', 'string', 'max:1000'],
-            'comprobante' => ['nullable', 'image', 'max:4096'],
+            'comprobante' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:4096'],
             'comprobante_id' => ['nullable', 'integer', 'exists:imagenes,id'],
             'idempotency_key' => ['nullable', 'uuid'],
             'items' => ['required', 'array', 'min:1'],
@@ -43,6 +43,8 @@ class PosRequest extends FormRequest
             'metodo_pago_id.required' => 'Elegí el medio de pago.',
             'items.required' => 'Agregá al menos un ítem al carrito.',
             'items.min' => 'Agregá al menos un ítem al carrito.',
+            'comprobante.max' => 'El comprobante supera el tamaño máximo permitido (4 MB).',
+            'comprobante.mimes' => 'El comprobante debe ser PDF, JPG, PNG o WebP.',
         ];
     }
 }
