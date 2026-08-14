@@ -55,10 +55,20 @@ montoTotal = montoActividad
 | Campo | Valores |
 |---|---|
 | `inscripcion` | `Registrada`, `Confirmada` (auto si monto ≤ 0) |
-| `pago` | `Saldado`, `Parcial`, `Pendiente` |
+| `pago` | `Saldado`, `Parcial`, `Pendiente` (caché derivada de Σ cobros **confirmados** vs `montoapagar`) |
 | `asistencia` | `presente`, `ausente`, `Pendiente` |
 | `envioLinkStream` | `enviado`, `pendiente`, `No aplica` |
 | `envioGrabacion` | `Enviada`, `Pendiente`, `No aplica` |
+
+**Cobros y comprobantes (desde 2026-08-14 — ver COBROS_UNIFICADOS.md):** nunca hay comprobante sin
+cobro. Subir un comprobante (checkout público o admin) crea un **cobro `a_revisar`** en el ledger
+polimórfico `cobros`, que **no suma** como plata recibida. Al marcar el pago (Saldado/Parcial) el
+admin **confirma ese mismo cobro** con el monto/fecha/medio reales (no se duplica). En la vista
+"Estado de inscripciones" la columna Pago muestra el estado derivado **"A revisar"** (filtrable)
+cuando hay cobros sin verificar y la inscripción no está saldada; el enum `pago` de la tabla NO
+tiene ese valor (lo consumen reportes, mails y el webhook de MP). Los medios de pago válidos del
+checkout salen del ABM `metodos_pago` de la actividad (+ `efectivo`/`comprobante` como sentinelas),
+no de una lista fija.
 
 ### 2.4 Usuario registrado vs. invitado (GuestUser)
 

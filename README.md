@@ -19,7 +19,7 @@ Sistema de gestión integral para un centro de meditación budista de la tradici
 
 ## Requisitos
 
-- PHP 8.1+ con extensiones standard (mbstring, openssl, pdo_mysql, fileinfo, gd)
+- PHP 8.2+ con extensiones standard (mbstring, openssl, pdo_mysql, fileinfo, gd) — dev y producción corren **8.4** (el SDK de MercadoPago exige ≥8.2)
 - Composer 2.x
 - Node.js 18+ / npm
 - MySQL 8.x

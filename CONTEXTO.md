@@ -87,7 +87,7 @@ Desde [AppLayout.vue](resources/js/Layouts/AppLayout.vue):
 
 ## 7. Flujos clave
 
-1. **Inscripción a actividad** (pública o autenticada) → opcional: sumar hasta 10 invitados (precio general + servicios propios) → al confirmar valida cupo de hospedaje (rechaza si está agotado) → comprobante de pago (imagen) → QR firmado → asistencia (del titular y de cada invitado). El admin edita la inscripción en un dialog que recalcula montos y respeta el cupo; borrar/editar libera la acomodación. El admin también puede **crear** una inscripción en nombre de otra persona (participante existente o nuevo) desde "Estado de inscripciones", reutilizando la pantalla de pago
+1. **Inscripción a actividad** (pública o autenticada) → opcional: sumar hasta 10 invitados (precio general + servicios propios) → al confirmar valida cupo de hospedaje (rechaza si está agotado) → comprobante de pago (imagen; crea un **cobro "a revisar"** en el ledger `cobros`, que el admin confirma al marcar el pago — ver COBROS_UNIFICADOS.md) → QR firmado → asistencia (del titular y de cada invitado). El admin edita la inscripción en un dialog que recalcula montos y respeta el cupo; borrar/editar libera la acomodación. El admin también puede **crear** una inscripción en nombre de otra persona (participante existente o nuevo) desde "Estado de inscripciones", reutilizando la pantalla de pago
 2. **Inscripción a clase** → calcula tres montos (actividad + tharpa + tienda) → registra artículos en JSON
 3. **Inventario tharpa** por entidad → ventas y préstamos entre sedes con devoluciones
 4. **Membresías** → estado de cuenta, renovación mensual vía comando Artisan

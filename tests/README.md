@@ -7,7 +7,13 @@ composer test:regression   # = php artisan test
 ```
 
 Toda la suite usa `DatabaseTransactions` (ningún test usa `RefreshDatabase`), así que correr
-`php artisan test` completo es **seguro** (no toca/borra la BD) y está **verde** (30 tests).
+`php artisan test` completo es **seguro** (no toca/borra la BD). Al 2026-08-14: **~148 tests,
+144 verdes**. PHP local: **8.4** (Laragon; el vendor exige ≥8.2 por `mercadopago/dx-php`).
+
+> **Fallos conocidos (preexistentes):** los 4 tests de `ImportarMultieventoTest` fallan contra una
+> BD de test con datos reales porque hacen asserts de **conteos globales** (p. ej.
+> `Inscripcion::count() == 5`) que solo pasan con las tablas vacías. No indican regresión; el fix
+> pendiente es scopear los asserts a las actividades que el propio test crea (ver `DEUDA_TECNICA.md`).
 
 Al terminar, genera un reporte JSON consolidado en la raíz del proyecto:
 **`test-report.json`** (está en `.gitignore`). Estructura:
@@ -44,6 +50,16 @@ así que se genera con **cualquier** corrida de PHPUnit/`artisan test`.
 
 ## Qué cubre la suite
 
+- **`tests/Feature/Cobros/`** — ledger unificado de cobros: núcleo polimórfico, multi-comprobante,
+  flujo admin (marcar Saldado/Parcial), espejo de membresías, ventas, y el modelo "a revisar"
+  (`CobroARevisarTest`, `ConfirmarCobroARevisarTest`, `WebhookConCobroARevisarTest`,
+  `MigrarStagingComprobantesTest`) — ver `COBROS_UNIFICADOS.md` y `PLAN_COBROS_A_REVISAR.md`.
+- **`tests/Feature/EstadoInscripciones/`, `Inscripciones/`, `Invitados/`, `Hospedaje/`** — flujos de
+  inscripción (admin y checkout público `finalizarPago`), invitados, cupo de hospedaje.
+- **`tests/Feature/ImportInscripciones/`, `ImportMembresias/`, `ImportMultievento/`** — importadores
+  CSV (multievento tiene 4 fallos conocidos, ver arriba).
+- **`tests/Feature/Clases/`, `EstadoCuentaMembresias/`, `Pos/`, `Tharpa/`, `Tienda/`, `Usuarios/`** —
+  módulos respectivos.
 - **`tests/Feature/ImageUpload/`** — subida de imagen diferida al guardar (trait
   `ProcesaImagenAlGuardar`): crea la `Imagen` solo si la persistencia tiene éxito, revierte y borra
   el archivo si falla, conserva/reemplaza la imagen al editar. Cubre el trait (unit) + el flujo HTTP

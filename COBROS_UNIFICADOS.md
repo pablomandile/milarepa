@@ -17,6 +17,48 @@ Dos decisiones del plan original se revirtieron tras completar el ledger (commit
 - **Visor de comprobante unificado en las vistas**: el detalle del pago con sus comprobantes se ve desde `CobroDetalleDialog.vue` (clic en la fecha/badge) en Estado de inscripciones y Estado cuenta membresía; se quitaron las columnas/visores de comprobante redundantes.
 - **Suite**: Feature 101/101 verde.
 
+## Actualización (2026-08-14) — estado `a_revisar`: nunca hay comprobante sin cobro
+
+Se revirtió la decisión "staging pre-cobro fuera de alcance" (plan y deploy en
+`PLAN_COBROS_A_REVISAR.md`; commits `f4440fb` + `d96e88b`, **deployado a producción**):
+
+- **Nueva columna `cobros.estado`** string(20): `confirmado` (default; plata verificada) |
+  `a_revisar` (comprobante informado por el usuario, pendiente de verificación). Ortogonal a
+  `origen`; nuevo origen **`checkout`**. Constantes y scopes en `Cobro` (`confirmados()`/`aRevisar()`).
+- **Subir un comprobante crea (o alimenta) un cobro `a_revisar`** con el archivo enlazado —
+  `CobroService::registrarComprobanteARevisar()`. Invariante: a lo sumo UN `a_revisar` por cobrable
+  (la segunda subida agrega el comprobante al existente). Si la deuda ya está saldada, el comprobante
+  se adjunta al último cobro confirmado (documenta, no inventa deuda). Escritores recableados:
+  `InscripcionesController::uploadComprobante` (owner→`checkout`, admin→`manual`) y los dos bloques
+  de `GridActividadesController::finalizarPago`.
+- **Un cobro `a_revisar` NO suma**: `TieneCobros::montoCobrado()` filtra por confirmados — cubre
+  saldo y recálculo de `pago` en los 4 dominios sin tocar `recalcularEstadoPago()`.
+- **Confirmación** en `CobroService::confirmarORegistrar()` (lo invoca `registrarCobroAdmin` al
+  marcar Saldado/Parcial): confirma el `a_revisar` existente pisando monto/fecha/método/registrador
+  (origen y comprobantes intactos) en vez de duplicar; con saldo ya cubierto (ej. pagó MP), mueve los
+  comprobantes al confirmado y soft-deletea el pendiente.
+- **UI**: la columna Pago de Estado de inscripciones muestra **"A revisar"** (derivado como
+  `pago_visible` en el controller — el enum `inscripciones.pago` NO cambia, lo siguen consumiendo
+  reportes/mails/webhook), filtrable en la datatable y clickeable hacia `CobroDetalleDialog`, que
+  distingue confirmado/a revisar (badges, totales separados). El diálogo de edición lista los
+  comprobantes subidos. Visor extraído a `ComprobanteVisorDialog.vue` (descripción + abrir en
+  pestaña + PDF tolerante a querystring). `Cobros/Index` ganó columna Estado, todos los comprobantes
+  (fix del bug "solo el primero") y total solo de confirmados.
+- **`inscripcion_comprobantes` (staging) ya no recibe escrituras**: comando idempotente
+  `cobros:migrar-staging {--dry-run}` migró lo existente (corrido en dev y prod: 2 comprobantes →
+  cobros a revisar). Las vistas de usuario (`Inscripcion/Show`, `Inscripciones/Index`,
+  `GridActividades/Inscripcion`) leen ahora los comprobantes aplanados desde los cobros
+  (`TieneCobros::comprobantesDeCobros()`), mismo shape. El DROP de la tabla queda para fase 2.
+- `EstadoInscripcionesController::destroy` ahora también borra los archivos de comprobante de los
+  cobros y soft-deletea los cobros de la inscripción (el hard-delete no cascadea al ledger).
+- **Recuperado en el mismo deploy** (estaba en prod sin commitear): los medios de pago válidos del
+  checkout salen del ABM `metodos_pago` de la actividad + sentinelas `efectivo`/`comprobante`
+  (el whitelist fijo daba 422 con medios nuevos), y validaciones de comprobante con WebP en
+  membresías/estado de cuenta/POS/venta de libros.
+- **Tests nuevos** (`tests/Feature/Cobros/`): `CobroARevisarTest`, `ConfirmarCobroARevisarTest`,
+  `WebhookConCobroARevisarTest`, `MigrarStagingComprobantesTest`. Suite: 144 verdes + los 4 fallos
+  conocidos de `ImportarMultieventoTest` (datos reales en la BD de test).
+
 ## Contexto
 
 Hoy **no existe una tabla de cobros**. El dinero está desparramado en cuatro dominios, cada uno con su propia representación, y en tres de ellos el «cobro» son columnas desnormalizadas mezcladas con "lo que se debe":
@@ -244,9 +286,19 @@ Cada fase es entregable y el enum `pago` sigue funcionando como caché.
 ---
 
 ## Fuera de alcance (vigente)
-- **Rediseñar el checkout público** para crear el cobro al iniciar el pago (hoy el comprobante se sube y persiste antes de que exista el cobro).
-- **Borrar `inscripcion_comprobantes`** como tabla: se mantiene como *staging* pre-cobro (con `imagen_id`); depende del rediseño del checkout.
+- **Borrar `inscripcion_comprobantes`** como tabla (fase 2 del plan de `PLAN_COBROS_A_REVISAR.md`):
+  ya NO recibe escrituras y su contenido está migrado al ledger; falta el DROP + borrar
+  `InscripcionComprobante`/`Inscripcion::comprobantes()` + la referencia en `ImagenesController`.
+- **Extender `a_revisar` a membresías** (fase 2): hoy el comprobante de cuota sigue stageado en
+  `comprobante_imagen_id`. ⚠ Antes de hacerlo, revisar el `cobros()->delete()` de
+  `sincronizarMembresia()` (arrasaría cobros en revisión).
 - **Pago online (MercadoPago)** para clases/membresías (hoy MP solo en actividades).
-- (Opcional a futuro) **Editar/anular cobros desde el diálogo del pago**: la inversión de membresías ya dejó el terreno listo (`recalcularEstadoPago`/`recalcularMembresia` recomputan la cuota al crear/borrar un cobro).
+- (Opcional a futuro) **Editar/anular/confirmar cobros desde `CobroDetalleDialog`**: el diálogo es
+  puramente presentacional a propósito (lo comparten inscripciones y membresías); la confirmación
+  hoy pasa por el flujo admin de marcar el pago.
 
-> **Ya implementados** (antes fuera de alcance): multi-comprobante por cobro (1:N) y migrar membresías a `cobros` como fuente de verdad — ver **"Actualización (2026-07-15)"**. Los `*- copia.php` y los paths crudos legacy también se eliminaron/unificaron en `imagenes`.
+> **Ya implementados** (antes fuera de alcance): multi-comprobante por cobro (1:N), membresías con
+> `cobros` como fuente de verdad — ver **"Actualización (2026-07-15)"** — y el rediseño del checkout:
+> subir comprobante crea un cobro `a_revisar` (nunca hay comprobante sin cobro) — ver
+> **"Actualización (2026-08-14)"**. Los `*- copia.php` y los paths crudos legacy también se
+> eliminaron/unificaron en `imagenes`.
