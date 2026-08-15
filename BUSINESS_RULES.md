@@ -33,10 +33,33 @@ montoTotal = montoActividad
            + monto_invitados            # Σ montoapagar de cada invitado (ver 2.6)
 ```
 
-- Si `montoTotal <= 0` → estado pago = `"Saldado"`.
+- Si `montoTotal <= 0` (sumando también la porción en moneda principal, ver 2.1bis) → estado pago = `"Saldado"`.
 - Si `montoTotal > 0` → estado pago = `"Pendiente"`.
 - El total (incluidos los invitados) se cobra siempre a la **persona principal**: una sola
   inscripción, un solo comprobante / medio de pago para todo el grupo.
+
+### 2.1bis Multi-moneda en servicios (total dividido)
+
+- Existe **una** moneda principal (`monedas.es_principal`, hoy Pesos Argentinos). El precio
+  "plano" de cada servicio (`grabaciones.valor`, `comidas/hospedajes/transportes.precio`) está
+  SIEMPRE en la moneda principal; los precios en otras monedas viven en `servicio_precios`
+  (polimórfica: servicio × moneda × precio × botón de pago opcional) y se cargan en el ABM de
+  cada servicio ("Precios en otras monedas").
+- Cuando la persona elige otra moneda en el checkout, cada servicio se resuelve con
+  `precioEnMoneda()`: si tiene precio en esa moneda se suma a `montoapagar`; si NO lo tiene,
+  **se ofrece igual y se cobra en la moneda principal** → va a `monto_moneda_principal`
+  (**total dividido**, ej. "USD 120 + ARS 50.000"). Nunca se convierte ni se mezclan números
+  de monedas distintas en un mismo campo.
+- La inscripción persiste `moneda_id` (null = legacy, equivale a la principal, NO se
+  backfillea) y `monto_moneda_principal` (null = sin porción en la principal). Los invitados
+  igual. El desglose (`montoGrabacion`, `montoComidas`, `montoTransporte`, `montoHospedaje`)
+  guarda solo las porciones en la moneda de la inscripción.
+- La edición admin y el flujo "Pagar" de Mis inscripciones **recalculan siempre en la moneda
+  de la inscripción** (nunca la cambian).
+- **Mercado Pago solo acepta la moneda principal** (MP Argentina procesa ARS): en otra moneda
+  se oculta en el front y `finalizarPago` lo rechaza con 422. También se rechaza una moneda
+  que no sea la principal ni esté en el esquema vigente de la actividad.
+- Gratis es gratis solo si AMBAS porciones son 0.
 
 ### 2.2 Resolución del precio según membresía y fecha
 
