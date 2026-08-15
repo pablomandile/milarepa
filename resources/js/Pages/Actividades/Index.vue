@@ -30,8 +30,9 @@
     const imagenSeleccionada = ref(null);
     const programaVisible = ref(false);
     const programaSeleccionado = ref(null);
-    const esquemaPrecioVisible = ref(false);
-    const esquemaPrecioSeleccionado = ref(null);
+    const esquemaVisible = ref(false);
+    const esquemaSeleccionado = ref(null);
+    const esquemaTitulo = ref('Esquema de Precios');
     const filters = ref({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     });
@@ -108,8 +109,17 @@
     };
 
     const verEsquemaPrecio = (esquema) => {
-        esquemaPrecioSeleccionado.value = esquema;
-        esquemaPrecioVisible.value = true;
+        esquemaTitulo.value = 'Esquema de Precios';
+        esquemaSeleccionado.value = esquema;
+        esquemaVisible.value = true;
+    };
+
+    // Comparte el dialog con precios: las membresías de un esquema de
+    // descuentos tienen la misma forma (membresía, precio, moneda).
+    const verEsquemaDescuento = (esquema) => {
+        esquemaTitulo.value = 'Esquema de Descuentos';
+        esquemaSeleccionado.value = esquema;
+        esquemaVisible.value = true;
     };
 
     const verImagen = (actividad) => {
@@ -425,9 +435,19 @@
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </div>
-                                            <div v-if="actividad.esquema_descuento">
-                                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Esquema descuentos</p>
-                                                <p>{{ actividad.esquema_descuento.nombre }}</p>
+                                            <div v-if="actividad.esquema_descuento" class="flex items-center gap-2">
+                                                <div>
+                                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Esquema descuentos</p>
+                                                    <p>{{ actividad.esquema_descuento.nombre }}</p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    class="text-indigo-600 hover:text-indigo-800"
+                                                    title="Ver esquema de descuentos completo"
+                                                    @click="verEsquemaDescuento(actividad.esquema_descuento)"
+                                                >
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
                                             </div>
                                             <div v-if="actividad.hospedajes && actividad.hospedajes.length">
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Hospedajes</p>
@@ -762,9 +782,17 @@
                                         </div>
 
                                         <!-- Esquema de Descuentos -->
-                                        <div v-if="data.esquema_descuento">
+                                        <div v-if="data.esquema_descuento" class="flex items-center">
                                             <span class="font-semibold text-gray-700 dark:text-gray-300">Esquema Descuentos:</span>
                                             <span class="ml-2">{{ data.esquema_descuento.nombre }}</span>
+                                            <button
+                                                @click="verEsquemaDescuento(data.esquema_descuento)"
+                                                class="ml-2 text-indigo-600 hover:text-indigo-800"
+                                                style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;"
+                                                title="Ver esquema de descuentos completo"
+                                            >
+                                                <i class="fas fa-eye" style="font-size: 16px;"></i>
+                                            </button>
                                         </div>
 
                                         <!-- Lugares de Hospedajes -->
@@ -944,18 +972,18 @@
         <p v-else>Cargando...</p>
     </Dialog>
 
-    <!-- Dialog para mostrar esquema de precios -->
-    <Dialog 
-        v-model:visible="esquemaPrecioVisible" 
-        modal 
-        :header="esquemaPrecioSeleccionado ? `Esquema de Precios: ${esquemaPrecioSeleccionado.nombre}` : 'Esquema de Precios'"
-        :style="{ width: '70rem' }" 
+    <!-- Dialog para mostrar un esquema (precios o descuentos: misma estructura) -->
+    <Dialog
+        v-model:visible="esquemaVisible"
+        modal
+        :header="esquemaSeleccionado ? `${esquemaTitulo}: ${esquemaSeleccionado.nombre}` : esquemaTitulo"
+        :style="{ width: '70rem' }"
         :breakpoints="{ '1199px': '90vw', '575px': '95vw' }"
         dismissableMask
     >
-        <template v-if="esquemaPrecioSeleccionado && esquemaPrecioSeleccionado.membresias">
-            <DataTable 
-                :value="esquemaPrecioSeleccionado.membresias"
+        <template v-if="esquemaSeleccionado && esquemaSeleccionado.membresias">
+            <DataTable
+                :value="esquemaSeleccionado.membresias"
                 stripedRows
                 tableStyle="min-width: 50rem"
             >
@@ -984,6 +1012,6 @@
                 </Column>
             </DataTable>
         </template>
-        <p v-else>No hay información de precios disponible</p>
+        <p v-else>No hay información disponible</p>
     </Dialog>
 </template>
