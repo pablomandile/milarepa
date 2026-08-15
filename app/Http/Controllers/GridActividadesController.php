@@ -21,6 +21,7 @@ use App\Models\EmailEnvioConfiguracion;
 use App\Models\User;
 use App\Models\EstadoCuentaMembresia;
 use App\Models\ConfiguracionSistema;
+use App\Models\Moneda;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
@@ -548,6 +549,51 @@ class GridActividadesController extends Controller
             ], 422);
         }
 
+        // Inscripción en edición ("Pagar" de Mis inscripciones / flujo admin): se
+        // resuelve ANTES del cálculo porque el update conserva la moneda original
+        // (el selector del front viaja deshabilitado en ese flujo).
+        $inscripcionExistente = null;
+        if (!empty($pago['inscripcion_id'])) {
+            $inscripcionExistente = Inscripcion::where('id', $pago['inscripcion_id'])
+                ->where('actividad_id', $actividad->id)
+                ->first();
+
+            if (!$inscripcionExistente) {
+                return response()->json(['ok' => false, 'message' => 'No se encontró la inscripción a actualizar.'], 404);
+            }
+        }
+
+        $monedaPrincipalId = Moneda::principalId();
+        $monedaIdSeleccionada = isset($data['moneda_id']) ? (int) $data['moneda_id'] : null;
+        $monedaIdEfectiva = $inscripcionExistente
+            ? (int) ($inscripcionExistente->moneda_id ?? $monedaPrincipalId)
+            : ($monedaIdSeleccionada ?? $monedaPrincipalId);
+
+        // La moneda tiene que ser la principal o una del esquema vigente
+        // (evita cotizar en una moneda arbitraria por POST manual).
+        if ($monedaIdEfectiva !== null && $monedaIdEfectiva !== $monedaPrincipalId) {
+            $monedasEsquema = $this->obtenerEsquemaPrecioVigente($actividad)?->membresias
+                ?->pluck('moneda_id')->map(fn ($id) => (int) $id)->all() ?? [];
+            if (!in_array($monedaIdEfectiva, $monedasEsquema, true)) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'La moneda seleccionada no está disponible para esta actividad.',
+                ], 422);
+            }
+        }
+
+        // Mercado Pago (Argentina) solo procesa pesos: en otra moneda quedan
+        // transferencias/botones de pago, comprobante y efectivo.
+        if ($data['pago_metodo'] === 'mercadopago'
+            && $monedaPrincipalId !== null
+            && $monedaIdEfectiva !== null
+            && $monedaIdEfectiva !== $monedaPrincipalId) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Mercado Pago solo está disponible para pagos en pesos.',
+            ], 422);
+        }
+
         // Guard de duplicados ANTES de crear User/GuestUser (si no, el flujo guest
         // creaba un GuestUser nuevo por intento y el chequeo nunca matcheaba).
         // Excluye la inscripción en edición para no bloquear el flujo update.
@@ -622,11 +668,10 @@ class GridActividadesController extends Controller
             return response()->json(['ok' => false, 'message' => 'No hay usuario para registrar.'], 422);
         }
 
-        $monedaIdSeleccionada = isset($data['moneda_id']) ? (int) $data['moneda_id'] : null;
         [$precioGeneral, $precioMembresia, $membresiaNombre] = $this->calcularPrecios(
             $actividad,
             $registrado ? $user : null,
-            $monedaIdSeleccionada
+            $monedaIdEfectiva
         );
         $montoActividad = (float) (($user && $user->membresia_id) ? $precioMembresia : $precioGeneral);
         $online = $this->resolverModalidadOnline($actividad, $user, $registrado, Arr::get($data, 'modalidad_cursada'));
@@ -640,36 +685,36 @@ class GridActividadesController extends Controller
         $transporteId = $transportesIds[0] ?? null;
         $hospedajeId = $hospedajesIds[0] ?? null;
 
-        $montos = $servicios->montosServicios($actividad, $incluyeGrabacion, $comidasIds, $transportesIds, $hospedajesIds);
+        $montos = $servicios->montosServicios($actividad, $incluyeGrabacion, $comidasIds, $transportesIds, $hospedajesIds, $monedaIdEfectiva);
         $montoGrabacion = $montos['montoGrabacion'];
         $montoComidas = $montos['montoComidas'];
         $montoTransporte = $montos['montoTransporte'];
-        $montoHospedaje = (float) ($montos['montoHospedaje'] ?? 0);
+        $montoHospedaje = $montos['montoHospedaje'];
 
-        $invitadosData = $servicios->prepararInvitados($actividad, (float) $precioGeneral, $data['invitados'] ?? []);
+        $invitadosData = $servicios->prepararInvitados($actividad, (float) $precioGeneral, $data['invitados'] ?? [], $monedaIdEfectiva);
         $montoInvitados = array_sum(array_column($invitadosData, 'montoapagar'));
         $hospedajeRequeridos = $cupo->requeridos($hospedajesIds, $invitadosData);
 
+        // Total dividido: montoapagar es la porción en la moneda de la inscripción;
+        // los servicios sin precio en esa moneda se cobran en la principal.
         $montoApagar = $montoActividad
             + (float) ($montoGrabacion ?? 0)
             + (float) ($montoComidas ?? 0)
             + (float) ($montoTransporte ?? 0)
-            + $montoHospedaje
+            + (float) ($montoHospedaje ?? 0)
             + $montoInvitados;
-        [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar);
+        $montoMonedaPrincipal = (float) ($montos['montoPrincipal'] ?? 0)
+            + array_sum(array_map(fn ($inv) => (float) ($inv['monto_moneda_principal'] ?? 0), $invitadosData));
+        $montoMonedaPrincipal = $montoMonedaPrincipal > 0 ? $montoMonedaPrincipal : null;
+        // Gratis solo si AMBAS porciones son cero.
+        [$estadoPago, $estadoInscripcion] = $this->resolverEstadoSegunMonto($montoApagar + (float) ($montoMonedaPrincipal ?? 0));
 
-        if (!empty($pago['inscripcion_id'])) {
-            $inscripcion = Inscripcion::where('id', $pago['inscripcion_id'])
-                ->where('actividad_id', $actividad->id)
-                ->first();
-
-            if (!$inscripcion) {
-                return response()->json(['ok' => false, 'message' => 'No se encontró la inscripción a actualizar.'], 404);
-            }
+        if ($inscripcionExistente) {
+            $inscripcion = $inscripcionExistente;
 
             DB::transaction(function () use (
                 $servicios, $cupo, $actividad, $hospedajeRequeridos, $inscripcion, $membresiaNombre, $precioGeneral, $montoActividad, $montoGrabacion,
-                $montoTransporte, $montoComidas, $montoApagar, $montoInvitados, $estadoPago, $estadoInscripcion,
+                $montoTransporte, $montoComidas, $montoHospedaje, $montoApagar, $montoInvitados, $monedaIdEfectiva, $montoMonedaPrincipal, $estadoPago, $estadoInscripcion,
                 $envioLinkStream, $envioGrabacion, $online, $hospedajeId, $comidaId, $transporteId,
                 $comidasIds, $invitadosData, $pago
             ) {
@@ -682,7 +727,10 @@ class GridActividadesController extends Controller
                     'montoGrabacion' => $montoGrabacion,
                     'montoTransporte' => $montoTransporte,
                     'montoComidas' => $montoComidas,
+                    'montoHospedaje' => $montoHospedaje,
                     'montoapagar' => $montoApagar,
+                    'moneda_id' => $monedaIdEfectiva,
+                    'monto_moneda_principal' => $montoMonedaPrincipal,
                     'monto_invitados' => $montoInvitados,
                     'pago' => $estadoPago,
                     'estado' => $estadoInscripcion,
@@ -726,7 +774,7 @@ class GridActividadesController extends Controller
 
         $inscripcion = DB::transaction(function () use (
             $servicios, $cupo, $hospedajeRequeridos, $actividad, $user, $guestUser, $membresiaNombre, $precioGeneral, $montoActividad, $montoGrabacion,
-            $montoTransporte, $montoComidas, $montoApagar, $montoInvitados, $estadoPago, $estadoInscripcion,
+            $montoTransporte, $montoComidas, $montoHospedaje, $montoApagar, $montoInvitados, $monedaIdEfectiva, $montoMonedaPrincipal, $estadoPago, $estadoInscripcion,
             $envioLinkStream, $envioGrabacion, $online, $hospedajeId, $comidaId, $transporteId,
             $comidasIds, $invitadosData, $pago
         ) {
@@ -742,7 +790,10 @@ class GridActividadesController extends Controller
                 'montoGrabacion' => $montoGrabacion,
                 'montoTransporte' => $montoTransporte,
                 'montoComidas' => $montoComidas,
+                'montoHospedaje' => $montoHospedaje,
                 'montoapagar' => $montoApagar,
+                'moneda_id' => $monedaIdEfectiva,
+                'monto_moneda_principal' => $montoMonedaPrincipal,
                 'monto_invitados' => $montoInvitados,
                 'pago' => $estadoPago,
                 'estado' => $estadoInscripcion,

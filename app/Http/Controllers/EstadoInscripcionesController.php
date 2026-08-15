@@ -300,30 +300,38 @@ class EstadoInscripcionesController extends Controller
         $transportesIds = array_values(array_unique(array_map('intval', $data['transportes_ids'] ?? [])));
         $hospedajesIds = array_values(array_unique(array_map('intval', $data['hospedajes_ids'] ?? [])));
 
-        $montos = $servicios->montosServicios($actividad, $incluyeGrabacion, $comidasIds, $transportesIds, $hospedajesIds);
+        // La inscripción se recalcula en SU moneda (null = legacy = moneda principal,
+        // precios planos): sin esto, editar una inscripción en USD la re-cotizaba en pesos.
+        $monedaId = $inscripcion->moneda_id ? (int) $inscripcion->moneda_id : null;
+
+        $montos = $servicios->montosServicios($actividad, $incluyeGrabacion, $comidasIds, $transportesIds, $hospedajesIds, $monedaId);
 
         // El precio de actividad del titular (según su membresía) no se recalcula aquí; se conserva.
         $montoActividad = (float) ($inscripcion->montoActividad ?? $inscripcion->precioGeneral);
         $precioGeneral = (float) $inscripcion->precioGeneral;
 
-        $invitadosData = $servicios->prepararInvitados($actividad, $precioGeneral, $data['invitados'] ?? []);
+        $invitadosData = $servicios->prepararInvitados($actividad, $precioGeneral, $data['invitados'] ?? [], $monedaId);
         $montoInvitados = array_sum(array_column($invitadosData, 'montoapagar'));
         $hospedajeRequeridos = $cupo->requeridos($hospedajesIds, $invitadosData);
 
+        // Total dividido: montoapagar en la moneda de la inscripción + porción en la principal.
         $montoApagar = $montoActividad
             + (float) ($montos['montoGrabacion'] ?? 0)
             + (float) ($montos['montoComidas'] ?? 0)
             + (float) ($montos['montoTransporte'] ?? 0)
             + (float) ($montos['montoHospedaje'] ?? 0)
             + $montoInvitados;
+        $montoMonedaPrincipal = (float) ($montos['montoPrincipal'] ?? 0)
+            + array_sum(array_map(fn ($inv) => (float) ($inv['monto_moneda_principal'] ?? 0), $invitadosData));
+        $montoMonedaPrincipal = $montoMonedaPrincipal > 0 ? $montoMonedaPrincipal : null;
 
         $pago = $data['pago'];
         // Sólo se eleva a "Confirmada" cuando queda saldada o sin saldo; nunca se degrada.
-        $estado = ($pago === 'Saldado' || $montoApagar <= 0.0) ? 'Confirmada' : $inscripcion->estado;
+        $estado = ($pago === 'Saldado' || ($montoApagar + (float) ($montoMonedaPrincipal ?? 0)) <= 0.0) ? 'Confirmada' : $inscripcion->estado;
 
         DB::transaction(function () use (
             $servicios, $cupo, $actividad, $hospedajeRequeridos, $inscripcion, $data, $montoActividad, $montos, $montoApagar, $montoInvitados,
-            $pago, $estado, $comidasIds, $transportesIds, $hospedajesIds, $invitadosData, $user
+            $montoMonedaPrincipal, $pago, $estado, $comidasIds, $transportesIds, $hospedajesIds, $invitadosData, $user
         ) {
             $cupo->validar($actividad, $hospedajeRequeridos, $inscripcion->id);
 
@@ -333,7 +341,9 @@ class EstadoInscripcionesController extends Controller
                 'montoGrabacion' => $montos['montoGrabacion'],
                 'montoComidas' => $montos['montoComidas'],
                 'montoTransporte' => $montos['montoTransporte'],
+                'montoHospedaje' => $montos['montoHospedaje'],
                 'montoapagar' => $montoApagar,
+                'monto_moneda_principal' => $montoMonedaPrincipal,
                 'monto_invitados' => $montoInvitados,
                 'pago' => $pago,
                 'estado' => $estado,
@@ -354,6 +364,7 @@ class EstadoInscripcionesController extends Controller
             'ok' => true,
             'estado' => $inscripcion->estado,
             'montoapagar' => $montoApagar,
+            'monto_moneda_principal' => $montoMonedaPrincipal,
             'monto_invitados' => $montoInvitados,
         ]);
     }

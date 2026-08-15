@@ -100,22 +100,27 @@ class InscripcionActividadService
         $transporteId = $transportesIds[0] ?? null;
         $hospedajeId = $hospedajesIds[0] ?? null;
 
-        $montos = $this->servicios->montosServicios($actividad, $incluyeGrabacion, $comidasIds, $transportesIds, $hospedajesIds);
-        $invitadosData = $this->servicios->prepararInvitados($actividad, (float) $precioGeneral, $p['invitados'] ?? []);
+        $montos = $this->servicios->montosServicios($actividad, $incluyeGrabacion, $comidasIds, $transportesIds, $hospedajesIds, $monedaId);
+        $invitadosData = $this->servicios->prepararInvitados($actividad, (float) $precioGeneral, $p['invitados'] ?? [], $monedaId);
         $montoInvitados = array_sum(array_column($invitadosData, 'montoapagar'));
         $hospedajeRequeridos = $this->cupo->requeridos($hospedajesIds, $invitadosData);
 
+        // Total dividido: montoapagar en la moneda pedida; los servicios sin
+        // precio en ella se cobran en la principal (monto_moneda_principal).
         $montoApagar = $montoActividad
             + (float) ($montos['montoGrabacion'] ?? 0)
             + (float) ($montos['montoComidas'] ?? 0)
             + (float) ($montos['montoTransporte'] ?? 0)
             + (float) ($montos['montoHospedaje'] ?? 0)
             + $montoInvitados;
-        [$estadoPago, $estadoInscripcion] = $this->precios->resolverEstadoSegunMonto($montoApagar);
+        $montoMonedaPrincipal = (float) ($montos['montoPrincipal'] ?? 0)
+            + array_sum(array_map(fn ($inv) => (float) ($inv['monto_moneda_principal'] ?? 0), $invitadosData));
+        $montoMonedaPrincipal = $montoMonedaPrincipal > 0 ? $montoMonedaPrincipal : null;
+        [$estadoPago, $estadoInscripcion] = $this->precios->resolverEstadoSegunMonto($montoApagar + (float) ($montoMonedaPrincipal ?? 0));
 
         return DB::transaction(function () use (
             $actividad, $user, $guestUser, $hospedajeRequeridos, $membresiaNombre, $precioGeneral, $montoActividad,
-            $montos, $montoApagar, $montoInvitados, $estadoPago, $estadoInscripcion, $envioLinkStream, $envioGrabacion,
+            $montos, $montoApagar, $montoInvitados, $monedaId, $montoMonedaPrincipal, $estadoPago, $estadoInscripcion, $envioLinkStream, $envioGrabacion,
             $online, $hospedajeId, $comidaId, $transporteId, $comidasIds, $invitadosData
         ) {
             $this->cupo->validar($actividad, $hospedajeRequeridos, null);
@@ -130,7 +135,10 @@ class InscripcionActividadService
                 'montoGrabacion' => $montos['montoGrabacion'] ?? null,
                 'montoTransporte' => $montos['montoTransporte'] ?? null,
                 'montoComidas' => $montos['montoComidas'] ?? null,
+                'montoHospedaje' => $montos['montoHospedaje'] ?? null,
                 'montoapagar' => $montoApagar,
+                'moneda_id' => $monedaId ?? \App\Models\Moneda::principalId(),
+                'monto_moneda_principal' => $montoMonedaPrincipal,
                 'monto_invitados' => $montoInvitados,
                 'pago' => $estadoPago,
                 'estado' => $estadoInscripcion,
@@ -182,8 +190,8 @@ class InscripcionActividadService
         $transportesIds = $p['transportes_ids'] ?? [];
         $hospedajesIds = $p['hospedajes_ids'] ?? [];
 
-        $montos = $this->servicios->montosServicios($actividad, (bool) ($p['incluye_grabacion'] ?? false), $comidasIds, $transportesIds, $hospedajesIds);
-        $invitadosData = $this->servicios->prepararInvitados($actividad, (float) $precioGeneral, $p['invitados'] ?? []);
+        $montos = $this->servicios->montosServicios($actividad, (bool) ($p['incluye_grabacion'] ?? false), $comidasIds, $transportesIds, $hospedajesIds, $monedaId);
+        $invitadosData = $this->servicios->prepararInvitados($actividad, (float) $precioGeneral, $p['invitados'] ?? [], $monedaId);
         $montoInvitados = array_sum(array_column($invitadosData, 'montoapagar'));
 
         $montoApagar = $montoActividad
@@ -192,6 +200,8 @@ class InscripcionActividadService
             + (float) ($montos['montoTransporte'] ?? 0)
             + (float) ($montos['montoHospedaje'] ?? 0)
             + $montoInvitados;
+        $montoMonedaPrincipal = (float) ($montos['montoPrincipal'] ?? 0)
+            + array_sum(array_map(fn ($inv) => (float) ($inv['monto_moneda_principal'] ?? 0), $invitadosData));
 
         return [
             'membresia' => $membresiaNombre,
@@ -202,6 +212,7 @@ class InscripcionActividadService
             'montoHospedaje' => round((float) ($montos['montoHospedaje'] ?? 0), 2),
             'montoInvitados' => round((float) $montoInvitados, 2),
             'montoApagar' => round($montoApagar, 2),
+            'montoMonedaPrincipal' => round($montoMonedaPrincipal, 2),
         ];
     }
 
