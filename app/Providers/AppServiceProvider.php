@@ -41,6 +41,11 @@ class AppServiceProvider extends ServiceProvider
             // POS.
             'venta_pos' => \App\Models\VentaPos::class,
             'venta_pos_item' => \App\Models\VentaPosItem::class,
+            // Servicios de actividades (usados como `servicioable` en servicio_precios).
+            'grabacion' => \App\Models\Grabacion::class,
+            'hospedaje' => \App\Models\Hospedaje::class,
+            'comida' => \App\Models\Comida::class,
+            'transporte' => \App\Models\Transporte::class,
         ]);
 
         Inertia::share([

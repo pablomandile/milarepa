@@ -22,7 +22,10 @@ class Inscripcion extends Model
         'montoGrabacion',
         'montoTransporte',
         'montoComidas',
+        'montoHospedaje',
         'montoapagar',
+        'moneda_id',
+        'monto_moneda_principal',
         'monto_invitados',
         'pago',
         'fecha_pago',
@@ -50,7 +53,9 @@ class Inscripcion extends Model
         'montoGrabacion' => 'decimal:2',
         'montoTransporte' => 'decimal:2',
         'montoComidas' => 'decimal:2',
+        'montoHospedaje' => 'decimal:2',
         'montoapagar' => 'decimal:2',
+        'monto_moneda_principal' => 'decimal:2',
         'monto_invitados' => 'decimal:2',
         'online' => 'boolean',
         'confirmado_manual' => 'boolean',
@@ -81,6 +86,11 @@ class Inscripcion extends Model
     public function comida()
     {
         return $this->belongsTo(Comida::class);
+    }
+
+    public function moneda()
+    {
+        return $this->belongsTo(Moneda::class, 'moneda_id');
     }
 
     public function comidas()

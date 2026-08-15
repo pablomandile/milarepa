@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TienePreciosPorMoneda;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\BotonPago;
 
 class Grabacion extends Model
 {
-    use HasFactory;
-    
+    use HasFactory, TienePreciosPorMoneda;
+
     protected $table = 'grabaciones';
 
     protected $fillable = [
@@ -21,7 +22,13 @@ class Grabacion extends Model
     protected $casts = [
         'valor' => 'decimal:2',
     ];
-    
+
+    public function campoPrecioPlano(): string
+    {
+        return 'valor';
+    }
+
+
     public function linksgrabacion()
     {
         return $this->hasMany(LinkGrabacion::class);

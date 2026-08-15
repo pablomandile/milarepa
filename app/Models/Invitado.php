@@ -25,6 +25,8 @@ class Invitado extends Model
         'montoTransporte',
         'montoHospedaje',
         'montoapagar',
+        'moneda_id',
+        'monto_moneda_principal',
     ];
 
     protected $casts = [
@@ -36,6 +38,7 @@ class Invitado extends Model
         'montoTransporte' => 'decimal:2',
         'montoHospedaje' => 'decimal:2',
         'montoapagar' => 'decimal:2',
+        'monto_moneda_principal' => 'decimal:2',
     ];
 
     public function inscripcion()

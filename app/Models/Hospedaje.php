@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TienePreciosPorMoneda;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\BotonPago;
 
 class Hospedaje extends Model
 {
-    use HasFactory;
-    
+    use HasFactory, TienePreciosPorMoneda;
+
     protected $table = 'hospedajes';
 
     protected $fillable = [
