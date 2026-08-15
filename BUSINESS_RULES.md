@@ -459,7 +459,23 @@ Las páginas públicas `/grid-actividades`, `/grillaembebida` y `/clases-publica
 - **Clases públicas**: NO se recorta el listado server-side (los botones de sede se derivan de las clases y colapsarían); el parámetro solo **preselecciona el chip** (`entidadSeleccionadaId`) y el visitante puede volver a "Todas".
 - No hay columna `slug` en `entidades` y `abreviacion` está duplicada (CMKC = Córdoba y Chile): por eso se resuelve contra el nombre. Sedes nuevas funcionan solas con cualquier palabra única de su nombre.
 
-Palabras canónicas con las 13 entidades actuales (2026-08): `argentina`, `nagaryhuna`, `cordoba`, `mahamudra`, `chile`, `escalada` (o `remedios`), `quilmes`, `caballito`, `santelmo` (o `telmo`), `wilde`, `ramosmejia` (o `ramos`, `mejia`), `bariloche`, `rosario`.
+Listado de parámetros con las 13 entidades actuales (2026-08). Ejemplo de uso: `https://milarepa.com.ar/grid-actividades?sede=rosario`.
+
+| Parámetro | Sede |
+|---|---|
+| `argentina` | Centro de Meditación Kadampa Argentina |
+| `nagaryhuna` | Centro Budista Kadampa Nagaryhuna |
+| `cordoba` | Centro de Meditación Kadampa Córdoba |
+| `mahamudra` | Centro Budista Kadampa Mahamudra |
+| `chile` | Centro de Meditación Kadampa Chile |
+| `escalada` (o `remedios`) | Anexo Remedios de Escalada (Tiempo de Vida) |
+| `quilmes` | Anexo Quilmes (Om espacio holistico) |
+| `caballito` | Anexo Caballito |
+| `santelmo` (o `telmo`) | Anexo San Telmo |
+| `wilde` | Anexo Wilde |
+| `ramosmejia` (o `ramos`, `mejia`) | Anexo Ramos Mejía |
+| `bariloche` | Anexo Bariloche |
+| `rosario` | Anexo Rosario |
 
 Tests: `tests/Feature/SedePorParametroTest.php`.
 
