@@ -12,7 +12,8 @@
 
     const form = useForm({
         nombre: '',
-        simbolo: ''
+        simbolo: '',
+        es_principal: false
     })
 </script>
 

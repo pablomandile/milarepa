@@ -11,6 +11,7 @@ import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
+import Checkbox from 'primevue/checkbox';
 
     defineProps({
         form: {
@@ -50,6 +51,17 @@ import TextInput from '../TextInput.vue';
                 <InputLabel for="simbolo" value="Símbolo" :required="true"/>
                 <TextInput id="simbolo" v-model="form.simbolo" type="text" autocomplete="simbolo" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.simbolo" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6">
+                <div class="flex items-center gap-2">
+                    <Checkbox id="es_principal" v-model="form.es_principal" :binary="true" />
+                    <InputLabel for="es_principal" value="Moneda principal" />
+                </div>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Los precios simples de servicios y todo lo histórico se interpretan en la moneda principal.
+                    Marcar esta desmarca la anterior; siempre debe existir una.
+                </p>
+                <InputError :message="$page.props.errors.es_principal" class="mt-2" />
             </div>
         </template>
         <template #actions>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Moneda;
 use App\Http\Requests\MonedaRequest;
 use Inertia\Inertia;
@@ -31,7 +32,12 @@ class MonedasController extends Controller
      */
     public function store(MonedaRequest $request)
     {
-        Moneda::create($request->validated());
+        DB::transaction(function () use ($request) {
+            $moneda = Moneda::create($request->validated());
+            if ($moneda->es_principal) {
+                $this->desmarcarOtrasPrincipales($moneda);
+            }
+        });
         return redirect()->route('monedas.index');
     }
 
@@ -60,7 +66,21 @@ class MonedasController extends Controller
     {
         $moneda = Moneda::findOrFail($id);
 
-        $moneda->update($request->validated());
+        $data = $request->validated();
+
+        // Siempre debe existir exactamente una moneda principal.
+        if ($moneda->es_principal && array_key_exists('es_principal', $data) && !$data['es_principal']) {
+            return back()->withErrors([
+                'es_principal' => 'Debe existir una moneda principal: marcá otra como principal en su lugar.',
+            ]);
+        }
+
+        DB::transaction(function () use ($moneda, $data) {
+            $moneda->update($data);
+            if ($moneda->es_principal) {
+                $this->desmarcarOtrasPrincipales($moneda);
+            }
+        });
 
         return redirect()->route('monedas.index');
     }
@@ -68,10 +88,18 @@ class MonedasController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    private function desmarcarOtrasPrincipales(Moneda $moneda): void
+    {
+        Moneda::where('id', '!=', $moneda->id)->where('es_principal', true)->update(['es_principal' => false]);
+    }
+
     public function destroy($id)
     {
         try {
             $moneda = Moneda::findorfail($id);
+            if ($moneda->es_principal) {
+                return redirect()->route('monedas.index')->with('error', 'No se puede eliminar la moneda principal.');
+            }
             $moneda->delete();
             return redirect()->route('monedas.index')->with('success', 'Moneda eliminada con éxito.');
         } catch (\Exception $e) {

@@ -24,7 +24,8 @@ class MonedaRequest extends FormRequest
     {
         return [
             'nombre' => ['required', 'string', 'max:30'],
-            'simbolo' => ['required','string', 'max:5']
+            'simbolo' => ['required','string', 'max:5'],
+            'es_principal' => ['nullable', 'boolean'],
         ];
     }
 

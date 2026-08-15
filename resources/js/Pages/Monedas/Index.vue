@@ -98,7 +98,12 @@
                                 <div class="flex items-center gap-3">
                                     <i class="fas fa-coins text-2xl text-indigo-600"></i>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100 break-words">{{ moneda.nombre }}</p>
+                                        <p class="text-base font-semibold text-gray-800 dark:text-gray-100 break-words">
+                                            {{ moneda.nombre }}
+                                            <span v-if="moneda.es_principal" class="ml-1 inline-block px-2 py-0.5 text-xs font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-300 rounded">
+                                                Principal
+                                            </span>
+                                        </p>
                                         <p v-if="moneda.simbolo" class="mt-1">
                                             <span class="inline-block px-2 py-0.5 text-xs font-mono font-semibold text-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 rounded">
                                                 {{ moneda.simbolo }}
@@ -158,7 +163,14 @@
                                     </IconField>
                                 </div>
                             </template>
-                            <Column field="nombre" header="Nombre"></Column>
+                            <Column field="nombre" header="Nombre">
+                                <template #body="slotProps">
+                                    {{ slotProps.data.nombre }}
+                                    <span v-if="slotProps.data.es_principal" class="ml-1 inline-block px-2 py-0.5 text-xs font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-300 rounded">
+                                        Principal
+                                    </span>
+                                </template>
+                            </Column>
                             <Column field="simbolo" header="Símbolo"></Column>
                             <Column header="Acciones">
                                 <template #body="slotProps">

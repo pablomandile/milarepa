@@ -23,7 +23,8 @@
 
     const form = useForm({
         nombre: props.moneda.nombre,
-        simbolo: props.moneda.simbolo
+        simbolo: props.moneda.simbolo,
+        es_principal: !!props.moneda.es_principal
     });
 
     const handleSubmit = () => {
