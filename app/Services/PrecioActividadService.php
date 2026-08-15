@@ -8,12 +8,13 @@ use Carbon\Carbon;
 
 /**
  * Lógica de precios de actividades (esquema vigente por membresía / descuento anticipado,
- * modalidad online, estado según monto). Extraída para que el POS pueda cotizar/crear
- * inscripciones a actividad reutilizando las mismas reglas del checkout público.
+ * modalidad online, estado según monto). Única implementación: la usan el POS
+ * (InscripcionActividadService) y el checkout público (GridActividadesController, que delega
+ * sus helpers privados acá desde 2026-08-15).
  *
- * Nota: el checkout público (GridActividadesController) conserva su propia copia de estos
- * helpers por ahora, para no alterar ese flujo (dinero + MercadoPago). Unificarlo (delegar
- * el controller a este servicio) es un follow-up seguro una vez verificado el flujo público.
+ * El controller mantuvo una copia propia un tiempo "para no tocar el flujo del dinero", y esa
+ * copia se desfasó: obtenerBotonPagoActividad elegía el botón de pago sin aplicar la cascada
+ * por moneda de resolverLineaEsquema. Por eso ahora hay un solo lugar donde cambiar la regla.
  */
 class PrecioActividadService
 {

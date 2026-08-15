@@ -18,8 +18,12 @@ class Comida extends Model
         'descripcion',
         'botonpago_id',
         'precio',
-        'vegano', 
+        'vegano',
         'celiaco'
+    ];
+
+    protected $casts = [
+        'precio' => 'decimal:2',
     ];
 
     public function botonPago()

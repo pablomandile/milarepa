@@ -48,6 +48,11 @@ const props = defineProps({
     type: [Number, String],
     default: null,
   },
+  // {moneda_id: {id, nombre, link}} del botón de pago de la actividad en cada moneda.
+  botonesPagoPorMoneda: {
+    type: Object,
+    default: () => ({}),
+  },
 });
 
 const toast = useToast();
@@ -86,7 +91,13 @@ const actividadEsGratuita = computed(() => {
     nombreEsquema.includes('gratuita')
   );
 });
-const actividadPagoLink = computed(() => props.actividad?.boton_pago?.link || '');
+// El botón de pago acompaña a la moneda elegida: cada línea del esquema puede
+// tener el suyo, y el que renderiza el server es sólo el de la moneda inicial.
+const actividadPagoLink = computed(() => {
+  const porMoneda = props.botonesPagoPorMoneda || {};
+  const elegido = porMoneda[monedaSeleccionadaId.value] || porMoneda[String(monedaSeleccionadaId.value)];
+  return elegido?.link || props.actividad?.boton_pago?.link || '';
+});
 const grabacionSeleccionada = ref(false);
 const comidasSeleccionadas = ref([]);
 const transportesSeleccionados = ref([]);
@@ -440,7 +451,12 @@ const hospedajesBloqueadosIds = computed(() => {
   return [props.inscripcion.hospedaje_id];
 });
 const grabacionBloqueada = computed(() => {
-  return esPagoDeInscripcionExistente.value && !!props.inscripcion?.montoGrabacion && Number(props.inscripcion.montoGrabacion) > 0;
+  // montoGrabacion es null cuando la inscripción NO incluye grabación; 0 es un
+  // valor válido (grabación gratuita, o sin precio en la moneda elegida y por lo
+  // tanto cobrada en la porción en pesos). Mirar "> 0" dejaba desbloqueadas esas
+  // dos y permitía desmarcar una grabación ya contratada.
+  const monto = props.inscripcion?.montoGrabacion;
+  return esPagoDeInscripcionExistente.value && monto !== null && monto !== undefined;
 });
 const esPagoCero = computed(() => {
   // Si hay un monto real a pagar (incluye invitados y servicios, en cualquiera

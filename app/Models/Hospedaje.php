@@ -21,6 +21,10 @@ class Hospedaje extends Model
         'lugar_hospedaje_id'
     ];
 
+    protected $casts = [
+        'precio' => 'decimal:2',
+    ];
+
     public function lugarHospedaje()
     {
         return $this->belongsTo(LugarHospedaje::class, 'lugar_hospedaje_id');

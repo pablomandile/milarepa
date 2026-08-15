@@ -19,6 +19,10 @@ class Transporte extends Model
         'precio'
     ];
 
+    protected $casts = [
+        'precio' => 'decimal:2',
+    ];
+
     public function botonPago()
     {
         return $this->belongsTo(BotonPago::class, 'botonpago_id');

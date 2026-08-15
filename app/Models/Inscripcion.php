@@ -65,7 +65,16 @@ class Inscripcion extends Model
 
     public function totalAdeudado(): float
     {
-        return (float) $this->montoapagar;
+        // Total dividido (BUSINESS_RULES §2.1bis): la deuda son LAS DOS porciones,
+        // la de la moneda de la inscripción y la que quedó en la principal. Mirando
+        // sólo `montoapagar`, una inscripción de "USD 120 + $ 2.000" se marcaba
+        // Saldado al cobrar los 120 y los 2.000 desaparecían.
+        //
+        // La suma mezcla unidades a propósito: sin cotización es la única forma de
+        // decidir Saldado / Parcial / Pendiente, y es el mismo criterio que ya usa
+        // el checkout para resolver el estado. El desglose real vive en las dos
+        // columnas, que son las que se muestran.
+        return (float) $this->montoapagar + (float) ($this->monto_moneda_principal ?? 0);
     }
 
     public function actividad()

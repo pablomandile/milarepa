@@ -12,6 +12,7 @@ use App\Services\InscripcionServiciosService;
 use App\Services\HospedajeCupoService;
 use App\Services\InscripcionMailService;
 use App\Services\MercadoPagoService;
+use App\Services\PrecioActividadService;
 use App\Models\Pais;
 use App\Models\Provincia;
 use App\Models\Municipio;
@@ -442,11 +443,6 @@ class GridActividadesController extends Controller
             $saldo = $precioGeneral;
         }
 
-        $botonPagoActividad = $this->obtenerBotonPagoActividad($actividad, $userContext);
-        if ($botonPagoActividad) {
-            $actividad->setRelation('botonPago', $botonPagoActividad);
-        }
-
         $mostrarSelectorModalidad = $this->mostrarSelectorModalidadEnPago($actividad, $userContext);
 
         $inscripcionExistente = null;
@@ -458,6 +454,15 @@ class GridActividadesController extends Controller
         }
 
         $monedaPrincipal = Moneda::principal();
+
+        // El botón que se renderiza de entrada es el de la moneda efectiva (la de
+        // la inscripción cuando se está pagando una existente); el mapa por moneda
+        // deja que el front lo cambie junto con el selector.
+        $monedaBoton = $inscripcionExistente?->moneda_id ?? $monedaPrincipal?->id;
+        $botonPagoActividad = $this->obtenerBotonPagoActividad($actividad, $userContext, $monedaBoton ? (int) $monedaBoton : null);
+        if ($botonPagoActividad) {
+            $actividad->setRelation('botonPago', $botonPagoActividad);
+        }
 
         return inertia('GridActividades/Pago', [
             'actividad' => $actividad,
@@ -475,6 +480,8 @@ class GridActividadesController extends Controller
             'monedaInscripcion' => $inscripcionExistente
                 ? (int) ($inscripcionExistente->moneda_id ?? $monedaPrincipal?->id)
                 : null,
+            // {moneda_id: {id, nombre, link}} — el front cambia el botón junto con el selector.
+            'botonesPagoPorMoneda' => (object) $this->botonesPagoActividadPorMoneda($actividad, $userContext),
         ]);
     }
 
@@ -1348,47 +1355,28 @@ class GridActividadesController extends Controller
             ->exists();
     }
 
+    /**
+     * Reglas de precio de actividades. El controller tenía su propia copia de
+     * estos ocho helpers "para no tocar el flujo público": la copia se desfasó
+     * (obtenerBotonPagoActividad no aplicaba la cascada por moneda), así que
+     * ahora hay una sola implementación y el controller delega.
+     */
+    private function precios(): PrecioActividadService
+    {
+        return app(PrecioActividadService::class);
+    }
+
     private function calcularPrecios(Actividad $actividad, ?User $user, ?int $monedaId = null): array
     {
-        $actividad->loadMissing([
-            'esquemaPrecio.membresias.membresia',
-            'esquemaPrecio.membresias.moneda',
-            'esquemaDescuento.membresias.membresia',
-            'esquemaDescuento.membresias.moneda',
-        ]);
-
-        $precioGeneral = 0;
-        $precioMembresia = 0;
-        $membresiaNombre = 'Sin membresía';
-        $esquemaVigente = $this->obtenerEsquemaPrecioVigente($actividad);
-
-        if ($esquemaVigente?->membresias) {
-            $general = $this->resolverLineaEsquema($esquemaVigente->membresias, null, $monedaId)
-                ?? $esquemaVigente->membresias
-                    ->first(fn ($linea) => $this->esMembresiaGeneral($linea?->membresia?->nombre));
-            $precioGeneral = $general->precio ?? 0;
-        }
-
-        if ($user && $user->membresia_id && $esquemaVigente?->membresias) {
-            $pivot = $this->resolverLineaEsquema($esquemaVigente->membresias, (int) $user->membresia_id, $monedaId)
-                ?? $esquemaVigente->membresias->firstWhere('membresia_id', $user->membresia_id);
-            $precioMembresia = $pivot->precio ?? 0;
-            $membresiaNombre = $user->membresia?->nombre ?? $membresiaNombre;
-        }
-
-        return [$precioGeneral, $precioMembresia, $membresiaNombre];
+        return $this->precios()->calcularPrecios($actividad, $user, $monedaId);
     }
 
     private function obtenerEsquemaPrecioVigente(Actividad $actividad)
     {
-        if ($this->aplicaDescuentoAnticipado($actividad) && $actividad->esquemaDescuento) {
-            return $actividad->esquemaDescuento;
-        }
-
-        return $actividad->esquemaPrecio;
+        return $this->precios()->esquemaVigente($actividad);
     }
 
-    private function obtenerBotonPagoActividad(Actividad $actividad, ?User $user)
+    private function obtenerBotonPagoActividad(Actividad $actividad, ?User $user, ?int $monedaId = null)
     {
         $actividad->loadMissing([
             'esquemaPrecio.membresias.membresia',
@@ -1403,85 +1391,63 @@ class GridActividadesController extends Controller
             return $actividad->botonPago;
         }
 
-        $linea = null;
-        if ($user && $user->membresia_id) {
-            $linea = $esquemaVigente->membresias->firstWhere('membresia_id', $user->membresia_id);
-        }
-
-        if (!$linea) {
-            $linea = $esquemaVigente->membresias
-                ->first(fn ($item) => $this->esMembresiaGeneral($item?->membresia?->nombre));
-        }
+        // Misma cascada que el precio (BUSINESS_RULES §2.2): sin mirar la moneda,
+        // una actividad con líneas en pesos y en dólares devolvía el botón de la
+        // primera que matcheara la membresía, o sea el de la moneda equivocada.
+        $linea = $this->resolverLineaEsquema(
+            $esquemaVigente->membresias,
+            $user?->membresia_id ? (int) $user->membresia_id : null,
+            $monedaId
+        );
 
         return $linea?->botonPago ?: $actividad->botonPago;
     }
 
+    /**
+     * Botón de pago de la actividad para CADA moneda del esquema vigente.
+     *
+     * La persona cambia de moneda en el selector del checkout sin recargar, así
+     * que un único botón resuelto en el server dejaría el link de otra moneda.
+     *
+     * @return array<int, array{id: int, nombre: string|null, link: string|null}>
+     */
+    private function botonesPagoActividadPorMoneda(Actividad $actividad, ?User $user): array
+    {
+        $esquemaVigente = $this->obtenerEsquemaPrecioVigente($actividad);
+        $monedaIds = $esquemaVigente?->membresias
+            ?->pluck('moneda_id')
+            ->filter()
+            ->unique()
+            ->values() ?? collect();
+
+        $botones = [];
+        foreach ($monedaIds as $monedaId) {
+            $boton = $this->obtenerBotonPagoActividad($actividad, $user, (int) $monedaId);
+            if ($boton) {
+                $botones[(int) $monedaId] = [
+                    'id' => $boton->id,
+                    'nombre' => $boton->nombre,
+                    'link' => $boton->link,
+                ];
+            }
+        }
+
+        return $botones;
+    }
+
     private function aplicaDescuentoAnticipado(Actividad $actividad): bool
     {
-        if (empty($actividad->pagoAmticipado)) {
-            return false;
-        }
-
-        try {
-            $limite = Carbon::parse($actividad->pagoAmticipado);
-        } catch (\Exception $e) {
-            return false;
-        }
-
-        return now()->lte($limite);
+        return $this->precios()->aplicaDescuentoAnticipado($actividad);
     }
 
     private function esMembresiaGeneral(?string $nombre): bool
     {
-        $normalized = mb_strtolower(trim((string) $nombre), 'UTF-8');
-        $normalized = strtr($normalized, [
-            'á' => 'a',
-            'é' => 'e',
-            'í' => 'i',
-            'ó' => 'o',
-            'ú' => 'u',
-        ]);
-
-        return str_contains($normalized, 'sin membres');
+        return $this->precios()->esMembresiaGeneral($nombre);
     }
 
     private function resolverLineaEsquema($lineas, ?int $membresiaId, ?int $monedaId)
     {
-        if (!$lineas || $lineas->isEmpty()) {
-            return null;
-        }
-
-        if ($membresiaId && $monedaId) {
-            $exacta = $lineas->first(function ($linea) use ($membresiaId, $monedaId) {
-                return (int) ($linea->membresia_id ?? 0) === $membresiaId
-                    && (int) ($linea->moneda_id ?? 0) === $monedaId;
-            });
-            if ($exacta) {
-                return $exacta;
-            }
-        }
-
-        if ($monedaId) {
-            $generalMoneda = $lineas->first(function ($linea) use ($monedaId) {
-                return (int) ($linea->moneda_id ?? 0) === $monedaId
-                    && $this->esMembresiaGeneral($linea?->membresia?->nombre);
-            });
-            if ($generalMoneda) {
-                return $generalMoneda;
-            }
-        }
-
-        if ($membresiaId) {
-            $membresiaCualquieraMoneda = $lineas->first(function ($linea) use ($membresiaId) {
-                return (int) ($linea->membresia_id ?? 0) === $membresiaId;
-            });
-            if ($membresiaCualquieraMoneda) {
-                return $membresiaCualquieraMoneda;
-            }
-        }
-
-        return $lineas->first(fn ($linea) => $this->esMembresiaGeneral($linea?->membresia?->nombre))
-            ?? $lineas->first();
+        return $this->precios()->resolverLineaEsquema($lineas, $membresiaId, $monedaId);
     }
 
     private function mostrarSelectorModalidadEnPago(Actividad $actividad, ?User $user): bool
@@ -1501,39 +1467,12 @@ class GridActividadesController extends Controller
 
     private function resolverModalidadOnline(Actividad $actividad, ?User $user, bool $registrado, ?string $modalidadCursada): bool
     {
-        $modalidad = $this->normalizarTextoModalidad($actividad->modalidad?->nombre);
-
-        if ($modalidad === 'online') {
-            return true;
-        }
-
-        $seleccion = strtolower((string) ($modalidadCursada ?? 'presencial'));
-        if (!in_array($seleccion, ['presencial', 'online'], true)) {
-            $seleccion = 'presencial';
-        }
-
-        if ($modalidad === 'presencial y online abierta') {
-            return $seleccion === 'online';
-        }
-
-        if ($modalidad === 'presencial y online') {
-            $puedeElegirOnline = $registrado && (bool) ($user?->membresia_online ?? false);
-            return $puedeElegirOnline && $seleccion === 'online';
-        }
-
-        return false;
+        return $this->precios()->resolverModalidadOnline($actividad, $user, $registrado, $modalidadCursada);
     }
 
     private function normalizarTextoModalidad(?string $texto): string
     {
-        $normalized = mb_strtolower(trim((string) $texto), 'UTF-8');
-        return strtr($normalized, [
-            'á' => 'a',
-            'é' => 'e',
-            'í' => 'i',
-            'ó' => 'o',
-            'ú' => 'u',
-        ]);
+        return $this->precios()->normalizarTextoModalidad($texto);
     }
 
     private function normalizarMetodoPagoFinal(string $metodo): string
@@ -1573,11 +1512,7 @@ class GridActividadesController extends Controller
 
     private function resolverEstadoSegunMonto(float $montoApagar): array
     {
-        if ($montoApagar <= 0.0) {
-            return ['Saldado', 'Confirmada'];
-        }
-
-        return ['Pendiente', 'Registrada'];
+        return $this->precios()->resolverEstadoSegunMonto($montoApagar);
     }
 
     /**

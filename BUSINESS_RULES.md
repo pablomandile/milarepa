@@ -60,6 +60,15 @@ montoTotal = montoActividad
   se oculta en el front y `finalizarPago` lo rechaza con 422. También se rechaza una moneda
   que no sea la principal ni esté en el esquema vigente de la actividad.
 - Gratis es gratis solo si AMBAS porciones son 0.
+- **La deuda de una inscripción son sus dos porciones**: `Inscripcion::totalAdeudado()` suma
+  `montoapagar` + `monto_moneda_principal`, y de ahí sale el estado Saldado / Parcial / Pendiente.
+  La suma mezcla unidades a propósito (no hay cotización); el desglose real vive en las dos
+  columnas, que son las que se muestran.
+- El **botón de pago de la actividad** acompaña a la moneda elegida: se resuelve con la misma
+  cascada del precio y el checkout recibe un botón por cada moneda del esquema, así el link
+  cambia junto con el selector.
+- El **POS es siempre en la moneda principal**: acepta `moneda_id` a nivel servicio, pero la venta
+  y el ticket manejan un total único, así que no se expone selector (ver DEUDA_TECNICA §0.9).
 
 ### 2.1ter Cómo se muestra la plata cuando hay varias monedas
 
