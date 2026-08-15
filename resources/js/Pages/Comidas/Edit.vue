@@ -30,6 +30,11 @@
         descripcion: props.comida.descripcion,
         botonpago_id: props.comida.botonpago_id || null,
         precio: props.comida.precio,
+        precios: (props.comida.precios || []).map((p) => ({
+            moneda_id: p.moneda_id,
+            precio: p.precio,
+            botonpago_id: p.botonpago_id || null
+        })),
         vegano: props.comida.vegano === 1,
         celiaco: props.comida.celiaco === 1
     });
@@ -62,10 +67,11 @@
                     </div>
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                            <ComidaForm 
-                            :updating="true" 
-                            :form="form" 
+                            <ComidaForm
+                            :updating="true"
+                            :form="form"
                             :botonesPago="props.botonesPago"
+                            :monedas="props.monedas"
                             @submit="handleSubmit"/>
                         </div>
                     </div>

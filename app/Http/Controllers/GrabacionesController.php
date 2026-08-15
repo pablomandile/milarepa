@@ -6,7 +6,9 @@ use App\Http\Requests\LinkGrabacionRequest;
 use Illuminate\Http\Request;
 use App\Models\Grabacion;
 use App\Models\LinkGrabacion;
+use App\Models\Moneda;
 use App\Http\Requests\GrabacionRequest;
+use App\Services\ServicioPrecioService;
 use Inertia\Inertia;
 use App\Models\BotonPago;
 
@@ -34,15 +36,17 @@ class GrabacionesController extends Controller
         $botonesPago = BotonPago::select('id', 'nombre')->get();
         return Inertia::render('Grabaciones/CreateFirstStep', [
             'botonesPago' => $botonesPago,
+            'monedas' => Moneda::orderByDesc('es_principal')->get(['id', 'nombre', 'simbolo', 'es_principal']),
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(GrabacionRequest $request)
+    public function store(GrabacionRequest $request, ServicioPrecioService $servicioPrecios)
     {
-        $grabacion = Grabacion::create($request->validated());
+        $grabacion = Grabacion::create($request->safe()->except('precios'));
+        $servicioPrecios->sincronizar($grabacion, $request->validated('precios') ?? []);
 
         return redirect()
         ->route('grabaciones.links', $grabacion->id)
@@ -75,21 +79,23 @@ class GrabacionesController extends Controller
      */
     public function edit($id)
     {
-        $grabacion = Grabacion::with(['linksgrabacion'])->findOrFail($id);
+        $grabacion = Grabacion::with(['linksgrabacion', 'precios'])->findOrFail($id);
         $botonesPago = BotonPago::select('id', 'nombre')->get();
         return Inertia::render('Grabaciones/EditFirstStep', [
             'grabacion' => $grabacion,
             'botonesPago' => $botonesPago,
+            'monedas' => Moneda::orderByDesc('es_principal')->get(['id', 'nombre', 'simbolo', 'es_principal']),
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(GrabacionRequest $request, string $id)
+    public function update(GrabacionRequest $request, string $id, ServicioPrecioService $servicioPrecios)
     {
         $grabacion = Grabacion::findOrFail($id);
-        $grabacion->update($request->validated());
+        $grabacion->update($request->safe()->except('precios'));
+        $servicioPrecios->sincronizar($grabacion, $request->validated('precios') ?? []);
 
         return redirect()
             ->route('grabaciones.index')

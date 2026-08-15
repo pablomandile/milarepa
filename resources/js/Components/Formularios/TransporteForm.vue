@@ -11,6 +11,7 @@ import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
+import PreciosPorMonedaGrid from './PreciosPorMonedaGrid.vue';
 import Dropdown from 'primevue/dropdown';
 
     defineProps({
@@ -24,6 +25,10 @@ import Dropdown from 'primevue/dropdown';
         default: false
     },
         botonesPago: {
+        type: Array,
+        default: () => []
+    },
+        monedas: {
         type: Array,
         default: () => []
     }
@@ -70,6 +75,7 @@ import Dropdown from 'primevue/dropdown';
                 <TextInput id="precio" v-model="form.precio" type="text" autocomplete="precio" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.precio" class="mt-2" />
             </div>
+            <PreciosPorMonedaGrid :form="form" :monedas="monedas" :botonesPago="botonesPago" />
         </template>
         <template #actions>
             <PrimaryButton>

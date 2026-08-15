@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ConPreciosPorMoneda;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class ComidaRequest extends FormRequest
 {
+    use ConPreciosPorMoneda;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -26,18 +29,19 @@ class ComidaRequest extends FormRequest
             'nombre' => ['required', 'string', 'max:100'],
             'descripcion' => ['required','string', 'max:255'],
             'botonpago_id' => ['nullable', 'exists:botones_pago,id'],
-            'precio' => ['required'],
+            'precio' => ['required', 'numeric', 'min:0'],
             'vegano' => ['nullable', 'boolean'],
-            'celiaco' => ['nullable', 'boolean']            
-        ];
+            'celiaco' => ['nullable', 'boolean']
+        ] + $this->reglasPrecios();
     }
 
     public function messages():array {
         return [
             'nombre.required' => __('El nombre no puede quedar vacío'),
             'descripcion.required' => __('La descripción no puede quedar vacía'),
-            'precio.required' => __('El precio no puede quedar vacío')
-
-        ];
+            'precio.required' => __('El precio no puede quedar vacío'),
+            'precio.numeric' => __('El precio debe ser numérico'),
+            'precio.min' => __('El precio no puede ser negativo'),
+        ] + $this->mensajesPrecios();
     }
 }

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Hospedaje;
 use App\Models\LugarHospedaje;
+use App\Models\Moneda;
 use App\Http\Requests\HospedajeRequest;
+use App\Services\ServicioPrecioService;
 use Inertia\Inertia;
 use App\Models\BotonPago;
 
@@ -32,15 +34,17 @@ class HospedajesController extends Controller
         return inertia('Hospedajes/Create', [
             'lugaresHospedaje' => $lugaresHospedaje,
             'botonesPago' => $botonesPago,
+            'monedas' => Moneda::orderByDesc('es_principal')->get(['id', 'nombre', 'simbolo', 'es_principal']),
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(HospedajeRequest $request)
+    public function store(HospedajeRequest $request, ServicioPrecioService $servicioPrecios)
     {
-        Hospedaje::create($request->validated());
+        $hospedaje = Hospedaje::create($request->safe()->except('precios'));
+        $servicioPrecios->sincronizar($hospedaje, $request->validated('precios') ?? []);
         return redirect()->route('hospedajes.index');
     }
 
@@ -61,18 +65,20 @@ class HospedajesController extends Controller
         $botonesPago = BotonPago::select('id', 'nombre')->get();
 
         return inertia::render('Hospedajes/Edit', [
-            'hospedaje' => $hospedaje,
+            'hospedaje' => $hospedaje->load('precios'),
             'lugaresHospedaje' => $lugaresHospedaje,
             'botonesPago' => $botonesPago,
+            'monedas' => Moneda::orderByDesc('es_principal')->get(['id', 'nombre', 'simbolo', 'es_principal']),
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(HospedajeRequest $request, Hospedaje $hospedaje)
+    public function update(HospedajeRequest $request, Hospedaje $hospedaje, ServicioPrecioService $servicioPrecios)
     {
-        $hospedaje->update($request->validated());
+        $hospedaje->update($request->safe()->except('precios'));
+        $servicioPrecios->sincronizar($hospedaje, $request->validated('precios') ?? []);
         return redirect()->route('hospedajes.index');
     }
 

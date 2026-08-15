@@ -18,12 +18,17 @@
         botonesPago: {
         type: Array,
         default: () => []
+        },
+        monedas: {
+        type: Array,
+        default: () => []
         }
     });
 
     const form = useForm({
         nombre: '',
         descripcion: '',
+        precios: [],
         botonpago_id: null,
         precio: '',
         lugar_hospedaje_id: ''
@@ -49,10 +54,11 @@
                     </div>
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                            <HospedajeForm 
+                            <HospedajeForm
                             :updating="false"
                             :lugaresHospedaje="lugaresHospedaje"
                             :botonesPago="props.botonesPago"
+                            :monedas="props.monedas"
                             :form="form" @submit="form.post(route('hospedajes.store'))"/>
                         </div>
                     </div>

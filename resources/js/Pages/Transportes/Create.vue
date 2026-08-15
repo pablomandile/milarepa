@@ -14,6 +14,10 @@
         botonesPago: {
             type: Array,
             default: () => []
+        },
+        monedas: {
+            type: Array,
+            default: () => []
         }
     });
 
@@ -21,7 +25,8 @@
     const form = useForm({
         descripcion: '',
         botonpago_id: null,
-        precio: ''
+        precio: '',
+        precios: []
     })
 </script>
 
@@ -43,10 +48,11 @@
                     </div>
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                            <TransporteForm 
+                            <TransporteForm
                             :updating="false"
                             :form="form"
                             :botonesPago="props.botonesPago"
+                            :monedas="props.monedas"
                             @submit="form.post(route('transportes.store'))"/>
                         </div>
                     </div>

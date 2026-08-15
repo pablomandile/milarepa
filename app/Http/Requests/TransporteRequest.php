@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ConPreciosPorMoneda;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class TransporteRequest extends FormRequest
 {
+    use ConPreciosPorMoneda;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -26,7 +29,7 @@ class TransporteRequest extends FormRequest
             'descripcion' => ['required','string', 'max:255'],
             'botonpago_id' => ['nullable', 'exists:botones_pago,id'],
             'precio' => ['required', 'numeric', 'min:0'],
-        ];
+        ] + $this->reglasPrecios();
     }
 
     public function messages():array {

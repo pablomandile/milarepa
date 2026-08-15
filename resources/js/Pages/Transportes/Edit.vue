@@ -18,6 +18,10 @@
         botonesPago: {
             type: Array,
             default: () => []
+        },
+        monedas: {
+            type: Array,
+            default: () => []
         }
     });
     if (!props.transporte) {
@@ -27,7 +31,12 @@
     const form = useForm({
         descripcion: props.transporte.descripcion,
         botonpago_id: props.transporte.botonpago_id || null,
-        precio: props.transporte.precio
+        precio: props.transporte.precio,
+        precios: (props.transporte.precios || []).map((p) => ({
+            moneda_id: p.moneda_id,
+            precio: p.precio,
+            botonpago_id: p.botonpago_id || null
+        }))
     });
 
     const handleSubmit = () => {
@@ -58,10 +67,11 @@
                     </div>
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                            <TransporteForm 
-                            :updating="true" 
-                            :form="form" 
+                            <TransporteForm
+                            :updating="true"
+                            :form="form"
                             :botonesPago="props.botonesPago"
+                            :monedas="props.monedas"
                             @submit="handleSubmit"/>
                         </div>
                     </div>

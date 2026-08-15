@@ -5,6 +5,7 @@ import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
+import PreciosPorMonedaGrid from './PreciosPorMonedaGrid.vue';
 import Dropdown from 'primevue/dropdown';
 import { defineProps, defineEmits } from 'vue';
 
@@ -20,6 +21,10 @@ const props = defineProps({
         default: false
     },
     botonesPago: {
+        type: Array,
+        default: () => []
+    },
+    monedas: {
         type: Array,
         default: () => []
     }
@@ -76,6 +81,9 @@ const emit = defineEmits(['submit', 'update:form']);
                     />
                 </div>
                 <InputError :message="$page.props.errors.valor" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6 mt-4">
+                <PreciosPorMonedaGrid :form="form" :monedas="monedas" :botonesPago="botonesPago" />
             </div>
         </template>
         <template #actions>

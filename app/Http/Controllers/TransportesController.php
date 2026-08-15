@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Transporte;
+use App\Models\Moneda;
 use App\Http\Requests\TransporteRequest;
+use App\Services\ServicioPrecioService;
 use Inertia\Inertia;
 use App\Models\BotonPago;
 
@@ -27,15 +29,17 @@ class TransportesController extends Controller
         $botonesPago = BotonPago::select('id', 'nombre')->get();
         return inertia('Transportes/Create', [
             'botonesPago' => $botonesPago,
+            'monedas' => Moneda::orderByDesc('es_principal')->get(['id', 'nombre', 'simbolo', 'es_principal']),
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(TransporteRequest $request)
+    public function store(TransporteRequest $request, ServicioPrecioService $servicioPrecios)
     {
-        Transporte::create($request->validated());
+        $transporte = Transporte::create($request->safe()->except('precios'));
+        $servicioPrecios->sincronizar($transporte, $request->validated('precios') ?? []);
         return redirect()->route('transportes.index');
     }
 
@@ -54,17 +58,19 @@ class TransportesController extends Controller
     {
         $botonesPago = BotonPago::select('id', 'nombre')->get();
         return inertia::render('Transportes/Edit', [
-            'transporte' => $transporte,
+            'transporte' => $transporte->load('precios'),
             'botonesPago' => $botonesPago,
+            'monedas' => Moneda::orderByDesc('es_principal')->get(['id', 'nombre', 'simbolo', 'es_principal']),
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(TransporteRequest $request, Transporte $transporte)
+    public function update(TransporteRequest $request, Transporte $transporte, ServicioPrecioService $servicioPrecios)
     {
-        $transporte->update($request->validated());
+        $transporte->update($request->safe()->except('precios'));
+        $servicioPrecios->sincronizar($transporte, $request->validated('precios') ?? []);
         return redirect()->route('transportes.index');
     }
 

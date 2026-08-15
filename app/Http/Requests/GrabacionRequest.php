@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ConPreciosPorMoneda;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GrabacionRequest extends FormRequest
 {
+    use ConPreciosPorMoneda;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -15,7 +18,7 @@ class GrabacionRequest extends FormRequest
             'nombre' => ['required', 'string', 'max:50'],
             'botonpago_id' => ['nullable', 'exists:botones_pago,id'],
             'valor' => ['required', 'numeric', 'min:0'],
-        ];
+        ] + $this->reglasPrecios();
     }
 
     public function messages(): array
@@ -25,7 +28,7 @@ class GrabacionRequest extends FormRequest
             'valor.required' => __('El valor no puede quedar vacío'),
             'valor.numeric' => __('El valor debe ser numérico'),
             'valor.min' => __('El valor no puede ser negativo'),
-        ];
+        ] + $this->mensajesPrecios();
     }
 }
 

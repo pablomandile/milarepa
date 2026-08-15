@@ -11,6 +11,7 @@ import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
+import PreciosPorMonedaGrid from './PreciosPorMonedaGrid.vue';
 import Dropdown from 'primevue/dropdown';
 
     defineProps({
@@ -31,6 +32,11 @@ import Dropdown from 'primevue/dropdown';
         },
 
         botonesPago: {
+            type: Array,
+            default: () => []
+        },
+
+        monedas: {
             type: Array,
             default: () => []
         }
@@ -83,6 +89,7 @@ import Dropdown from 'primevue/dropdown';
                 <TextInput id="precio" v-model="form.precio" type="number"  step="1" min="0" autocomplete="precio" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.precio" class="mt-2" />
             </div>
+            <PreciosPorMonedaGrid :form="form" :monedas="monedas" :botonesPago="botonesPago" />
             <!-- Lugar de Hospedaje (Dropdown) -->
             <div class="col-span-6 sm:col-span-6 mb-2">
                 <InputLabel for="lugar_hospedaje_id" value="Lugar de Hospedaje" :required="true"/>

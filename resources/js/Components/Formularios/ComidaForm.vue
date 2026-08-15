@@ -11,6 +11,7 @@ import InputError from '../InputError.vue';
 import InputLabel from '../InputLabel.vue';
 import PrimaryButton from '../PrimaryButton.vue';
 import TextInput from '../TextInput.vue';
+import PreciosPorMonedaGrid from './PreciosPorMonedaGrid.vue';
 import InputSwitch from 'primevue/inputswitch';
 import Dropdown from 'primevue/dropdown';
 
@@ -26,6 +27,10 @@ import Dropdown from 'primevue/dropdown';
         default: false
     },
         botonesPago: {
+        type: Array,
+        default: () => []
+    },
+        monedas: {
         type: Array,
         default: () => []
     }
@@ -77,9 +82,10 @@ import Dropdown from 'primevue/dropdown';
                 <TextInput id="precio" v-model="form.precio" type="number"  step="50" min="0" autocomplete="precio" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.precio" class="mt-2" />
             </div>
+            <PreciosPorMonedaGrid :form="form" :monedas="monedas" :botonesPago="botonesPago" />
             <div class="mt-4 flex items-center col-span-6 mb-2">
                 <InputSwitch
-                    v-model="form.vegano" 
+                    v-model="form.vegano"
                     class="mr-3"
                     />
                 <label for="vegano" class="block text-sm text-indigo-400">

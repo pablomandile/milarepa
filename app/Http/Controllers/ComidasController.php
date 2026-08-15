@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Comida;
+use App\Models\Moneda;
 use App\Http\Requests\ComidaRequest;
+use App\Services\ServicioPrecioService;
 use Inertia\Inertia;
 use App\Models\BotonPago;
 
@@ -27,15 +29,17 @@ class ComidasController extends Controller
         $botonesPago = BotonPago::select('id', 'nombre')->get();
         return inertia('Comidas/Create', [
             'botonesPago' => $botonesPago,
+            'monedas' => Moneda::orderByDesc('es_principal')->get(['id', 'nombre', 'simbolo', 'es_principal']),
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(ComidaRequest $request)
+    public function store(ComidaRequest $request, ServicioPrecioService $servicioPrecios)
     {
-        Comida::create($request->validated());
+        $comida = Comida::create($request->safe()->except('precios'));
+        $servicioPrecios->sincronizar($comida, $request->validated('precios') ?? []);
         return redirect()-> route('comidas.index');
     }
 
@@ -54,17 +58,19 @@ class ComidasController extends Controller
     {
         $botonesPago = BotonPago::select('id', 'nombre')->get();
         return inertia::render('Comidas/Edit', [
-            'comida' => $comida,
+            'comida' => $comida->load('precios'),
             'botonesPago' => $botonesPago,
+            'monedas' => Moneda::orderByDesc('es_principal')->get(['id', 'nombre', 'simbolo', 'es_principal']),
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(ComidaRequest $request, Comida $comida)
+    public function update(ComidaRequest $request, Comida $comida, ServicioPrecioService $servicioPrecios)
     {
-        $comida->update($request->validated());
+        $comida->update($request->safe()->except('precios'));
+        $servicioPrecios->sincronizar($comida, $request->validated('precios') ?? []);
         return redirect()->route('comidas.index');
     }
 

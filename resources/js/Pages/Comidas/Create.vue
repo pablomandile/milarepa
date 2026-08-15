@@ -14,6 +14,10 @@
         botonesPago: {
             type: Array,
             default: () => []
+        },
+        monedas: {
+            type: Array,
+            default: () => []
         }
     });
 
@@ -23,6 +27,7 @@
         descripcion: '',
         botonpago_id: null,
         precio: '',
+        precios: [],
         vegano: false,
         celiaco: false
     })
@@ -46,10 +51,11 @@
                     </div>
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                            <ComidaForm 
+                            <ComidaForm
                             :updating="false"
                             :form="form"
                             :botonesPago="props.botonesPago"
+                            :monedas="props.monedas"
                             @submit="form.post(route('comidas.store'))"/>
                         </div>
                     </div>

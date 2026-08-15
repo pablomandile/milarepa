@@ -23,6 +23,10 @@
         botonesPago: {
         type: Array,
         default: () => []
+        },
+        monedas: {
+        type: Array,
+        default: () => []
         }
     });
 
@@ -36,6 +40,11 @@
         descripcion: props.hospedaje.descripcion,
         botonpago_id: props.hospedaje.botonpago_id || null,
         precio: props.hospedaje.precio,
+        precios: (props.hospedaje.precios || []).map((p) => ({
+            moneda_id: p.moneda_id,
+            precio: p.precio,
+            botonpago_id: p.botonpago_id || null
+        })),
         lugar_hospedaje_id: props.hospedaje.lugar_hospedaje_id
     });
 
@@ -67,11 +76,12 @@
                     </div>
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                            <HospedajeForm 
-                            :updating="true" 
-                            :form="form" 
+                            <HospedajeForm
+                            :updating="true"
+                            :form="form"
                             :lugaresHospedaje="lugaresHospedaje"
                             :botonesPago="props.botonesPago"
+                            :monedas="props.monedas"
                             @submit="handleSubmit"/>
                         </div>
                     </div>

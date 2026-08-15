@@ -12,13 +12,22 @@ const props = defineProps({
     botonesPago: {
         type: Array,
         default: () => []
+    },
+    monedas: {
+        type: Array,
+        default: () => []
     }
 });
 
 const form = useForm({
     nombre: props.grabacion.nombre || '',
     botonpago_id: props.grabacion.botonpago_id || null,
-    valor: props.grabacion.valor ?? 0
+    valor: props.grabacion.valor ?? 0,
+    precios: (props.grabacion.precios || []).map((p) => ({
+        moneda_id: p.moneda_id,
+        precio: p.precio,
+        botonpago_id: p.botonpago_id || null
+    }))
 });
 
 const submit = () => {
@@ -49,10 +58,11 @@ const submit = () => {
                     </div>
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-soft-indigo sm:rounded-lg">
                         <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                            <GrabacionForm 
+                            <GrabacionForm
                                 :updating="true"
                                 :form="form"
                                 :botonesPago="props.botonesPago"
+                                :monedas="props.monedas"
                                 @submit="submit"
                             />
                         </div>
