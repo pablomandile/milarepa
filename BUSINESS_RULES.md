@@ -450,6 +450,21 @@ Parámetros conocidos:
 
 ---
 
+## 9bis. Filtro público por sede (`?sede=`)
+
+Las páginas públicas `/grid-actividades`, `/grillaembebida` y `/clases-publicas` aceptan el query param `?sede=<palabra>` para mostrar una sola sede (`Entidad::resolverPorPalabra()`, `app/Models/Entidad.php`).
+
+- **Resolución**: la palabra se normaliza (minúsculas, sin acentos, sin espacios/guiones) y se compara por *substring* contra el nombre normalizado de cada entidad. Filtra **solo si coincide con exactamente una**; con 0 o varias coincidencias (ej. `kadampa`, `anexo`, `centro`) se muestra todo — un link mal tipeado nunca rompe la página.
+- **Grilla y embebida**: filtran server-side, sin banner ni aviso. Sin parámetro, comportamiento idéntico al histórico (el iframe de meditarenargentina.org no cambia).
+- **Clases públicas**: NO se recorta el listado server-side (los botones de sede se derivan de las clases y colapsarían); el parámetro solo **preselecciona el chip** (`entidadSeleccionadaId`) y el visitante puede volver a "Todas".
+- No hay columna `slug` en `entidades` y `abreviacion` está duplicada (CMKC = Córdoba y Chile): por eso se resuelve contra el nombre. Sedes nuevas funcionan solas con cualquier palabra única de su nombre.
+
+Palabras canónicas con las 13 entidades actuales (2026-08): `argentina`, `nagaryhuna`, `cordoba`, `mahamudra`, `chile`, `escalada` (o `remedios`), `quilmes`, `caballito`, `santelmo` (o `telmo`), `wilde`, `ramosmejia` (o `ramos`, `mejia`), `bariloche`, `rosario`.
+
+Tests: `tests/Feature/SedePorParametroTest.php`.
+
+---
+
 ## 10. Reglas implícitas / suposiciones
 
 Lista de comportamientos observados que no son reglas escritas pero **impactan operativamente**:

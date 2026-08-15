@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Actividad;
+use App\Models\Entidad;
 use App\Models\GuestUser;
 use App\Models\Inscripcion;
 use App\Models\Invitado;
@@ -45,7 +46,8 @@ class GridActividadesController extends Controller
      */
     public function index(Request $request)
     {
-        $actividades = $this->actividadesParaGrilla();
+        $sede = Entidad::resolverPorPalabra($request->query('sede'));
+        $actividades = $this->actividadesParaGrilla($sede?->id);
 
         $paises = Pais::all();
         $provincias = Provincia::orderByRaw('FIELD(id, 24) DESC, id ASC')->get();
@@ -86,8 +88,9 @@ class GridActividadesController extends Controller
 
     /**
      * Actividades con las relaciones y el formato de fecha que esperan las cards de la grilla.
+     * Con $entidadId se limita a esa sede (parámetro ?sede= de la URL pública).
      */
-    private function actividadesParaGrilla(): \Illuminate\Database\Eloquent\Collection
+    private function actividadesParaGrilla(?int $entidadId = null): \Illuminate\Database\Eloquent\Collection
     {
         $with = [
             'tipoActividad',
@@ -112,7 +115,9 @@ class GridActividadesController extends Controller
             $with[] = 'lugar';
         }
 
-        $actividades = Actividad::with($with)->get();
+        $actividades = Actividad::with($with)
+            ->when($entidadId, fn ($q) => $q->where('entidad_id', $entidadId))
+            ->get();
 
         // Convertir cada fecha con Carbon a un string amigable:
         $actividades->transform(function ($actividad) {
@@ -134,10 +139,12 @@ class GridActividadesController extends Controller
      * Sin datos de sesión ni catálogos: "Inscribirme" y "Más info" abren
      * milarepa.com.ar en pestaña nueva desde la vista.
      */
-    public function grillaEmbebida()
+    public function grillaEmbebida(Request $request)
     {
+        $sede = Entidad::resolverPorPalabra($request->query('sede'));
+
         return inertia('GridActividades/GrillaEmbebida', [
-            'actividades' => $this->actividadesParaGrilla()->toArray(),
+            'actividades' => $this->actividadesParaGrilla($sede?->id)->toArray(),
             'gridVariante' => ConfiguracionSistema::obtenerTexto('grid_actividades_variante', 'grid1'),
         ]);
     }

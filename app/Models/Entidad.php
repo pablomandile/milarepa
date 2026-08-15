@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Entidad extends Model
 {
@@ -52,5 +53,34 @@ class Entidad extends Model
     public function membresias()
     {
         return $this->hasMany(Membresia::class, 'entidad_id');
+    }
+
+    /**
+     * Resuelve la sede que nombra una palabra suelta de la URL (?sede=rosario),
+     * comparándola contra el nombre normalizado de cada entidad. Devuelve null
+     * si no hay coincidencias o si hay más de una ("kadampa" está en varias):
+     * las páginas públicas muestran todo en ese caso, nunca un error.
+     */
+    public static function resolverPorPalabra(?string $palabra): ?self
+    {
+        $clave = self::normalizarClave($palabra);
+        if ($clave === '') {
+            return null;
+        }
+
+        $coincidencias = self::all()->filter(
+            fn (self $entidad) => str_contains(self::normalizarClave($entidad->nombre), $clave)
+        );
+
+        return $coincidencias->count() === 1 ? $coincidencias->first() : null;
+    }
+
+    /**
+     * Minúsculas sin acentos ni separadores, para que "san-telmo", "San Telmo"
+     * y "santelmo" comparen igual contra "Anexo San Telmo".
+     */
+    private static function normalizarClave(?string $texto): string
+    {
+        return preg_replace('/[^a-z0-9]/', '', Str::lower(Str::ascii((string) $texto)));
     }
 }

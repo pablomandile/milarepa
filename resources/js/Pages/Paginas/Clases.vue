@@ -20,6 +20,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    entidadSeleccionadaId: {
+        type: Number,
+        default: null,
+    },
     clases: {
         type: Array,
         default: () => [],
@@ -72,8 +76,8 @@ const parseLocalDate = (value) => {
     return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
-// ----- Filtro por entidad -----
-const selectedEntidadId = ref(null);
+// ----- Filtro por entidad (?sede= en la URL preselecciona una) -----
+const selectedEntidadId = ref(props.entidadSeleccionadaId);
 
 const clasesFiltradas = computed(() => {
     if (selectedEntidadId.value === null) return props.clases;

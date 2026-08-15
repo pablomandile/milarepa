@@ -133,9 +133,9 @@ class ClasesController extends Controller
      * Página pública de Clases (todas las entidades). Mismo formato que Actividades
      * Online: banner + tarjetas por clase con su cronograma (fecha, horario y título
      * de cada sesión). Para el público general NO se exponen los links de stream.
-     * Los botones filtran por entidad.
+     * Los botones filtran por entidad; ?sede=<palabra> preselecciona uno.
      */
-    public function paginaPublica()
+    public function paginaPublica(Request $request)
     {
         // El banner reutiliza la imagen de la página de Actividades Online del mes en curso.
         $monthStart = now()->startOfMonth();
@@ -186,11 +186,16 @@ class ClasesController extends Controller
             ->map(fn ($entidad) => ['id' => $entidad->id, 'nombre' => $entidad->nombre])
             ->values();
 
+        // ?sede=<palabra> sólo preselecciona el botón: las clases se mandan todas
+        // para que los demás botones sigan estando disponibles.
+        $sede = Entidad::resolverPorPalabra($request->query('sede'));
+
         return inertia('Paginas/Clases', [
             'headerImageUrl' => $pagina?->imagen ? '/storage/' . $pagina->imagen->ruta : null,
             'monthLabel' => $monthLabel,
             'cycleName' => $cycleName,
             'entidades' => $entidades,
+            'entidadSeleccionadaId' => $sede?->id,
             'clases' => $clasesData,
         ]);
     }
