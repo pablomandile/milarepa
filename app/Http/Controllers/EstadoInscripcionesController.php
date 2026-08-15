@@ -9,6 +9,7 @@ use App\Models\EmailEnvioConfiguracion;
 use App\Models\EnvioMail;
 use App\Models\Inscripcion;
 use App\Models\MetodoPago;
+use App\Models\Moneda;
 use App\Models\Municipio;
 use App\Models\Pais;
 use App\Models\Provincia;
@@ -196,9 +197,13 @@ class EstadoInscripcionesController extends Controller
             'actividad:id,nombre,grabacion_id,modalidad_id',
             'actividad.modalidad:id,nombre',
             'actividad.grabacion:id,nombre,valor',
+            'actividad.grabacion.precios.moneda',
             'actividad.comidas:id,nombre,precio',
+            'actividad.comidas.precios.moneda',
             'actividad.transportes:id,descripcion,precio',
+            'actividad.transportes.precios.moneda',
             'actividad.hospedajes:id,nombre,precio,lugar_hospedaje_id',
+            'actividad.hospedajes.precios.moneda',
             'actividad.hospedajes.lugarHospedaje:id,nombre',
             'comidas:id',
             'invitados.comidas:id',
@@ -210,6 +215,12 @@ class EstadoInscripcionesController extends Controller
         $servicios = app(InscripcionServiciosService::class);
         // Disponibilidad de cupo por acomodación (excluye esta inscripción).
         $dispHospedajes = $actividad ? app(HospedajeCupoService::class)->disponibles($actividad, (int) $id) : [];
+
+        // Moneda de la inscripción (null legacy = principal): el dialog de edición
+        // resuelve los precios de servicios en esta moneda, igual que update().
+        $monedaInscripcion = $inscripcion->moneda_id
+            ? Moneda::find($inscripcion->moneda_id)
+            : Moneda::principal();
 
         return response()->json([
             'inscripcion' => [
@@ -223,6 +234,12 @@ class EstadoInscripcionesController extends Controller
                 'transportes_ids' => $inscripcion->transporte_id ? [$inscripcion->transporte_id] : [],
                 'hospedajes_ids' => $inscripcion->hospedaje_id ? [$inscripcion->hospedaje_id] : [],
             ],
+            'moneda' => $monedaInscripcion
+                ? ['id' => (int) $monedaInscripcion->id, 'nombre' => $monedaInscripcion->nombre, 'simbolo' => $monedaInscripcion->simbolo]
+                : null,
+            'moneda_principal' => ($monedaPrincipal = Moneda::principal())
+                ? ['id' => (int) $monedaPrincipal->id, 'nombre' => $monedaPrincipal->nombre, 'simbolo' => $monedaPrincipal->simbolo]
+                : null,
             'actividad' => [
                 'id' => $actividad?->id,
                 'nombre' => $actividad?->nombre,
@@ -231,10 +248,11 @@ class EstadoInscripcionesController extends Controller
                     'id' => $actividad->grabacion->id,
                     'nombre' => $actividad->grabacion->nombre,
                     'valor' => (float) $actividad->grabacion->valor,
+                    'precios_por_moneda' => $actividad->grabacion->precios_por_moneda,
                 ] : null,
-                'comidas' => $actividad?->comidas->map(fn ($c) => ['id' => $c->id, 'nombre' => $c->nombre, 'precio' => (float) $c->precio])->values() ?? [],
-                'transportes' => $actividad?->transportes->map(fn ($t) => ['id' => $t->id, 'descripcion' => $t->descripcion, 'precio' => (float) $t->precio])->values() ?? [],
-                'hospedajes' => $actividad?->hospedajes->map(fn ($h) => ['id' => $h->id, 'nombre' => $h->nombre, 'precio' => (float) $h->precio, 'lugar_hospedaje' => $h->lugarHospedaje ? ['nombre' => $h->lugarHospedaje->nombre] : null, 'cantidad' => $h->pivot->cantidad, 'disponibles' => $dispHospedajes[$h->id] ?? null])->values() ?? [],
+                'comidas' => $actividad?->comidas->map(fn ($c) => ['id' => $c->id, 'nombre' => $c->nombre, 'precio' => (float) $c->precio, 'precios_por_moneda' => $c->precios_por_moneda])->values() ?? [],
+                'transportes' => $actividad?->transportes->map(fn ($t) => ['id' => $t->id, 'descripcion' => $t->descripcion, 'precio' => (float) $t->precio, 'precios_por_moneda' => $t->precios_por_moneda])->values() ?? [],
+                'hospedajes' => $actividad?->hospedajes->map(fn ($h) => ['id' => $h->id, 'nombre' => $h->nombre, 'precio' => (float) $h->precio, 'precios_por_moneda' => $h->precios_por_moneda, 'lugar_hospedaje' => $h->lugarHospedaje ? ['nombre' => $h->lugarHospedaje->nombre] : null, 'cantidad' => $h->pivot->cantidad, 'disponibles' => $dispHospedajes[$h->id] ?? null])->values() ?? [],
                 'modalidad' => $actividad?->modalidad ? ['nombre' => $actividad->modalidad->nombre] : null,
             ],
             'modalidad_abierta' => $actividad ? $servicios->modalidadPermiteInvitadoOnline($actividad) : false,

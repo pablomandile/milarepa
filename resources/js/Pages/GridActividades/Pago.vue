@@ -37,6 +37,17 @@ const props = defineProps({
     type: Object,
     default: null,
   },
+  // Moneda principal del sistema ({id, nombre, simbolo}): los servicios sin
+  // precio en la moneda elegida se cobran en esta (total dividido).
+  monedaPrincipal: {
+    type: Object,
+    default: null,
+  },
+  // Flujo update: moneda fijada de la inscripción original.
+  monedaInscripcion: {
+    type: [Number, String],
+    default: null,
+  },
 });
 
 const toast = useToast();
@@ -47,6 +58,7 @@ const comprobanteDescripcion = ref('');
 const isUploading = ref(false);
 const isFinalizing = ref(false);
 const modalidadCursada = ref('presencial');
+const esValorMercadoPago = (valor) => ['mercado pago', 'mercadopago', 'mercado-pago'].includes(valor);
 const metodosPago = computed(() =>
   (props.actividad?.metodos_pago || []).map((metodo) => ({
     id: metodo.id,
@@ -57,6 +69,9 @@ const metodosPago = computed(() =>
     label: metodo.tipo_de_pago ? `${metodo.nombre} (${metodo.tipo_de_pago})` : metodo.nombre,
     value: normalizarMetodoPago(metodo.nombre || ''),
   }))
+    // Mercado Pago (Argentina) solo procesa pesos: se oculta en otra moneda
+    // (el backend tiene el mismo guard en finalizarPago).
+    .filter((metodo) => !esValorMercadoPago(metodo.value) || !pagaEnOtraMoneda.value)
 );
 const pagoMetodo = ref(null);
 const comprobantePath = ref(props.pago?.comprobante_path || null);
@@ -141,6 +156,14 @@ const monedasDisponibles = computed(() => {
 
 const mostrarSelectorMoneda = computed(() => monedasDisponibles.value.length > 1);
 
+const monedaPrincipalId = computed(() => props.monedaPrincipal?.id || null);
+const simboloPrincipal = computed(() => props.monedaPrincipal?.simbolo || '$');
+const pagaEnOtraMoneda = computed(() => !!(
+  monedaSeleccionadaId.value
+  && monedaPrincipalId.value
+  && monedaSeleccionadaId.value !== monedaPrincipalId.value
+));
+
 const monedaSeleccionada = computed(() => {
   if (!monedasDisponibles.value.length) return null;
   return monedasDisponibles.value.find((m) => m.id === monedaSeleccionadaId.value) || monedasDisponibles.value[0];
@@ -186,6 +209,9 @@ const lineaActividadActual = computed(() => {
   );
 });
 
+// Resuelve el precio de un servicio en la moneda elegida. Si el servicio no
+// tiene precio en ella, se cobra en la moneda principal (enPrincipal: true) y
+// va a la porción en pesos del total dividido.
 const resolverPrecioItemEnMoneda = (item, campoBase = 'precio') => {
   const monedaId = monedaSeleccionadaId.value;
   const preciosPorMoneda = item?.precios_por_moneda || item?.preciosPorMoneda || item?.precios || [];
@@ -194,12 +220,22 @@ const resolverPrecioItemEnMoneda = (item, campoBase = 'precio') => {
     const match = preciosPorMoneda.find((linea) => {
       const lineaMonedaId = linea?.moneda_id || linea?.moneda?.id;
       return monedaId && lineaMonedaId === monedaId;
-    }) || preciosPorMoneda[0];
-    const precioLinea = Number(match?.precio ?? match?.valor ?? 0);
-    const simbolo = match?.moneda?.simbolo || simboloMoneda.value;
+    });
+    if (match) {
+      const precioLinea = Number(match?.precio ?? match?.valor ?? 0);
+      return {
+        precio: Number.isFinite(precioLinea) ? precioLinea : 0,
+        simbolo: match?.moneda?.simbolo || simboloMoneda.value,
+        enPrincipal: false,
+      };
+    }
+    // Sin fila en la moneda elegida: cae a la fila de la moneda principal.
+    const principal = preciosPorMoneda.find((linea) => linea?.es_principal) || preciosPorMoneda[0];
+    const precioLinea = Number(principal?.precio ?? principal?.valor ?? 0);
     return {
       precio: Number.isFinite(precioLinea) ? precioLinea : 0,
-      simbolo,
+      simbolo: principal?.moneda?.simbolo || simboloPrincipal.value,
+      enPrincipal: pagaEnOtraMoneda.value,
     };
   }
 
@@ -209,13 +245,16 @@ const resolverPrecioItemEnMoneda = (item, campoBase = 'precio') => {
     return {
       precio: Number.isFinite(valor) ? valor : 0,
       simbolo: simboloMoneda.value,
+      enPrincipal: false,
     };
   }
 
+  // Legacy sin precios_por_moneda: el campo plano está en la moneda principal.
   const valorBase = Number(item?.[campoBase] ?? 0);
   return {
     precio: Number.isFinite(valorBase) ? valorBase : 0,
-    simbolo: simboloMoneda.value,
+    simbolo: pagaEnOtraMoneda.value ? simboloPrincipal.value : simboloMoneda.value,
+    enPrincipal: pagaEnOtraMoneda.value,
   };
 };
 
@@ -246,29 +285,26 @@ const grabacionPrecio = computed(() => {
 const grabacionSimbolo = computed(() => resolverPrecioItemEnMoneda(props.actividad?.grabacion || {}, 'valor').simbolo);
 const grabacionPagoLink = computed(() => props.actividad?.grabacion?.boton_pago?.link || '');
 
+// Suma solo la porción en la moneda elegida; la porción en la principal se
+// acumula aparte (total dividido).
+const sumarSeleccionados = (items, seleccionados, precioFn, enPrincipal = false) => items
+  .filter((item) => seleccionados.includes(item.id))
+  .reduce((acc, item) => {
+    const r = precioFn(item);
+    return acc + ((!!r.enPrincipal === enPrincipal) ? r.precio : 0);
+  }, 0);
+
 const comidasDisponibles = computed(() => props.actividad?.comidas || []);
 const precioComida = (comida) => resolverPrecioItemEnMoneda(comida, 'precio');
-const totalComidas = computed(() => {
-  return comidasDisponibles.value
-    .filter((comida) => comidasSeleccionadas.value.includes(comida.id))
-    .reduce((acc, comida) => acc + precioComida(comida).precio, 0);
-});
+const totalComidas = computed(() => sumarSeleccionados(comidasDisponibles.value, comidasSeleccionadas.value, precioComida));
 
 const transportesDisponibles = computed(() => props.actividad?.transportes || []);
 const precioTransporte = (transporte) => resolverPrecioItemEnMoneda(transporte, 'precio');
-const totalTransportes = computed(() => {
-  return transportesDisponibles.value
-    .filter((transporte) => transportesSeleccionados.value.includes(transporte.id))
-    .reduce((acc, transporte) => acc + precioTransporte(transporte).precio, 0);
-});
+const totalTransportes = computed(() => sumarSeleccionados(transportesDisponibles.value, transportesSeleccionados.value, precioTransporte));
 
 const hospedajesDisponibles = computed(() => props.actividad?.hospedajes || []);
 const precioHospedaje = (hospedaje) => resolverPrecioItemEnMoneda(hospedaje, 'precio');
-const totalHospedajes = computed(() => {
-  return hospedajesDisponibles.value
-    .filter((hospedaje) => hospedajesSeleccionados.value.includes(hospedaje.id))
-    .reduce((acc, hospedaje) => acc + precioHospedaje(hospedaje).precio, 0);
-});
+const totalHospedajes = computed(() => sumarSeleccionados(hospedajesDisponibles.value, hospedajesSeleccionados.value, precioHospedaje));
 
 // --- Invitados ---------------------------------------------------------------
 // Los invitados pagan SIEMPRE el precio general de la actividad (sin descuento).
@@ -308,21 +344,36 @@ const nuevoInvitado = () => ({
 });
 const invitadoForm = ref(nuevoInvitado());
 
+const grabacionResuelta = () => resolverPrecioItemEnMoneda(props.actividad?.grabacion || {}, 'valor');
+
 const subtotalInvitado = (invitado) => {
-  const totalGrabacion = invitado.grabacion ? grabacionPrecio.value : 0;
-  const totalComidasInv = comidasDisponibles.value
-    .filter((c) => invitado.comidas.includes(c.id))
-    .reduce((acc, c) => acc + precioComida(c).precio, 0);
-  const totalTransportesInv = transportesDisponibles.value
-    .filter((t) => invitado.transportes.includes(t.id))
-    .reduce((acc, t) => acc + precioTransporte(t).precio, 0);
-  const totalHospedajesInv = hospedajesDisponibles.value
-    .filter((h) => invitado.hospedajes.includes(h.id))
-    .reduce((acc, h) => acc + precioHospedaje(h).precio, 0);
-  return precioGeneralActividad.value + totalGrabacion + totalComidasInv + totalTransportesInv + totalHospedajesInv;
+  const gr = grabacionResuelta();
+  const totalGrabacion = invitado.grabacion && !gr.enPrincipal ? gr.precio : 0;
+  return precioGeneralActividad.value
+    + totalGrabacion
+    + sumarSeleccionados(comidasDisponibles.value, invitado.comidas, precioComida)
+    + sumarSeleccionados(transportesDisponibles.value, invitado.transportes, precioTransporte)
+    + sumarSeleccionados(hospedajesDisponibles.value, invitado.hospedajes, precioHospedaje);
+};
+
+// Porción del subtotal del invitado que se cobra en la moneda principal.
+const subtotalInvitadoPrincipal = (invitado) => {
+  const gr = grabacionResuelta();
+  return (invitado.grabacion && gr.enPrincipal ? gr.precio : 0)
+    + sumarSeleccionados(comidasDisponibles.value, invitado.comidas, precioComida, true)
+    + sumarSeleccionados(transportesDisponibles.value, invitado.transportes, precioTransporte, true)
+    + sumarSeleccionados(hospedajesDisponibles.value, invitado.hospedajes, precioHospedaje, true);
+};
+
+// Subtotal del invitado para mostrar: "USD 120" o "USD 120 + ARS 5.000".
+const subtotalInvitadoLabel = (invitado) => {
+  const principal = subtotalInvitadoPrincipal(invitado);
+  const base = formatMoney(subtotalInvitado(invitado));
+  return principal > 0 ? `${base} + ${formatMoney(principal, simboloPrincipal.value)}` : base;
 };
 
 const totalInvitados = computed(() => invitados.value.reduce((acc, inv) => acc + subtotalInvitado(inv), 0));
+const totalInvitadosPrincipal = computed(() => invitados.value.reduce((acc, inv) => acc + subtotalInvitadoPrincipal(inv), 0));
 
 const abrirDialogInvitado = () => {
   invitadoForm.value = nuevoInvitado();
@@ -352,8 +403,25 @@ const eliminarInvitado = (index) => {
 };
 
 const saldoAPagar = computed(() => {
-  const totalGrabacion = grabacionSeleccionada.value ? grabacionPrecio.value : 0;
+  const gr = grabacionResuelta();
+  const totalGrabacion = grabacionSeleccionada.value && !gr.enPrincipal ? gr.precio : 0;
   return actividadPrecio.value + totalGrabacion + totalComidas.value + totalTransportes.value + totalHospedajes.value + totalInvitados.value;
+});
+
+// Porción del total que se cobra en la moneda principal (servicios sin precio
+// en la moneda elegida, del titular y de los invitados).
+const saldoEnPrincipal = computed(() => {
+  const gr = grabacionResuelta();
+  return (grabacionSeleccionada.value && gr.enPrincipal ? gr.precio : 0)
+    + sumarSeleccionados(comidasDisponibles.value, comidasSeleccionadas.value, precioComida, true)
+    + sumarSeleccionados(transportesDisponibles.value, transportesSeleccionados.value, precioTransporte, true)
+    + sumarSeleccionados(hospedajesDisponibles.value, hospedajesSeleccionados.value, precioHospedaje, true)
+    + totalInvitadosPrincipal.value;
+});
+
+const saldoAPagarLabel = computed(() => {
+  const base = formatMoney(saldoAPagar.value);
+  return saldoEnPrincipal.value > 0 ? `${base} + ${formatMoney(saldoEnPrincipal.value, simboloPrincipal.value)}` : base;
 });
 const esPagoDeInscripcionExistente = computed(() => !!props.pago?.inscripcion_id);
 const comidasBloqueadasIds = computed(() => {
@@ -375,9 +443,10 @@ const grabacionBloqueada = computed(() => {
   return esPagoDeInscripcionExistente.value && !!props.inscripcion?.montoGrabacion && Number(props.inscripcion.montoGrabacion) > 0;
 });
 const esPagoCero = computed(() => {
-  // Si hay un monto real a pagar (incluye invitados y servicios) se habilitan los
-  // medios de pago, aunque la actividad base sea gratuita o esté incluida.
-  return saldoAPagar.value <= 0;
+  // Si hay un monto real a pagar (incluye invitados y servicios, en cualquiera
+  // de las dos monedas) se habilitan los medios de pago, aunque la actividad
+  // base sea gratuita o esté incluida.
+  return saldoAPagar.value <= 0 && saldoEnPrincipal.value <= 0;
 });
 
 const normalizarMetodoPago = (valor) => {
@@ -569,6 +638,12 @@ watch(
       monedaSeleccionadaId.value = null;
       return;
     }
+    // Flujo update: la moneda queda fijada a la de la inscripción original
+    // (el selector viaja deshabilitado; el backend también la conserva).
+    if (esPagoDeInscripcionExistente.value && props.monedaInscripcion) {
+      monedaSeleccionadaId.value = Number(props.monedaInscripcion);
+      return;
+    }
     if (!monedaSeleccionadaId.value || !monedas.some((m) => m.id === monedaSeleccionadaId.value)) {
       monedaSeleccionadaId.value = monedas[0].id;
     }
@@ -652,6 +727,11 @@ watch(
                 {{ moneda.nombre }} ({{ moneda.simbolo }})
               </option>
             </select>
+            <p v-if="pagaEnOtraMoneda" class="mt-2 text-xs text-gray-500">
+              Los servicios sin precio en {{ monedaSeleccionada?.nombre || 'la moneda elegida' }} se cobran en
+              {{ monedaPrincipal?.nombre || 'la moneda principal' }}. Mercado Pago solo está disponible pagando en
+              {{ monedaPrincipal?.nombre || 'la moneda principal' }}.
+            </p>
           </div>
 
           <div v-if="mostrarSelectorModalidad" class="mt-4">
@@ -828,7 +908,7 @@ watch(
                     <span v-if="inv.online" class="ml-2 text-xs text-indigo-600">Online</span>
                   </div>
                   <div class="flex items-center gap-3">
-                    <span class="text-sm font-semibold text-gray-800">{{ formatMoney(subtotalInvitado(inv)) }}</span>
+                    <span class="text-sm font-semibold text-gray-800">{{ subtotalInvitadoLabel(inv) }}</span>
                     <button
                       type="button"
                       class="text-red-600 text-sm hover:underline"
@@ -845,7 +925,10 @@ watch(
             <div class="border rounded-lg p-4 bg-gray-50">
               <p class="text-sm text-gray-700">
                 Saldo a Pagar:
-                <span class="font-semibold text-gray-800">{{ formatMoney(saldoAPagar) }}</span>
+                <span class="font-semibold text-gray-800">{{ saldoAPagarLabel }}</span>
+              </p>
+              <p v-if="saldoEnPrincipal > 0" class="text-xs text-gray-500 mt-1">
+                La parte en {{ monedaPrincipal?.nombre || 'moneda principal' }} corresponde a servicios sin precio en {{ monedaSeleccionada?.nombre || 'la moneda elegida' }}.
               </p>
             </div>
           </div>
@@ -961,7 +1044,7 @@ watch(
         </div>
 
         <div class="border rounded-lg p-3 bg-gray-50 text-sm text-gray-800">
-          Subtotal invitado: <span class="font-semibold">{{ formatMoney(subtotalInvitado(invitadoForm)) }}</span>
+          Subtotal invitado: <span class="font-semibold">{{ subtotalInvitadoLabel(invitadoForm) }}</span>
         </div>
       </div>
       <template #footer>

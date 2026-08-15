@@ -399,7 +399,22 @@ class GridActividadesController extends Controller
             'transportes.botonPago',
             'hospedajes.botonPago',
             'hospedajes.lugarHospedaje',
+            'grabacion.precios.moneda',
+            'grabacion.precios.botonPago',
+            'comidas.precios.moneda',
+            'comidas.precios.botonPago',
+            'transportes.precios.moneda',
+            'transportes.precios.botonPago',
+            'hospedajes.precios.moneda',
+            'hospedajes.precios.botonPago',
         ]);
+
+        // Precios por moneda de los servicios (accessor opt-in; el shape que
+        // consume resolverPrecioItemEnMoneda en Pago.vue).
+        $actividad->grabacion?->append('precios_por_moneda');
+        $actividad->comidas->each->append('precios_por_moneda');
+        $actividad->transportes->each->append('precios_por_moneda');
+        $actividad->hospedajes->each->append('precios_por_moneda');
 
         // Disponibilidad de cupo por acomodación (excluye la inscripción en edición).
         $dispHospedajes = $cupo->disponibles($actividad, !empty($pago['inscripcion_id']) ? (int) $pago['inscripcion_id'] : null);
@@ -438,6 +453,8 @@ class GridActividadesController extends Controller
                 ->first();
         }
 
+        $monedaPrincipal = Moneda::principal();
+
         return inertia('GridActividades/Pago', [
             'actividad' => $actividad,
             'pago' => $pago,
@@ -446,6 +463,14 @@ class GridActividadesController extends Controller
             'membresiaId' => $userContext?->membresia_id,
             'mostrarSelectorModalidad' => $mostrarSelectorModalidad,
             'inscripcion' => $inscripcionExistente,
+            'monedaPrincipal' => $monedaPrincipal
+                ? ['id' => (int) $monedaPrincipal->id, 'nombre' => $monedaPrincipal->nombre, 'simbolo' => $monedaPrincipal->simbolo]
+                : null,
+            // Flujo update: la moneda queda fijada a la de la inscripción
+            // original (null legacy = principal).
+            'monedaInscripcion' => $inscripcionExistente
+                ? (int) ($inscripcionExistente->moneda_id ?? $monedaPrincipal?->id)
+                : null,
         ]);
     }
 

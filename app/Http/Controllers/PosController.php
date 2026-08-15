@@ -79,7 +79,9 @@ class PosController extends Controller
     /** Servicios (grabación/comidas/transportes/hospedajes) de una actividad para el POS. */
     public function datosActividad(Actividad $actividad)
     {
-        $actividad->load(['grabacion:id,nombre,valor', 'comidas:id,nombre,precio', 'transportes:id,nombre,precio', 'hospedajes:id,nombre,precio']);
+        // Ojo: transportes no tiene columna `nombre` (usa `descripcion`); pedirla
+        // rompía este endpoint con un SQL error.
+        $actividad->load(['grabacion:id,nombre,valor', 'comidas:id,nombre,precio', 'transportes:id,descripcion,precio', 'hospedajes:id,nombre,precio']);
 
         return response()->json([
             'actividad' => [
@@ -87,7 +89,7 @@ class PosController extends Controller
                 'nombre' => $actividad->nombre,
                 'grabacion' => $actividad->grabacion ? ['id' => $actividad->grabacion->id, 'nombre' => $actividad->grabacion->nombre, 'valor' => (float) $actividad->grabacion->valor] : null,
                 'comidas' => $actividad->comidas->map(fn ($c) => ['id' => $c->id, 'nombre' => $c->nombre, 'precio' => (float) $c->precio])->values(),
-                'transportes' => $actividad->transportes->map(fn ($t) => ['id' => $t->id, 'nombre' => $t->nombre, 'precio' => (float) $t->precio])->values(),
+                'transportes' => $actividad->transportes->map(fn ($t) => ['id' => $t->id, 'nombre' => $t->descripcion, 'precio' => (float) $t->precio])->values(),
                 'hospedajes' => $actividad->hospedajes->map(fn ($h) => ['id' => $h->id, 'nombre' => $h->nombre, 'precio' => (float) $h->precio])->values(),
             ],
         ]);

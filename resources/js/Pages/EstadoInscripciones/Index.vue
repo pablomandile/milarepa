@@ -1075,9 +1075,10 @@
                         v-model:hospedajes="editTitular.hospedajes"
                         :resolver-precio="resolverPrecioEdit"
                         :format-money="formatMoneyEdit"
+                        :simbolo-moneda="editMoneda?.simbolo || '$'"
                         id-prefix="edit_titular"
                     />
-                    <p class="mt-2 text-sm text-gray-700 dark:text-gray-200">Subtotal titular: <span class="font-semibold">{{ formatMoneyEdit(subtotalTitularEdit) }}</span></p>
+                    <p class="mt-2 text-sm text-gray-700 dark:text-gray-200">Subtotal titular: <span class="font-semibold">{{ subtotalEditLabel(subtotalTitularEdit, editTitular) }}</span></p>
                 </div>
 
                 <!-- Invitados -->
@@ -1121,16 +1122,17 @@
                                 v-model:hospedajes="inv.hospedajes"
                                 :resolver-precio="resolverPrecioEdit"
                                 :format-money="formatMoneyEdit"
+                                :simbolo-moneda="editMoneda?.simbolo || '$'"
                                 :id-prefix="`edit_inv_${idx}`"
                             />
-                            <p class="mt-2 text-sm text-gray-700 dark:text-gray-200">Subtotal: <span class="font-semibold">{{ formatMoneyEdit(subtotalInvitadoEdit(inv)) }}</span></p>
+                            <p class="mt-2 text-sm text-gray-700 dark:text-gray-200">Subtotal: <span class="font-semibold">{{ subtotalEditLabel(subtotalInvitadoEdit(inv), inv) }}</span></p>
                         </div>
                     </div>
                     <p v-else class="text-xs text-gray-400">Sin invitados.</p>
                 </div>
 
                 <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800/50">
-                    <p class="text-base text-gray-800 dark:text-gray-100">Total a pagar: <span class="font-bold text-green-700">{{ formatMoneyEdit(totalEdit) }}</span></p>
+                    <p class="text-base text-gray-800 dark:text-gray-100">Total a pagar: <span class="font-bold text-green-700">{{ totalEditLabel }}</span></p>
                 </div>
 
                 <!-- Comprobante: la subida crea un cobro "a revisar" que se confirma al marcar el pago -->
@@ -1394,26 +1396,61 @@ const nuevoInvitadoEdit = () => ({
     hospedajes: [],
 });
 
-// Funciones inyectadas a ServiciosActividadSelector (precio simple, moneda única).
-const resolverPrecioEdit = (item, campo = 'precio') => ({
-    precio: Number(item?.[campo] ?? 0) || 0,
-    simbolo: '$',
-});
-const formatMoneyEdit = (valor) => `$${formatearMonto(valor)}`;
+// Moneda de la inscripción en edición y moneda principal ({id,nombre,simbolo},
+// llegan de editar-data). La edición recalcula en la moneda de la inscripción;
+// los servicios sin precio en ella se cobran en la principal (total dividido).
+const editMoneda = ref(null);
+const editMonedaPrincipal = ref(null);
 
-const sumarServiciosEdit = (sel) => {
+// Funciones inyectadas a ServiciosActividadSelector: resuelven por
+// precios_por_moneda en la moneda de la inscripción (legacy sin moneda =
+// principal, precios planos, comportamiento histórico).
+const resolverPrecioEdit = (item, campo = 'precio') => {
+    const monedaId = editMoneda.value?.id || null;
+    const esOtraMoneda = !!(monedaId && editMonedaPrincipal.value?.id && monedaId !== editMonedaPrincipal.value.id);
+    const precios = item?.precios_por_moneda || [];
+    if (Array.isArray(precios) && precios.length) {
+        const match = precios.find((l) => (l?.moneda_id || l?.moneda?.id) === monedaId);
+        if (match) {
+            return { precio: Number(match.precio ?? 0) || 0, simbolo: match?.moneda?.simbolo || editMoneda.value?.simbolo || '$', enPrincipal: false };
+        }
+        const principal = precios.find((l) => l?.es_principal) || precios[0];
+        return { precio: Number(principal?.precio ?? 0) || 0, simbolo: principal?.moneda?.simbolo || editMonedaPrincipal.value?.simbolo || '$', enPrincipal: esOtraMoneda };
+    }
+    return {
+        precio: Number(item?.[campo] ?? 0) || 0,
+        simbolo: esOtraMoneda ? (editMonedaPrincipal.value?.simbolo || '$') : (editMoneda.value?.simbolo || '$'),
+        enPrincipal: esOtraMoneda,
+    };
+};
+const formatMoneyEdit = (valor, simbolo = null) => `${simbolo || editMoneda.value?.simbolo || '$'}${formatearMonto(valor)}`;
+
+const sumarServiciosEdit = (sel, enPrincipal = false) => {
     const a = editActividad.value;
     if (!a) return 0;
+    const porcion = (r) => ((!!r.enPrincipal === enPrincipal) ? r.precio : 0);
     let total = 0;
-    if (sel.grabacion && a.grabacion) total += Number(a.grabacion.valor || 0);
-    (a.comidas || []).forEach((c) => { if (sel.comidas.includes(c.id)) total += Number(c.precio || 0); });
-    (a.transportes || []).forEach((t) => { if (sel.transportes.includes(t.id)) total += Number(t.precio || 0); });
-    (a.hospedajes || []).forEach((h) => { if (sel.hospedajes.includes(h.id)) total += Number(h.precio || 0); });
+    if (sel.grabacion && a.grabacion) total += porcion(resolverPrecioEdit(a.grabacion, 'valor'));
+    (a.comidas || []).forEach((c) => { if (sel.comidas.includes(c.id)) total += porcion(resolverPrecioEdit(c)); });
+    (a.transportes || []).forEach((t) => { if (sel.transportes.includes(t.id)) total += porcion(resolverPrecioEdit(t)); });
+    (a.hospedajes || []).forEach((h) => { if (sel.hospedajes.includes(h.id)) total += porcion(resolverPrecioEdit(h)); });
     return total;
 };
 const subtotalTitularEdit = computed(() => Number(editTitular.value.montoActividad || 0) + sumarServiciosEdit(editTitular.value));
 const subtotalInvitadoEdit = (inv) => Number(editTitular.value.precioGeneral || 0) + sumarServiciosEdit(inv);
 const totalEdit = computed(() => subtotalTitularEdit.value + editInvitados.value.reduce((acc, inv) => acc + subtotalInvitadoEdit(inv), 0));
+// Porción del total que se cobra en la moneda principal (titular + invitados).
+const totalEditPrincipal = computed(() => sumarServiciosEdit(editTitular.value, true)
+    + editInvitados.value.reduce((acc, inv) => acc + sumarServiciosEdit(inv, true), 0));
+const totalEditLabel = computed(() => (totalEditPrincipal.value > 0
+    ? `${formatMoneyEdit(totalEdit.value)} + ${formatMoneyEdit(totalEditPrincipal.value, editMonedaPrincipal.value?.simbolo || '$')}`
+    : formatMoneyEdit(totalEdit.value)));
+const subtotalEditLabel = (subtotal, sel) => {
+    const principal = sumarServiciosEdit(sel, true);
+    return principal > 0
+        ? `${formatMoneyEdit(subtotal)} + ${formatMoneyEdit(principal, editMonedaPrincipal.value?.simbolo || '$')}`
+        : formatMoneyEdit(subtotal);
+};
 
 const agregarInvitadoEdit = () => {
     if (editInvitados.value.length >= MAX_INVITADOS) {
@@ -1490,6 +1527,8 @@ const iniciarEdicion = async (inscripcion) => {
     try {
         const { data } = await axios.get(route('estadoinscripciones.editar-data', { estadoinscripcion: inscripcion.id }));
         editActividad.value = data.actividad;
+        editMoneda.value = data.moneda || null;
+        editMonedaPrincipal.value = data.moneda_principal || null;
         editModalidadAbierta.value = !!data.modalidad_abierta;
         editTitular.value = {
             online: !!data.inscripcion.online,

@@ -51,23 +51,46 @@ const grabacionPrecio = computed(() => props.resolverPrecio(props.actividad?.gra
 const grabacionSimbolo = computed(() => props.resolverPrecio(props.actividad?.grabacion || {}, 'valor').simbolo);
 const grabacionPagoLink = computed(() => props.actividad?.grabacion?.boton_pago?.link || '');
 
+// Total dividido por sección: los servicios sin precio en la moneda elegida
+// vienen del resolver con enPrincipal:true (se cobran en la moneda principal)
+// y se suman aparte para no mezclar monedas. Un resolver mono-moneda (edición
+// admin) nunca marca enPrincipal y se comporta como antes.
+const totalizar = (items, seleccionados, precioFn) => {
+  let enMoneda = 0;
+  let enPrincipal = 0;
+  let simboloPrincipal = null;
+  items.filter((item) => seleccionados.includes(item.id)).forEach((item) => {
+    const r = precioFn(item);
+    if (r.enPrincipal) {
+      enPrincipal += r.precio;
+      simboloPrincipal = r.simbolo;
+    } else {
+      enMoneda += r.precio;
+    }
+  });
+  return { enMoneda, enPrincipal, simboloPrincipal };
+};
+
+const etiquetaTotal = (total) => {
+  const partes = [];
+  if (total.enMoneda > 0 || total.enPrincipal <= 0) partes.push(props.formatMoney(total.enMoneda));
+  if (total.enPrincipal > 0) partes.push(props.formatMoney(total.enPrincipal, total.simboloPrincipal || '$'));
+  return partes.join(' + ');
+};
+
 const comidasDisponibles = computed(() => props.actividad?.comidas || []);
 const precioComida = (comida) => props.resolverPrecio(comida, 'precio');
-const totalComidas = computed(() => comidasDisponibles.value
-  .filter((c) => props.comidas.includes(c.id))
-  .reduce((acc, c) => acc + precioComida(c).precio, 0));
+const totalComidas = computed(() => totalizar(comidasDisponibles.value, props.comidas, precioComida));
 
 const transportesDisponibles = computed(() => props.actividad?.transportes || []);
 const precioTransporte = (transporte) => props.resolverPrecio(transporte, 'precio');
-const totalTransportes = computed(() => transportesDisponibles.value
-  .filter((t) => props.transportes.includes(t.id))
-  .reduce((acc, t) => acc + precioTransporte(t).precio, 0));
+const totalTransportes = computed(() => totalizar(transportesDisponibles.value, props.transportes, precioTransporte));
 
 const hospedajesDisponibles = computed(() => props.actividad?.hospedajes || []);
 const precioHospedaje = (hospedaje) => props.resolverPrecio(hospedaje, 'precio');
-const totalHospedajes = computed(() => hospedajesDisponibles.value
-  .filter((h) => props.hospedajes.includes(h.id))
-  .reduce((acc, h) => acc + precioHospedaje(h).precio, 0));
+const totalHospedajes = computed(() => totalizar(hospedajesDisponibles.value, props.hospedajes, precioHospedaje));
+
+const notaEnPrincipal = (resuelto) => (resuelto.enPrincipal ? ' (sin precio en la moneda elegida)' : '');
 
 const lugaresHospedaje = computed(() => Array.from(
   new Set(hospedajesDisponibles.value.map((h) => h.lugar_hospedaje?.nombre).filter(Boolean))
@@ -101,6 +124,9 @@ const hospedajeEtiquetaCupo = (h) => {
         <div class="flex flex-wrap items-center gap-2">
           <span>Valor de grabación:</span>
           <span class="font-semibold">{{ formatMoney(grabacionPrecio, grabacionSimbolo) }}</span>
+          <span v-if="resolverPrecio(actividad?.grabacion || {}, 'valor').enPrincipal" class="text-xs text-amber-600">
+            (sin precio en la moneda elegida)
+          </span>
           <a
             v-if="mostrarBotonesPago && grabacionPagoLink"
             :href="grabacionPagoLink"
@@ -132,7 +158,9 @@ const hospedajeEtiquetaCupo = (h) => {
             {{ comida.nombre }}
           </label>
           <div class="flex items-center gap-2">
-            <span class="text-sm text-gray-700">{{ formatMoney(precioComida(comida).precio, precioComida(comida).simbolo) }}</span>
+            <span class="text-sm text-gray-700">
+              {{ formatMoney(precioComida(comida).precio, precioComida(comida).simbolo) }}<span v-if="precioComida(comida).enPrincipal" class="text-xs text-amber-600">{{ notaEnPrincipal(precioComida(comida)) }}</span>
+            </span>
             <a
               v-if="mostrarBotonesPago && comidas.includes(comida.id) && comida.boton_pago?.link"
               :href="comida.boton_pago.link"
@@ -146,7 +174,7 @@ const hospedajeEtiquetaCupo = (h) => {
         </div>
       </div>
       <div class="mt-3 text-sm text-gray-800">
-        Total Comidas: <span class="font-semibold">{{ formatMoney(totalComidas) }}</span>
+        Total Comidas: <span class="font-semibold">{{ etiquetaTotal(totalComidas) }}</span>
       </div>
     </div>
 
@@ -168,7 +196,9 @@ const hospedajeEtiquetaCupo = (h) => {
             {{ transporte.descripcion || transporte.nombre }}
           </label>
           <div class="flex items-center gap-2">
-            <span class="text-sm text-gray-700">{{ formatMoney(precioTransporte(transporte).precio, precioTransporte(transporte).simbolo) }}</span>
+            <span class="text-sm text-gray-700">
+              {{ formatMoney(precioTransporte(transporte).precio, precioTransporte(transporte).simbolo) }}<span v-if="precioTransporte(transporte).enPrincipal" class="text-xs text-amber-600">{{ notaEnPrincipal(precioTransporte(transporte)) }}</span>
+            </span>
             <a
               v-if="mostrarBotonesPago && transportes.includes(transporte.id) && transporte.boton_pago?.link"
               :href="transporte.boton_pago.link"
@@ -182,7 +212,7 @@ const hospedajeEtiquetaCupo = (h) => {
         </div>
       </div>
       <div class="mt-3 text-sm text-gray-800">
-        Total Transportes: <span class="font-semibold">{{ formatMoney(totalTransportes) }}</span>
+        Total Transportes: <span class="font-semibold">{{ etiquetaTotal(totalTransportes) }}</span>
       </div>
     </div>
 
@@ -224,7 +254,9 @@ const hospedajeEtiquetaCupo = (h) => {
             </span>
           </label>
           <div class="flex items-center gap-2">
-            <span class="text-sm text-gray-700">{{ formatMoney(precioHospedaje(hospedaje).precio, precioHospedaje(hospedaje).simbolo) }}</span>
+            <span class="text-sm text-gray-700">
+              {{ formatMoney(precioHospedaje(hospedaje).precio, precioHospedaje(hospedaje).simbolo) }}<span v-if="precioHospedaje(hospedaje).enPrincipal" class="text-xs text-amber-600">{{ notaEnPrincipal(precioHospedaje(hospedaje)) }}</span>
+            </span>
             <a
               v-if="mostrarBotonesPago && hospedajes.includes(hospedaje.id) && hospedaje.boton_pago?.link"
               :href="hospedaje.boton_pago.link"
@@ -238,7 +270,7 @@ const hospedajeEtiquetaCupo = (h) => {
         </div>
       </div>
       <div class="mt-3 text-sm text-gray-800">
-        Total Hospedaje: <span class="font-semibold">{{ formatMoney(totalHospedajes) }}</span>
+        Total Hospedaje: <span class="font-semibold">{{ etiquetaTotal(totalHospedajes) }}</span>
       </div>
     </div>
   </div>
