@@ -18,6 +18,10 @@
         botonesPago: {
             type: Array,
             default: () => []
+        },
+        monedas: {
+            type: Array,
+            default: () => []
         }
     });
     // console.log(props.comida);
