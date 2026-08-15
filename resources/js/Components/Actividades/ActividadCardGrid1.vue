@@ -1,13 +1,13 @@
 <script setup>
 import {
-    formatPrice,
+    formatPrecios,
     formatFechaLarga,
     direccionActividad,
     descuentoVigente,
     formatoFechaLimite,
-    precioSinMembresiaNormal,
-    precioSinMembresiaVigente,
-    precioMembresiaUsuario,
+    preciosSinMembresiaNormal,
+    preciosSinMembresiaVigente,
+    preciosMembresiaUsuario,
     serviciosDisponibles,
     esInscrito,
     actividadSinInscripcionDisponible,
@@ -125,7 +125,7 @@ const emit = defineEmits(['toggle-flip', 'toggle-servicios', 'inscribir', 'mas-i
                                     <i class="fa-solid fa-ticket" aria-hidden="true"></i>
                                     <span class="sr-only">Valor</span>
                                     <span class="font-bold text-gray-700">
-                                        ${{ formatPrice(precioSinMembresiaVigente(actividad)) }}
+                                        {{ formatPrecios(preciosSinMembresiaVigente(actividad)) }}
                                     </span>
                                 </p>
                                 <p
@@ -134,12 +134,12 @@ const emit = defineEmits(['toggle-flip', 'toggle-servicios', 'inscribir', 'mas-i
                                 >
                                     Después de {{ formatoFechaLimite(actividad) }}:
                                     <strong>
-                                        <span> ${{ formatPrice(precioSinMembresiaNormal(actividad)) }}</span>
+                                        <span> {{ formatPrecios(preciosSinMembresiaNormal(actividad)) }}</span>
                                     </strong>
                                 </p>
                                 <p v-if="userContext?.membresia && userContext.membresia?.nombre !== 'Sin membresía'" class="text-xs md:text-sm text-gray-600 mb-1 md:mb-2 leading-tight">
                                     <strong>Con {{ userContext.membresia?.nombre }}:</strong>
-                                    <span class="font-bold text-green-700"> ${{ formatPrice(precioMembresiaUsuario(actividad, userContext)) }}</span>
+                                    <span class="font-bold text-green-700"> {{ formatPrecios(preciosMembresiaUsuario(actividad, userContext)) }}</span>
                                 </p>
                             </template>
                             <div

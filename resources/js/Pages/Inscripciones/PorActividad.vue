@@ -45,6 +45,14 @@ const formatMoney = (value) => {
     return numeric.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
+// El importe pendiente va abierto por moneda ("$ 120.000,00 · USD 340,00"):
+// sumar pesos con dólares daría un número que no significa nada.
+const importesPendientes = (actividad) => {
+    const importes = actividad?.pendiente_importes || [];
+    if (!importes.length) return '$ 0,00';
+    return importes.map((i) => `${i.simbolo} ${formatMoney(i.importe)}`).join(' · ');
+};
+
 const formatDiasRestantes = (value) => {
     if (value === null || value === undefined) return '-';
     if (value === 0) return 'Hoy';
@@ -154,7 +162,7 @@ const formatPercent = (value) => {
                                         </div>
                                         <div class="flex items-center justify-between gap-3 text-sm">
                                             <span class="text-gray-500">Pendiente (importe)</span>
-                                            <span class="text-right font-semibold text-rose-700">${{ formatMoney(actividad.pendiente_importe) }}</span>
+                                            <span class="text-right font-semibold text-rose-700">{{ importesPendientes(actividad) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -202,7 +210,7 @@ const formatPercent = (value) => {
                             <Column field="pendientes_pago" header="Pendientes de pago (cantidad)" sortable headerClass="text-center" bodyClass="text-center" />
                             <Column header="Pendiente (importe)" sortable sortField="pendiente_importe" headerClass="text-center" bodyClass="text-center">
                                 <template #body="{ data }">
-                                    <span class="font-semibold">${{ formatMoney(data.pendiente_importe) }}</span>
+                                    <span class="font-semibold">{{ importesPendientes(data) }}</span>
                                 </template>
                             </Column>
 

@@ -61,6 +61,30 @@ montoTotal = montoActividad
   que no sea la principal ni esté en el esquema vigente de la actividad.
 - Gratis es gratis solo si AMBAS porciones son 0.
 
+### 2.1ter Cómo se muestra la plata cuando hay varias monedas
+
+Regla general: **nunca se suman importes de monedas distintas, y ningún importe se muestra sin
+el símbolo de su moneda.**
+
+- **Cards de la grilla pública y detalle de actividad**: si el esquema tiene la misma membresía
+  cargada en varias monedas, se muestran **todas**, separadas por `·` (ej. `$ 50.000,00 · USD 120,00`),
+  con la principal primero. Los helpers de `useActividadHelpers.js` devuelven una línea por moneda
+  (`preciosSinMembresiaVigente`, `preciosMembresiaUsuario`); las variantes en singular siguen
+  existiendo y devuelven el importe **en la moneda principal**, para lo que necesita comparar
+  números (ej. el "Incluído" cuando el precio con membresía es 0).
+- **Mails de inscripción**: todos los importes usan el símbolo de la moneda de la inscripción, y
+  si hay porción dividida el total se muestra como `USD 120,00 + $ 2.000,00` con la aclaración de
+  por qué. Una inscripción en pesos se ve exactamente igual que antes.
+- **Cobros**: `cobros.moneda_id` se completa solo, derivándolo del cobrable (`CobroService`), sin
+  que cada llamador tenga que pasarlo. Sólo las inscripciones a actividades son multi-moneda;
+  clases, membresías y ventas se cobran siempre en la principal. Los cobros viejos con `moneda_id`
+  null se leen como principal (misma convención que las inscripciones legacy).
+- **Reportes e importes pendientes por actividad**: van abiertos por moneda
+  (`pendiente_importes: [{moneda_id, simbolo, importe}]`, principal primero). La porción
+  `monto_moneda_principal` de las inscripciones divididas suma **a la principal**, no a la moneda
+  de la inscripción. La clave `pendiente_importe` se mantiene por compatibilidad y contiene el
+  importe en la moneda principal.
+
 ### 2.2 Resolución del precio según membresía y fecha
 
 `GridActividadesController` líneas ~1116 y ~1145:

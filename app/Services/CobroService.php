@@ -8,6 +8,7 @@ use App\Models\Imagen;
 use App\Models\Inscripcion;
 use App\Models\InscripcionClase;
 use App\Models\MetodoPago;
+use App\Models\Moneda;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -24,7 +25,7 @@ class CobroService
     {
         $cobro = $cobrable->cobros()->create([
             'monto' => $datos['monto'],
-            'moneda_id' => $datos['moneda_id'] ?? null,
+            'moneda_id' => $datos['moneda_id'] ?? $this->monedaDeCobrable($cobrable),
             'fecha_pago' => $datos['fecha_pago'] ?? null,
             'metodo_pago_id' => $datos['metodo_pago_id'] ?? null,
             'referencia' => $datos['referencia'] ?? null,
@@ -47,6 +48,23 @@ class CobroService
         }
 
         return $cobro;
+    }
+
+    /**
+     * Moneda en la que se cobra un cobrable, para no tener que pasarla desde cada
+     * llamador (webhook de MP, checkout, admin, POS).
+     *
+     * Sólo las inscripciones a actividades son multi-moneda: clases, membresías y
+     * ventas se cobran siempre en la principal. Una inscripción sin `moneda_id`
+     * (legacy) también es principal, según la convención de BUSINESS_RULES §2.1bis.
+     */
+    private function monedaDeCobrable(Model $cobrable): ?int
+    {
+        if ($cobrable instanceof Inscripcion && $cobrable->moneda_id) {
+            return (int) $cobrable->moneda_id;
+        }
+
+        return Moneda::principalId();
     }
 
     /**
@@ -257,6 +275,7 @@ class CobroService
                 ['origen' => 'membresia'],
                 [
                     'monto' => (float) $cuota->importe,
+                    'moneda_id' => $this->monedaDeCobrable($cuota),
                     'fecha_pago' => $cuota->fecha_pago,
                     'metodo_pago_id' => $this->resolverMetodoPago($cuota->modo),
                     'referencia' => $cuota->info_pago ?: null,

@@ -188,6 +188,11 @@ class EmailPreviewController extends Controller
                         'inscriptos_ultimos_5_dias' => 11,
                         'pendientes_pago' => 8,
                         'pendiente_importe' => 98500,
+                        // Actividad con inscripciones en dos monedas: se muestran separadas.
+                        'pendiente_importes' => [
+                            ['moneda_id' => 1, 'simbolo' => '$', 'importe' => 98500],
+                            ['moneda_id' => 2, 'simbolo' => 'USD', 'importe' => 340],
+                        ],
                     ],
                     [
                         'id' => 2,
@@ -200,6 +205,9 @@ class EmailPreviewController extends Controller
                         'inscriptos_ultimos_5_dias' => 9,
                         'pendientes_pago' => 6,
                         'pendiente_importe' => 74200,
+                        'pendiente_importes' => [
+                            ['moneda_id' => 1, 'simbolo' => '$', 'importe' => 74200],
+                        ],
                     ],
                     [
                         'id' => 3,
@@ -212,6 +220,9 @@ class EmailPreviewController extends Controller
                         'inscriptos_ultimos_5_dias' => 7,
                         'pendientes_pago' => 4,
                         'pendiente_importe' => 51600,
+                        'pendiente_importes' => [
+                            ['moneda_id' => 1, 'simbolo' => '$', 'importe' => 51600],
+                        ],
                     ],
                 ],
                 'rango' => [

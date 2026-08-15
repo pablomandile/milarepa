@@ -8,6 +8,7 @@ export default {
 import { ref, computed } from 'vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
+import { formatPrecios, preciosSinMembresiaVigente, preciosMembresiaUsuario } from '@/composables/useActividadHelpers'
 
 const $page = usePage()
 
@@ -199,13 +200,13 @@ const direccionActividad = computed(() => {
                   <p class="text-gray-700 dark:text-gray-300 text-base">
                     <strong>General:</strong> 
                     <span :class="user?.membresia && user.membresia?.nombre !== 'Sin membresía' ? 'line-through text-gray-400' : 'font-bold'">
-                      ${{ formatPrice(actividad.esquema_precio?.membresias?.find(epm => epm.membresia?.nombre === 'Sin membresía')?.precio || 0) }}
+                      {{ formatPrecios(preciosSinMembresiaVigente(actividad)) }}
                     </span>
                   </p>
                   <p v-if="user?.membresia && user.membresia?.nombre !== 'Sin membresía'" class="text-indigo-600 text-base">
                     <strong>Con {{ user.membresia?.nombre }}:</strong> 
                     <span v-if="parseInt(precioMembresiaUsuario) === 0" class="font-bold text-green-700"> Incluído</span>
-                    <span v-else class="font-bold text-green-700"> ${{ formatPrice(precioMembresiaUsuario) }}</span>
+                    <span v-else class="font-bold text-green-700"> {{ formatPrecios(preciosMembresiaUsuario(actividad, user)) }}</span>
                   </p>
                 </div>
               </div>

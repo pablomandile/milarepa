@@ -81,52 +81,98 @@ export function formatoFechaLimite(actividad) {
     return limite.toLocaleDateString('es-AR');
 }
 
-function precioDesdeEsquema(esquema, membresiaId = null) {
-    const membresias = esquema?.membresias || [];
-    if (!Array.isArray(membresias) || membresias.length === 0) return null;
+const SIMBOLO_PRINCIPAL = '$';
 
-    if (membresiaId) {
-        const pivot = membresias.find((epm) => epm.membresia_id === membresiaId);
-        if (pivot?.precio !== undefined && pivot?.precio !== null) return Number(pivot.precio);
-    }
-
-    const normalizar = (value) => String(value || '')
+function normalizarNombre(value) {
+    return String(value || '')
         .normalize('NFD')
         .replace(/[̀-ͯ]/g, '')
         .toLowerCase()
         .trim();
-
-    const general = membresias.find((epm) => {
-        const nombre = normalizar(epm?.membresia?.nombre);
-        return nombre === 'sin membresia' || nombre.includes('sin membres');
-    });
-    if (general?.precio !== undefined && general?.precio !== null) return Number(general.precio);
-
-    return null;
 }
 
+/**
+ * Líneas de precio del esquema para una membresía (o, si no hay, para "sin
+ * membresía"): UNA POR MONEDA y con la principal primero.
+ *
+ * Un esquema puede tener la misma membresía cargada en varias monedas. Antes se
+ * devolvía la primera línea que matcheaba sin mirar la moneda, así que una
+ * actividad con precio en dólares podía mostrarse como si fueran pesos.
+ */
+function preciosDesdeEsquema(esquema, membresiaId = null) {
+    const membresias = esquema?.membresias || [];
+    if (!Array.isArray(membresias) || membresias.length === 0) return [];
+
+    let lineas = membresiaId
+        ? membresias.filter((epm) => epm.membresia_id === membresiaId)
+        : [];
+
+    if (lineas.length === 0) {
+        lineas = membresias.filter((epm) => {
+            const nombre = normalizarNombre(epm?.membresia?.nombre);
+            return nombre === 'sin membresia' || nombre.includes('sin membres');
+        });
+    }
+
+    const porMoneda = new Map();
+    lineas.forEach((epm) => {
+        if (epm?.precio === undefined || epm?.precio === null) return;
+        // Sin moneda cargada (legacy) se asume la principal.
+        const clave = epm.moneda_id ?? 0;
+        if (porMoneda.has(clave)) return;
+        porMoneda.set(clave, {
+            precio: Number(epm.precio),
+            simbolo: epm?.moneda?.simbolo || SIMBOLO_PRINCIPAL,
+            moneda_id: epm.moneda_id ?? null,
+            esPrincipal: epm?.moneda ? Boolean(epm.moneda.es_principal) : true,
+        });
+    });
+
+    return [...porMoneda.values()].sort((a, b) => Number(b.esPrincipal) - Number(a.esPrincipal));
+}
+
+/** "$ 50.000,00 · USD 120,00" — cadena vacía si no hay ninguna línea. */
+export function formatPrecios(lineas) {
+    if (!Array.isArray(lineas) || lineas.length === 0) return '';
+    return lineas.map((l) => `${l.simbolo} ${formatPrice(l.precio)}`).join(' · ');
+}
+
+export function preciosSinMembresiaNormal(actividad) {
+    return preciosDesdeEsquema(actividad?.esquema_precio, null);
+}
+
+export function preciosSinMembresiaVigente(actividad) {
+    if (descuentoVigente(actividad)) {
+        const conDescuento = preciosDesdeEsquema(actividad?.esquema_descuento, null);
+        if (conDescuento.length) return conDescuento;
+    }
+    return preciosSinMembresiaNormal(actividad);
+}
+
+export function preciosMembresiaUsuario(actividad, user) {
+    const userMemId = user?.membresia?.id || user?.membresia_id;
+    if (!userMemId) return [];
+
+    if (descuentoVigente(actividad)) {
+        const conDescuento = preciosDesdeEsquema(actividad?.esquema_descuento, userMemId);
+        if (conDescuento.length) return conDescuento;
+    }
+
+    return preciosDesdeEsquema(actividad?.esquema_precio, userMemId);
+}
+
+// Variantes numéricas (moneda principal): las usa lo que necesita comparar
+// montos, como el "Incluído" cuando el precio con membresía es 0.
 export function precioSinMembresiaNormal(actividad) {
-    return precioDesdeEsquema(actividad?.esquema_precio, null) ?? 0;
+    return preciosSinMembresiaNormal(actividad)[0]?.precio ?? 0;
 }
 
 export function precioSinMembresiaVigente(actividad) {
-    if (descuentoVigente(actividad)) {
-        const precioConDescuento = precioDesdeEsquema(actividad?.esquema_descuento, null);
-        if (precioConDescuento !== null) return precioConDescuento;
-    }
-    return precioSinMembresiaNormal(actividad);
+    return preciosSinMembresiaVigente(actividad)[0]?.precio ?? 0;
 }
 
 export function precioMembresiaUsuario(actividad, user) {
-    const userMemId = user?.membresia?.id || user?.membresia_id;
-    if (!userMemId) return 0;
-
-    if (descuentoVigente(actividad)) {
-        const precioConDescuento = precioDesdeEsquema(actividad?.esquema_descuento, userMemId);
-        if (precioConDescuento !== null) return precioConDescuento;
-    }
-
-    return precioDesdeEsquema(actividad?.esquema_precio, userMemId) ?? 0;
+    return preciosMembresiaUsuario(actividad, user)[0]?.precio ?? 0;
 }
 
 export function esInscrito(actividadId, inscripcionesIds) {

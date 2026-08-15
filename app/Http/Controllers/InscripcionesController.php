@@ -6,6 +6,7 @@ use App\Models\Actividad;
 use App\Models\EmailEnvioConfiguracion;
 use App\Models\Inscripcion;
 use App\Mail\InscripcionConfirmada;
+use App\Services\ReporteInscripcionesPorActividadService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -115,15 +116,18 @@ class InscripcionesController extends Controller
                     $query->whereIn('pago', ['Parcial', 'Pendiente']);
                 },
             ])
-            ->withSum([
-                'inscripciones as pendiente_importe' => function ($query) {
-                    $query->whereIn('pago', ['Parcial', 'Pendiente']);
-                },
-            ], 'montoapagar')
             ->orderBy('fecha_inicio', 'asc')
-            ->get(['id', 'nombre', 'fecha_inicio'])
-            ->map(function ($actividad) {
+            ->get(['id', 'nombre', 'fecha_inicio']);
+
+        // Los importes pendientes van abiertos por moneda (mismo criterio que el
+        // reporte semanal): sumarlos de prepo mezclaba pesos con dólares.
+        $importesPendientes = app(ReporteInscripcionesPorActividadService::class)
+            ->importesPendientesPorMoneda($actividades->pluck('id')->all());
+
+        $actividades = $actividades
+            ->map(function ($actividad) use ($importesPendientes) {
                 $fechaInicio = $actividad->fecha_inicio ? Carbon::parse($actividad->fecha_inicio) : null;
+                $porMoneda = $importesPendientes[$actividad->id] ?? [];
 
                 return [
                     'id' => $actividad->id,
@@ -135,7 +139,8 @@ class InscripcionesController extends Controller
                     'total_inscriptos' => (int) ($actividad->total_inscriptos ?? 0),
                     'inscriptos_ultimos_5_dias' => (int) ($actividad->inscriptos_ultimos_5_dias ?? 0),
                     'pendientes_pago' => (int) ($actividad->pendientes_pago ?? 0),
-                    'pendiente_importe' => (float) ($actividad->pendiente_importe ?? 0),
+                    'pendiente_importe' => (float) ($porMoneda['principal'] ?? 0),
+                    'pendiente_importes' => $porMoneda['por_moneda'] ?? [],
                 ];
             })
             ->values();

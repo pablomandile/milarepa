@@ -89,7 +89,17 @@
                             <td class="text-center">{{ $actividad['total_inscriptos'] ?? 0 }}</td>
                             <td class="text-center">{{ $actividad['inscriptos_ultimos_5_dias'] ?? 0 }}</td>
                             <td class="text-center">{{ $actividad['pendientes_pago'] ?? 0 }}</td>
-                            <td class="text-right">${{ number_format((float) ($actividad['pendiente_importe'] ?? 0), 2, ',', '.') }}</td>
+                            <td class="text-right">
+                                @php($importes = $actividad['pendiente_importes'] ?? [])
+                                @if(empty($importes))
+                                    $ 0,00
+                                @else
+                                    {{-- Una línea por moneda: sumarlas daría un número sin sentido. --}}
+                                    @foreach($importes as $importe)
+                                        <div>{{ $importe['simbolo'] }} {{ number_format((float) $importe['importe'], 2, ',', '.') }}</div>
+                                    @endforeach
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

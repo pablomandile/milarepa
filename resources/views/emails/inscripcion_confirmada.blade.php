@@ -428,13 +428,29 @@
                 </div>
                 @endif
 
-                @php($montoGrabacion = data_get($inscripcion, 'montoGrabacion'))
+                @php
+                    // Multi-moneda (BUSINESS_RULES §2.1bis): ver el comentario equivalente en
+                    // inscripcion_registrada. Los ?? sostienen la vista previa.
+                    $simbolo = $simboloMoneda ?? '$';
+                    $simboloPpal = $simboloPrincipal ?? '$';
+                    $porcionPrincipal = (float) ($montoMonedaPrincipal ?? 0);
+                    $fmt = static fn ($valor, $sim = null) => ($sim ?? $simbolo) . ' ' . number_format((float) $valor, 2, ',', '.');
+                    $montoGrabacion = data_get($inscripcion, 'montoGrabacion');
+                @endphp
                 @if(!is_null($montoGrabacion))
                 <div class="info-row">
                     <strong>Grabación:</strong> Incluida
                     @if((float) $montoGrabacion > 0)
-                        ( ${{ number_format((float) $montoGrabacion, 2, ',', '.') }} )
+                        ( {{ $fmt($montoGrabacion) }} )
                     @endif
+                </div>
+                @endif
+
+                @if($porcionPrincipal > 0)
+                <div class="info-row">
+                    <strong>Total abonado:</strong>
+                    {{ $fmt($inscripcion->montoapagar ?? 0) }} + {{ $fmt($porcionPrincipal, $simboloPpal) }}
+                    <br><span style="font-size: 12px; color: #666;">Algunos servicios no tienen precio en {{ $simbolo }} y se cobraron en {{ $simboloPpal }}.</span>
                 </div>
                 @endif
 
@@ -454,7 +470,7 @@
                         @if(count($itemsInvitado))
                             <br><span style="font-size: 13px; color: #666;">{{ implode(', ', $itemsInvitado) }}</span>
                         @endif
-                        <br><span style="font-size: 13px; color: #666;">Monto: ${{ number_format((float) $invitado->montoapagar, 2, ',', '.') }}</span>
+                        <br><span style="font-size: 13px; color: #666;">Monto: {{ $fmt($invitado->montoapagar) }}</span>
                     </div>
                 @endforeach
                 @endif

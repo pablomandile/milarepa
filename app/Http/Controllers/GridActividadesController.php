@@ -101,7 +101,11 @@ class GridActividadesController extends Controller
             'disponibilidad',
             'modalidad',
             'esquemaPrecio.membresias.membresia',
+            // La moneda de cada línea alimenta el precio de las cards: una actividad
+            // con esquema en dólares no puede mostrarse con el símbolo de pesos.
+            'esquemaPrecio.membresias.moneda:id,nombre,simbolo,es_principal',
             'esquemaDescuento.membresias.membresia',
+            'esquemaDescuento.membresias.moneda:id,nombre,simbolo,es_principal',
             'stream',
             'grabacion',
             'programa',
@@ -1009,7 +1013,9 @@ class GridActividadesController extends Controller
             'transportes',
             'hospedajes',
             'esquemaPrecio.membresias.membresia',
+            'esquemaPrecio.membresias.moneda:id,nombre,simbolo,es_principal',
             'esquemaDescuento.membresias.membresia',
+            'esquemaDescuento.membresias.moneda:id,nombre,simbolo,es_principal',
         ];
         if ($this->canUseLugarRelation()) {
             $showPublicLoad[] = 'lugar';

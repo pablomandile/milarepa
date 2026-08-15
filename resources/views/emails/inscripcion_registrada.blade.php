@@ -346,17 +346,35 @@
                     </span>
                 </div>
 
+                @php
+                    // Multi-moneda (BUSINESS_RULES §2.1bis): los montos van en la moneda de
+                    // la inscripción y `montoMonedaPrincipal` es la porción de servicios sin
+                    // precio en esa moneda, que se cobra en pesos. Los ?? mantienen viva la
+                    // vista previa y cualquier render que no pase estas variables.
+                    $simbolo = $simboloMoneda ?? '$';
+                    $simboloPpal = $simboloPrincipal ?? '$';
+                    $porcionPrincipal = (float) ($montoMonedaPrincipal ?? 0);
+                    $fmt = static fn ($valor, $sim = null) => ($sim ?? $simbolo) . ' ' . number_format((float) $valor, 2, ',', '.');
+                @endphp
+
                 @if($inscripcion->precioGeneral)
                 <div class="price-box">
                     <div class="price-label">Precio General Actividad</div>
-                    <div class="price-value">${{ number_format($inscripcion->precioGeneral, 2, ',', '.') }}</div>
+                    <div class="price-value">{{ $fmt($inscripcion->precioGeneral) }}</div>
                 </div>
                 @endif
 
-                @if($inscripcion->montoapagar)
+                @if($inscripcion->montoapagar || $porcionPrincipal > 0)
                 <div class="price-box">
                     <div class="price-label">Monto a Pagar Total</div>
-                    <div class="price-value">${{ number_format($inscripcion->montoapagar, 2, ',', '.') }}</div>
+                    <div class="price-value">
+                        {{ $fmt($inscripcion->montoapagar ?? 0) }}@if($porcionPrincipal > 0) + {{ $fmt($porcionPrincipal, $simboloPpal) }}@endif
+                    </div>
+                    @if($porcionPrincipal > 0)
+                    <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                        Algunos servicios no tienen precio en {{ $simbolo }} y se cobran en {{ $simboloPpal }}.
+                    </div>
+                    @endif
                 </div>
                 @endif
 
@@ -464,7 +482,7 @@
 
                 <div class="info-row" style="margin-top: 12px;">
                     <strong>Actividad:</strong>
-                    ${{ number_format((float) ($montoActividad ?? 0), 2, ',', '.') }}
+                    {{ $fmt($montoActividad ?? 0) }}
                     @if($actividadGetnetLink ?? null)
                         <a href="{{ $actividadGetnetLink }}" target="_blank" style="margin-left:8px;display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:4px 10px;border-radius:4px;font-size:12px;">Pagar con Getnet</a>
                     @endif
@@ -473,7 +491,7 @@
                 @if(!is_null($montoGrabacion ?? null))
                 <div class="info-row">
                     <strong>Grabación:</strong>
-                    ${{ number_format((float) ($montoGrabacion ?? 0), 2, ',', '.') }}
+                    {{ $fmt($montoGrabacion ?? 0) }}
                     @if(data_get($actividad, 'grabacion.botonPago.link'))
                         <a href="{{ data_get($actividad, 'grabacion.botonPago.link') }}" target="_blank" style="margin-left:8px;display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:4px 10px;border-radius:4px;font-size:12px;">Pagar con Getnet</a>
                     @endif
@@ -487,7 +505,7 @@
                         {{ $inscripcion->hospedaje->nombre ?? 'Incluido' }}
                     @endif
                     @if(!is_null($montoHospedaje ?? null))
-                        ( ${{ number_format((float) ($montoHospedaje ?? 0), 2, ',', '.') }} )
+                        ( {{ $fmt($montoHospedaje ?? 0) }} )
                     @endif
                     @if(data_get($inscripcion, 'hospedaje.botonPago.link'))
                         <a href="{{ data_get($inscripcion, 'hospedaje.botonPago.link') }}" target="_blank" style="margin-left:8px;display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:4px 10px;border-radius:4px;font-size:12px;">Pagar con Getnet</a>
@@ -502,7 +520,7 @@
                         {{ $inscripcion->comida->nombre ?? 'Incluida' }}
                     @endif
                     @if(!is_null($montoComidas ?? null))
-                        ( ${{ number_format((float) ($montoComidas ?? 0), 2, ',', '.') }} )
+                        ( {{ $fmt($montoComidas ?? 0) }} )
                     @endif
                     @if(data_get($inscripcion, 'comida.botonPago.link'))
                         <a href="{{ data_get($inscripcion, 'comida.botonPago.link') }}" target="_blank" style="margin-left:8px;display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:4px 10px;border-radius:4px;font-size:12px;">Pagar con Getnet</a>
@@ -517,7 +535,7 @@
                         {{ $inscripcion->transporte->nombre ?? $inscripcion->transporte->descripcion ?? 'Incluido' }}
                     @endif
                     @if(!is_null($montoTransporte ?? null))
-                        ( ${{ number_format((float) ($montoTransporte ?? 0), 2, ',', '.') }} )
+                        ( {{ $fmt($montoTransporte ?? 0) }} )
                     @endif
                     @if(data_get($inscripcion, 'transporte.botonPago.link'))
                         <a href="{{ data_get($inscripcion, 'transporte.botonPago.link') }}" target="_blank" style="margin-left:8px;display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:4px 10px;border-radius:4px;font-size:12px;">Pagar con Getnet</a>
@@ -549,7 +567,7 @@
                         @if(count($itemsInvitado))
                             <br><span style="font-size: 13px; color: #666;">{{ implode(', ', $itemsInvitado) }}</span>
                         @endif
-                        <br><span style="font-size: 13px; color: #666;">Monto: ${{ number_format((float) $invitado->montoapagar, 2, ',', '.') }}</span>
+                        <br><span style="font-size: 13px; color: #666;">Monto: {{ $fmt($invitado->montoapagar) }}</span>
                     </div>
                 @endforeach
                 @endif

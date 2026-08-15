@@ -1,15 +1,15 @@
 <script setup>
 import { computed } from 'vue';
 import {
-    formatPrice,
+    formatPrecios,
     formatFechaLarga,
     formatHora,
     direccionActividad,
     descuentoVigente,
     formatoFechaLimite,
-    precioSinMembresiaNormal,
-    precioSinMembresiaVigente,
-    precioMembresiaUsuario,
+    preciosSinMembresiaNormal,
+    preciosSinMembresiaVigente,
+    preciosMembresiaUsuario,
     esInscrito,
     actividadSinInscripcionDisponible,
     textoBotonInscripcion,
@@ -54,8 +54,7 @@ const telefono = computed(() => {
 const valorTexto = computed(() => {
     const esGratis = props.actividad?.esquema_precio?.nombre === 'Actividad Gratuita';
     if (esGratis) return 'Actividad Gratuita';
-    const precio = precioSinMembresiaVigente(props.actividad);
-    return `$${formatPrice(precio)}`;
+    return formatPrecios(preciosSinMembresiaVigente(props.actividad));
 });
 
 const horarioTexto = computed(() => formatHora(props.actividad?.fecha_inicio) || 'ver en el programa');
@@ -133,13 +132,13 @@ const horarioTexto = computed(() => formatHora(props.actividad?.fecha_inicio) ||
                                 v-if="descuentoVigente(actividad) && actividad.esquema_precio?.nombre !== 'Actividad Gratuita'"
                                 class="block text-xs md:text-sm text-amber-700 dark:text-amber-400 mt-0.5"
                             >
-                                Después de {{ formatoFechaLimite(actividad) }}: ${{ formatPrice(precioSinMembresiaNormal(actividad)) }}
+                                Después de {{ formatoFechaLimite(actividad) }}: {{ formatPrecios(preciosSinMembresiaNormal(actividad)) }}
                             </span>
                             <span
                                 v-if="userContext?.membresia && userContext.membresia?.nombre !== 'Sin membresía'"
                                 class="block text-xs md:text-sm text-green-700 dark:text-green-400 mt-0.5"
                             >
-                                Con {{ userContext.membresia?.nombre }}: ${{ formatPrice(precioMembresiaUsuario(actividad, userContext)) }}
+                                Con {{ userContext.membresia?.nombre }}: {{ formatPrecios(preciosMembresiaUsuario(actividad, userContext)) }}
                             </span>
                         </span>
                     </li>
