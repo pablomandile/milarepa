@@ -19,6 +19,8 @@ class VentaPos extends Model
         'metodo_pago_id',
         'comprobante_id',
         'total',
+        'totales_por_moneda',
+        'pagos_por_moneda',
         'observaciones',
         'idempotency_key',
     ];
@@ -26,6 +28,9 @@ class VentaPos extends Model
     protected $casts = [
         'fecha' => 'date',
         'total' => 'decimal:2',
+        // `total` es el total en la moneda principal; acá van los de las demás.
+        'totales_por_moneda' => 'array',
+        'pagos_por_moneda' => 'array',
     ];
 
     public function items()

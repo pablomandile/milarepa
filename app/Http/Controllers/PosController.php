@@ -12,6 +12,7 @@ use App\Models\Clase;
 use App\Models\Entidad;
 use App\Models\Libro;
 use App\Models\MetodoPago;
+use App\Models\Moneda;
 use App\Models\Municipio;
 use App\Models\Oracion;
 use App\Models\Otro;
@@ -24,6 +25,7 @@ use App\Services\CobroService;
 use App\Services\InscripcionActividadService;
 use App\Services\InscripcionClaseService;
 use App\Services\OptimizadorImagenService;
+use App\Services\PrecioActividadService;
 use App\Services\ProductoTharpaService;
 use App\Services\ProductoTiendaService;
 use Illuminate\Http\RedirectResponse;
@@ -77,22 +79,110 @@ class PosController extends Controller
     }
 
     /** Servicios (grabación/comidas/transportes/hospedajes) de una actividad para el POS. */
-    public function datosActividad(Actividad $actividad)
+    public function datosActividad(Request $request, Actividad $actividad)
     {
         // Ojo: transportes no tiene columna `nombre` (usa `descripcion`); pedirla
         // rompía este endpoint con un SQL error.
-        $actividad->load(['grabacion:id,nombre,valor', 'comidas:id,nombre,precio', 'transportes:id,descripcion,precio', 'hospedajes:id,nombre,precio']);
+        $actividad->load([
+            'grabacion:id,nombre,valor', 'grabacion.precios',
+            'comidas:id,nombre,precio', 'comidas.precios',
+            'transportes:id,descripcion,precio', 'transportes.precios',
+            'hospedajes:id,nombre,precio', 'hospedajes.precios',
+            'esquemaPrecio.membresias.moneda', 'esquemaDescuento.membresias.moneda',
+        ]);
+
+        // Multi-moneda (BUSINESS_RULES §2.1bis): sólo las actividades pueden venderse
+        // en otra moneda. Cada servicio se muestra con su precio en la moneda pedida y,
+        // si no tiene, con el de pesos marcado `en_principal` (se cobra aparte).
+        $monedaId = $request->filled('moneda_id') ? (int) $request->query('moneda_id') : null;
+        $principalId = Moneda::principalId();
+        $esPrincipal = !$monedaId || $monedaId === $principalId;
+
+        $precio = function ($servicio) use ($monedaId, $esPrincipal): array {
+            if ($esPrincipal) {
+                return ['precio' => (float) $servicio->precioEnMoneda(null), 'en_principal' => false];
+            }
+            $enMoneda = $servicio->precioEnMoneda($monedaId);
+
+            return $enMoneda !== null
+                ? ['precio' => (float) $enMoneda, 'en_principal' => false]
+                : ['precio' => (float) $servicio->precioEnMoneda(null), 'en_principal' => true];
+        };
 
         return response()->json([
             'actividad' => [
                 'id' => $actividad->id,
                 'nombre' => $actividad->nombre,
-                'grabacion' => $actividad->grabacion ? ['id' => $actividad->grabacion->id, 'nombre' => $actividad->grabacion->nombre, 'valor' => (float) $actividad->grabacion->valor] : null,
-                'comidas' => $actividad->comidas->map(fn ($c) => ['id' => $c->id, 'nombre' => $c->nombre, 'precio' => (float) $c->precio])->values(),
-                'transportes' => $actividad->transportes->map(fn ($t) => ['id' => $t->id, 'nombre' => $t->descripcion, 'precio' => (float) $t->precio])->values(),
-                'hospedajes' => $actividad->hospedajes->map(fn ($h) => ['id' => $h->id, 'nombre' => $h->nombre, 'precio' => (float) $h->precio])->values(),
+                'grabacion' => $actividad->grabacion
+                    ? ['id' => $actividad->grabacion->id, 'nombre' => $actividad->grabacion->nombre, 'valor' => $precio($actividad->grabacion)['precio']] + $precio($actividad->grabacion)
+                    : null,
+                'comidas' => $actividad->comidas->map(fn ($c) => ['id' => $c->id, 'nombre' => $c->nombre] + $precio($c))->values(),
+                'transportes' => $actividad->transportes->map(fn ($t) => ['id' => $t->id, 'nombre' => $t->descripcion] + $precio($t))->values(),
+                'hospedajes' => $actividad->hospedajes->map(fn ($h) => ['id' => $h->id, 'nombre' => $h->nombre] + $precio($h))->values(),
+                // Monedas en las que está cotizada la actividad, principal primero.
+                'monedas' => $this->monedasDeActividad($actividad),
             ],
         ]);
+    }
+
+    /**
+     * Medio de pago (y comprobante) de cada moneda de la venta, indexado por
+     * moneda_id como string.
+     *
+     * Cada moneda se salda por separado, así que el front puede mandar un bloque
+     * `pagos` por moneda. Sin `pagos` (o para monedas que no vengan) se usa el
+     * medio de pago único de la venta, que es como funcionaba antes.
+     *
+     * @return array<string, array{metodo_pago_id: int, comprobante_id: int|null}>
+     */
+    private function pagosPorMoneda(array $data, int $metodoId, ?int $comprobanteId, ?int $principalId): array
+    {
+        $pagos = [(string) $principalId => [
+            'metodo_pago_id' => $metodoId,
+            'comprobante_id' => $comprobanteId,
+        ]];
+
+        foreach ($data['pagos'] ?? [] as $pago) {
+            $monedaId = (int) ($pago['moneda_id'] ?? 0);
+            if (!$monedaId) {
+                continue;
+            }
+            $pagos[(string) $monedaId] = [
+                'metodo_pago_id' => (int) ($pago['metodo_pago_id'] ?? $metodoId),
+                'comprobante_id' => $pago['comprobante_id'] ?? null,
+            ];
+        }
+
+        return $pagos;
+    }
+
+    /**
+     * Monedas del esquema vigente de una actividad, con la principal primero.
+     * Si el esquema no tiene ninguna cargada, devuelve sólo la principal.
+     *
+     * @return array<int, array{id: int, nombre: string, simbolo: string|null, es_principal: bool}>
+     */
+    private function monedasDeActividad(Actividad $actividad): array
+    {
+        $esquema = app(PrecioActividadService::class)->esquemaVigente($actividad);
+        $ids = collect($esquema?->membresias ?? [])->pluck('moneda_id')->filter()->unique();
+
+        $principalId = Moneda::principalId();
+        if ($principalId) {
+            $ids = $ids->push($principalId)->unique();
+        }
+
+        return Moneda::whereIn('id', $ids)
+            ->orderByDesc('es_principal')
+            ->get(['id', 'nombre', 'simbolo', 'es_principal'])
+            ->map(fn ($m) => [
+                'id' => (int) $m->id,
+                'nombre' => $m->nombre,
+                'simbolo' => $m->simbolo,
+                'es_principal' => (bool) $m->es_principal,
+            ])
+            ->values()
+            ->all();
     }
 
     /** Cotiza (sin persistir) el monto de una inscripción a actividad para el POS. */
@@ -101,6 +191,7 @@ class PosController extends Controller
         $request->validate([
             'actividad_id' => ['required', 'integer', 'exists:actividades,id'],
             'email' => ['nullable', 'email'],
+            'moneda_id' => ['nullable', 'integer', 'exists:monedas,id'],
         ]);
 
         return response()->json($service->cotizar($request->all()));
@@ -200,6 +291,25 @@ class PosController extends Controller
             $ctx = ['fecha' => $fecha, 'vendedor_id' => $vendedorId];
             $total = 0.0;
 
+            // Multi-moneda: sólo las actividades pueden ir en otra moneda, y cada
+            // moneda se salda por separado (medio de pago y comprobante propios).
+            // `$total` sigue siendo el total en la moneda principal.
+            $principalId = Moneda::principalId();
+            $pagosPorMoneda = $this->pagosPorMoneda($data, $metodoId, $comprobanteId, $principalId);
+            $totalesOtrasMonedas = [];
+
+            /** Datos de cobro (método/comprobante) de la moneda que corresponda. */
+            $cobroDe = function (?int $monedaId) use ($pagosPorMoneda, $principalId, $metodoId, $comprobantes): array {
+                $clave = (string) ($monedaId ?: $principalId);
+                $pago = $pagosPorMoneda[$clave] ?? null;
+                $comprobanteMoneda = $pago['comprobante_id'] ?? null;
+
+                return [
+                    'metodo_pago_id' => $pago['metodo_pago_id'] ?? $metodoId,
+                    'comprobante_ids' => $comprobanteMoneda ? [$comprobanteMoneda] : $comprobantes,
+                ];
+            };
+
             foreach ($data['items'] as $linea) {
                 $tipo = $linea['tipo'];
                 $cantidad = max(1, (int) ($linea['cantidad'] ?? 1));
@@ -224,9 +334,9 @@ class PosController extends Controller
                     $cobro = $cobroService->registrar($ins, [
                         'monto' => $subtotal,
                         'fecha_pago' => $fecha,
-                        'metodo_pago_id' => $metodoId,
+                        'metodo_pago_id' => $cobroDe($principalId)['metodo_pago_id'],
                         'referencia' => $ref,
-                        'comprobante_ids' => $comprobantes,
+                        'comprobante_ids' => $cobroDe($principalId)['comprobante_ids'],
                         'registrado_por' => $vendedorId,
                         'origen' => 'pos',
                     ], recalcular: true);
@@ -238,7 +348,14 @@ class PosController extends Controller
 
                 if ($tipo === 'inscripcion_actividad') {
                     $ins = $inscripcionActividadService->crearDesdePayload($linea['inscripcion'] ?? [], $vendedorId);
-                    $subtotal = round((float) $ins->totalAdeudado(), 2);
+
+                    // Total dividido: la porción en la moneda de la inscripción y la
+                    // que quedó en pesos van a totales distintos y se cobran aparte.
+                    $monedaItem = (int) ($ins->moneda_id ?? $principalId);
+                    $porcionMoneda = round((float) $ins->montoapagar, 2);
+                    $porcionPrincipal = round((float) ($ins->monto_moneda_principal ?? 0), 2);
+                    $enPrincipal = $monedaItem === (int) $principalId;
+                    $subtotal = $porcionMoneda + $porcionPrincipal;
 
                     $item = VentaPosItem::create([
                         'venta_pos_id' => $venta->id,
@@ -246,23 +363,51 @@ class PosController extends Controller
                         'vendible_type' => $ins->getMorphClass(),
                         'vendible_id' => $ins->getKey(),
                         'cantidad' => 1,
-                        'precio_unitario' => $subtotal,
-                        'subtotal' => $subtotal,
+                        'precio_unitario' => $porcionMoneda,
+                        'subtotal' => $porcionMoneda,
+                        'moneda_id' => $monedaItem,
+                        'subtotal_moneda_principal' => $enPrincipal ? null : ($porcionPrincipal ?: null),
                         'descripcion' => 'Actividad: ' . ($ins->actividad?->nombre ?? '') . ' — ' . ($ins->user?->name ?? $ins->guestUser?->name ?? ''),
                     ]);
 
+                    // Un cobro por moneda: así cada una se salda por separado y el
+                    // estado de la inscripción sale de la suma de ambos.
+                    $datosMoneda = $cobroDe($monedaItem);
                     $cobro = $cobroService->registrar($ins, [
-                        'monto' => $subtotal,
+                        'monto' => $porcionMoneda,
+                        'moneda_id' => $monedaItem,
                         'fecha_pago' => $fecha,
-                        'metodo_pago_id' => $metodoId,
+                        'metodo_pago_id' => $datosMoneda['metodo_pago_id'],
                         'referencia' => $ref,
-                        'comprobante_ids' => $comprobantes,
+                        'comprobante_ids' => $datosMoneda['comprobante_ids'],
                         'registrado_por' => $vendedorId,
                         'origen' => 'pos',
-                    ], recalcular: true);
+                    ], recalcular: false);
+
+                    if (!$enPrincipal && $porcionPrincipal > 0) {
+                        $datosPrincipal = $cobroDe($principalId);
+                        $cobroService->registrar($ins, [
+                            'monto' => $porcionPrincipal,
+                            'moneda_id' => $principalId,
+                            'fecha_pago' => $fecha,
+                            'metodo_pago_id' => $datosPrincipal['metodo_pago_id'],
+                            'referencia' => $ref . ' (servicios en ' . (Moneda::find($principalId)?->simbolo ?: '$') . ')',
+                            'comprobante_ids' => $datosPrincipal['comprobante_ids'],
+                            'registrado_por' => $vendedorId,
+                            'origen' => 'pos',
+                        ], recalcular: false);
+                    }
+
+                    $cobroService->recalcularEstadoPago($ins);
+
+                    if ($enPrincipal) {
+                        $total += $subtotal;
+                    } else {
+                        $totalesOtrasMonedas[$monedaItem] = ($totalesOtrasMonedas[$monedaItem] ?? 0) + $porcionMoneda;
+                        $total += $porcionPrincipal;
+                    }
 
                     $item->update(['cobro_id' => $cobro->id]);
-                    $total += $subtotal;
                     continue;
                 }
 
@@ -294,9 +439,9 @@ class PosController extends Controller
                     $cobro = $cobroService->registrar($item, [
                         'monto' => $subtotal,
                         'fecha_pago' => $fecha,
-                        'metodo_pago_id' => $metodoId,
+                        'metodo_pago_id' => $cobroDe($principalId)['metodo_pago_id'],
                         'referencia' => $ref,
-                        'comprobante_ids' => $comprobantes,
+                        'comprobante_ids' => $cobroDe($principalId)['comprobante_ids'],
                         'registrado_por' => $vendedorId,
                         'origen' => 'pos',
                     ], recalcular: false);
@@ -370,9 +515,9 @@ class PosController extends Controller
                 $cobro = $cobroService->registrar($cobrable, [
                     'monto' => $subtotal,
                     'fecha_pago' => $fecha,
-                    'metodo_pago_id' => $metodoId,
+                    'metodo_pago_id' => $cobroDe($principalId)['metodo_pago_id'],
                     'referencia' => $ref,
-                    'comprobante_ids' => $comprobantes,
+                    'comprobante_ids' => $cobroDe($principalId)['comprobante_ids'],
                     'registrado_por' => $vendedorId,
                     'origen' => 'pos',
                 ], recalcular: false);
@@ -381,7 +526,13 @@ class PosController extends Controller
                 $total += $subtotal;
             }
 
-            $venta->update(['total' => round($total, 2)]);
+            $venta->update([
+                'total' => round($total, 2),
+                'totales_por_moneda' => $totalesOtrasMonedas
+                    ? array_map(fn ($t) => round($t, 2), $totalesOtrasMonedas)
+                    : null,
+                'pagos_por_moneda' => count($pagosPorMoneda) > 1 ? $pagosPorMoneda : null,
+            ]);
         });
 
         return redirect()->route('pos.index')->with('success', 'Venta POS registrada correctamente.');

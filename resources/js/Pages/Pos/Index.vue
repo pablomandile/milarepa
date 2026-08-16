@@ -52,7 +52,41 @@ const form = useForm({
 });
 
 const cart = ref([]);
-const total = computed(() => cart.value.reduce((s, i) => s + Number(i.subtotal || 0), 0));
+
+// Multi-moneda: sólo las actividades pueden ir en otra moneda; todo lo demás es en
+// pesos. Cada moneda se muestra y se salda por separado, sin conversión.
+const total = computed(() => cart.value.reduce((s, i) => {
+    const enPesos = i.moneda_id ? Number(i.subtotal_moneda_principal || 0) : Number(i.subtotal || 0);
+    return s + enPesos;
+}, 0));
+
+/** [{moneda_id, simbolo, total}] de las monedas que NO son pesos. */
+const totalesOtrasMonedas = computed(() => {
+    const acumulado = new Map();
+    cart.value.forEach((i) => {
+        if (!i.moneda_id) return;
+        const previo = acumulado.get(i.moneda_id) || { moneda_id: i.moneda_id, simbolo: i.moneda_simbolo || '', total: 0 };
+        previo.total += Number(i.subtotal || 0);
+        acumulado.set(i.moneda_id, previo);
+    });
+    return [...acumulado.values()].filter((m) => m.total > 0);
+});
+
+const hayOtrasMonedas = computed(() => totalesOtrasMonedas.value.length > 0);
+
+/** "$ 12.000,00 + USD 120,00" para el botón de finalizar. */
+const totalTexto = computed(() => [
+    formatPrice(total.value),
+    ...totalesOtrasMonedas.value.map((m) => formatImporte(m.total, m.simbolo)),
+].join(' + '));
+
+const formatImporte = (valor, simbolo) =>
+    `${simbolo} ${new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(valor || 0))}`;
+
+/** Medio de pago por cada moneda distinta de pesos (la de pesos es form.metodo_pago_id). */
+const pagosOtrasMonedas = ref({});
+const metodoPagoDe = (monedaId) => pagosOtrasMonedas.value[monedaId] ?? null;
+const setMetodoPagoDe = (monedaId, valor) => { pagosOtrasMonedas.value[monedaId] = valor; };
 
 const esInscripcion = computed(() => ['inscripcion_clase', 'inscripcion_actividad'].includes(ambito.value));
 const esProducto = computed(() => ['tienda', 'tharpa'].includes(ambito.value));
@@ -115,6 +149,9 @@ const nuevoActividadForm = () => ({
     actividad_id: '', email: '', nombre: '', provincia_id: '', municipio_id: '', barrio_id: '', telefono: '',
     registrar_datos: true, incluye_grabacion: false, modalidad_cursada: null,
     comidas_ids: [], transportes_ids: [], hospedajes_ids: [],
+    // moneda_id null = pesos. montoMonedaPrincipal es la porción del total dividido
+    // que se cobra en pesos (servicios sin precio en la moneda elegida).
+    moneda_id: null, monedas: [], montoMonedaPrincipal: 0,
     montoActividad: 0, montoApagar: 0, membresia: '', errors: {},
 });
 const actividadForm = ref(nuevoActividadForm());
@@ -252,8 +289,12 @@ const agregarActividadAlCarrito = () => {
         Swal.fire({ icon: 'warning', title: 'Faltan datos', text: 'Completá al menos email y actividad.' });
         return;
     }
+    // La actividad es lo único que puede ir en otra moneda: el ítem guarda su
+    // porción en esa moneda y la que quedó en pesos (servicios sin precio en ella).
     const subtotal = Number(Number(f.montoApagar || 0).toFixed(2));
+    const subtotalPesos = Number(Number(f.montoMonedaPrincipal || 0).toFixed(2));
     const actNombre = (props.actividades.find((a) => Number(a.id) === Number(f.actividad_id))?.nombre) || 'Actividad';
+    const moneda = (f.monedas || []).find((m) => m.id === Number(f.moneda_id)) || null;
 
     cart.value.push({
         tipo: 'inscripcion_actividad',
@@ -263,10 +304,13 @@ const agregarActividadAlCarrito = () => {
         precio_unitario: subtotal,
         cantidad: 1,
         subtotal,
+        moneda_id: moneda && !moneda.es_principal ? moneda.id : null,
+        moneda_simbolo: moneda?.simbolo || null,
+        subtotal_moneda_principal: subtotalPesos,
         inscripcion: {
             actividad_id: f.actividad_id, email: f.email, nombre: f.nombre, provincia_id: f.provincia_id,
             municipio_id: f.municipio_id, barrio_id: f.barrio_id, telefono: f.telefono, registrar_datos: f.registrar_datos,
-            incluye_grabacion: f.incluye_grabacion, modalidad_cursada: f.modalidad_cursada,
+            incluye_grabacion: f.incluye_grabacion, modalidad_cursada: f.modalidad_cursada, moneda_id: f.moneda_id,
             comidas_ids: f.comidas_ids, transportes_ids: f.transportes_ids, hospedajes_ids: f.hospedajes_ids,
         },
     });
@@ -284,6 +328,12 @@ const finalizar = () => {
         Swal.fire({ icon: 'warning', title: 'Falta el medio de pago' });
         return;
     }
+    // Cada moneda se salda por separado, así que cada una necesita su medio de pago.
+    const sinMetodo = totalesOtrasMonedas.value.find((m) => !metodoPagoDe(m.moneda_id));
+    if (sinMetodo) {
+        Swal.fire({ icon: 'warning', title: `Falta el medio de pago en ${sinMetodo.simbolo}` });
+        return;
+    }
     form.transform((data) => ({
         ...data,
         items: cart.value.map((i) => (
@@ -291,6 +341,10 @@ const finalizar = () => {
                 ? { tipo: i.tipo, inscripcion: i.inscripcion, cantidad: 1 }
                 : { tipo: i.tipo, producto_id: i.producto_id, cantidad: i.cantidad }
         )),
+        pagos: totalesOtrasMonedas.value.map((m) => ({
+            moneda_id: m.moneda_id,
+            metodo_pago_id: metodoPagoDe(m.moneda_id),
+        })),
     })).post(route('pos.store'), {
         forceFormData: true,
         preserveScroll: true,
@@ -375,7 +429,15 @@ const finalizar = () => {
                                     <td class="py-2">{{ i.titulo }}<span v-if="i.tipo_producto" class="text-gray-400"> ({{ i.tipo_producto }})</span></td>
                                     <td class="py-2 text-right">{{ formatPrice(i.precio_unitario) }}</td>
                                     <td class="py-2 text-center">{{ i.cantidad }}</td>
-                                    <td class="py-2 text-right font-semibold">{{ formatPrice(i.subtotal) }}</td>
+                                    <td class="py-2 text-right font-semibold">
+                                        <template v-if="i.moneda_id">
+                                            {{ formatImporte(i.subtotal, i.moneda_simbolo) }}
+                                            <div v-if="Number(i.subtotal_moneda_principal) > 0" class="text-xs font-normal text-gray-500">
+                                                + {{ formatPrice(i.subtotal_moneda_principal) }} en pesos
+                                            </div>
+                                        </template>
+                                        <template v-else>{{ formatPrice(i.subtotal) }}</template>
+                                    </td>
                                     <td class="py-2 text-right">
                                         <button type="button" @click="quitarDelCarrito(idx)" class="text-red-600 hover:text-red-800" title="Quitar">
                                             <i class="fas fa-trash"></i>
@@ -385,8 +447,14 @@ const finalizar = () => {
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="4" class="py-3 text-right font-semibold">Total</td>
+                                    <td colspan="4" class="py-3 text-right font-semibold">Total en pesos</td>
                                     <td class="py-3 text-right text-lg font-bold text-emerald-600">{{ formatPrice(total) }}</td>
+                                    <td></td>
+                                </tr>
+                                <!-- Cada moneda se totaliza y se salda aparte: no hay conversión. -->
+                                <tr v-for="m in totalesOtrasMonedas" :key="m.moneda_id">
+                                    <td colspan="4" class="py-2 text-right font-semibold">Total en {{ m.simbolo }}</td>
+                                    <td class="py-2 text-right text-lg font-bold text-emerald-600">{{ formatImporte(m.total, m.simbolo) }}</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -397,12 +465,29 @@ const finalizar = () => {
 
                 <div class="p-6 bg-white dark:bg-gray-800 shadow sm:rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm text-gray-600 dark:text-gray-300 mb-1">Medio de pago</label>
+                        <label class="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+                            Medio de pago<span v-if="hayOtrasMonedas"> (pesos)</span>
+                        </label>
                         <select v-model="form.metodo_pago_id" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
                             <option :value="null">Seleccionar…</option>
                             <option v-for="m in metodosPago" :key="m.id" :value="m.id">{{ m.nombre }}</option>
                         </select>
                         <p v-if="form.errors.metodo_pago_id" class="text-xs text-red-500 mt-1">{{ form.errors.metodo_pago_id }}</p>
+
+                        <!-- Un medio de pago por cada moneda: cada una se salda por separado. -->
+                        <div v-for="m in totalesOtrasMonedas" :key="m.moneda_id" class="mt-3">
+                            <label class="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+                                Medio de pago ({{ m.simbolo }} {{ formatImporte(m.total, '').trim() }})
+                            </label>
+                            <select
+                                :value="metodoPagoDe(m.moneda_id)"
+                                @change="setMetodoPagoDe(m.moneda_id, Number($event.target.value) || null)"
+                                class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+                            >
+                                <option :value="null">Seleccionar…</option>
+                                <option v-for="mp in metodosPago" :key="mp.id" :value="mp.id">{{ mp.nombre }}</option>
+                            </select>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm text-gray-600 dark:text-gray-300 mb-1">Comprobante (opcional)</label>
@@ -414,7 +499,7 @@ const finalizar = () => {
                     </div>
                     <div class="md:col-span-2 flex items-center justify-end">
                         <button type="button" @click="finalizar" :disabled="form.processing" class="text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 py-2 px-6 rounded font-semibold">
-                            Finalizar venta ({{ formatPrice(total) }})
+                            Finalizar venta ({{ totalTexto }})
                         </button>
                     </div>
                 </div>

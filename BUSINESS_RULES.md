@@ -67,8 +67,19 @@ montoTotal = montoActividad
 - El **botón de pago de la actividad** acompaña a la moneda elegida: se resuelve con la misma
   cascada del precio y el checkout recibe un botón por cada moneda del esquema, así el link
   cambia junto con el selector.
-- El **POS es siempre en la moneda principal**: acepta `moneda_id` a nivel servicio, pero la venta
-  y el ticket manejan un total único, así que no se expone selector (ver DEUDA_TECNICA §0.9).
+- **POS multi-moneda**: lo único que puede venderse en una moneda distinta de la principal es una
+  **actividad**. Libros, productos Tharpa, artículos de tienda e inscripciones a clases van siempre
+  en pesos. Consecuencias:
+  - El carrito muestra **un total por moneda** ("Total en pesos" + "Total en U$T"); nunca se suman
+    ni se convierten entre sí.
+  - **Cada moneda se salda por separado**: el formulario pide un medio de pago por cada una y la
+    venta registra un cobro por moneda. Una inscripción con total dividido genera dos cobros (la
+    porción en su moneda y la porción en pesos de los servicios sin precio en ella), y la
+    inscripción queda saldada cuando están los dos.
+  - `venta_pos.total` es el total en la moneda **principal**; los otros van en
+    `venta_pos.totales_por_moneda` y los medios de pago en `venta_pos.pagos_por_moneda`.
+  - `venta_pos_items.moneda_id` + `subtotal_moneda_principal` espejan el mismo modelo que las
+    inscripciones.
 
 ### 2.1ter Cómo se muestra la plata cuando hay varias monedas
 

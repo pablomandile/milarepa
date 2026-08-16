@@ -33,6 +33,12 @@ class PosRequest extends FormRequest
             // Payload de inscripción (para líneas inscripcion_clase / inscripcion_actividad).
             // La validación fina la hace el servicio de inscripción correspondiente.
             'items.*.inscripcion' => ['nullable', 'array'],
+            // Multi-moneda: cada moneda de la venta se salda por separado, con su
+            // propio medio de pago. Sin `pagos` se usa `metodo_pago_id` para todo.
+            'pagos' => ['nullable', 'array'],
+            'pagos.*.moneda_id' => ['required_with:pagos', 'integer', 'exists:monedas,id', 'distinct'],
+            'pagos.*.metodo_pago_id' => ['required_with:pagos', 'integer', 'exists:metodos_pago,id'],
+            'pagos.*.comprobante_id' => ['nullable', 'integer', 'exists:imagenes,id'],
         ];
     }
 
