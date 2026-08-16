@@ -33,6 +33,8 @@
     const esquemaVisible = ref(false);
     const esquemaSeleccionado = ref(null);
     const esquemaTitulo = ref('Esquema de Precios');
+    const linkVisible = ref(false);
+    const linkActividad = ref(null);
     const filters = ref({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     });
@@ -190,6 +192,54 @@
     };
 
     const idsSeleccionados = () => seleccionadas.value.map((a) => a.id);
+
+    // --- Link público de la actividad (para compartir por WhatsApp, mail, redes) ---
+    // Sin `return_url`: ese parámetro es para volver al listado del admin y no tiene
+    // sentido en un link que se manda afuera.
+    const linkPublico = computed(() => (linkActividad.value
+        ? route('grid-actividades.show-public', linkActividad.value.id)
+        : ''));
+
+    const abrirLinkPublico = (actividad) => {
+        linkActividad.value = actividad;
+        linkVisible.value = true;
+    };
+
+    const copiarLinkPublico = async () => {
+        const url = linkPublico.value;
+        if (!url) return;
+
+        try {
+            // navigator.clipboard sólo existe en contextos seguros; en el entorno
+            // local por http hay que caer al textarea temporal.
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(url);
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = url;
+                textarea.setAttribute('readonly', '');
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+            toast.add({
+                severity: 'success',
+                summary: 'Link copiado',
+                detail: 'Ya lo podés pegar donde quieras.',
+                life: 2500,
+            });
+        } catch (e) {
+            toast.add({
+                severity: 'warn',
+                summary: 'No se pudo copiar',
+                detail: 'Copialo a mano desde el cuadro.',
+                life: 4000,
+            });
+        }
+    };
 
     const bulkSetEstado = (estado) => {
         if (!seleccionadas.value.length) return;
@@ -684,6 +734,13 @@
                                         >
                                             <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1;"></i>
                                         </Link>
+                                        <button
+                                            @click="abrirLinkPublico(slotProps.data)"
+                                            v-tooltip="'Link público para compartir'"
+                                            class="text-emerald-600 hover:text-emerald-800"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-link" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </button>
                                         <Link
                                             :href="route('actividades.edit', { actividad: parseInt(slotProps.data.id) })"
                                             v-if="$page.props.user.permissions.includes('update actividades')"
@@ -932,6 +989,46 @@
 
         </template>
         <p v-else>Cargando datos...</p>
+    </Dialog>
+
+    <!-- Dialog con el link público de la actividad, listo para copiar -->
+    <Dialog
+        v-model:visible="linkVisible"
+        modal
+        :header="linkActividad ? `Link público: ${linkActividad.nombre}` : 'Link público'"
+        :style="{ width: '38rem' }"
+        :breakpoints="{ '575px': '95vw' }"
+        dismissableMask
+    >
+        <p class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+            Dirección de la landing pública de la actividad. Se puede compartir con cualquiera:
+            no hace falta estar registrado para verla.
+        </p>
+        <div class="flex flex-col gap-2 sm:flex-row">
+            <input
+                :value="linkPublico"
+                readonly
+                @focus="$event.target.select()"
+                class="w-full rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 text-sm"
+            />
+            <button
+                type="button"
+                @click="copiarLinkPublico"
+                class="inline-flex shrink-0 items-center justify-center gap-2 rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+            >
+                <i class="fas fa-copy"></i>
+                Copiar
+            </button>
+        </div>
+        <a
+            :href="linkPublico"
+            target="_blank"
+            rel="noopener"
+            class="mt-3 inline-flex items-center gap-2 text-sm text-sky-600 hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-300"
+        >
+            <i class="pi pi-external-link"></i>
+            Abrir en una pestaña nueva
+        </a>
     </Dialog>
 
     <!-- Dialog para mostrar imagen -->
