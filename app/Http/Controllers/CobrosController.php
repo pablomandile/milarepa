@@ -6,6 +6,7 @@ use App\Models\Cobro;
 use App\Models\EstadoCuentaMembresia;
 use App\Models\Inscripcion;
 use App\Models\InscripcionClase;
+use App\Models\Moneda;
 use App\Models\Venta;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Inertia\Inertia;
@@ -35,8 +36,15 @@ class CobrosController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        $rows = $cobros->map(function (Cobro $cobro) {
+        // Símbolo/nombre por moneda resueltos de una (sin eager load ni N+1), con la
+        // convención de siempre: `moneda_id` nulo = moneda principal.
+        $principalId = Moneda::principalId() ?? 0;
+        $monedas = Moneda::get(['id', 'nombre', 'simbolo'])->keyBy('id');
+
+        $rows = $cobros->map(function (Cobro $cobro) use ($principalId, $monedas) {
             [$dominio, $detalle] = $this->describir($cobro);
+            $monedaId = (int) ($cobro->moneda_id ?: $principalId);
+            $moneda = $monedas->get($monedaId);
 
             return [
                 'id' => $cobro->id,
@@ -44,6 +52,10 @@ class CobrosController extends Controller
                 'dominio' => $dominio,
                 'detalle' => $detalle,
                 'monto' => (float) $cobro->monto,
+                'moneda_id' => $monedaId ?: null,
+                'moneda_simbolo' => $moneda?->simbolo ?: '$',
+                'moneda_nombre' => $moneda?->nombre,
+                'moneda_es_principal' => $monedaId === $principalId,
                 'medio' => $cobro->metodoPago?->nombre,
                 'referencia' => $cobro->referencia,
                 'observaciones' => $cobro->observaciones,

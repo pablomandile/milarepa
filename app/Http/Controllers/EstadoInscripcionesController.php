@@ -286,6 +286,8 @@ class EstadoInscripcionesController extends Controller
             'pago' => ['required', 'in:Saldado,Parcial,Pendiente'],
             'metodo_pago_id' => ['nullable', 'integer', 'exists:metodos_pago,id'],
             'monto_cobrado' => ['nullable', 'numeric', 'min:0'],
+            // Ver marcarPago(): sólo viaja con el total dividido.
+            'moneda_id' => ['nullable', 'integer', 'exists:monedas,id'],
             'online' => ['nullable', 'boolean'],
             'incluye_grabacion' => ['nullable', 'boolean'],
             'comidas_ids' => ['nullable', 'array'],
@@ -402,6 +404,9 @@ class EstadoInscripcionesController extends Controller
             'pago' => ['required', 'in:Saldado,Parcial,Pendiente'],
             'metodo_pago_id' => ['nullable', 'integer', 'exists:metodos_pago,id'],
             'monto_cobrado' => ['nullable', 'numeric', 'min:0'],
+            // Sólo lo manda el diálogo cuando la inscripción tiene el total dividido
+            // y hay que elegir qué porción se está cobrando.
+            'moneda_id' => ['nullable', 'integer', 'exists:monedas,id'],
         ]);
 
         $inscripcion = Inscripcion::findOrFail($id);
@@ -431,17 +436,45 @@ class EstadoInscripcionesController extends Controller
             return;
         }
 
-        $monto = isset($data['monto_cobrado']) && $data['monto_cobrado'] !== null
-            ? (float) $data['monto_cobrado']
-            : ($data['pago'] === 'Saldado' ? $inscripcion->saldoPendiente() : 0.0);
-
-        app(CobroService::class)->confirmarORegistrar($inscripcion, [
-            'monto' => $monto,
+        $cobros = app(CobroService::class);
+        $base = [
             'fecha_pago' => now()->toDateString(),
             'metodo_pago_id' => $data['metodo_pago_id'] ?? null,
             'registrado_por' => $userId,
             'origen' => 'manual',
-        ]);
+        ];
+
+        // Monto explícito (Parcial con importe, o Saldado por un valor puntual): un
+        // solo cobro, en la moneda que eligió el admin o la de la inscripción.
+        if (isset($data['monto_cobrado']) && $data['monto_cobrado'] !== null) {
+            $cobros->confirmarORegistrar($inscripcion, [...$base,
+                'monto' => (float) $data['monto_cobrado'],
+                'moneda_id' => $data['moneda_id'] ?? null,
+            ]);
+
+            return;
+        }
+
+        // Saldar es saldar TODO lo pendiente: un cobro por moneda, porque una
+        // inscripción dividida debe USD y pesos por separado (criterio del POS).
+        $saldos = $data['pago'] === 'Saldado' ? $cobros->saldoPendientePorMoneda($inscripcion) : [];
+
+        if (empty($saldos)) {
+            // Sin saldo se llama igual con 0 por cada moneda con un cobro a revisar:
+            // eso lo cierra sin duplicar plata (p. ej. el saldo ya lo cubrió MP).
+            foreach ($inscripcion->cobrosARevisar()->pluck('moneda_id')->unique() as $monedaId) {
+                $cobros->confirmarORegistrar($inscripcion, [...$base, 'monto' => 0.0, 'moneda_id' => $monedaId]);
+            }
+
+            return;
+        }
+
+        foreach ($saldos as $monedaId => $monto) {
+            $cobros->confirmarORegistrar($inscripcion, [...$base,
+                'monto' => $monto,
+                'moneda_id' => $monedaId ?: null,
+            ]);
+        }
     }
 
     public function countConfirmacionesPendientes(Request $request)

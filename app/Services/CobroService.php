@@ -58,13 +58,92 @@ class CobroService
      * ventas se cobran siempre en la principal. Una inscripción sin `moneda_id`
      * (legacy) también es principal, según la convención de BUSINESS_RULES §2.1bis.
      */
-    private function monedaDeCobrable(Model $cobrable): ?int
+    public function monedaDeCobrable(Model $cobrable): ?int
     {
         if ($cobrable instanceof Inscripcion && $cobrable->moneda_id) {
             return (int) $cobrable->moneda_id;
         }
 
         return Moneda::principalId();
+    }
+
+    /**
+     * Porciones adeudadas por moneda: `[monedaId => monto]`.
+     *
+     * Una inscripción con total dividido (BUSINESS_RULES §2.1bis) debe dos cosas
+     * distintas —p. ej. USD 120 de actividad + $ 2.000 de servicios— y cada una se
+     * salda por separado, como ya hace el POS. El resto de los cobrables (clases,
+     * membresías, ventas) tiene una sola moneda y devuelve una sola entrada.
+     *
+     * La clave 0 sólo aparece si la base no tiene moneda principal definida.
+     */
+    public function porcionesAdeudadas(Model $cobrable): array
+    {
+        $principalId = Moneda::principalId() ?? 0;
+
+        if ($cobrable instanceof Inscripcion) {
+            $monedaId = (int) ($cobrable->moneda_id ?: $principalId);
+            $porcionPrincipal = round((float) ($cobrable->monto_moneda_principal ?? 0), 2);
+
+            if ($monedaId !== $principalId && $porcionPrincipal > 0) {
+                return [
+                    $monedaId => round((float) $cobrable->montoapagar, 2),
+                    $principalId => $porcionPrincipal,
+                ];
+            }
+        }
+
+        $moneda = (int) ($this->monedaDeCobrable($cobrable) ?: $principalId);
+
+        return [$moneda => round((float) $cobrable->totalAdeudado(), 2)];
+    }
+
+    /**
+     * Saldo pendiente por moneda: porción adeudada menos los cobros confirmados de
+     * esa moneda. Sólo devuelve las monedas que todavía deben algo, así el llamador
+     * puede iterarlo y emitir un cobro por cada una.
+     */
+    public function saldoPendientePorMoneda(Model $cobrable): array
+    {
+        $principalId = Moneda::principalId() ?? 0;
+
+        $cobrado = $cobrable->cobros()->confirmados()->get(['moneda_id', 'monto'])
+            ->groupBy(fn (Cobro $cobro) => (int) ($cobro->moneda_id ?: $principalId))
+            ->map(fn ($grupo) => (float) $grupo->sum('monto'));
+
+        $saldos = [];
+        foreach ($this->porcionesAdeudadas($cobrable) as $monedaId => $adeudado) {
+            $saldo = round($adeudado - (float) ($cobrado[$monedaId] ?? 0), 2);
+            if ($saldo > 0) {
+                $saldos[$monedaId] = $saldo;
+            }
+        }
+
+        return $saldos;
+    }
+
+    /**
+     * Cobros del cobrable acotados a una moneda. Los cobros legacy sin `moneda_id`
+     * cuentan como de la principal (misma convención que en toda la app).
+     */
+    private function cobrosDeMoneda(Model $cobrable, ?int $monedaId)
+    {
+        $principalId = Moneda::principalId();
+        $query = $cobrable->cobros();
+
+        if ($monedaId && $principalId && (int) $monedaId === (int) $principalId) {
+            return $query->where(fn ($q) => $q->where('moneda_id', $monedaId)->orWhereNull('moneda_id'));
+        }
+
+        return $monedaId ? $query->where('moneda_id', $monedaId) : $query->whereNull('moneda_id');
+    }
+
+    /** Saldo pendiente del cobrable en una sola moneda (0 si esa moneda ya está cubierta). */
+    private function saldoDeMoneda(Model $cobrable, ?int $monedaId): float
+    {
+        $clave = (int) ($monedaId ?: (Moneda::principalId() ?? 0));
+
+        return (float) ($this->saldoPendientePorMoneda($cobrable)[$clave] ?? 0);
     }
 
     /**
@@ -101,28 +180,36 @@ class CobroService
     /**
      * Registra un comprobante informado por el usuario como cobro `a_revisar`
      * (nunca hay comprobante sin cobro). El monto es provisional (saldo pendiente
-     * al momento de la subida) y NO suma al saldo hasta que el admin lo confirme.
-     * Invariante: a lo sumo un cobro a revisar por cobrable — una segunda subida
-     * agrega el comprobante al existente. Si la deuda ya está saldada, el
-     * comprobante documenta el cobro confirmado existente (no inventa deuda).
+     * de esa moneda al momento de la subida) y NO suma al saldo hasta que el admin
+     * lo confirme. Invariante: a lo sumo un cobro a revisar por cobrable Y moneda —
+     * una segunda subida en la misma moneda agrega el comprobante al existente. Si
+     * esa moneda ya está saldada, el comprobante documenta el cobro confirmado
+     * existente (no inventa deuda).
+     *
+     * `$monedaId` sale por defecto de la moneda del cobrable; sólo hace falta
+     * pasarlo para saldar la porción en pesos de una inscripción dividida.
      */
     public function registrarComprobanteARevisar(
         Model $cobrable,
         int $imagenId,
         ?string $descripcion = null,
         string $origen = 'checkout',
-        ?int $registradoPor = null
+        ?int $registradoPor = null,
+        ?int $monedaId = null
     ): Cobro {
-        $aRevisar = $cobrable->cobros()->aRevisar()->latest('id')->first();
+        $monedaId = $monedaId ?: $this->monedaDeCobrable($cobrable);
+        $saldo = $this->saldoDeMoneda($cobrable, $monedaId);
+
+        $aRevisar = $this->cobrosDeMoneda($cobrable, $monedaId)->aRevisar()->latest('id')->first();
         if ($aRevisar) {
             $this->agregarComprobantes($aRevisar, [$imagenId], $descripcion);
-            $aRevisar->update(['monto' => max(0, $cobrable->saldoPendiente())]);
+            $aRevisar->update(['monto' => max(0, $saldo)]);
 
             return $aRevisar;
         }
 
-        if ($cobrable->saldoPendiente() <= 0) {
-            $confirmado = $cobrable->cobros()->confirmados()->latest('id')->first();
+        if ($saldo <= 0) {
+            $confirmado = $this->cobrosDeMoneda($cobrable, $monedaId)->confirmados()->latest('id')->first();
             if ($confirmado) {
                 $this->agregarComprobantes($confirmado, [$imagenId], $descripcion);
 
@@ -131,7 +218,8 @@ class CobroService
         }
 
         $cobro = $this->registrar($cobrable, [
-            'monto' => max(0, $cobrable->saldoPendiente()),
+            'monto' => max(0, $saldo),
+            'moneda_id' => $monedaId,
             'fecha_pago' => null,
             'origen' => $origen,
             'estado' => Cobro::ESTADO_A_REVISAR,
@@ -145,17 +233,25 @@ class CobroService
 
     /**
      * Punto de entrada del flujo admin (marcar Saldado/Parcial): si hay un cobro
-     * a revisar lo CONFIRMA con los datos reales (monto/fecha/método/registrador,
-     * origen y comprobantes intactos) en vez de crear uno nuevo. Sin cobros a
-     * revisar, se comporta como registrar() (sólo si monto > 0). Con monto <= 0
-     * (ej. el saldo ya se cubrió por MP) el pendiente se cierra sin duplicar plata:
-     * sus comprobantes pasan al último cobro confirmado y se soft-deletea.
+     * a revisar EN ESA MONEDA lo CONFIRMA con los datos reales (monto/fecha/método/
+     * registrador, origen y comprobantes intactos) en vez de crear uno nuevo. Sin
+     * cobros a revisar, se comporta como registrar() (sólo si monto > 0). Con
+     * monto <= 0 (ej. el saldo ya se cubrió por MP) el pendiente se cierra sin
+     * duplicar plata: sus comprobantes pasan al último cobro confirmado de la misma
+     * moneda y se soft-deletea.
+     *
+     * Todo va acotado a una moneda: confirmar la porción en dólares de una
+     * inscripción dividida no puede tocar el comprobante informado por la de pesos.
      */
     public function confirmarORegistrar(Model $cobrable, array $datos): ?Cobro
     {
         $monto = (float) ($datos['monto'] ?? 0);
+        $monedaId = isset($datos['moneda_id']) && $datos['moneda_id']
+            ? (int) $datos['moneda_id']
+            : $this->monedaDeCobrable($cobrable);
+        $datos['moneda_id'] = $monedaId;
 
-        $pendientes = $cobrable->cobros()->aRevisar()->orderByDesc('id')->get();
+        $pendientes = $this->cobrosDeMoneda($cobrable, $monedaId)->aRevisar()->orderByDesc('id')->get();
 
         if ($pendientes->isEmpty()) {
             if ($monto <= 0) {
@@ -165,8 +261,8 @@ class CobroService
             return $this->registrar($cobrable, $datos, recalcular: false);
         }
 
-        // Defensa por si el invariante "un solo a_revisar" se violó: los extras
-        // vuelcan sus comprobantes en el principal y se dan de baja.
+        // Defensa por si el invariante "un solo a_revisar por moneda" se violó: los
+        // extras vuelcan sus comprobantes en el principal y se dan de baja.
         $principal = $pendientes->first();
         foreach ($pendientes->slice(1) as $extra) {
             $this->agregarComprobantes($principal, $extra->comprobantes()->pluck('imagen_id')->all());
@@ -174,7 +270,7 @@ class CobroService
         }
 
         if ($monto <= 0) {
-            $confirmado = $cobrable->cobros()->confirmados()->latest('id')->first();
+            $confirmado = $this->cobrosDeMoneda($cobrable, $monedaId)->confirmados()->latest('id')->first();
             if ($confirmado) {
                 $this->agregarComprobantes($confirmado, $principal->comprobantes()->pluck('imagen_id')->all());
             }
@@ -213,10 +309,14 @@ class CobroService
             return;
         }
 
-        $total = (float) $cobrable->totalAdeudado();
+        // Saldado sólo cuando NINGUNA moneda debe nada: una inscripción dividida
+        // (USD 120 + $ 2.000) no está saldada por cubrir una sola de las dos, y
+        // comparar la suma de ambas contra la suma de los cobros acertaría apenas
+        // por coincidencia aritmética.
         $cobrado = $cobrable->montoCobrado();
+        $pendientes = $this->saldoPendientePorMoneda($cobrable);
 
-        if ($total <= 0 || $cobrado >= $total - 0.001) {
+        if (empty($pendientes)) {
             $pago = 'Saldado';
         } elseif ($cobrado <= 0.001) {
             $pago = 'Pendiente';

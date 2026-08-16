@@ -1060,6 +1060,14 @@
                                 step="0.01"
                                 class="w-28 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-2 py-1 text-sm"
                             />
+                            <!-- Sólo con total dividido: hay que decir qué porción se está cobrando. -->
+                            <select
+                                v-if="edicionDividida"
+                                v-model="editTitular.monto_cobrado_moneda_id"
+                                class="rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-2 py-1 text-sm"
+                            >
+                                <option v-for="m in monedasEdit" :key="m.id" :value="m.id">{{ m.simbolo }} {{ m.nombre }}</option>
+                            </select>
                         </div>
                         <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                             <Checkbox v-model="editTitular.online" binary inputId="edit_titular_online" />
@@ -1376,6 +1384,7 @@ const editTitular = ref({
     pago: 'Pendiente',
     metodo_pago_id: null,
     monto_cobrado: null,
+    monto_cobrado_moneda_id: null,
     montoActividad: 0,
     precioGeneral: 0,
     grabacion: false,
@@ -1445,6 +1454,13 @@ const totalEditPrincipal = computed(() => sumarServiciosEdit(editTitular.value, 
 const totalEditLabel = computed(() => (totalEditPrincipal.value > 0
     ? `${formatMoneyEdit(totalEdit.value)} + ${formatMoneyEdit(totalEditPrincipal.value, editMonedaPrincipal.value?.simbolo || '$')}`
     : formatMoneyEdit(totalEdit.value)));
+
+// Con el total dividido hay dos deudas (la de la moneda + la de pesos) y cada una
+// se salda por separado, así que un cobro parcial tiene que decir cuál está pagando.
+const edicionDividida = computed(() => totalEditPrincipal.value > 0);
+const monedasEdit = computed(() => (edicionDividida.value
+    ? [editMoneda.value, editMonedaPrincipal.value].filter(Boolean)
+    : []));
 const subtotalEditLabel = (subtotal, sel) => {
     const principal = sumarServiciosEdit(sel, true);
     return principal > 0
@@ -1478,6 +1494,7 @@ const guardarEdicionCompleta = async () => {
             pago: editTitular.value.pago,
             metodo_pago_id: editTitular.value.metodo_pago_id,
             monto_cobrado: editTitular.value.monto_cobrado,
+            moneda_id: editTitular.value.monto_cobrado_moneda_id,
             online: editTitular.value.online,
             incluye_grabacion: editTitular.value.grabacion,
             comidas_ids: editTitular.value.comidas,
@@ -1535,6 +1552,9 @@ const iniciarEdicion = async (inscripcion) => {
             pago: data.inscripcion.pago || 'Pendiente',
             metodo_pago_id: null,
             monto_cobrado: null,
+            // Por defecto se cobra en la moneda de la inscripción; el selector sólo
+            // aparece cuando el total está dividido.
+            monto_cobrado_moneda_id: data.moneda?.id ?? null,
             montoActividad: Number(data.inscripcion.montoActividad || 0),
             precioGeneral: Number(data.inscripcion.precioGeneral || 0),
             grabacion: !!data.inscripcion.incluye_grabacion,

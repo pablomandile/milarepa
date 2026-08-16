@@ -81,7 +81,8 @@ export function formatoFechaLimite(actividad) {
     return limite.toLocaleDateString('es-AR');
 }
 
-const SIMBOLO_PRINCIPAL = '$';
+// Fallback cuando una fila no trae su moneda cargada (legacy sin moneda_id).
+export const SIMBOLO_PRINCIPAL = '$';
 
 function normalizarNombre(value) {
     return String(value || '')

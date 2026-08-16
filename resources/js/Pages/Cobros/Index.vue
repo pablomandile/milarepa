@@ -6,6 +6,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputText from 'primevue/inputtext';
 import { FilterMatchMode } from 'primevue/api';
+import { formatPrice, formatPrecios, SIMBOLO_PRINCIPAL } from '@/composables/useActividadHelpers';
 
 const props = defineProps({
     cobros: {
@@ -18,11 +19,7 @@ const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 
-const formatMoney = (value) => new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: 'ARS',
-    minimumFractionDigits: 2,
-}).format(Number(value || 0));
+const formatMoney = (value, simbolo) => `${simbolo || SIMBOLO_PRINCIPAL} ${formatPrice(Number(value || 0))}`;
 
 const formatDate = (value) => {
     if (!value) return '-';
@@ -33,11 +30,30 @@ const formatDate = (value) => {
     return String(value).split('T')[0];
 };
 
+// Un total por moneda: sumar dólares con pesos no significa nada. La principal
+// va primero, mismo formato que las cards de la grilla ("$ 50.000,00 · USD 120,00").
+const totalesPorMoneda = (incluir) => {
+    const porMoneda = new Map();
+
+    props.cobros.forEach((c) => {
+        if (!incluir(c)) return;
+        const clave = c.moneda_id ?? 0;
+        const linea = porMoneda.get(clave) ?? {
+            precio: 0,
+            simbolo: c.moneda_simbolo || SIMBOLO_PRINCIPAL,
+            esPrincipal: Boolean(c.moneda_es_principal),
+        };
+        linea.precio += Number(c.monto || 0);
+        porMoneda.set(clave, linea);
+    });
+
+    return [...porMoneda.values()].sort((a, b) => Number(b.esPrincipal) - Number(a.esPrincipal));
+};
+
 // El total sólo suma cobros confirmados; lo "a revisar" se informa aparte.
-const total = computed(() => props.cobros.reduce(
-    (acc, c) => acc + (c.estado === 'a_revisar' ? 0 : Number(c.monto || 0)),
-    0
-));
+const total = computed(
+    () => formatPrecios(totalesPorMoneda((c) => c.estado !== 'a_revisar')) || formatMoney(0)
+);
 
 const cantidadARevisar = computed(() => props.cobros.filter((c) => c.estado === 'a_revisar').length);
 
@@ -65,7 +81,7 @@ const estadoClass = (estado) => (estado === 'a_revisar'
                     <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
                         <div class="text-sm text-gray-600 dark:text-gray-300">
                             {{ cobros.length }} cobros · Total confirmado:
-                            <span class="font-semibold text-green-700 dark:text-green-400">{{ formatMoney(total) }}</span>
+                            <span class="font-semibold text-green-700 dark:text-green-400">{{ total }}</span>
                             <span v-if="cantidadARevisar" class="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
                                 {{ cantidadARevisar }} a revisar
                             </span>
@@ -80,7 +96,7 @@ const estadoClass = (estado) => (estado === 'a_revisar'
                     <DataTable
                         :value="cobros"
                         :filters="filters"
-                        :global-filter-fields="['dominio', 'detalle', 'medio', 'referencia', 'origen', 'estado', 'observaciones']"
+                        :global-filter-fields="['dominio', 'detalle', 'medio', 'referencia', 'origen', 'estado', 'observaciones', 'moneda_simbolo', 'moneda_nombre']"
                         stripedRows
                         paginator
                         :rows="15"
@@ -104,7 +120,7 @@ const estadoClass = (estado) => (estado === 'a_revisar'
                             </template>
                         </Column>
                         <Column field="monto" header="Monto" sortable>
-                            <template #body="{ data }">{{ formatMoney(data.monto) }}</template>
+                            <template #body="{ data }">{{ formatMoney(data.monto, data.moneda_simbolo) }}</template>
                         </Column>
                         <Column field="medio" header="Medio">
                             <template #body="{ data }">{{ data.medio ?? '-' }}</template>

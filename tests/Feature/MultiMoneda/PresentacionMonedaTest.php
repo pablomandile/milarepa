@@ -12,6 +12,7 @@ use App\Models\Modalidad;
 use App\Models\Moneda;
 use App\Models\TipoActividad;
 use App\Models\User;
+use App\Services\CobroService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -138,5 +139,29 @@ class PresentacionMonedaTest extends TestCase
         $this->assertStringContainsString('15.000,00', $html);
         $this->assertStringNotContainsString('U$T', $html);
         $this->assertStringNotContainsString('no tienen precio en', $html);
+    }
+
+    /**
+     * El ledger unificado nació antes del multi-moneda: sin el símbolo por fila,
+     * una fila en dólares se pintaba como pesos y entraba al total general.
+     */
+    public function test_la_vista_cobros_manda_el_simbolo_de_cada_cobro(): void
+    {
+        $actividad = $this->actividadDosMonedas();
+        $inscripcion = $this->inscripcion($actividad, $this->secundaria->id, 120);
+
+        app(CobroService::class)->registrar($inscripcion, ['monto' => 120, 'fecha_pago' => '2026-08-15']);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $cobros = $this->actingAs($admin)->get(route('cobros.index'))
+            ->assertOk()
+            ->viewData('page')['props']['cobros'];
+
+        $fila = collect($cobros)->firstWhere('id', $inscripcion->cobros()->value('id'));
+
+        $this->assertSame('U$T', $fila['moneda_simbolo']);
+        $this->assertFalse($fila['moneda_es_principal']);
     }
 }

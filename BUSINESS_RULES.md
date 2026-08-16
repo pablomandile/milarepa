@@ -99,6 +99,15 @@ el símbolo de su moneda.**
   que cada llamador tenga que pasarlo. Sólo las inscripciones a actividades son multi-moneda;
   clases, membresías y ventas se cobran siempre en la principal. Los cobros viejos con `moneda_id`
   null se leen como principal (misma convención que las inscripciones legacy).
+  - **Una deuda por moneda, un cobro por moneda** (no sólo en el POS): saldar una inscripción
+    dividida desde el admin genera **dos** cobros, uno por cada porción.
+    `CobroService::saldoPendientePorMoneda()` es la fuente de esa apertura y
+    `recalcularEstadoPago` marca `Saldado` sólo cuando ninguna moneda debe nada.
+  - **Un cobro `a_revisar` por (cobrable, moneda)**: un comprobante informado se imputa a la
+    moneda que se está pagando (por defecto la de la inscripción), y confirmar una moneda no toca
+    el pendiente de la otra.
+  - En la vista Cobros y en el detalle del pago, **cada importe lleva el símbolo de su moneda y
+    los totales van separados por moneda**, nunca sumados.
 - **Reportes e importes pendientes por actividad**: van abiertos por moneda
   (`pendiente_importes: [{moneda_id, simbolo, importe}]`, principal primero). La porción
   `monto_moneda_principal` de las inscripciones divididas suma **a la principal**, no a la moneda

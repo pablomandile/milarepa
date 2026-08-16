@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import Dialog from 'primevue/dialog';
 import ComprobanteVisorDialog from '@/Components/Dialogs/ComprobanteVisorDialog.vue';
+import { formatPrice, formatPrecios, SIMBOLO_PRINCIPAL } from '@/composables/useActividadHelpers';
 
 const props = defineProps({
     // v-model:visible del diálogo de detalle.
@@ -25,21 +26,38 @@ const cobrosOrdenados = computed(() =>
     [...(props.cobros || [])].sort((a, b) => String(b.fecha_pago || '').localeCompare(String(a.fecha_pago || '')))
 );
 
-// El total sólo suma plata verificada; lo informado "a revisar" se muestra aparte.
-const totalCobrado = computed(() =>
-    cobrosOrdenados.value.reduce((acc, c) => acc + (esARevisar(c) ? 0 : Number(c.monto || 0)), 0)
-);
-
-const totalARevisar = computed(() =>
-    cobrosOrdenados.value.reduce((acc, c) => acc + (esARevisar(c) ? Number(c.monto || 0) : 0), 0)
-);
-
 // --- Formateo (mismo criterio que Cobros/Index.vue) ---
-const formatMoney = (value) => new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: 'ARS',
-    minimumFractionDigits: 2,
-}).format(Number(value || 0));
+const formatMoney = (value, simbolo) => `${simbolo || SIMBOLO_PRINCIPAL} ${formatPrice(Number(value || 0))}`;
+
+const simboloDe = (cobro) => cobro?.moneda?.simbolo || SIMBOLO_PRINCIPAL;
+
+// Los totales van por moneda: una inscripción de total dividido tiene un cobro en
+// dólares y otro en pesos, y sumarlos daría un número que no existe.
+const totalesPorMoneda = (incluir) => {
+    const porMoneda = new Map();
+
+    cobrosOrdenados.value.forEach((c) => {
+        if (!incluir(c)) return;
+        const clave = c.moneda_id ?? 0;
+        const linea = porMoneda.get(clave) ?? {
+            precio: 0,
+            simbolo: simboloDe(c),
+            esPrincipal: c.moneda ? Boolean(c.moneda.es_principal) : true,
+        };
+        linea.precio += Number(c.monto || 0);
+        porMoneda.set(clave, linea);
+    });
+
+    return [...porMoneda.values()].sort((a, b) => Number(b.esPrincipal) - Number(a.esPrincipal));
+};
+
+// El total sólo suma plata verificada; lo informado "a revisar" se muestra aparte.
+const totalCobrado = computed(
+    () => formatPrecios(totalesPorMoneda((c) => !esARevisar(c))) || formatMoney(0)
+);
+
+const hayARevisar = computed(() => cobrosOrdenados.value.some((c) => esARevisar(c) && Number(c.monto || 0) > 0));
+const totalARevisar = computed(() => formatPrecios(totalesPorMoneda(esARevisar)));
 
 const formatDate = (value) => {
     if (!value) return '—';
@@ -55,7 +73,7 @@ const camposDe = (cobro) => [
     { label: 'Medio de pago', value: cobro.metodo_pago?.nombre },
     { label: 'Referencia', value: cobro.referencia },
     { label: 'Registrado por', value: cobro.registrador?.name },
-    { label: 'Moneda', value: cobro.moneda ? (cobro.moneda.codigo || cobro.moneda.nombre) : null },
+    { label: 'Moneda', value: cobro.moneda?.nombre },
 ];
 
 // --- Origen (etiqueta + color de badge) ---
@@ -118,7 +136,7 @@ const verComprobante = (comp) => {
                             class="text-2xl font-bold leading-none"
                             :class="esARevisar(cobro) ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'"
                         >
-                            {{ formatMoney(cobro.monto) }}
+                            {{ formatMoney(cobro.monto, simboloDe(cobro)) }}
                         </p>
                         <p class="mt-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                             <i class="far fa-calendar"></i>
@@ -181,16 +199,16 @@ const verComprobante = (comp) => {
 
             <!-- Totales (solo si hay más de un cobro o hay monto a revisar) -->
             <div
-                v-if="cobrosOrdenados.length > 1 || totalARevisar > 0"
+                v-if="cobrosOrdenados.length > 1 || hayARevisar"
                 class="space-y-1 rounded-xl bg-gray-50 px-4 py-3 text-sm dark:bg-gray-800/60"
             >
                 <div class="flex items-center justify-between">
                     <span class="font-medium text-gray-600 dark:text-gray-300">Total cobrado</span>
-                    <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400">{{ formatMoney(totalCobrado) }}</span>
+                    <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400">{{ totalCobrado }}</span>
                 </div>
-                <div v-if="totalARevisar > 0" class="flex items-center justify-between">
+                <div v-if="hayARevisar" class="flex items-center justify-between">
                     <span class="font-medium text-gray-600 dark:text-gray-300">Informado a revisar</span>
-                    <span class="font-semibold text-amber-600 dark:text-amber-400">{{ formatMoney(totalARevisar) }}</span>
+                    <span class="font-semibold text-amber-600 dark:text-amber-400">{{ totalARevisar }}</span>
                 </div>
             </div>
         </div>

@@ -126,7 +126,12 @@ class CierreFase2Test extends TestCase
         $actividad = $this->actividadConBotones();
         $inscripcion = $this->inscripcion($actividad, $this->secundaria->id, 120, 2000);
 
-        app(CobroService::class)->registrar($inscripcion, ['monto' => 2120, 'fecha_pago' => '2026-08-15']);
+        // Un cobro por moneda: son dos deudas distintas y cada una se salda por
+        // separado. Un único cobro de 2.120 sería un importe que no existe en
+        // ninguna de las dos (ver CobroSaldoPorMonedaTest).
+        $cobros = app(CobroService::class);
+        $cobros->registrar($inscripcion, ['monto' => 120, 'moneda_id' => $this->secundaria->id, 'fecha_pago' => '2026-08-15']);
+        $cobros->registrar($inscripcion, ['monto' => 2000, 'moneda_id' => $this->principal->id, 'fecha_pago' => '2026-08-15']);
 
         $inscripcion->refresh();
         $this->assertSame('Saldado', $inscripcion->pago);

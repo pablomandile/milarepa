@@ -59,6 +59,36 @@ Se revirtió la decisión "staging pre-cobro fuera de alcance" (plan y deploy en
   `WebhookConCobroARevisarTest`, `MigrarStagingComprobantesTest`. Suite: 144 verdes + los 4 fallos
   conocidos de `ImportarMultieventoTest` (datos reales en la BD de test).
 
+## Actualización (2026-08-15 bis) — el ledger aprende de monedas
+
+El ledger nació antes del multi-moneda y era el último lugar donde la plata se trataba como un
+escalar único. Se cerró en dos frentes:
+
+- **Un cobro por moneda.** Una inscripción con el total dividido (BUSINESS_RULES §2.1bis) debe dos
+  cosas distintas —p. ej. USD 120 de actividad + $ 2.000 de servicios— y hasta ahora marcarla
+  Saldado desde el admin creaba **un solo cobro de 2.120 etiquetado en dólares**, porque
+  `saldoPendiente()` resta escalares de monedas distintas. `CobroService` gana
+  `porcionesAdeudadas()` y `saldoPendientePorMoneda()`, y `registrarCobroAdmin` emite un cobro por
+  cada moneda con saldo. Es el criterio que el POS ya aplicaba inline desde el 15/08.
+- **El invariante de `a_revisar` pasa a ser por (cobrable, moneda)**: `confirmarORegistrar` y
+  `registrarComprobanteARevisar` trabajan acotados a una moneda, así confirmar la porción en pesos
+  no pisa el comprobante informado por la porción en dólares. `registrarComprobanteARevisar` acepta
+  `monedaId` (default: la moneda del cobrable, así que los tres uploads existentes no cambian).
+- **`recalcularEstadoPago`** marca `Saldado` sólo cuando **ninguna** moneda debe nada, en vez de
+  comparar la suma mezclada contra la suma de los cobros (que acertaba por coincidencia aritmética).
+- **Presentación**: `CobrosController` manda `moneda_simbolo`/`moneda_nombre` por fila, `Cobros/Index`
+  muestra el símbolo en cada monto y **un total por moneda** (`$ 37.484.061,00 · USD 1.200,00`,
+  mismo formato que las cards), y `CobroDetalleDialog` separa sus totales igual.
+- **Selector de moneda** junto al monto de un cobro Parcial en el diálogo admin, visible **sólo**
+  cuando la inscripción tiene el total dividido.
+- Tests: `CobroSaldoPorMonedaTest` (6 casos, incluida la guarda de no-regresión "en pesos sigue
+  creando un solo cobro") y un assert nuevo en `PresentacionMonedaTest`. `CierreFase2Test` tenía
+  codificado el comportamiento viejo (un cobro de 2.120 saldaba) y se corrigió a dos cobros.
+
+Al momento del cambio producción no tenía **ninguna** inscripción en moneda extranjera ni con total
+dividido —los 812 cobros están en la principal—, así que no hubo datos que migrar; sí había 8 líneas
+de esquema de precios en otra moneda esperando la primera inscripción.
+
 ## Contexto
 
 Hoy **no existe una tabla de cobros**. El dinero está desparramado en cuatro dominios, cada uno con su propia representación, y en tres de ellos el «cobro» son columnas desnormalizadas mezcladas con "lo que se debe":
@@ -286,19 +316,15 @@ Cada fase es entregable y el enum `pago` sigue funcionando como caché.
 ---
 
 ## Fuera de alcance (vigente)
-- **Borrar `inscripcion_comprobantes`** como tabla (fase 2 del plan de `PLAN_COBROS_A_REVISAR.md`):
-  ya NO recibe escrituras y su contenido está migrado al ledger; falta el DROP + borrar
-  `InscripcionComprobante`/`Inscripcion::comprobantes()` + la referencia en `ImagenesController`.
-- **Extender `a_revisar` a membresías** (fase 2): hoy el comprobante de cuota sigue stageado en
-  `comprobante_imagen_id`. ⚠ Antes de hacerlo, revisar el `cobros()->delete()` de
-  `sincronizarMembresia()` (arrasaría cobros en revisión).
 - **Pago online (MercadoPago)** para clases/membresías (hoy MP solo en actividades).
 - (Opcional a futuro) **Editar/anular/confirmar cobros desde `CobroDetalleDialog`**: el diálogo es
   puramente presentacional a propósito (lo comparten inscripciones y membresías); la confirmación
   hoy pasa por el flujo admin de marcar el pago.
 
 > **Ya implementados** (antes fuera de alcance): multi-comprobante por cobro (1:N), membresías con
-> `cobros` como fuente de verdad — ver **"Actualización (2026-07-15)"** — y el rediseño del checkout:
-> subir comprobante crea un cobro `a_revisar` (nunca hay comprobante sin cobro) — ver
-> **"Actualización (2026-08-14)"**. Los `*- copia.php` y los paths crudos legacy también se
+> `cobros` como fuente de verdad — ver **"Actualización (2026-07-15)"** —, el rediseño del checkout
+> (subir comprobante crea un cobro `a_revisar`: nunca hay comprobante sin cobro) — ver
+> **"Actualización (2026-08-14)"** —, el DROP de `inscripcion_comprobantes` y la extensión de
+> `a_revisar` a membresías (fase 2 de `PLAN_COBROS_A_REVISAR.md`, 15/08), y el ledger por moneda —
+> ver **"Actualización (2026-08-15 bis)"**. Los `*- copia.php` y los paths crudos legacy también se
 > eliminaron/unificaron en `imagenes`.
