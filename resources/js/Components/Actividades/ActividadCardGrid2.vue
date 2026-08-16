@@ -62,8 +62,14 @@ const horarioTexto = computed(() => formatHora(props.actividad?.fecha_inicio) ||
 
 <template>
     <article class="actividad-row-grid2 w-full bg-white dark:bg-gray-800 transition-colors">
+        <!--
+            En mobile la imagen va SIEMPRE arriba: el bloque de texto es largo y
+            dejaba el flyer debajo del botón, fuera de la primera pantalla.
+            `flex-col-reverse` lo resuelve sin tocar el orden del DOM, y a partir
+            de md las clases de fila retoman el alternado izquierda/derecha.
+        -->
         <div
-            class="row-inner flex flex-col gap-6 md:gap-10 px-2 md:px-4 py-6 md:py-10"
+            class="row-inner flex flex-col-reverse gap-6 md:gap-10 px-2 md:px-4 py-6 md:py-10"
             :class="imageSide === 'right' ? 'md:flex-row' : 'md:flex-row-reverse'"
         >
             <!-- Bloque de texto (mitad) -->
