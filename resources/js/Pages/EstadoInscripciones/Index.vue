@@ -2,12 +2,18 @@
     <AppLayout title="Estado de Inscripciones">
         <Toast position="top-right" />
         <template #header>
-            <div class="flex justify-between items-center">
+            <!--
+                En mobile el título ocupa el ancho completo y los botones bajan:
+                en fila los dos "Importar" no entraban y empujaban scroll horizontal
+                a toda la página. Desde sm vuelve el título a la izquierda y los
+                botones a la derecha.
+            -->
+            <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
                 <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
                     <i class="fas fa-clipboard-check mr-2 text-indigo-600"></i>
                     Estado de Inscripciones
                 </h2>
-                <div v-if="canEdit" class="flex items-center gap-2">
+                <div v-if="canEdit" class="flex flex-wrap items-center gap-2 shrink-0">
                     <Link
                         :href="route('estadoinscripciones.importar')"
                         class="inline-flex items-center gap-2 rounded bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
