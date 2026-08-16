@@ -238,8 +238,8 @@
                                     stripedRows
                                     tableStyle="min-width: 50rem"
                                 >
-                                    <!-- Columna MembresÃ­a / Entidad -->
-                                    <Column header="MembresÃ­a - Entidad">
+                                    <!-- Columna Membresía / Entidad -->
+                                    <Column header="Membresía - Entidad">
                                         <template #body="{ data: mem }">
                                             {{ mem.membresia
                                                 ? mem.membresia.nombre + ' - ' + mem.membresia.entidad.abreviacion

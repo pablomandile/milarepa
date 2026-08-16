@@ -379,7 +379,7 @@ async function subirComprobante() {
                                                             </div>
                                                         </div>
                                                         <p class="p-card-subtitle text-sm text-600 mb-3 flex-1">
-                                                            {{ membresia.descripcion || 'Sin descripciÃ³n disponible' }}
+                                                            {{ membresia.descripcion || 'Sin descripción disponible' }}
                                                         </p>
                                                         <div class="flex align-items-center mb-4">
                                                             <i class="pi pi-building text-400 mr-2"></i>
@@ -399,7 +399,7 @@ async function subirComprobante() {
                                                                 ]"
                                                             >
                                                                 <i class="pi pi-plus-circle"></i>
-                                                                {{ isDisabledButton(membresia) ? 'Mi membresÃ­a actual' : 'Inscribirme' }}
+                                                                {{ isDisabledButton(membresia) ? 'Mi membresía actual' : 'Inscribirme' }}
                                                             </button>
                                                         </div>
                                                     </div>
@@ -457,7 +457,7 @@ async function subirComprobante() {
                                                             </div>
                                                         </div>
                                                         <p class="p-card-subtitle text-sm text-600">
-                                                            {{ membresia.descripcion || 'Sin descripciÃ³n disponible' }}
+                                                            {{ membresia.descripcion || 'Sin descripción disponible' }}
                                                         </p>
                                                     </div>
                                                     <div class="mt-4 md:mt-0 md:ml-4">
@@ -472,7 +472,7 @@ async function subirComprobante() {
                                                             ]"
                                                         >
                                                             <i class="pi pi-plus-circle"></i>
-                                                            {{ isDisabledButton(membresia) ? 'Mi membresÃ­a actual' : 'Inscribirme' }}
+                                                            {{ isDisabledButton(membresia) ? 'Mi membresía actual' : 'Inscribirme' }}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -485,8 +485,8 @@ async function subirComprobante() {
                                     <div class="text-center py-8 px-4">
                                         <div class="bg-gray-50 dark:bg-gray-800/50 border-round p-6 border-1 border-dashed border-300">
                                             <i class="pi pi-info-circle text-4xl text-400 mb-4 block"></i>
-                                            <h3 class="text-xl font-medium text-700 mb-2">No hay membresÃ­as disponibles</h3>
-                                            <p class="text-600 m-0">En este momento no tenemos membresÃ­as activas.</p>
+                                            <h3 class="text-xl font-medium text-700 mb-2">No hay membresías disponibles</h3>
+                                            <p class="text-600 m-0">En este momento no tenemos membresías activas.</p>
                                         </div>
                                     </div>
                                 </template>
@@ -498,7 +498,7 @@ async function subirComprobante() {
         </div>
     </AppLayout>
 
-    <!-- Modal de confirmaciÃ³n para cambio de membresÃ­a -->
+    <!-- Modal de confirmación para cambio de membresía -->
         <Dialog 
         v-model:visible="showConfirmDialog" 
         modal 
@@ -509,7 +509,7 @@ async function subirComprobante() {
         <template v-if="membresiaPendiente">
             <div class="flex flex-col gap-4">
                 <p v-if="userMembresia" class="text-sm text-gray-700 dark:text-gray-300">
-                    Ud cambiarÃ¡ de membresÃ­a, actual: <strong>{{ userMembresia.nombre }}</strong>
+                    Ud cambiará de membresía, actual: <strong>{{ userMembresia.nombre }}</strong>
                 </p>
 
                 <div>
@@ -528,7 +528,7 @@ async function subirComprobante() {
 
                 <div v-if="modalidad === 'ONLINE'">
                     <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">
-                        Â¿Puedes comentarnos el impedimento para concurrir presencialmente?
+                        ¿Puedes comentarnos el impedimento para concurrir presencialmente?
                     </label>
                     <input
                         v-model="motivoOnline"

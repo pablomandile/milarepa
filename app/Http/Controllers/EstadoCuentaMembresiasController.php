@@ -187,7 +187,7 @@ class EstadoCuentaMembresiasController extends Controller
             'mes_pagado' => ['nullable', 'date_format:Y-m'],
             'modo' => ['nullable', Rule::in(EstadoCuentaMembresia::MODOS_PAGO)],
         ], [
-            'comprobante.max' => 'El comprobante supera el tamaÃ±o mÃ¡ximo permitido (4 MB).',
+            'comprobante.max' => 'El comprobante supera el tamaño máximo permitido (4 MB).',
             'comprobante.mimes' => 'El comprobante debe ser PDF, JPG, PNG o WebP.',
         ]);
 

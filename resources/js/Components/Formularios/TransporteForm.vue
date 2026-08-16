@@ -52,7 +52,7 @@ import Dropdown from 'primevue/dropdown';
         </template>
         <template #form>
             <div class="col-span-6 sm:col-span-6 mb-2">
-                <InputLabel for="descripcion" value="DescripciÃ³n" :required="false"/>
+                <InputLabel for="descripcion" value="Descripción" :required="false"/>
                 <TextInput id="descripcion" v-model="form.descripcion" type="text" autocomplete="descripcion" class="mt-1 block w-full" />
                 <InputError :message="$page.props.errors.descripcion" class="mt-2" />
             </div>

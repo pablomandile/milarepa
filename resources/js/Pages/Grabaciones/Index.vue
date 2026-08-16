@@ -24,7 +24,7 @@
         }
     })
 
-    // Controla quÃ© filas de la tabla principal estÃ¡n expandidas
+    // Controla qué filas de la tabla principal están expandidas
     const expandedRows = ref([]);
     const expandedCardIds = ref([]);
 
@@ -52,20 +52,20 @@
 
     const deleteGrabacion = (id) => {
     Swal.fire({
-        title: "Â¿EstÃ¡s seguro?",
-        text: "Esta acciÃ³n no se puede deshacer.",
+        title: "¿Estás seguro?",
+        text: "Esta acción no se puede deshacer.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "SÃ­, eliminar",
+        confirmButtonText: "Sí, eliminar",
         cancelButtonText: "Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
         router.delete(route('grabaciones.destroy', id), {
                 onSuccess: () => {
-                Swal.fire("Â¡Eliminado!", "La GrabaciÃ³n ha sido eliminada.", "success");
+                Swal.fire("¡Eliminado!", "La Grabación ha sido eliminada.", "success");
                 },
                 onError: () => {
-                Swal.fire("Error", "Hubo un problema al eliminar la GrabaciÃ³n.", "error");
+                Swal.fire("Error", "Hubo un problema al eliminar la Grabación.", "error");
                 },
             });
             }
@@ -78,7 +78,7 @@
 
     function openAudio(link) {
         audioLink.value = link?.link || '';
-        audioNombre.value = link?.nombre || 'GrabaciÃ³n';
+        audioNombre.value = link?.nombre || 'Grabación';
         audioDialogVisible.value = true;
     }
     

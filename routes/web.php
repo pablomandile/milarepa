@@ -130,7 +130,7 @@ Route::get('/email-preview/actividades-online', [EmailPreviewController::class, 
 Route::get('/email-preview/reporte-semanal-inscripciones-actividad', [EmailPreviewController::class, 'reporteSemanalInscripcionesPorActividad'])
     ->name('preview.email.reporte-semanal-inscripciones-actividad');
 
-// Grid de actividades pÃºblico (solo index + lookup por email)
+// Grid de actividades público (solo index + lookup por email)
 Route::get('/grid-actividades', [GridActividadesController::class, 'index'])
     ->name('grid-actividades.index');
 // Versión embebible en iframe (WordPress meditarenargentina.org). Solo lectura:

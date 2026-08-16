@@ -247,11 +247,11 @@
         </div>
     </AppLayout>
 
-    <!-- Modal de informaciÃ³n de hospedaje -->
+    <!-- Modal de información de hospedaje -->
     <Dialog 
         v-model:visible="visible" 
         modal 
-        :header="hospedajeSeleccionado ? hospedajeSeleccionado.nombre : 'Detalles de AcomodaciÃ³n'"
+        :header="hospedajeSeleccionado ? hospedajeSeleccionado.nombre : 'Detalles de Acomodación'"
         :style="{ width: '45rem' }" 
         :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
     >
@@ -275,13 +275,13 @@
                     </div>
                 </div>
 
-                <!-- DescripciÃ³n -->
+                <!-- Descripción -->
                 <div v-if="hospedajeSeleccionado.descripcion && hospedajeSeleccionado.descripcion.trim() !== ''" 
                      class="bg-white dark:bg-gray-800 rounded-lg p-5 mb-4 shadow-sm">
                     <div class="flex items-start">
                         <i class="fas fa-align-left text-indigo-600 text-lg mr-3 mt-1"></i>
                         <div>
-                            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">DescripciÃ³n</h4>
+                            <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Descripción</h4>
                             <p class="text-gray-600 dark:text-gray-400 leading-relaxed">{{ hospedajeSeleccionado.descripcion }}</p>
                         </div>
                     </div>

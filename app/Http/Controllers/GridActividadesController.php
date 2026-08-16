@@ -131,7 +131,7 @@ class GridActividadesController extends Controller
         $date = Carbon::parse($actividad->fecha_inicio);
 
         // Formato â€œ30 de Enero 00:00 hs.â€
-        // â€œjâ€ = dÃ­a sin cero, â€œFâ€ = Mes completo, â€œH:iâ€ = 24h:mins
+        // â€œjâ€ = día sin cero, â€œFâ€ = Mes completo, â€œH:iâ€ = 24h:mins
         $actividad->fecha_inicio_formateada = $date->translatedFormat('j \d\e F H:i') . ' hs.';
 
         return $actividad;
@@ -959,7 +959,7 @@ class GridActividadesController extends Controller
     }
 
     /**
-     * Landing pÃºblico de inscripcion.
+     * Landing público de inscripcion.
      */
     public function showPublic(Inscripcion $inscripcion)
     {
@@ -1003,7 +1003,7 @@ class GridActividadesController extends Controller
     }
 
     /**
-     * Show pÃºblica de una actividad (sin login).
+     * Show pública de una actividad (sin login).
      */
     public function showPublicActividad(Request $request, Actividad $actividad)
     {
@@ -1478,17 +1478,16 @@ class GridActividadesController extends Controller
     private function normalizarMetodoPagoFinal(string $metodo): string
     {
         $normalizado = mb_strtolower(trim($metodo), 'UTF-8');
+        // Este mapa tenía además una copia de cada acento en su versión
+        // doble-codificada ("Ã¡" => "a"), como defensa contra nombres de método de
+        // pago dañados. Los nombres de `metodos_pago` en producción están sanos, así
+        // que quedan sólo los acentos reales (si no, serían claves duplicadas).
         $normalizado = strtr($normalizado, [
             'á' => 'a',
             'é' => 'e',
             'í' => 'i',
             'ó' => 'o',
             'ú' => 'u',
-            'Ã¡' => 'a',
-            'Ã©' => 'e',
-            'Ã­' => 'i',
-            'Ã³' => 'o',
-            'Ãº' => 'u',
         ]);
 
         if (in_array($normalizado, ['tarjeta de credito', 'tarjeta de debito', 'credito', 'debito'], true)) {
