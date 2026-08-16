@@ -271,7 +271,7 @@ class CobroService
     public function sincronizarMembresia(EstadoCuentaMembresia $cuota): void
     {
         if ($cuota->pagado) {
-            $cuota->cobros()->updateOrCreate(
+            $confirmado = $cuota->cobros()->updateOrCreate(
                 ['origen' => 'membresia'],
                 [
                     'monto' => (float) $cuota->importe,
@@ -280,12 +280,26 @@ class CobroService
                     'metodo_pago_id' => $this->resolverMetodoPago($cuota->modo),
                     'referencia' => $cuota->info_pago ?: null,
                     'observaciones' => $cuota->observaciones ?: null,
+                    'estado' => Cobro::ESTADO_CONFIRMADO,
                 ]
             );
+
+            // El pago informado por el socio queda aprobado: sus comprobantes pasan
+            // al cobro confirmado y el pendiente se da de baja (no se duplica plata).
+            foreach ($cuota->cobros()->aRevisar()->get() as $pendiente) {
+                $this->agregarComprobantes($confirmado, $pendiente->comprobantes()->pluck('imagen_id')->all());
+                $pendiente->delete();
+            }
         } else {
-            // OJO si membresías adopta cobros a_revisar: este delete arrasaría
-            // también los cobros en revisión (hoy las cuotas sólo tienen confirmados).
-            $cuota->cobros()->delete();
+            // Sólo los confirmados: un cobro `a_revisar` es un pago que el socio
+            // informó y todavía no se aprobó, y borrarlo acá perdería su comprobante.
+            $cuota->cobros()->confirmados()->delete();
+
+            // Comprobante informado sin aprobar → cobro a revisar, igual que en las
+            // inscripciones: nunca hay comprobante sin cobro.
+            if ($cuota->comprobante_imagen_id) {
+                $this->registrarComprobanteARevisar($cuota, (int) $cuota->comprobante_imagen_id, null, 'membresia');
+            }
         }
 
         $this->recalcularMembresia($cuota);

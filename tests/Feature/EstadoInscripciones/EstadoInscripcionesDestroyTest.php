@@ -7,7 +7,7 @@ use App\Models\Entidad;
 use App\Models\EsquemaPrecio;
 use App\Models\Inscripcion;
 use App\Models\Imagen;
-use App\Models\InscripcionComprobante;
+use App\Services\CobroService;
 use App\Models\Modalidad;
 use App\Models\TipoActividad;
 use App\Models\User;
@@ -75,14 +75,11 @@ class EstadoInscripcionesDestroyTest extends TestCase
         Storage::fake('public');
         $inscripcion = $this->crearInscripcion();
 
-        // Comprobante con archivo real en el disco fake.
+        // Comprobante con archivo real en el disco fake, colgado de un cobro
+        // (desde la fase 2 no hay comprobante sin cobro).
         Storage::disk('public')->put('comprobantes/destroy-test.jpg', 'contenido');
         $imagen = Imagen::create(['nombre' => 'destroy-test.jpg', 'ruta' => 'comprobantes/destroy-test.jpg']);
-        InscripcionComprobante::create([
-            'inscripcion_id' => $inscripcion->id,
-            'imagen_id' => $imagen->id,
-            'descripcion' => 'Test',
-        ]);
+        app(CobroService::class)->registrarComprobanteARevisar($inscripcion, $imagen->id, 'Test');
         Storage::disk('public')->assertExists('comprobantes/destroy-test.jpg');
 
         $admin = User::factory()->create();
@@ -93,8 +90,8 @@ class EstadoInscripcionesDestroyTest extends TestCase
 
         $response->assertStatus(302);
         $this->assertDatabaseMissing('inscripciones', ['id' => $inscripcion->id]);
-        // cascadeOnDelete elimina la fila hija.
-        $this->assertDatabaseMissing('inscripcion_comprobantes', ['inscripcion_id' => $inscripcion->id]);
+        // Los cobros de la inscripcion se dan de baja (no quedan huerfanos).
+        $this->assertSame(0, \App\Models\Cobro::where('cobrable_type', 'inscripcion')->where('cobrable_id', $inscripcion->id)->count());
         // El archivo del comprobante se borra del disco.
         Storage::disk('public')->assertMissing('comprobantes/destroy-test.jpg');
     }

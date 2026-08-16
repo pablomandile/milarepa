@@ -114,7 +114,9 @@ class BackfillCobros extends Command
                         'fecha_pago' => $ins->fecha_pago ?: optional($ins->updated_at)->toDateString(),
                         'referencia' => $ins->referencia_pago,
                         'metodo_pago_id' => null,
-                        'comprobante_ids' => $ins->comprobantes()->pluck('imagen_id')->all(),
+                        // Los comprobantes viejos ya viven en el ledger: el staging
+                        // `inscripcion_comprobantes` se migró y se dropeó (fase 2).
+                        'comprobante_ids' => [],
                         'observaciones' => 'backfill: medio desconocido',
                         'origen' => 'backfill',
                     ], recalcular: false);

@@ -143,7 +143,6 @@ class ImagenesController extends Controller
             ['tabla' => 'ventas', 'columna' => 'comprobante_id', 'etiqueta' => 'venta(s)'],
             // Comprobantes de pago (evita borrar una imagen en uso como comprobante).
             ['tabla' => 'cobro_comprobantes', 'columna' => 'imagen_id', 'etiqueta' => 'comprobante(s) de cobro'],
-            ['tabla' => 'inscripcion_comprobantes', 'columna' => 'imagen_id', 'etiqueta' => 'comprobante(s) de inscripción'],
             ['tabla' => 'estado_cuenta_membresias', 'columna' => 'comprobante_imagen_id', 'etiqueta' => 'comprobante(s) de membresía'],
         ];
 

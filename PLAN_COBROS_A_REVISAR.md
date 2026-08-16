@@ -87,10 +87,21 @@ Por inscripción con filas en `inscripcion_comprobantes` (imagen_id no nulo): sa
 
 **Producción** (deploy manual, `ssh agendaflex`, PHP `/opt/alt/php82/usr/bin/php`): `composer install` (por el bump de nette/schema), `migrate`, `cobros:migrar-staging --dry-run` → real, en el mismo deploy que el código.
 
-## Fase 2 (fuera de esta tanda)
-- DROP `inscripcion_comprobantes` + borrar modelo/relación/referencias (`ImagenesController` ~L146).
-- Extender `a_revisar` a membresías (¡ojo al `cobros()->delete()` de `sincronizarMembresia`!).
-- Botón "Confirmar cobro" en el diálogo si el uso lo pide.
+## Fase 2 ✅ HECHA (2026-08-15)
+- ~~DROP `inscripcion_comprobantes`~~ ✅ migración `2026_08_15_000007`. Antes se verificó en
+  producción que sus 3 filas ya estuvieran en `cobro_comprobantes` (`cobros:migrar-staging --dry-run`
+  reportaba 0 a migrar). Se borraron el modelo `InscripcionComprobante`, la relación
+  `Inscripcion::comprobantes()`, el comando `cobros:migrar-staging` (ya sin objeto) y las
+  referencias de `ImagenesController`, `EstadoInscripcionesController` y `BackfillCobros`.
+- ~~Extender `a_revisar` a membresías~~ ✅ `sincronizarMembresia` ahora:
+  - con `pagado=false` borra **sólo los confirmados** (antes `cobros()->delete()` arrasaba también
+    los `a_revisar`, que son pagos informados por el socio esperando aprobación), y si la cuota
+    tiene `comprobante_imagen_id` registra el cobro `a_revisar` — mismo modelo que las
+    inscripciones: nunca hay comprobante sin cobro;
+  - con `pagado=true` confirma: los comprobantes del pendiente pasan al cobro confirmado y el
+    pendiente se da de baja, sin duplicar plata.
+- Botón "Confirmar cobro" en el diálogo: **sigue sin hacerse a propósito** — era condicional ("si el
+  uso lo pide") y el flujo admin de marcar Saldado/Parcial ya confirma el cobro a revisar.
 
 ## Pendiente ajeno a este trabajo (anotado, no bloquea)
 - 4 tests de `ImportarMultieventoTest` fallan contra BD de test con datos reales (asserts de conteos globales) — preexistente.

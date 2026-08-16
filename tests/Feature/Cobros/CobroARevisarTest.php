@@ -23,7 +23,7 @@ use Tests\TestCase;
  * Nunca hay comprobante sin cobro: subir un comprobante crea (o alimenta) un cobro
  * `a_revisar` con el archivo enlazado. El cobro a revisar NO suma como plata recibida
  * (montoCobrado/saldoPendiente sólo cuentan confirmados) y el staging
- * `inscripcion_comprobantes` ya no recibe escrituras.
+ * El staging `inscripcion_comprobantes` fue eliminado en la fase 2.
  */
 class CobroARevisarTest extends TestCase
 {
@@ -103,8 +103,6 @@ class CobroARevisarTest extends TestCase
         $this->assertEquals(10000.0, $inscripcion->saldoPendiente());
         $this->assertSame('Pendiente', $inscripcion->pago);
 
-        // El staging ya no recibe escrituras.
-        $this->assertSame(0, $inscripcion->comprobantes()->count());
     }
 
     public function test_subida_de_admin_lleva_origen_manual_y_registrador(): void
@@ -186,6 +184,5 @@ class CobroARevisarTest extends TestCase
         $this->assertSame('comprobantes/grid-transfer.jpg', $cobro->comprobantes()->with('imagen')->first()->ruta);
         $this->assertEquals(0.0, $inscripcion->montoCobrado());
         $this->assertSame('Pendiente', $inscripcion->pago);
-        $this->assertSame(0, $inscripcion->comprobantes()->count());
     }
 }

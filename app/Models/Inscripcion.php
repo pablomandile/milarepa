@@ -123,11 +123,6 @@ class Inscripcion extends Model
         return $this->belongsTo(User::class, 'auditor');
     }
 
-    public function comprobantes()
-    {
-        return $this->hasMany(InscripcionComprobante::class)->latest();
-    }
-
     public function invitados()
     {
         return $this->hasMany(Invitado::class);

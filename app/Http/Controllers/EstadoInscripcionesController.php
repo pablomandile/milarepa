@@ -614,16 +614,10 @@ class EstadoInscripcionesController extends Controller
             abort(403);
         }
 
-        $inscripcion = Inscripcion::with(['comprobantes.imagen', 'cobros.comprobantes.imagen'])->findOrFail($id);
+        $inscripcion = Inscripcion::with(['cobros.comprobantes.imagen'])->findOrFail($id);
 
-        // Borrar los archivos de comprobantes del disco (staging legacy + los de los
-        // cobros); las filas hijas (inscripcion_comprobantes, inscripcion_comida) se
-        // eliminan por cascadeOnDelete.
-        foreach ($inscripcion->comprobantes as $comprobante) {
-            if ($comprobante->ruta) {
-                Storage::disk('public')->delete($comprobante->ruta);
-            }
-        }
+        // Borrar del disco los archivos de los comprobantes de sus cobros; las filas
+        // hijas (inscripcion_comida, etc.) se eliminan por cascadeOnDelete.
         foreach ($inscripcion->cobros as $cobro) {
             foreach ($cobro->comprobantes as $comprobante) {
                 if ($comprobante->ruta) {
