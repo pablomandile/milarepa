@@ -66,6 +66,16 @@ const clasesFiltradas = computed(() => {
 
 const membresiasDisponibles = computed(() => precioData.value.membresias || []);
 
+// El catálogo Tharpa se pide por entidad, así que la lista vacía es el caso normal
+// de una sede sin stock: conviene nombrarla en vez del genérico "no hay opciones".
+const nombreEntidadActual = computed(
+    () => (props.entidades || []).find((e) => Number(e.id) === Number(props.form.entidad_id))?.nombre || ''
+);
+
+const mensajeSinProductos = computed(() => (nombreEntidadActual.value
+    ? `No hay stock de esta categoría en ${nombreEntidadActual.value}`
+    : 'Elegí una entidad para ver su stock'));
+
 const normalizarTexto = (valor) => String(valor || '')
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
@@ -376,6 +386,8 @@ const onMontoTiendaFocus = () => {
                     display="chip"
                     :maxSelectedLabels="3"
                     placeholder="Seleccione"
+                    :empty-message="mensajeSinProductos"
+                    empty-filter-message="Ningún producto coincide con esa búsqueda"
                     class="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"
                 >
                     <template #option="slotProps">

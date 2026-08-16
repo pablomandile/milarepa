@@ -217,6 +217,16 @@ const cargarProductos = async () => {
 
 const stockMax = computed(() => Number(productoSeleccionado.value?.stock_disponible || 0));
 
+// El desplegable vacío es el caso normal cuando la sede elegida no tiene stock de
+// esa categoría, así que conviene nombrarla en vez de dejar el mensaje genérico.
+const nombreEntidadActual = computed(
+    () => (props.entidades || []).find((e) => Number(e.id) === Number(form.entidad_id))?.nombre || ''
+);
+
+const mensajeSinProductos = computed(() => (nombreEntidadActual.value
+    ? `No hay stock de esta categoría en ${nombreEntidadActual.value}.`
+    : 'No hay stock de esta categoría en esta sede.'));
+
 const categoriaLabelActual = () => {
     if (ambito.value === 'tharpa') return CATEGORIA_LABELS[categoriaSel.value] || categoriaSel.value;
     if (ambito.value === 'tienda') {
@@ -538,10 +548,12 @@ const finalizar = () => {
                             :loading="cargandoProductos"
                             filter
                             placeholder="Seleccionar producto…"
+                            :empty-message="mensajeSinProductos"
+                            empty-filter-message="Ningún producto coincide con esa búsqueda"
                             class="w-full"
                         />
                         <p v-if="!cargandoProductos && !productosDisponibles.length" class="text-xs text-gray-500 mt-1">
-                            Sin stock disponible en esta entidad para esta categoría.
+                            {{ mensajeSinProductos }} Probá con otra categoría o cambiá la entidad.
                         </p>
                     </div>
                     <div v-if="productoSeleccionado">

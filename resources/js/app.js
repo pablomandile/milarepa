@@ -45,7 +45,15 @@ createInertiaApp({
         app.config.globalProperties.$primevue.config.locale = {
             ...app.config.globalProperties.$primevue.config.locale,
             clear: 'Borrar',
-            apply: 'Aplicar'
+            apply: 'Aplicar',
+            // Los desplegables mostraban los defaults en inglés ("No available
+            // options") cuando la lista quedaba vacía — p. ej. una sede sin stock
+            // en el POS. Cada componente puede pisarlos con su propio emptyMessage
+            // si tiene algo más útil que decir.
+            emptyMessage: 'No hay opciones disponibles',
+            emptyFilterMessage: 'Sin resultados para esa búsqueda',
+            emptySearchMessage: 'Sin resultados para esa búsqueda',
+            emptySelectionMessage: 'No hay nada seleccionado'
         };
 
         return app.mount(el);
