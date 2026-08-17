@@ -146,6 +146,28 @@ tiene ese valor (lo consumen reportes, mails y el webhook de MP). Los medios de 
 checkout salen del ABM `metodos_pago` de la actividad (+ `efectivo`/`comprobante` como sentinelas),
 no de una lista fija.
 
+**Pagos parciales (desde 2026-08-17):** un pago en cuotas deja **un cobro confirmado por cada pago
+recibido** — el ledger guarda la historia, no un único importe que se va editando. Marcar `Saldado`
+al final cobra sólo la diferencia (`saldoPendientePorMoneda()`), nunca el total de nuevo. Reglas del
+flujo admin:
+
+- Confirmar un parcial con importe **pisa el cobro `a_revisar` y lo pasa a `confirmado`**
+  conservando id, origen y comprobantes: el cobro deja de estar a revisar; lo que queda abierto es
+  el saldo.
+- Marcar `Parcial` **sin** importe es poner una etiqueta, no declarar un pago: **no toca el ledger**.
+  En particular no da de baja el cobro a revisar (guardar el diálogo de edición de una inscripción
+  ya Parcial no puede costar el comprobante que subió el socio). El cierre de un pendiente con monto
+  0 sólo procede cuando hay un cobro confirmado que absorba sus comprobantes.
+- Quien sube un comprobante puede declarar **cuánto pagó** (campo opcional). Si lo declara, se graba
+  ese importe y `cobros.monto_declarado` queda en `true`; una segunda subida informada **suma**. Si
+  no lo declara, el monto es provisional: el saldo pendiente de esa moneda, recalculado en cada
+  subida pero sin pisar nunca un importe ya declarado.
+- El detalle del pago muestra **"Falta cobrar"** abierto por moneda, y distingue el importe
+  informado del estimado sobre el saldo.
+
+Limitación conocida: **Mercado Pago siempre cobra el total, no el saldo**. Si hubo un parcial en
+efectivo y después se paga por MP, MP cobra el total otra vez y el ledger suma más que la deuda.
+
 **No hay inscripciones duplicadas por actividad (desde 2026-08-14):** una persona no puede
 inscribirse dos veces a la misma actividad — el dedup es por `user_id` y por **email normalizado**
 (cubre inscripciones previas como guest y como usuario registrado; las guest comparten el user

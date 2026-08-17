@@ -341,6 +341,8 @@
         v-model:visible="cobroDetalleVisible"
         :cobros="cobrosSeleccionados"
         :contexto="contextoCobro"
+        :adeudado="adeudadoSeleccionado"
+        :moneda-principal-id="monedaPrincipal?.id ?? null"
     />
 </template>
 
@@ -363,7 +365,9 @@ const props = defineProps({
     ultimoMesGenerado: {
         type: String,
         default: null
-    }
+    },
+    // {id, nombre, simbolo} — las cuotas se cobran siempre en la principal.
+    monedaPrincipal: { type: Object, default: null }
 });
 
 const page = usePage();
@@ -519,10 +523,18 @@ const toggleCardExpanded = (id) => {
 const cobroDetalleVisible = ref(false);
 const cobrosSeleccionados = ref([]);
 const contextoCobro = ref('');
+const adeudadoSeleccionado = ref([]);
 
 const abrirDetalleCobros = (cuenta) => {
     cobrosSeleccionados.value = cuenta?.cobros || [];
     contextoCobro.value = [cuenta?.user?.name, cuenta?.membresia?.nombre].filter(Boolean).join(' · ');
+    // Una cuota debe una sola cosa y siempre en la moneda principal.
+    adeudadoSeleccionado.value = [{
+        moneda_id: props.monedaPrincipal?.id ?? null,
+        monto: Number(cuenta?.importe || 0),
+        simbolo: props.monedaPrincipal?.simbolo || '$',
+        es_principal: true,
+    }].filter((linea) => linea.monto > 0);
     cobroDetalleVisible.value = true;
 };
 

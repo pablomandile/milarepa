@@ -493,6 +493,9 @@ class GridActividadesController extends Controller
         $request->validate([
             'comprobante' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:4096'],
             'descripcion' => ['nullable', 'string', 'max:255'],
+            // Cuánto dice haber pagado quien sube el comprobante (opcional): viaja en
+            // la sesión hasta finalizarPago, que es donde recién existe la inscripción.
+            'monto_informado' => ['nullable', 'numeric', 'min:0'],
         ], [
             'comprobante.max' => 'El comprobante supera el tamaño máximo permitido (4 MB).',
             'comprobante.mimes' => 'El comprobante debe ser PDF, JPG, PNG o WebP.',
@@ -503,9 +506,11 @@ class GridActividadesController extends Controller
         // Ojo: no se toca `pago_metodo`. El comprobante es opcional para todos los
         // medios de pago y es ortogonal al medio elegido por el usuario; la
         // persistencia en finalizarPago depende de `comprobante_path`, no del medio.
+        $montoInformado = $request->input('monto_informado');
         $pago = $request->session()->get('grid_pago', []);
         $pago['comprobante_path'] = $path;
         $pago['comprobante_descripcion'] = $request->input('descripcion');
+        $pago['comprobante_monto_informado'] = $montoInformado !== null ? (float) $montoInformado : null;
         $request->session()->put('grid_pago', $pago);
 
         return response()->json([
@@ -789,6 +794,7 @@ class GridActividadesController extends Controller
                         $svc->resolverComprobanteId($pago['comprobante_path']),
                         $pago['comprobante_descripcion'] ?? null,
                         origen: 'checkout',
+                        montoInformado: $pago['comprobante_monto_informado'] ?? null,
                     );
                 }
             });
@@ -858,6 +864,7 @@ class GridActividadesController extends Controller
                     $svc->resolverComprobanteId($pago['comprobante_path']),
                     $pago['comprobante_descripcion'] ?? null,
                     origen: 'checkout',
+                    montoInformado: $pago['comprobante_monto_informado'] ?? null,
                 );
             }
 

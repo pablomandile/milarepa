@@ -21,6 +21,7 @@ class Cobro extends Model
         'cobrable_type',
         'cobrable_id',
         'monto',
+        'monto_declarado',
         'moneda_id',
         'fecha_pago',
         'metodo_pago_id',
@@ -33,6 +34,9 @@ class Cobro extends Model
 
     protected $casts = [
         'monto' => 'decimal:2',
+        // true = el importe lo declaró quien pagó; false = provisional, puesto de
+        // oficio con el saldo pendiente (ver la migración add_monto_declarado).
+        'monto_declarado' => 'boolean',
         'fecha_pago' => 'date',
     ];
 

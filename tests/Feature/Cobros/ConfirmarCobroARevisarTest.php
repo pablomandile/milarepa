@@ -158,4 +158,105 @@ class ConfirmarCobroARevisarTest extends TestCase
         $this->assertSame(1, $mp->comprobantes()->count());
         $this->assertSoftDeleted('cobros', ['id' => $aRevisar->id]);
     }
+
+    /**
+     * Marcar Parcial SIN importe no es declarar un pago: es poner una etiqueta.
+     *
+     * Antes el controller llamaba igual a confirmarORegistrar con monto 0 por cada
+     * moneda con pendiente, y esa rama daba de baja el cobro a revisar aunque no
+     * hubiera ningún confirmado donde volcar sus comprobantes. Resultado: el
+     * comprobante que había subido el socio desaparecía de las dos vistas.
+     */
+    public function test_marcar_parcial_sin_monto_no_borra_el_cobro_a_revisar(): void
+    {
+        $inscripcion = $this->inscripcion(10000);
+        $aRevisar = app(CobroService::class)
+            ->registrarComprobanteARevisar($inscripcion, $this->imagen('sena.jpg')->id, null, 'checkout');
+
+        $this->actingAs($this->admin())
+            ->patchJson("/estadoinscripciones/{$inscripcion->id}/pago", ['pago' => 'Parcial'])
+            ->assertOk();
+
+        $inscripcion->refresh();
+        $cobro = $inscripcion->cobros()->sole();
+
+        $this->assertSame($aRevisar->id, $cobro->id);
+        $this->assertSame(Cobro::ESTADO_A_REVISAR, $cobro->estado);
+        $this->assertSame(1, $cobro->comprobantes()->count());
+        $this->assertSame(0, Cobro::onlyTrashed()->where('cobrable_id', $inscripcion->id)->count());
+
+        // El comprobante sigue llegando a las vistas de usuario y de admin.
+        $this->assertCount(1, $inscripcion->load('cobros.comprobantes.imagen')->comprobantesDeCobros());
+    }
+
+    /**
+     * El mismo agujero por el camino que se usa en la práctica: el admin abre el
+     * diálogo de una inscripción que YA estaba en Parcial y lo guarda para tocar un
+     * servicio. `monto_cobrado` viaja null y nada del pago cambió, pero el
+     * comprobante se perdía igual.
+     */
+    public function test_guardar_la_edicion_de_una_parcial_no_toca_el_comprobante(): void
+    {
+        $inscripcion = $this->inscripcion(10000);
+        $inscripcion->update(['pago' => 'Parcial']);
+        $aRevisar = app(CobroService::class)
+            ->registrarComprobanteARevisar($inscripcion, $this->imagen('edicion.jpg')->id, null, 'checkout');
+
+        $this->actingAs($this->admin())
+            ->putJson("/estadoinscripciones/{$inscripcion->id}", [
+                'pago' => 'Parcial',
+                'monto_cobrado' => null,
+                'online' => false,
+            ])
+            ->assertOk();
+
+        $cobro = $inscripcion->fresh()->cobros()->sole();
+        $this->assertSame($aRevisar->id, $cobro->id);
+        $this->assertSame(Cobro::ESTADO_A_REVISAR, $cobro->estado);
+        $this->assertSame(1, $cobro->comprobantes()->count());
+    }
+
+    /** La guarda equivalente a nivel servicio, para cualquier otro llamador. */
+    public function test_confirmar_con_monto_cero_sin_confirmado_previo_no_borra_nada(): void
+    {
+        $inscripcion = $this->inscripcion(10000);
+        $svc = app(CobroService::class);
+        $aRevisar = $svc->registrarComprobanteARevisar($inscripcion, $this->imagen('solo.jpg')->id, null, 'checkout');
+
+        $resultado = $svc->confirmarORegistrar($inscripcion, ['monto' => 0.0, 'origen' => 'manual']);
+
+        $this->assertNull($resultado);
+        $this->assertSame(Cobro::ESTADO_A_REVISAR, $aRevisar->fresh()->estado);
+        $this->assertNull($aRevisar->fresh()->deleted_at);
+    }
+
+    /**
+     * El circuito completo de un pago en cuotas: cada pago confirmado es SU propio
+     * cobro (el ledger guarda la historia real), y "Saldado" al final cobra sólo la
+     * diferencia en vez de duplicar el total.
+     */
+    public function test_dos_pagos_parciales_dejan_dos_cobros_y_saldan(): void
+    {
+        $inscripcion = $this->inscripcion(10000);
+        $admin = $this->admin();
+
+        $this->actingAs($admin)
+            ->patchJson("/estadoinscripciones/{$inscripcion->id}/pago", ['pago' => 'Parcial', 'monto_cobrado' => 4000])
+            ->assertOk();
+
+        $this->assertEquals(4000.0, $inscripcion->fresh()->montoCobrado());
+
+        $this->actingAs($admin)
+            ->patchJson("/estadoinscripciones/{$inscripcion->id}/pago", ['pago' => 'Saldado'])
+            ->assertOk();
+
+        $inscripcion->refresh();
+        $cobros = $inscripcion->cobros()->orderBy('id')->get();
+
+        $this->assertCount(2, $cobros);
+        $this->assertEquals([4000.0, 6000.0], $cobros->pluck('monto')->map(fn ($m) => (float) $m)->all());
+        $this->assertEquals(10000.0, $inscripcion->montoCobrado());
+        $this->assertEquals(0.0, $inscripcion->saldoPendiente());
+        $this->assertSame('Saldado', $inscripcion->pago);
+    }
 }

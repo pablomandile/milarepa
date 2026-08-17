@@ -45,6 +45,9 @@ class EstadoInscripcionesController extends Controller
                 'guestUser.municipio',
                 'guestUser.barrio',
                 'auditorUser',
+            // La moneda de la inscripción (no la de sus cobros): el diálogo la usa
+            // para decir cuánto falta y el modal de comprobante para su símbolo.
+            'moneda',
             'cobros',
             'cobros.metodoPago',
             'cobros.moneda',
@@ -81,6 +84,10 @@ class EstadoInscripcionesController extends Controller
             'municipios' => Municipio::all(),
             'barrios' => Barrio::all(),
             'metodosPago' => MetodoPago::orderBy('nombre')->get(['id', 'nombre']),
+            // Para el "falta cobrar" del diálogo de cobros: sin el id de la principal
+            // no se puede saber que un cobro legacy (moneda_id null) y uno con la
+            // principal explícita son la misma moneda.
+            'monedaPrincipal' => Moneda::principal()?->only(['id', 'nombre', 'simbolo']),
         ]);
     }
 
@@ -426,7 +433,12 @@ class EstadoInscripcionesController extends Controller
     /**
      * Registra en el ledger el importe recibido cuando el admin marca Saldado/Parcial.
      * No recalcula el estado: el admin fija el label a mano.
-     * Saldado sin monto explícito ⇒ toma el saldo pendiente; Parcial requiere monto_cobrado.
+     *
+     * Saldado sin monto explícito ⇒ saldo pendiente, un cobro por moneda.
+     * Parcial ⇒ necesita `monto_cobrado`; sin él no se toca el ledger (marcar Parcial
+     * es poner una etiqueta, no declarar un pago, y el diálogo de edición se guarda
+     * muchas veces sin que haya entrado plata nueva).
+     *
      * Si la inscripción tiene un cobro "a revisar" (comprobante subido en el checkout),
      * el servicio CONFIRMA ese cobro con los datos reales en vez de crear uno nuevo.
      */
@@ -455,9 +467,17 @@ class EstadoInscripcionesController extends Controller
             return;
         }
 
+        // Parcial sin importe explícito no es un movimiento de plata: el admin puso
+        // la etiqueta, o guardó el diálogo por otra cosa (un servicio, un invitado).
+        // No hay nada que registrar y, sobre todo, nada que cerrar: el cobro a
+        // revisar es el comprobante que informó el socio y se deja intacto.
+        if ($data['pago'] === 'Parcial') {
+            return;
+        }
+
         // Saldar es saldar TODO lo pendiente: un cobro por moneda, porque una
         // inscripción dividida debe USD y pesos por separado (criterio del POS).
-        $saldos = $data['pago'] === 'Saldado' ? $cobros->saldoPendientePorMoneda($inscripcion) : [];
+        $saldos = $cobros->saldoPendientePorMoneda($inscripcion);
 
         if (empty($saldos)) {
             // Sin saldo se llama igual con 0 por cada moneda con un cobro a revisar:

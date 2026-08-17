@@ -11,6 +11,16 @@ const props = defineProps({
     cobros: { type: Array, default: () => [] },
     // Subtítulo del header (p.ej. "Juan Pérez · Retiro de Yoga").
     contexto: { type: String, default: '' },
+    // Deuda del cobrable, una línea por moneda: [{ moneda_id, monto, simbolo,
+    // es_principal }]. Una inscripción de total dividido debe dos cosas distintas
+    // (BUSINESS_RULES §2.1bis) y cada una se salda por separado. Sin esto no se
+    // puede decir cuánto falta, que en un pago parcial es el dato que importa.
+    adeudado: { type: Array, default: () => [] },
+    // Id de la moneda principal, para que un cobro legacy (`moneda_id` null) y uno
+    // que la trae explícita cuenten como la misma moneda — la convención de toda la
+    // app (BUSINESS_RULES §2.1bis). Sin esto se abrirían dos líneas con el mismo
+    // símbolo y el saldo se calcularía contra la mitad de lo cobrado.
+    monedaPrincipalId: { type: Number, default: null },
 });
 
 const emit = defineEmits(['update:visible']);
@@ -31,6 +41,14 @@ const formatMoney = (value, simbolo) => `${simbolo || SIMBOLO_PRINCIPAL} ${forma
 
 const simboloDe = (cobro) => cobro?.moneda?.simbolo || SIMBOLO_PRINCIPAL;
 
+// Clave de agrupación: la principal es siempre 0, venga como null (legacy) o con su
+// id. Cualquier otra moneda va por su id.
+const claveMoneda = (monedaId) => {
+    if (monedaId === null || monedaId === undefined) return 0;
+    if (props.monedaPrincipalId !== null && Number(monedaId) === Number(props.monedaPrincipalId)) return 0;
+    return Number(monedaId);
+};
+
 // Los totales van por moneda: una inscripción de total dividido tiene un cobro en
 // dólares y otro en pesos, y sumarlos daría un número que no existe.
 const totalesPorMoneda = (incluir) => {
@@ -38,7 +56,7 @@ const totalesPorMoneda = (incluir) => {
 
     cobrosOrdenados.value.forEach((c) => {
         if (!incluir(c)) return;
-        const clave = c.moneda_id ?? 0;
+        const clave = claveMoneda(c.moneda_id);
         const linea = porMoneda.get(clave) ?? {
             precio: 0,
             simbolo: simboloDe(c),
@@ -58,6 +76,43 @@ const totalCobrado = computed(
 
 const hayARevisar = computed(() => cobrosOrdenados.value.some((c) => esARevisar(c) && Number(c.monto || 0) > 0));
 const totalARevisar = computed(() => formatPrecios(totalesPorMoneda(esARevisar)));
+
+// El monto de un cobro a revisar es de una de dos clases: lo que declaró quien pagó,
+// o el saldo puesto de oficio al subir el comprobante. Rotularlos igual hacía pasar
+// un número provisional por un dato informado.
+const hayMontoDeclarado = computed(() =>
+    cobrosOrdenados.value.some((c) => esARevisar(c) && c.monto_declarado)
+);
+const rotuloARevisar = computed(() =>
+    hayMontoDeclarado.value ? 'Informado por quien pagó' : 'A revisar (saldo estimado)'
+);
+
+// Cuánto falta, por moneda: la porción adeudada menos los cobros CONFIRMADOS de esa
+// moneda (los a revisar no son plata verificada). Mismo criterio que
+// CobroService::saldoPendientePorMoneda(), pero calculado acá a propósito: el método
+// dispara una query por cobrable y el listado trae ~2.000 filas. Los datos ya viajan.
+const faltaCobrar = computed(() => {
+    const confirmado = new Map();
+    cobrosOrdenados.value.forEach((c) => {
+        if (esARevisar(c)) return;
+        const clave = claveMoneda(c.moneda_id);
+        confirmado.set(clave, (confirmado.get(clave) || 0) + Number(c.monto || 0));
+    });
+
+    return (props.adeudado || [])
+        .map((porcion) => ({
+            simbolo: porcion.simbolo || SIMBOLO_PRINCIPAL,
+            esPrincipal: Boolean(porcion.es_principal),
+            precio: Math.max(
+                0,
+                Number(porcion.monto || 0) - (confirmado.get(claveMoneda(porcion.moneda_id)) || 0)
+            ),
+        }))
+        .filter((linea) => linea.precio > 0.001)
+        .sort((a, b) => Number(b.esPrincipal) - Number(a.esPrincipal));
+});
+const hayFaltante = computed(() => faltaCobrar.value.length > 0);
+const totalFaltante = computed(() => formatPrecios(faltaCobrar.value));
 
 const formatDate = (value) => {
     if (!value) return '—';
@@ -140,7 +195,9 @@ const verComprobante = (comp) => {
                         </p>
                         <p class="mt-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                             <i class="far fa-calendar"></i>
-                            {{ esARevisar(cobro) ? 'Informado, pendiente de verificación' : formatDate(cobro.fecha_pago) }}
+                            <template v-if="!esARevisar(cobro)">{{ formatDate(cobro.fecha_pago) }}</template>
+                            <template v-else-if="cobro.monto_declarado">Importe informado, pendiente de verificación</template>
+                            <template v-else>Pendiente de verificación · importe estimado sobre el saldo</template>
                         </p>
                     </div>
                     <div class="flex shrink-0 flex-col items-end gap-1.5">
@@ -197,9 +254,9 @@ const verComprobante = (comp) => {
                 </div>
             </div>
 
-            <!-- Totales (solo si hay más de un cobro o hay monto a revisar) -->
+            <!-- Totales (solo si hay más de un cobro, monto a revisar o saldo abierto) -->
             <div
-                v-if="cobrosOrdenados.length > 1 || hayARevisar"
+                v-if="cobrosOrdenados.length > 1 || hayARevisar || hayFaltante"
                 class="space-y-1 rounded-xl bg-gray-50 px-4 py-3 text-sm dark:bg-gray-800/60"
             >
                 <div class="flex items-center justify-between">
@@ -207,8 +264,12 @@ const verComprobante = (comp) => {
                     <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400">{{ totalCobrado }}</span>
                 </div>
                 <div v-if="hayARevisar" class="flex items-center justify-between">
-                    <span class="font-medium text-gray-600 dark:text-gray-300">Informado a revisar</span>
+                    <span class="font-medium text-gray-600 dark:text-gray-300">{{ rotuloARevisar }}</span>
                     <span class="font-semibold text-amber-600 dark:text-amber-400">{{ totalARevisar }}</span>
+                </div>
+                <div v-if="hayFaltante" class="flex items-center justify-between border-t border-gray-200 pt-1 dark:border-gray-700">
+                    <span class="font-medium text-gray-600 dark:text-gray-300">Falta cobrar</span>
+                    <span class="font-semibold text-rose-600 dark:text-rose-400">{{ totalFaltante }}</span>
                 </div>
             </div>
         </div>

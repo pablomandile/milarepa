@@ -85,6 +85,57 @@ escalar único. Se cerró en dos frentes:
   creando un solo cobro") y un assert nuevo en `PresentacionMonedaTest`. `CierreFase2Test` tenía
   codificado el comportamiento viejo (un cobro de 2.120 saldaba) y se corrigió a dos cobros.
 
+## Actualización (2026-08-17) — pagos parciales
+
+Auditoría del circuito completo de parciales (checkout → comprobante → confirmación admin →
+recálculo). **Cómo funciona, que no estaba escrito en ningún lado:** cada pago confirmado es SU
+propio cobro y `montoCobrado()` los suma, así que una actividad de $ 10.000 pagada en dos veces deja
+dos filas de 4.000 y 6.000 — el ledger guarda la historia real. Marcar Saldado al final cobra sólo la
+diferencia (`saldoPendientePorMoneda()`), no el total de nuevo. Confirmar un parcial **pisa el cobro
+`a_revisar` y lo pasa a `confirmado`** conservando id, origen y comprobantes: deja de estar a revisar,
+lo que queda abierto es el saldo. La excepción sigue siendo la etapa informada, donde hay UN solo
+`a_revisar` por (cobrable, moneda) que acumula comprobantes.
+
+Tres defectos encontrados y cerrados:
+
+- **Marcar Parcial sin importe borraba el cobro a revisar y huerfanaba su comprobante.** Con
+  `$saldos` vacío (`pago !== 'Saldado'`), `registrarCobroAdmin` llamaba a `confirmarORegistrar` con
+  monto 0 por cada moneda con pendiente, y esa rama daba de baja el `a_revisar` aunque no hubiera
+  ningún confirmado donde volcar los comprobantes. Se disparaba también **al guardar el diálogo de
+  edición de una inscripción que ya estaba en Parcial**, sin tocar nada del pago. Doble arreglo:
+  `registrarCobroAdmin` corta antes con Parcial sin importe (poner la etiqueta no es declarar un
+  pago), y `confirmarORegistrar` no toca el pendiente si no hay confirmado que absorba los
+  comprobantes.
+- **"Saldado" arrastraba el importe tipeado bajo "Parcial".** El input sólo se muestra con Parcial
+  pero `guardarEdicionCompleta` mandaba `monto_cobrado` siempre: escribir 5.000, arrepentirse y
+  cambiar a Saldado dejaba la inscripción etiquetada Saldado con un cobro de 5.000 sobre 30.000.
+  Ahora el importe viaja sólo con Parcial.
+- **El cobro a revisar mentía sobre lo informado.** Su monto era siempre el saldo pendiente entero,
+  así que una seña de $ 5.000 sobre $ 30.000 se mostraba como "Informado a revisar: $ 30.000".
+  Columna nueva **`cobros.monto_declarado`** (bool, default false) que distingue el importe que
+  declaró quien pagó del provisional puesto de oficio; `registrarComprobanteARevisar` acepta
+  `montoInformado` (los llamadores que no lo mandan no cambian), lo respeta, y una segunda subida
+  informada **suma** en vez de pisar. Campo "¿Cuánto pagaste?" opcional en los tres formularios de
+  subida (checkout, Mis inscripciones, admin) y en `GridActividadesController::uploadComprobante`
+  viaja por la sesión `grid_pago` hasta `finalizarPago`.
+
+`CobroDetalleDialog` gana una línea **"Falta cobrar"** (prop `adeudado`, una entrada por moneda) que
+era el dato que faltaba en un parcial, y rotula el bloque a revisar según sea importe declarado o
+saldo estimado. El cálculo va en el cliente a propósito: `saldoPendientePorMoneda()` dispara una
+query por cobrable y el listado trae ~2.000 filas. Se normalizó la clave de agrupación por moneda
+(principal = 0, venga como null legacy o con su id) — antes un cobro legacy y uno con la principal
+explícita abrían dos líneas con el mismo símbolo.
+
+Tests: 4 casos nuevos en `ConfirmarCobroARevisarTest` (los tres regresores + el circuito de dos
+parciales de punta a punta) y `ComprobanteMontoInformadoTest` (5 casos). Suite de `Cobros/`: 47
+verdes.
+
+**Detectado y NO arreglado**: Mercado Pago siempre cobra el total, nunca el saldo
+(`MercadoPagoService::crearPreferencia()` usa `montoapagar` completo y el webhook registra ese mismo
+total). Si alguien pagó una seña en efectivo y después entra por MP, se le cobra el total de nuevo y
+el ledger suma más que la deuda; la guarda de idempotencia sólo mira `pago === 'Saldado'`, así que
+una inscripción en Parcial no está protegida. Es una decisión de negocio y toca el checkout.
+
 Al momento del cambio producción no tenía **ninguna** inscripción en moneda extranjera ni con total
 dividido —los 812 cobros están en la principal—, así que no hubo datos que migrar; sí había 8 líneas
 de esquema de precios en otra moneda esperando la primera inscripción.

@@ -37,6 +37,8 @@ class InscripcionesController extends Controller
                 'comida',
                 'comidas',
             'transporte',
+            // Para el símbolo del campo "¿cuánto pagaste?" al informar un pago.
+            'moneda',
             'cobros.comprobantes.imagen',
             'invitados',
             'invitados.comidas',
@@ -464,12 +466,16 @@ class InscripcionesController extends Controller
         $request->validate([
             'comprobante' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:4096'],
             'descripcion' => ['nullable', 'string', 'max:255'],
+            // Cuánto dice haber pagado quien sube el comprobante. Opcional: sin él
+            // el cobro a revisar queda con el saldo pendiente como monto provisional.
+            'monto_informado' => ['nullable', 'numeric', 'min:0'],
         ], [
             'comprobante.max' => 'El comprobante supera el tamaño máximo permitido (4 MB).',
             'comprobante.mimes' => 'El comprobante debe ser PDF, JPG, PNG o WebP.',
         ]);
 
         $path = $optimizador->procesar($request->file('comprobante'), 'comprobantes');
+        $montoInformado = $request->input('monto_informado');
 
         // Nunca hay comprobante sin cobro: la subida crea (o alimenta) un cobro
         // "a revisar" que el admin confirma al marcar el pago.
@@ -480,6 +486,7 @@ class InscripcionesController extends Controller
             $request->input('descripcion'),
             origen: $esAdmin ? 'manual' : 'checkout',
             registradoPor: $esAdmin ? $user->id : null,
+            montoInformado: $montoInformado !== null ? (float) $montoInformado : null,
         );
 
         return back()->with('success', 'Comprobante subido correctamente.');

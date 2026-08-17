@@ -7,6 +7,7 @@ use App\Services\CobroService;
 use App\Services\GeneradorEstadosCuentaMembresiaService;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Membresia;
+use App\Models\Moneda;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -41,6 +42,10 @@ class EstadoCuentaMembresiasController extends Controller
             'estadoCuentas' => $estadoCuentas,
             'mesProximo' => $mesProximo,
             'ultimoMesGenerado' => $ultimoMesGenerado,
+            // Para el "falta cobrar" del diálogo de cobros: sin el id de la principal
+            // no se puede saber que un cobro legacy (moneda_id null) y uno con la
+            // principal explícita son la misma moneda.
+            'monedaPrincipal' => Moneda::principal()?->only(['id', 'nombre', 'simbolo']),
         ]);
     }
 

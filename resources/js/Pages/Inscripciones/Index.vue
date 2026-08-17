@@ -30,6 +30,13 @@ const comprobanteModalVisible = ref(false);
 const inscripcionParaComprobante = ref(null);
 const comprobanteFile = ref(null);
 const comprobanteDescripcion = ref('');
+// Cuánto dice haber pagado (opcional): sin esto el cobro "a revisar" se graba por el
+// saldo entero y una seña se ve como si hubiera pagado todo.
+const comprobanteMonto = ref('');
+
+const simboloComprobante = computed(
+    () => inscripcionParaComprobante.value?.moneda?.simbolo || '$'
+);
 
 const confirmDelete = (id) => {
     inscripcionToDelete.value = id;
@@ -60,6 +67,7 @@ const openComprobanteModal = (inscripcion) => {
     inscripcionParaComprobante.value = inscripcion;
     comprobanteFile.value = null;
     comprobanteDescripcion.value = '';
+    comprobanteMonto.value = '';
     comprobanteModalVisible.value = true;
 };
 
@@ -80,6 +88,9 @@ const subirComprobante = () => {
     if (comprobanteDescripcion.value) {
         formData.append('descripcion', comprobanteDescripcion.value);
     }
+    if (comprobanteMonto.value !== '' && comprobanteMonto.value !== null) {
+        formData.append('monto_informado', comprobanteMonto.value);
+    }
 
     router.post(
         route('inscripciones.comprobante', { inscripcion: inscripcionParaComprobante.value.id }),
@@ -91,6 +102,7 @@ const subirComprobante = () => {
                 inscripcionParaComprobante.value = null;
                 comprobanteFile.value = null;
                 comprobanteDescripcion.value = '';
+                comprobanteMonto.value = '';
             },
         }
     );
@@ -739,6 +751,25 @@ watch(() => $page.props.flash, (flash) => {
                             class="block w-full rounded border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300"
                             placeholder="Ej: Transferencia febrero"
                         />
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="inscripcion_comprobante_monto">
+                            ¿Cuánto pagaste? (opcional)
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-500">{{ simboloComprobante }}</span>
+                            <input
+                                id="inscripcion_comprobante_monto"
+                                v-model="comprobanteMonto"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                class="block w-full rounded border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300"
+                            />
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Si pagaste una parte, indicá el importe. Si dejás el campo vacío tomamos el total.
+                        </p>
                     </div>
                     <input
                         type="file"

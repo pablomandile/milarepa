@@ -755,6 +755,8 @@
             v-model:visible="cobroDetalleVisible"
             :cobros="cobrosSeleccionados"
             :contexto="contextoCobro"
+            :adeudado="adeudadoSeleccionado"
+            :moneda-principal-id="monedaPrincipal?.id ?? null"
         />
 
         <!-- Visor de comprobante desde el diálogo de edición -->
@@ -861,6 +863,25 @@
                     class="block w-full rounded border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300"
                     placeholder="Ej: Transferencia febrero"
                 />
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" for="estado_inscripciones_comprobante_monto">
+                    Importe informado (opcional)
+                </label>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-500">{{ simboloComprobante }}</span>
+                    <input
+                        id="estado_inscripciones_comprobante_monto"
+                        v-model="comprobanteMonto"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        class="block w-full rounded border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300"
+                    />
+                </div>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Cuánto cubre este comprobante. Vacío = el saldo pendiente completo.
+                </p>
             </div>
             <input
                 type="file"
@@ -1240,10 +1261,13 @@ const props = defineProps({
     municipios: { type: Array, default: () => [] },
     barrios: { type: Array, default: () => [] },
     metodosPago: { type: Array, default: () => [] },
+    // {id, nombre, simbolo} — la moneda de los precios planos y de todo lo legacy.
+    monedaPrincipal: { type: Object, default: null },
 });
 
 const toast = useToast();
 const page = usePage();
+const monedaPrincipal = computed(() => props.monedaPrincipal);
 const filtroPeriodo = ref('last1');
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -1286,6 +1310,17 @@ const comprobanteModalVisible = ref(false);
 const inscripcionParaComprobante = ref(null);
 const comprobanteFile = ref(null);
 const comprobanteDescripcion = ref('');
+// Cuánto cubre el comprobante (opcional): sin esto el cobro "a revisar" se graba por
+// el saldo entero y una seña se ve como si hubiera pagado todo.
+const comprobanteMonto = ref('');
+
+// Se busca la fila completa por id: el modal también se abre desde el dialog de
+// edición, que sólo pasa `{ id }`.
+const simboloComprobante = computed(() => {
+    const id = inscripcionParaComprobante.value?.id;
+    const fila = (props.inscripciones || []).find((i) => i.id === id);
+    return fila?.moneda?.simbolo || '$';
+});
 
 const canEdit = computed(() => {
     const roles = (page.props.user?.roles || []).map((role) => String(role).toLowerCase());
@@ -1515,7 +1550,11 @@ const guardarEdicionCompleta = async () => {
         const payload = {
             pago: editTitular.value.pago,
             metodo_pago_id: editTitular.value.metodo_pago_id,
-            monto_cobrado: editTitular.value.monto_cobrado,
+            // El importe sólo viaja con Parcial, que es cuando el input existe: si el
+            // admin escribe un monto y después cambia el select a Saldado, el input se
+            // oculta pero el valor queda, y mandarlo saldaría la inscripción por una
+            // fracción del total.
+            monto_cobrado: editTitular.value.pago === 'Parcial' ? editTitular.value.monto_cobrado : null,
             moneda_id: editTitular.value.monto_cobrado_moneda_id,
             online: editTitular.value.online,
             incluye_grabacion: editTitular.value.grabacion,
@@ -1650,6 +1689,7 @@ const openComprobanteModal = (inscripcion) => {
     inscripcionParaComprobante.value = inscripcion;
     comprobanteFile.value = null;
     comprobanteDescripcion.value = '';
+    comprobanteMonto.value = '';
     comprobanteModalVisible.value = true;
 };
 
@@ -1693,6 +1733,9 @@ const subirComprobante = () => {
     if (comprobanteDescripcion.value) {
         formData.append('descripcion', comprobanteDescripcion.value);
     }
+    if (comprobanteMonto.value !== '' && comprobanteMonto.value !== null) {
+        formData.append('monto_informado', comprobanteMonto.value);
+    }
 
     const inscripcionId = inscripcionParaComprobante.value.id;
 
@@ -1706,6 +1749,7 @@ const subirComprobante = () => {
                 inscripcionParaComprobante.value = null;
                 comprobanteFile.value = null;
                 comprobanteDescripcion.value = '';
+                comprobanteMonto.value = '';
             },
         }
     );
@@ -1878,6 +1922,35 @@ const isSendingGrabaciones = ref(false);
 const cobroDetalleVisible = ref(false);
 const cobrosSeleccionados = ref([]);
 const contextoCobro = ref('');
+const adeudadoSeleccionado = ref([]);
+
+// La deuda de una inscripción, una línea por moneda: lo que vale en su moneda más la
+// porción que quedó en pesos (el total dividido de BUSINESS_RULES §2.1bis). Es lo que
+// el diálogo necesita para decir cuánto falta cobrar.
+const adeudadoDe = (inscripcion) => {
+    const lineas = [];
+    const moneda = inscripcion?.moneda || null;
+    const principal = monedaPrincipal.value;
+
+    lineas.push({
+        moneda_id: moneda?.id ?? principal?.id ?? null,
+        monto: Number(inscripcion?.montoapagar || 0),
+        simbolo: moneda?.simbolo || principal?.simbolo || '$',
+        es_principal: moneda ? Boolean(moneda.es_principal) : true,
+    });
+
+    const porcionPrincipal = Number(inscripcion?.monto_moneda_principal || 0);
+    if (porcionPrincipal > 0) {
+        lineas.push({
+            moneda_id: principal?.id ?? null,
+            monto: porcionPrincipal,
+            simbolo: principal?.simbolo || '$',
+            es_principal: true,
+        });
+    }
+
+    return lineas.filter((l) => l.monto > 0);
+};
 
 // Fecha del cobro más reciente de la inscripción (lo que se muestra en la columna Pago).
 const fechaUltimoCobro = (inscripcion) => {
@@ -1889,6 +1962,7 @@ const fechaUltimoCobro = (inscripcion) => {
 const abrirDetalleCobros = (inscripcion) => {
     cobrosSeleccionados.value = inscripcion?.cobros || [];
     contextoCobro.value = [inscripcion?._nombre, inscripcion?.actividad?.nombre].filter(Boolean).join(' · ');
+    adeudadoSeleccionado.value = adeudadoDe(inscripcion);
     cobroDetalleVisible.value = true;
 };
 

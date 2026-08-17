@@ -25,6 +25,7 @@ class CobroService
     {
         $cobro = $cobrable->cobros()->create([
             'monto' => $datos['monto'],
+            'monto_declarado' => $datos['monto_declarado'] ?? false,
             'moneda_id' => $datos['moneda_id'] ?? $this->monedaDeCobrable($cobrable),
             'fecha_pago' => $datos['fecha_pago'] ?? null,
             'metodo_pago_id' => $datos['metodo_pago_id'] ?? null,
@@ -179,12 +180,19 @@ class CobroService
 
     /**
      * Registra un comprobante informado por el usuario como cobro `a_revisar`
-     * (nunca hay comprobante sin cobro). El monto es provisional (saldo pendiente
-     * de esa moneda al momento de la subida) y NO suma al saldo hasta que el admin
-     * lo confirme. Invariante: a lo sumo un cobro a revisar por cobrable Y moneda —
+     * (nunca hay comprobante sin cobro). NO suma al saldo hasta que el admin lo
+     * confirme. Invariante: a lo sumo un cobro a revisar por cobrable Y moneda —
      * una segunda subida en la misma moneda agrega el comprobante al existente. Si
      * esa moneda ya está saldada, el comprobante documenta el cobro confirmado
      * existente (no inventa deuda).
+     *
+     * El monto tiene dos sabores (ver `cobros.monto_declarado`):
+     * - `$montoInformado` presente ⇒ es lo que la persona dice haber pagado. Se
+     *   respeta tal cual y una segunda subida SUMA (dos señas informadas = la suma),
+     *   sin capar contra el saldo: si alguien informa de más, tiene que verse.
+     * - `$montoInformado` null ⇒ provisional: el saldo pendiente de esa moneda. Se
+     *   recalcula en cada subida, salvo que el cobro ya traiga un monto declarado,
+     *   que nunca se pisa.
      *
      * `$monedaId` sale por defecto de la moneda del cobrable; sólo hace falta
      * pasarlo para saldar la porción en pesos de una inscripción dividida.
@@ -195,15 +203,26 @@ class CobroService
         ?string $descripcion = null,
         string $origen = 'checkout',
         ?int $registradoPor = null,
-        ?int $monedaId = null
+        ?int $monedaId = null,
+        ?float $montoInformado = null
     ): Cobro {
         $monedaId = $monedaId ?: $this->monedaDeCobrable($cobrable);
         $saldo = $this->saldoDeMoneda($cobrable, $monedaId);
+        $declarado = $montoInformado !== null;
 
         $aRevisar = $this->cobrosDeMoneda($cobrable, $monedaId)->aRevisar()->latest('id')->first();
         if ($aRevisar) {
             $this->agregarComprobantes($aRevisar, [$imagenId], $descripcion);
-            $aRevisar->update(['monto' => max(0, $saldo)]);
+
+            if ($declarado) {
+                $acumulado = $aRevisar->monto_declarado ? (float) $aRevisar->monto : 0.0;
+                $aRevisar->update([
+                    'monto' => round($acumulado + max(0, $montoInformado), 2),
+                    'monto_declarado' => true,
+                ]);
+            } elseif (!$aRevisar->monto_declarado) {
+                $aRevisar->update(['monto' => max(0, $saldo)]);
+            }
 
             return $aRevisar;
         }
@@ -218,7 +237,8 @@ class CobroService
         }
 
         $cobro = $this->registrar($cobrable, [
-            'monto' => max(0, $saldo),
+            'monto' => $declarado ? max(0, $montoInformado) : max(0, $saldo),
+            'monto_declarado' => $declarado,
             'moneda_id' => $monedaId,
             'fecha_pago' => null,
             'origen' => $origen,
@@ -238,7 +258,8 @@ class CobroService
      * cobros a revisar, se comporta como registrar() (sólo si monto > 0). Con
      * monto <= 0 (ej. el saldo ya se cubrió por MP) el pendiente se cierra sin
      * duplicar plata: sus comprobantes pasan al último cobro confirmado de la misma
-     * moneda y se soft-deletea.
+     * moneda y se soft-deletea. Si no hay confirmado al que moverlos, el pendiente
+     * NO se toca: borrarlo perdería el comprobante.
      *
      * Todo va acotado a una moneda: confirmar la porción en dólares de una
      * inscripción dividida no puede tocar el comprobante informado por la de pesos.
@@ -271,9 +292,17 @@ class CobroService
 
         if ($monto <= 0) {
             $confirmado = $this->cobrosDeMoneda($cobrable, $monedaId)->confirmados()->latest('id')->first();
-            if ($confirmado) {
-                $this->agregarComprobantes($confirmado, $principal->comprobantes()->pluck('imagen_id')->all());
+
+            // Sin un cobro confirmado que absorba los comprobantes, dar de baja el
+            // pendiente los deja huérfanos: el comprobante que informó el socio
+            // desaparece de su vista y de la del admin, y no queda rastro de que
+            // alguna vez existió. El pendiente se toca sólo cuando hay a dónde
+            // moverlo (ej. el saldo ya lo cubrió MP).
+            if (!$confirmado) {
+                return null;
             }
+
+            $this->agregarComprobantes($confirmado, $principal->comprobantes()->pluck('imagen_id')->all());
             $principal->delete();
 
             return $confirmado;

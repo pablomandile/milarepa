@@ -60,6 +60,9 @@ const page = usePage();
 const comprobanteModal = ref(false);
 const comprobanteFile = ref(null);
 const comprobanteDescripcion = ref('');
+// Cuánto dice haber pagado (opcional): sin esto el cobro "a revisar" se graba por el
+// saldo entero y una seña se ve como si hubiera pagado todo.
+const comprobanteMonto = ref('');
 const isUploading = ref(false);
 const isFinalizing = ref(false);
 const modalidadCursada = ref('presencial');
@@ -556,11 +559,15 @@ async function subirComprobante() {
     if (comprobanteDescripcion.value) {
       data.append('descripcion', comprobanteDescripcion.value);
     }
+    if (comprobanteMonto.value !== '' && comprobanteMonto.value !== null) {
+      data.append('monto_informado', comprobanteMonto.value);
+    }
     const response = await axios.post(route('grid-actividades.pago.comprobante'), data);
     comprobantePath.value = response.data.path;
     pagoMetodo.value = 'comprobante';
     comprobanteModal.value = false;
     comprobanteDescripcion.value = '';
+    comprobanteMonto.value = '';
     toast.add({
       severity: 'success',
       summary: 'Comprobante',
@@ -982,6 +989,26 @@ watch(
           class="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:ring-indigo-500"
           placeholder="Ej: Transferencia febrero"
         />
+      </div>
+      <div class="mb-3">
+        <label class="block text-sm font-medium text-gray-700 mb-1" for="comprobante_monto">
+          ¿Cuánto pagaste? (opcional)
+        </label>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-500">{{ simboloMoneda }}</span>
+          <input
+            id="comprobante_monto"
+            v-model="comprobanteMonto"
+            type="number"
+            min="0"
+            step="0.01"
+            class="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:ring-indigo-500"
+            :placeholder="formatoNumero(saldoAPagar)"
+          />
+        </div>
+        <p class="mt-1 text-xs text-gray-500">
+          Si pagaste una parte, indicá el importe. Si dejás el campo vacío tomamos el total.
+        </p>
       </div>
       <input type="file" accept=".pdf,.jpg,.jpeg,.png" @change="seleccionarComprobante" />
       <template #footer>
