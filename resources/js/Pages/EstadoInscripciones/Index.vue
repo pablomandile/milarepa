@@ -140,12 +140,22 @@
                                                     <option value="Pendiente">Pendiente</option>
                                                 </select>
                                             </template>
+                                            <button
+                                                v-else-if="inscripcion.cobros?.length"
+                                                type="button"
+                                                @click="abrirDetalleCobros(inscripcion)"
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium cursor-pointer hover:ring-2 hover:ring-indigo-300 transition"
+                                                :class="badgePagoClass(inscripcion.pago_visible)"
+                                                title="Ver detalle del pago"
+                                            >
+                                                {{ inscripcion.pago_visible || '-' }}
+                                            </button>
                                             <span
                                                 v-else
                                                 class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                                                :class="badgePagoClass(inscripcion.pago)"
+                                                :class="badgePagoClass(inscripcion.pago_visible)"
                                             >
-                                                {{ inscripcion.pago || '-' }}
+                                                {{ inscripcion.pago_visible || '-' }}
                                             </span>
                                         </div>
                                         <div class="flex items-center justify-between gap-3">
