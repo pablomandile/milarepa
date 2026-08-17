@@ -129,6 +129,22 @@ class PresentacionMonedaTest extends TestCase
         $this->assertStringContainsString('no tienen precio en U$T', $html);
     }
 
+    /**
+     * La plantilla de confirmación es la que dispara el botón de envío masivo y no
+     * la cubría ningún test: estuvo rota en producción sin que nadie lo notara
+     * hasta apretar el botón.
+     */
+    public function test_el_mail_de_confirmacion_renderiza(): void
+    {
+        $actividad = $this->actividadDosMonedas();
+        $inscripcion = $this->inscripcion($actividad, $this->secundaria->id, 120, 2000);
+
+        $html = (new InscripcionConfirmada($inscripcion, 'emails.inscripcion_confirmada'))->render();
+
+        $this->assertStringContainsString('U$T 120,00', $html);
+        $this->assertStringContainsString('2.000,00', $html);
+    }
+
     public function test_el_mail_de_una_inscripcion_en_pesos_no_cambia(): void
     {
         $actividad = $this->actividadDosMonedas();

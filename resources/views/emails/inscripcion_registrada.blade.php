@@ -559,11 +559,21 @@
                     <div class="info-row" style="padding-left: 12px;">
                         <strong>{{ $invitado->nombre }} {{ $invitado->apellido }}</strong>
                         @if($invitado->online) (Online) @endif
-                        @php($itemsInvitado = [])
-                        @if($invitado->incluye_grabacion) @php($itemsInvitado[] = 'Grabación') @endif
-                        @foreach($invitado->comidas as $comida) @php($itemsInvitado[] = $comida->nombre) @endforeach
-                        @foreach($invitado->transportes as $transporte) @php($itemsInvitado[] = $transporte->descripcion ?? 'Transporte') @endforeach
-                        @foreach($invitado->hospedajes as $hospedaje) @php($itemsInvitado[] = $hospedaje->nombre) @endforeach
+                        @php
+                            $itemsInvitado = [];
+                            if ($invitado->incluye_grabacion) {
+                                $itemsInvitado[] = 'Grabación';
+                            }
+                            foreach ($invitado->comidas as $comida) {
+                                $itemsInvitado[] = $comida->nombre;
+                            }
+                            foreach ($invitado->transportes as $transporte) {
+                                $itemsInvitado[] = $transporte->descripcion ?? 'Transporte';
+                            }
+                            foreach ($invitado->hospedajes as $hospedaje) {
+                                $itemsInvitado[] = $hospedaje->nombre;
+                            }
+                        @endphp
                         @if(count($itemsInvitado))
                             <br><span style="font-size: 13px; color: #666;">{{ implode(', ', $itemsInvitado) }}</span>
                         @endif

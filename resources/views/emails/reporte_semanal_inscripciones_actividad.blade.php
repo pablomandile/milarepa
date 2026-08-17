@@ -90,7 +90,7 @@
                             <td class="text-center">{{ $actividad['inscriptos_ultimos_5_dias'] ?? 0 }}</td>
                             <td class="text-center">{{ $actividad['pendientes_pago'] ?? 0 }}</td>
                             <td class="text-right">
-                                @php($importes = $actividad['pendiente_importes'] ?? [])
+                                @php $importes = $actividad['pendiente_importes'] ?? []; @endphp
                                 @if(empty($importes))
                                     $ 0,00
                                 @else

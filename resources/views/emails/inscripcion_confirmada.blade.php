@@ -358,7 +358,7 @@
                     <div class="value">
                         @if(isset($esPreviewPrueba) && $esPreviewPrueba === true)
                             @foreach($linksActividad as $index => $streamLink)
-                                @php($linkUrl = data_get($streamLink, 'link'))
+                                @php $linkUrl = data_get($streamLink, 'link'); @endphp
                                 <div style="margin-bottom: 8px;">
                                     <strong>Sesion {{ $index + 1 }}:</strong>
                                     <a href="{{ $linkUrl }}" target="_blank" rel="noopener noreferrer" class="video-icon-btn" style="margin-left:8px;">&#9654;</a>
@@ -366,8 +366,10 @@
                             @endforeach
                         @else
                             @foreach($linksActividad as $streamLink)
-                                @php($linkUrl = data_get($streamLink, 'link'))
-                                @php($linkDescripcion = data_get($streamLink, 'nombre') ?: 'Sin descripcion')
+                                @php
+                                    $linkUrl = data_get($streamLink, 'link');
+                                    $linkDescripcion = data_get($streamLink, 'nombre') ?: 'Sin descripcion';
+                                @endphp
                                 <div style="margin-bottom: 8px;">
                                     <strong>{{ $linkDescripcion }}:</strong>
                                     <a href="{{ $linkUrl }}" target="_blank" rel="noopener noreferrer" class="video-icon-btn" style="margin-left:8px;">
@@ -462,11 +464,21 @@
                     <div class="info-row" style="padding-left: 12px;">
                         <strong>{{ $invitado->nombre }} {{ $invitado->apellido }}</strong>
                         @if($invitado->online) (Online) @endif
-                        @php($itemsInvitado = [])
-                        @if($invitado->incluye_grabacion) @php($itemsInvitado[] = 'Grabación') @endif
-                        @foreach($invitado->comidas as $comida) @php($itemsInvitado[] = $comida->nombre) @endforeach
-                        @foreach($invitado->transportes as $transporte) @php($itemsInvitado[] = $transporte->descripcion ?? 'Transporte') @endforeach
-                        @foreach($invitado->hospedajes as $hospedaje) @php($itemsInvitado[] = $hospedaje->nombre) @endforeach
+                        @php
+                            $itemsInvitado = [];
+                            if ($invitado->incluye_grabacion) {
+                                $itemsInvitado[] = 'Grabación';
+                            }
+                            foreach ($invitado->comidas as $comida) {
+                                $itemsInvitado[] = $comida->nombre;
+                            }
+                            foreach ($invitado->transportes as $transporte) {
+                                $itemsInvitado[] = $transporte->descripcion ?? 'Transporte';
+                            }
+                            foreach ($invitado->hospedajes as $hospedaje) {
+                                $itemsInvitado[] = $hospedaje->nombre;
+                            }
+                        @endphp
                         @if(count($itemsInvitado))
                             <br><span style="font-size: 13px; color: #666;">{{ implode(', ', $itemsInvitado) }}</span>
                         @endif
