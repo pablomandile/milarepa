@@ -44,6 +44,16 @@
                                 <option value="last1">Último mes</option>
                                 <option value="all">Mostrar todo</option>
                             </select>
+                            <!-- Sólo mobile: en escritorio el buscador va en el header del DataTable. -->
+                            <span class="relative w-full sm:hidden">
+                                <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input
+                                    v-model="filters['global'].value"
+                                    type="text"
+                                    placeholder="Buscar (nombre, actividad, membresía, pago)..."
+                                    class="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 pl-9 pr-3 py-1 text-sm"
+                                />
+                            </span>
                             <button
                                 v-if="canEdit"
                                 type="button"
@@ -73,9 +83,9 @@
                             </button>
                         </div>
 
-                        <div v-if="filtradas.length > 0" class="space-y-4 sm:hidden">
+                        <div v-if="filtradasMobile.length > 0" class="space-y-4 sm:hidden">
                             <div
-                                v-for="inscripcion in filtradas"
+                                v-for="inscripcion in filtradasMobile"
                                 :key="inscripcion.id"
                                 class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
                             >
@@ -302,6 +312,12 @@
                                     <span v-else class="text-xs text-gray-400">Sin permisos</span>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- La tabla tiene su propio #empty; la lista mobile necesita el suyo,
+                             sobre todo ahora que la búsqueda puede no devolver nada. -->
+                        <div v-else class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400 sm:hidden">
+                            No hay inscripciones que coincidan con los filtros.
                         </div>
 
                         <div v-if="filtradas.length > 0" class="hidden overflow-x-auto sm:block">
@@ -2010,6 +2026,23 @@ const filtradas = computed(() => {
         if (!fechaActividad) return false;
         return new Date(fechaActividad) >= start;
     });
+});
+
+// El buscador del escritorio vive en el #header del DataTable, y ese bloque es
+// `hidden sm:block`: en mobile no se renderiza y la lista de tarjetas se quedaba
+// sin búsqueda. Acá se aplica a mano, sobre los mismos campos que declara
+// globalFilterFields, y compartiendo el estado `filters.global` para que el
+// término sobreviva al cambio de tamaño de pantalla.
+const CAMPOS_BUSQUEDA = ['_nombre', 'actividad.nombre', 'membresia', 'pago_visible', 'estado'];
+
+const filtradasMobile = computed(() => {
+    const termino = String(filters.value.global.value || '').trim().toLowerCase();
+    if (!termino) return filtradas.value;
+
+    return filtradas.value.filter((inscripcion) => CAMPOS_BUSQUEDA.some((campo) => {
+        const valor = campo.split('.').reduce((acc, clave) => acc?.[clave], inscripcion);
+        return String(valor ?? '').toLowerCase().includes(termino);
+    }));
 });
 
 // Opciones de los dropdowns de filtro, derivadas del dataset visible (post-período).
