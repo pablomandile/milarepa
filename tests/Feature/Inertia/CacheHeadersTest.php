@@ -51,6 +51,27 @@ class CacheHeadersTest extends TestCase
         $this->assertStringNotContainsString('no-store', (string) $respuesta->headers->get('Cache-Control'));
     }
 
+    /**
+     * Inertia sólo *lee* `X-Inertia-Version` de la petición y no lo emite en ninguna
+     * respuesta, así que un chequeo externo (un monitor) no tiene de dónde sacar la
+     * versión del asset para pedir la variante JSON: sin ella recibe el 409 de
+     * version mismatch, que viene con el cuerpo vacío, y no puede verificar nada de
+     * lo de arriba. Por eso el header sale en la respuesta, y sobre todo en ese 409.
+     */
+    public function test_declara_la_version_del_asset_en_la_respuesta(): void
+    {
+        $version = $this->versionDeInertia();
+        $this->assertNotSame('', $version, 'Falta public/build/manifest.json: corré `npm run build`.');
+
+        $html = $this->get('/login');
+        $this->assertSame($version, $html->headers->get('X-Inertia-Version'));
+
+        // El caso que deja ciego al monitor: XHR sin versión -> 409 con cuerpo vacío.
+        $conflicto = $this->get('/login', ['X-Inertia' => 'true']);
+        $conflicto->assertStatus(409);
+        $this->assertSame($version, $conflicto->headers->get('X-Inertia-Version'));
+    }
+
     /** El header que el CDN borra, pero que igual tiene que salir del origen. */
     public function test_declara_vary_x_inertia(): void
     {

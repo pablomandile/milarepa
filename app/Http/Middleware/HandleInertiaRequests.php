@@ -58,6 +58,19 @@ class HandleInertiaRequests extends Middleware
             $response->headers->set('Cache-Control', 'no-store, private');
         }
 
+        // Inertia sólo *lee* `X-Inertia-Version` de la petición: no lo emite en
+        // ninguna respuesta, ni siquiera en el 409 de version mismatch, que además
+        // viene con el cuerpo vacío. Sin esto, un chequeo externo que quiera pedir la
+        // variante JSON no tiene de dónde sacar la versión salvo scrapeando el
+        // `data-page` del HTML; sin versión válida sólo recibe ese 409, se queda sin
+        // JSON que mirar y no puede verificar los headers de caché de arriba.
+        // Declararlo no cambia nada para el cliente —el router lee la versión del
+        // `data-page` y nunca mira este header— y no expone nada que no esté ya en
+        // el HTML.
+        if ($version = $this->version($request)) {
+            $response->headers->set(Header::VERSION, $version);
+        }
+
         return $response;
     }
 
