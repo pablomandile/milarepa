@@ -107,7 +107,9 @@ Crear `app/Console/Commands/PrepararCentroNuevo.php` → `php artisan centro:pre
 
 **Qué RESETEA:**
 
-- `entidades`: borrar las 13 filas y crear **una** con `entidad_principal = true` y los datos del centro nuevo. Ojo: `MembresiaSeeder` asume `entidad_id = 1`, así que hay que repuntar los `entidad_id` de lo que se conserva a la entidad nueva.
+- `entidades`: **no se borra ninguna**. Son las sedes del movimiento (13, incluidas Córdoba, Chile y los anexos), no datos privados de un centro. Sólo cambia cuál es la principal, y lo que se conserva se repunta a ella.
+
+  ⚠ **Nunca borrar una entidad**: `actividades.entidad_id` tiene `ON DELETE CASCADE`, así que borrar una sede se lleva puestas sus actividades y, con ellas, las clases. Pasó instalando Zona Norte: desaparecieron 59 actividades y 42 clases sin un solo error en pantalla. Se recuperaron re-importando esas dos tablas desde producción de Milarepa.
 - `metodos_pago` (11) y `botones_pago` (38): se conserva la estructura pero se **vacían `descripcion` y `link`**, que es donde viven CBU/alias y links de pago reales de Milarepa.
 - `configuraciones_sistema`: dejar solo las claves con valores neutros.
 - Crear el usuario admin del centro nuevo con password pedida por prompt (nunca hardcodeada).

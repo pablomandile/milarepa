@@ -24,7 +24,7 @@ class PrepararCentroNuevo extends Command
 {
     protected $signature = 'centro:preparar
         {--base= : Nombre EXACTO de la base sobre la que se va a operar. Obligatorio.}
-        {--entidad= : Nombre del centro nuevo, para crear su entidad principal.}
+        {--entidad= : Id o nombre de la sede que queda como principal. Si no existe, se crea.}
         {--ejecutar : Aplica los cambios. Sin esto sólo muestra lo que haría.}';
 
     protected $description = 'Despersonaliza una copia de la base para instalarla en otro centro.';
@@ -85,7 +85,7 @@ class PrepararCentroNuevo extends Command
 
     /** Quedan, pero con datos del centro original adentro. Ver despersonalizar(). */
     private const LIMPIAR = [
-        'entidades',                   // se borran todas y se crea la del centro nuevo
+        'entidades',                   // se conservan todas; sólo cambia cuál es la principal
         'metodos_pago',                // descripcion trae CBU/alias reales
         'botones_pago',                // link trae links de pago reales
         'actividad_metodo_pago',       // se conserva, pero repuntada a la entidad nueva
@@ -217,16 +217,7 @@ class PrepararCentroNuevo extends Command
         Schema::disableForeignKeyConstraints();
 
         try {
-            // Una sola entidad principal: la del centro nuevo. Lo que se conserva
-            // (actividades, clases, membresías, precios) se repunta a ella, o quedaría
-            // colgado de sedes que ya no existen.
-            DB::table('entidades')->delete();
-            $entidadId = DB::table('entidades')->insertGetId([
-                'nombre' => $nombreEntidad,
-                'entidad_principal' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            $entidadId = $this->resolverEntidadPrincipal($nombreEntidad);
 
             foreach ($this->tablasConEntidadId() as $tabla) {
                 DB::table($tabla)->update(['entidad_id' => $entidadId]);
@@ -236,10 +227,54 @@ class PrepararCentroNuevo extends Command
             $this->blanquear('metodos_pago', 'descripcion');
             $this->blanquear('botones_pago', 'link');
 
-            $this->line("   Entidad principal creada: [{$entidadId}] {$nombreEntidad}");
         } finally {
             Schema::enableForeignKeyConstraints();
         }
+    }
+
+    /**
+     * Deja UNA entidad como principal, sin borrar ninguna.
+     *
+     * Las entidades son las sedes del movimiento, no datos privados del centro
+     * original: se conservan todas y el centro nuevo elige la suya.
+     *
+     * Y sobre todo: **no se borra ninguna**. `actividades.entidad_id` tiene
+     * ON DELETE CASCADE, así que borrar una entidad se lleva puestas sus actividades,
+     * y con ellas las clases (que cuelgan de actividades). Pasó de verdad instalando
+     * el segundo centro: desaparecieron 59 actividades y 42 clases sin un solo error
+     * en pantalla, porque el cascade no avisa.
+     *
+     * `--entidad` acepta el id o el nombre de una sede que ya exista; si no existe,
+     * se crea una nueva.
+     */
+    private function resolverEntidadPrincipal(string $buscada): int
+    {
+        $entidad = ctype_digit($buscada)
+            ? DB::table('entidades')->where('id', (int) $buscada)->first()
+            : DB::table('entidades')->whereRaw('LOWER(nombre) = ?', [mb_strtolower($buscada)])->first();
+
+        if ($entidad) {
+            $entidadId = (int) $entidad->id;
+            $this->line("   Entidad principal: [{$entidadId}] {$entidad->nombre} (ya existía)");
+        } else {
+            $entidadId = (int) DB::table('entidades')->insertGetId([
+                'nombre' => $buscada,
+                'entidad_principal' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $this->line("   Entidad principal: [{$entidadId}] {$buscada} (creada)");
+        }
+
+        // Una sola principal: el código hace where('entidad_principal', true)->first()
+        // en 40+ lugares y no hay índice único que lo impida.
+        DB::table('entidades')->update(['entidad_principal' => false]);
+        DB::table('entidades')->where('id', $entidadId)->update(['entidad_principal' => true]);
+
+        $otras = DB::table('entidades')->where('id', '!=', $entidadId)->count();
+        $this->line("   Se conservan {$otras} sedes más, ninguna como principal.");
+
+        return $entidadId;
     }
 
     /**
