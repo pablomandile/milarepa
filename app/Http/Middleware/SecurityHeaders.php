@@ -34,8 +34,13 @@ class SecurityHeaders
         if ($this->esEmbebible($request)) {
             // ALLOW-FROM está obsoleto: para permitir orígenes específicos se omite
             // X-Frame-Options y se usa CSP frame-ancestors (los browsers lo priorizan).
+            // Sin orígenes configurados queda sólo 'self': el trim evita que el header
+            // salga con un espacio colgando cuando el .env no declara ninguno.
             $ancestors = trim(config('embed.frame_ancestors', ''));
-            $response->headers->set('Content-Security-Policy', "frame-ancestors 'self' {$ancestors}");
+            $response->headers->set(
+                'Content-Security-Policy',
+                trim("frame-ancestors 'self' {$ancestors}")
+            );
         } else {
             $response->headers->set('X-Frame-Options', 'DENY');
         }

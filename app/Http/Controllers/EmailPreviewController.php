@@ -151,7 +151,7 @@ class EmailPreviewController extends Controller
             'usuario' => $inscripcion?->user,
             'nombrePracticante' => $nombrePracticante,
             'mesOnline' => $mesOnline,
-            'linkActividadesOnline' => 'https://milarepa.com.ar/actividades-online',
+            'linkActividadesOnline' => route('paginas.actividades-online'),
             'entidadPrincipal' => Entidad::where('entidad_principal', true)->first(),
             'esPreviewPrueba' => is_null($id),
         ], 200, ['Content-Type' => 'text/html; charset=UTF-8']);

@@ -112,7 +112,12 @@ class ImportarMultieventoService
      */
     public function descargarPlanilla(): string
     {
-        $url = (string) config('multievento.sheet_url');
+        $url = trim((string) config('multievento.sheet_url'));
+        if ($url === '') {
+            throw new \RuntimeException(
+                'No hay planilla configurada: definí MULTIEVENTO_SHEET_URL en el .env de esta instalación.'
+            );
+        }
         $id = $this->extraerSpreadsheetId($url);
         if (!$id) {
             throw new \RuntimeException('La URL de la planilla configurada no es válida (no se pudo extraer el ID).');

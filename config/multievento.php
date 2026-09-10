@@ -15,10 +15,8 @@
 return [
 
     // URL de edición de la planilla (la que abre el botón "Abrir URL").
-    'sheet_url' => env(
-        'MULTIEVENTO_SHEET_URL',
-        'https://docs.google.com/spreadsheets/d/15y4E50wO835jnlvLCMySwgTcEPeU5OPqbMeLJUpyg5A/edit?usp=sharing'
-    ),
+    // Sin default: la planilla es de cada centro y va en su .env.
+    'sheet_url' => env('MULTIEVENTO_SHEET_URL', ''),
 
     // gid de la pestaña a exportar (0 = primera pestaña).
     'sheet_gid' => env('MULTIEVENTO_SHEET_GID', '0'),

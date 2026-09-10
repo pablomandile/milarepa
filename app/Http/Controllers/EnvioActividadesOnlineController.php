@@ -39,7 +39,7 @@ class EnvioActividadesOnlineController extends Controller
         $fechaEnvio = now()->toDateString();
         $mesOnline = mb_strtoupper(now()->locale('es')->translatedFormat('F'), 'UTF-8');
         $entidadPrincipal = Entidad::where('entidad_principal', true)->first();
-        $linkActividadesOnline = 'https://milarepa.com.ar/actividades-online';
+        $linkActividadesOnline = route('paginas.actividades-online');
         $configuracionEnvio = EmailEnvioConfiguracion::resolverPlantilla('envio_actividades_online');
 
         $candidatos = MembresiaUsuario::query()

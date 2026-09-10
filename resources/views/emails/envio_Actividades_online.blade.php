@@ -138,7 +138,7 @@
 @php
     $nombrePracticante = $nombrePracticante ?? $nombre_practicante ?? ($usuario->name ?? 'practicante');
     $mesOnline = $mesOnline ?? $mes_online ?? 'MARZO';
-    $linkActividadesOnline = $linkActividadesOnline ?? $link_actividades_online ?? 'https://milarepa.com.ar/actividades-online';
+    $linkActividadesOnline = $linkActividadesOnline ?? $link_actividades_online ?? route('paginas.actividades-online');
 @endphp
 
 <div class="container">
@@ -155,7 +155,7 @@
             <p>Te damos la bienvenida a la comunidad Kadampa de Argentina.</p>
             <p>
                 En este mail te enviamos el enlace a la web donde encontrarás todas las actividades online
-                que ofrece el Centro Kadampa de Palermo; las mismas sólo serán transmitidas en vivo y no quedarán grabadas.
+                que ofrece {{ ($entidadPrincipal ?? null)?->nombre ?? config('app.name') }}; las mismas sólo serán transmitidas en vivo y no quedarán grabadas.
             </p>
         </div>
 

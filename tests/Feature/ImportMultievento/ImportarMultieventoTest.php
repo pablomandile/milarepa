@@ -282,6 +282,9 @@ class ImportarMultieventoTest extends TestCase
 
     public function test_descarga_planilla_desde_url(): void
     {
+        // La planilla es de cada instalación (va en su .env), así que el test declara la suya.
+        config(['multievento.sheet_url' => 'https://docs.google.com/spreadsheets/d/PLANILLA_DE_PRUEBA/edit']);
+
         $csv = $this->csvPrueba();
         Http::fake([
             'docs.google.com/*' => Http::response($csv, 200, ['Content-Type' => 'text/csv; charset=utf-8']),
@@ -296,6 +299,9 @@ class ImportarMultieventoTest extends TestCase
 
     public function test_descarga_planilla_privada_lanza_error(): void
     {
+        // La planilla es de cada instalación (va en su .env), así que el test declara la suya.
+        config(['multievento.sheet_url' => 'https://docs.google.com/spreadsheets/d/PLANILLA_DE_PRUEBA/edit']);
+
         Http::fake([
             'docs.google.com/*' => Http::response('<html><body>Sign in</body></html>', 200, ['Content-Type' => 'text/html']),
         ]);

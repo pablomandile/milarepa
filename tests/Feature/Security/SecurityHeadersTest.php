@@ -38,13 +38,17 @@ class SecurityHeadersTest extends TestCase
 
     public function test_grilla_embebida_permite_iframe_desde_origenes_configurados(): void
     {
+        // Los orígenes son de cada instalación y viven en su .env, no en el código:
+        // el test declara los suyos en vez de dar por sentado los de un centro.
+        config(['embed.frame_ancestors' => 'https://ejemplo.org https://www.ejemplo.org']);
+
         $response = $this->get('/grillaembebida');
 
         $response->assertOk();
         $response->assertHeaderMissing('X-Frame-Options');
         $response->assertHeader(
             'Content-Security-Policy',
-            "frame-ancestors 'self' https://meditarenargentina.org https://www.meditarenargentina.org"
+            "frame-ancestors 'self' https://ejemplo.org https://www.ejemplo.org"
         );
         // El resto de los headers de defensa en profundidad siguen presentes.
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
@@ -55,5 +59,20 @@ class SecurityHeadersTest extends TestCase
             ->component('GridActividades/GrillaEmbebida')
             ->has('actividades')
             ->has('gridVariante'));
+    }
+
+    /**
+     * Sin `EMBED_FRAME_ANCESTORS` en el .env sólo el propio sitio puede embeber la
+     * grilla. No es un bug: es el default seguro, y este test está para que se vea
+     * que el día que una web externa deje de mostrarla, lo que falta es esa variable.
+     */
+    public function test_sin_origenes_configurados_solo_el_propio_sitio_puede_embeber(): void
+    {
+        config(['embed.frame_ancestors' => '']);
+
+        $response = $this->get('/grillaembebida');
+
+        $response->assertOk();
+        $response->assertHeader('Content-Security-Policy', "frame-ancestors 'self'");
     }
 }

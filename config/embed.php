@@ -10,12 +10,12 @@ return [
     | Orígenes que pueden mostrar las rutas embebibles dentro de un iframe,
     | separados por espacio. Se emiten en la directiva CSP frame-ancestors.
     |
+    | Sin valor, sólo el propio sitio puede embeber ('self' se agrega siempre).
+    | Cada centro declara sus orígenes en su .env: acá no va el de ninguno.
+    |
     */
 
-    'frame_ancestors' => env(
-        'EMBED_FRAME_ANCESTORS',
-        'https://meditarenargentina.org https://www.meditarenargentina.org'
-    ),
+    'frame_ancestors' => env('EMBED_FRAME_ANCESTORS', ''),
 
     /*
     |--------------------------------------------------------------------------

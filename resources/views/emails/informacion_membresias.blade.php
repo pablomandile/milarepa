@@ -1,3 +1,9 @@
+@php
+    // El nombre del centro sale de la entidad principal (o de APP_NAME si no hay).
+    $nombreCentro = ($entidadPrincipal ?? null)?->nombre
+        ?? \App\Models\Entidad::query()->where('entidad_principal', true)->first()?->nombre
+        ?? config('app.name');
+@endphp
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -45,7 +51,7 @@
                     Muchas gracias por tu interés en nuestras actividades.
                 </p>
                 <p class="row">
-                    Te contamos que las Tarjetas Kadampa (TK) están diseñadas para aquellas personas que tienen el deseo de tomar clases de budismo y meditación con regularidad, contribuir con el desarrollo del "Centro de Meditación Kadampa Argentina" y al mismo tiempo beneficiarse con importantes descuentos en las actividades especiales, cursos y retiros.
+                    Te contamos que las Tarjetas Kadampa (TK) están diseñadas para aquellas personas que tienen el deseo de tomar clases de budismo y meditación con regularidad, contribuir con el desarrollo del "{{ $nombreCentro }}" y al mismo tiempo beneficiarse con importantes descuentos en las actividades especiales, cursos y retiros.
                 </p>
                 <p class="row" style="margin-bottom: 4px;">
                     Tenemos 3 Tarjetas Kadampa:
