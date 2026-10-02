@@ -89,6 +89,8 @@
     }).then((result) => {
         if (result.isConfirmed) {
         router.delete(route('membresias.destroy', id), {
+                preserveState: true,
+                preserveScroll: true,
                 onSuccess: () => {
                 Swal.fire("¡Eliminado!", "La Membresía ha sido eliminada.", "success");
                 },
@@ -272,7 +274,7 @@
                             dataKey="id"
                             stripedRows
                             paginator
-                            :rows="5"
+                            :rows="10"
                             :rowsPerPageOptions="[5, 10, 20, 50]"
                             tableStyle="min-width: 60rem"
                         >

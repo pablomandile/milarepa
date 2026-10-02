@@ -108,7 +108,7 @@ class MembresiasGestionController extends Controller
             'envioInfoTk' => $user->envioInfoTk,
         ]);
 
-        return redirect()->back()
+        return redirect()->route('membresias.gestion-usuarios')
             ->with('success', 'Membresía eliminada correctamente de ' . $user->name);
     }
 

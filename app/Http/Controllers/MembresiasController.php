@@ -275,9 +275,9 @@ class MembresiasController extends Controller
         try {
             $membresia = Membresia::findOrFail($id);
             $membresia->delete();
-            return redirect()->route('membresias.index')->with('success', 'Membresia eliminada con exito.');
+            return redirect()->route('membresias.gestion')->with('success', 'Membresia eliminada con exito.');
         } catch (\Exception $e) {
-            return redirect()->route('membresias.index')->with('error', 'Error al eliminar la Membresia: ' . $e->getMessage());
+            return redirect()->route('membresias.gestion')->with('error', 'Error al eliminar la Membresia: ' . $e->getMessage());
         }
     }
 

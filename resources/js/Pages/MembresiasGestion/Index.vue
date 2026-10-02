@@ -681,8 +681,10 @@ const eliminarMembresia = (usuario) => {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            const form = useForm({});
-            form.delete(route('membresias.eliminar', usuario.id));
+            router.delete(route('membresias.eliminar', usuario.id), {
+                preserveState: true,
+                preserveScroll: true,
+            });
         }
     });
 };
