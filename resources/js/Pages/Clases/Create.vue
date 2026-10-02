@@ -18,6 +18,10 @@ defineProps({
         type: Array,
         default: () => []
     },
+    lugares: {
+        type: Array,
+        default: () => []
+    },
     maestros: {
         type: Array,
         default: () => []
@@ -48,7 +52,7 @@ defineProps({
     },
 });
 
-const CATALOGOS_RECARGABLES = new Set(['ciclos', 'entidades', 'esquemaPrecios', 'streams']);
+const CATALOGOS_RECARGABLES = new Set(['ciclos', 'entidades', 'lugares', 'esquemaPrecios', 'streams']);
 
 function reloadCatalogo(catalogo) {
     if (!CATALOGOS_RECARGABLES.has(catalogo)) return;
@@ -64,6 +68,7 @@ const form = useForm({
     nombre: '',
     ciclo_id: null,
     entidad_id: null,
+    lugar_id: null,
     mes_referencia: '',
     descripcion: '',
     imagen_id: null,
@@ -107,6 +112,7 @@ const form = useForm({
                                 :form="form"
                                 :ciclos="ciclos"
                                 :entidades="entidades"
+                                :lugares="lugares"
                                 :maestros="maestros"
                                 :coordinadores="coordinadores"
                                 :esquema-precios="esquemaPrecios"

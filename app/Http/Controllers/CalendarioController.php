@@ -45,7 +45,15 @@ class CalendarioController extends Controller
 
         $oracionesCantadas = $this->buildOracionesCantadasCalendarItems($monthStart, $monthEnd);
         $clases = $this->buildClasesCalendarItems($monthStart, $monthEnd);
-        $clasesEntidades = $this->buildClasesEntidades($monthStart);
+        $clasesSedes = $clases
+            ->unique('sede_key')
+            ->map(fn ($item) => [
+                'id' => $item['sede_key'],
+                'nombre' => $item['sede_nombre'],
+                'direccion' => $item['sede_direccion'],
+            ])
+            ->sortBy('nombre')
+            ->values();
 
         return inertia('Calendario/Index', [
             'calendar' => [
@@ -63,28 +71,8 @@ class CalendarioController extends Controller
             'actividades' => $actividades,
             'oracionesCantadas' => $oracionesCantadas,
             'clases' => $clases,
-            'clasesEntidades' => $clasesEntidades,
+            'clasesSedes' => $clasesSedes,
         ]);
-    }
-
-    private function buildClasesEntidades(Carbon $monthStart)
-    {
-        return Clase::query()
-            ->where('mostrar_en_calendario', true)
-            ->where('activa', true)
-            ->where('mes_referencia', $monthStart->format('Y-m'))
-            ->whereNotNull('entidad_id')
-            ->with(['entidad:id,nombre'])
-            ->get(['entidad_id'])
-            ->map(function ($clase) {
-                return [
-                    'id' => $clase->entidad_id,
-                    'nombre' => $clase->entidad?->nombre ?? ('Entidad ' . $clase->entidad_id),
-                ];
-            })
-            ->unique('id')
-            ->sortBy('nombre')
-            ->values();
     }
 
     private function buildClasesCalendarItems(Carbon $monthStart, Carbon $monthEnd)
@@ -105,12 +93,16 @@ class CalendarioController extends Controller
             ->where('mostrar_en_calendario', true)
             ->where('activa', true)
             ->where('mes_referencia', $monthStart->format('Y-m'))
-            ->with(['entidad:id,nombre'])
+            ->with(['entidad:id,nombre,direccion', 'lugar:id,nombre,direccion'])
             ->orderBy('horario_desde')
             ->orderBy('nombre')
-            ->get(['id', 'nombre', 'entidad_id', 'dias_semana', 'horario_desde', 'titulos_por_fecha']);
+            ->get(['id', 'nombre', 'entidad_id', 'lugar_id', 'dias_semana', 'horario_desde', 'titulos_por_fecha']);
 
         foreach ($clases as $clase) {
+            // Sin lugar propio, la clase se dicta en la entidad.
+            $sede = $clase->lugar ?? $clase->entidad;
+            $sedeKey = $clase->lugar ? 'lugar-' . $clase->lugar_id : 'entidad-' . $clase->entidad_id;
+
             $diasSemana = collect($clase->dias_semana ?? [])->map(fn ($d) => (string) $d)->values();
             if ($diasSemana->isEmpty()) {
                 continue;
@@ -130,8 +122,9 @@ class CalendarioController extends Controller
                     'nombre' => filled($tituloPorFecha) ? $tituloPorFecha : $clase->nombre,
                     'fecha' => $fecha,
                     'hora' => $clase->horario_desde ? Carbon::parse($clase->horario_desde)->format('H:i') : null,
-                    'entidad_id' => $clase->entidad_id,
-                    'entidad_nombre' => $clase->entidad?->nombre,
+                    'sede_key' => $sedeKey,
+                    'sede_nombre' => $sede?->nombre,
+                    'sede_direccion' => $sede?->direccion,
                     'tipo' => 'clase',
                 ]);
             }

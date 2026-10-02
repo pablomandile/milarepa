@@ -102,6 +102,10 @@ const mapEmbedUrl = computed(() => {
   return `https://maps.google.com/maps?q=${encodeURIComponent(selectedAddress.value)}&output=embed`;
 });
 
+const lugarNombre = computed(() => props.clase.lugar?.nombre || props.clase.entidad?.nombre || '');
+const lugarDireccion = computed(() => props.clase.lugar?.direccion || props.clase.entidad?.direccion || '');
+const lugarTelefono = computed(() => props.clase.lugar?.telefono || props.clase.entidad?.telefono || '');
+
 function abrirMapa(direccion) {
   if (!direccion) return;
   selectedAddress.value = direccion;
@@ -175,22 +179,22 @@ function abrirImagenMaestro(url) {
                     <i class="pi pi-map-marker"></i>
                     <span>Lugar</span>
                   </div>
-                    <div class="mt-1 text-sm text-slate-900">{{ clase.entidad?.nombre || '-' }}</div>
+                    <div class="mt-1 text-sm text-slate-900">{{ lugarNombre || '-' }}</div>
                       <div class="mt-1 inline-flex items-center gap-2 text-sm text-slate-700">
-                        <span>{{ clase.entidad?.direccion || '-' }}</span>
+                        <span>{{ lugarDireccion || '-' }}</span>
                         <button
-                          v-if="clase.entidad?.direccion"
+                          v-if="lugarDireccion"
                           type="button"
                           class="inline-flex items-center justify-center p-0 text-sky-700 hover:text-sky-900"
                           title="Ver en mapa"
                           aria-label="Ver en mapa"
-                          @click="abrirMapa(clase.entidad.direccion)"
+                          @click="abrirMapa(lugarDireccion)"
                         >
                           <i class="pi pi-map"></i>
                         </button>
                       </div>
                       <div class="mt-1 text-sm text-slate-700">
-                        <span class="font-medium">Tel:</span> {{ clase.entidad?.telefono || '-' }}
+                        <span class="font-medium">Tel:</span> {{ lugarTelefono || '-' }}
                       </div>
                     </div>
                   </div>

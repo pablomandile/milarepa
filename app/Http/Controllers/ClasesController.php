@@ -13,6 +13,7 @@ use App\Models\Descripcion;
 use App\Models\Entidad;
 use App\Models\EsquemaPrecio;
 use App\Models\Imagen;
+use App\Models\Lugar;
 use App\Models\Maestro;
 use App\Models\Modalidad;
 use App\Models\PaginaActividadOnline;
@@ -32,7 +33,7 @@ class ClasesController extends Controller
 
     public function index()
     {
-        $clases = Clase::with(['ciclo', 'entidad', 'maestros', 'coordinadores', 'esquemaPrecio', 'modalidad', 'stream', 'imagen'])
+        $clases = Clase::with(['ciclo', 'entidad', 'lugar', 'maestros', 'coordinadores', 'esquemaPrecio', 'modalidad', 'stream', 'imagen'])
             ->orderByDesc('created_at')
             ->get();
 
@@ -70,6 +71,7 @@ class ClasesController extends Controller
         return inertia('Clases/Create', [
             'ciclos' => Ciclo::orderBy('nombre')->get(),
             'entidades' => Entidad::orderBy('nombre')->get(),
+            'lugares' => Lugar::orderBy('nombre')->get(),
             'maestros' => Maestro::ordenParaSelect()->get(),
             'coordinadores' => Coordinador::orderBy('nombre')->get(),
             'esquemaPrecios' => $this->esquemaPreciosParaFormulario(),
@@ -108,7 +110,7 @@ class ClasesController extends Controller
 
     public function showPublic(Request $request, Clase $clase)
     {
-        $clase->load(['imagen', 'entidad', 'maestros.imagen', 'coordinadores', 'ciclo']);
+        $clase->load(['imagen', 'entidad', 'lugar', 'maestros.imagen', 'coordinadores', 'ciclo']);
         $descripciones = Descripcion::query()
             ->where('nombre', 'Clase PG')
             ->orWhere('nombre', 'like', 'Estructura de una sesi%')
@@ -301,6 +303,7 @@ class ClasesController extends Controller
             'clase' => $clase,
             'ciclos' => Ciclo::orderBy('nombre')->get(),
             'entidades' => Entidad::orderBy('nombre')->get(),
+            'lugares' => Lugar::orderBy('nombre')->get(),
             'maestros' => Maestro::ordenParaSelect()->get(),
             'coordinadores' => Coordinador::orderBy('nombre')->get(),
             'esquemaPrecios' => $this->esquemaPreciosParaFormulario(),

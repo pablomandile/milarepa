@@ -37,6 +37,10 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
+    lugares: {
+        type: Array,
+        default: () => []
+    },
     maestros: {
         type: Array,
         default: () => []
@@ -240,6 +244,16 @@ const entidadesOrdenadas = computed(() => {
     });
 });
 
+const lugaresOrdenados = computed(() =>
+    [...(props.lugares || [])].sort((a, b) =>
+        String(a?.nombre || '').localeCompare(String(b?.nombre || ''), 'es', { sensitivity: 'base' })
+    )
+);
+
+const direccionEntidadSeleccionada = computed(() =>
+    (props.entidades || []).find((e) => e.id === props.form.entidad_id)?.direccion || ''
+);
+
 // ----- Ciclo: mostrar el mes en la etiqueta de cada opción (más actual primero) -----
 const nombresMeses = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -426,6 +440,45 @@ watch(
                         </button>
                     </div>
                     <InputError :message="$page.props.errors.entidad_id" class="mt-2" />
+                </div>
+
+                <div class="col-span-6 sm:col-span-6">
+                    <InputLabel for="lugar_id" class="text-indigo-400" value="Lugar" />
+                    <div class="flex gap-2 items-center mt-1">
+                        <Dropdown
+                            id="lugar_id"
+                            v-model="form.lugar_id"
+                            :options="lugaresOrdenados"
+                            optionLabel="nombre"
+                            optionValue="id"
+                            filter
+                            filterPlaceholder="Buscar lugar"
+                            placeholder="Seleccione Lugar (opcional)"
+                            showClear
+                            class="w-full border border-gray-300 dark:border-gray-600"
+                        />
+                        <a
+                            :href="route('lugares.create')"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+                            v-tooltip="'Crear nuevo Lugar'"
+                        >
+                            <i class="pi pi-file-plus"></i>
+                        </a>
+                        <button
+                            type="button"
+                            class="flex items-center justify-center bg-indigo-500 text-white px-3 py-2 rounded hover:bg-indigo-600"
+                            @click="onClickRefresh('lugares')"
+                            v-tooltip="'Refrescar lugares'"
+                        >
+                            <i class="pi pi-refresh"></i>
+                        </button>
+                    </div>
+                    <p v-if="!form.lugar_id" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Sin lugar se usa la dirección de la entidad{{ direccionEntidadSeleccionada ? `: ${direccionEntidadSeleccionada}` : '' }}.
+                    </p>
+                    <InputError :message="$page.props.errors.lugar_id" class="mt-2" />
                 </div>
 
                 <div class="col-span-6 sm:col-span-6">

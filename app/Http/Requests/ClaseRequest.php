@@ -18,6 +18,7 @@ class ClaseRequest extends FormRequest
             'nombre' => ['required', 'string', 'max:120'],
             'ciclo_id' => ['nullable', 'exists:ciclos,id'],
             'entidad_id' => ['required', 'exists:entidades,id'],
+            'lugar_id' => ['nullable', 'exists:lugares,id'],
             'mes_referencia' => ['required', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
             'descripcion' => ['nullable', 'string', 'max:5000'],
             'imagen_id' => ['nullable', 'exists:imagenes,id'],

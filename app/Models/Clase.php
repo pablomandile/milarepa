@@ -15,6 +15,7 @@ class Clase extends Model
         'nombre',
         'ciclo_id',
         'entidad_id',
+        'lugar_id',
         'mes_referencia',
         'descripcion',
         'imagen_id',
@@ -44,6 +45,11 @@ class Clase extends Model
     public function entidad()
     {
         return $this->belongsTo(Entidad::class, 'entidad_id');
+    }
+
+    public function lugar()
+    {
+        return $this->belongsTo(Lugar::class, 'lugar_id');
     }
 
     public function maestros()

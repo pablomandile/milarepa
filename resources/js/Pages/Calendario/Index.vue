@@ -20,7 +20,7 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  clasesEntidades: {
+  clasesSedes: {
     type: Array,
     default: () => [],
   },
@@ -31,8 +31,8 @@ const diasSemanaLargos = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 
 const showActividades = ref(true);
 const showClases = ref(true);
 const showOraciones = ref(true);
-const clasesEntidadFilters = ref({});
-const showClasesEntidadesFilters = ref(false);
+const clasesSedeFilters = ref({});
+const showClasesSedesFilters = ref(false);
 
 function parseYmd(value) {
   const [y, m, d] = String(value).split('-').map(Number);
@@ -103,37 +103,21 @@ const actividadesPorDia = computed(() => {
   return map;
 });
 
-const clasesEntidades = computed(() => {
-  if (Array.isArray(props.clasesEntidades) && props.clasesEntidades.length > 0) {
-    return props.clasesEntidades;
-  }
-
-  const uniqueMap = new Map();
-  for (const clase of props.clases || []) {
-    const entidadId = clase?.entidad_id;
-    if (!entidadId) continue;
-    if (!uniqueMap.has(entidadId)) {
-      uniqueMap.set(entidadId, {
-        id: entidadId,
-        nombre: clase?.entidad_nombre || `Entidad ${entidadId}`,
-      });
-    }
-  }
-
-  return Array.from(uniqueMap.values()).sort((a, b) => String(a.nombre).localeCompare(String(b.nombre)));
-});
-
 watch(
-  clasesEntidades,
-  (entidades) => {
+  () => props.clasesSedes,
+  (sedes) => {
     const next = {};
-    for (const entidad of entidades) {
-      next[entidad.id] = clasesEntidadFilters.value[entidad.id] ?? true;
+    for (const sede of sedes || []) {
+      next[sede.id] = clasesSedeFilters.value[sede.id] ?? true;
     }
-    clasesEntidadFilters.value = next;
+    clasesSedeFilters.value = next;
   },
   { immediate: true }
 );
+
+function claseTitle(item) {
+  return [itemLabel(item), item?.sede_nombre, item?.sede_direccion].filter(Boolean).join(' — ');
+}
 
 const calendarCells = computed(() => {
   const cells = [];
@@ -188,9 +172,7 @@ function itemLabel(item) {
 function isVisibleItem(item) {
   if (item.esClase) {
     if (!showClases.value) return false;
-    const entidadId = item?.entidad_id;
-    if (!entidadId) return true;
-    return clasesEntidadFilters.value[entidadId] ?? true;
+    return clasesSedeFilters.value[item?.sede_key] ?? true;
   }
   if (item.esOracionCantada) return showOraciones.value;
   return showActividades.value;
@@ -288,27 +270,31 @@ function diaSemanaLargoFromDate(dateStr) {
                   Oraciones Cantadas
                 </label>
               </div>
-              <div v-if="clasesEntidades.length" class="mt-3">
+              <div v-if="clasesSedes.length" class="mt-3">
                 <button
                   type="button"
                   class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-                  @click="showClasesEntidadesFilters = !showClasesEntidadesFilters"
+                  @click="showClasesSedesFilters = !showClasesSedesFilters"
                 >
                   <span>Filtrar Clases por lugar</span>
-                  <i :class="showClasesEntidadesFilters ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i>
+                  <i :class="showClasesSedesFilters ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i>
                 </button>
-                <div v-if="showClasesEntidadesFilters" class="mt-2 flex flex-wrap items-center gap-4 text-sm">
+                <div v-if="showClasesSedesFilters" class="mt-2 flex flex-wrap items-center gap-4 text-sm">
                   <label
-                    v-for="entidad in clasesEntidades"
-                    :key="entidad.id"
+                    v-for="sede in clasesSedes"
+                    :key="sede.id"
                     class="inline-flex items-center gap-2 px-1 py-1 text-slate-700 dark:text-slate-300"
+                    :title="sede.direccion || ''"
                   >
                     <input
-                      v-model="clasesEntidadFilters[entidad.id]"
+                      v-model="clasesSedeFilters[sede.id]"
                       type="checkbox"
                       class="calendar-filter-checkbox checkbox-amber"
                     />
-                    {{ entidad.nombre }}
+                    <span>
+                      {{ sede.nombre }}
+                      <span v-if="sede.direccion" class="text-xs text-slate-500 dark:text-slate-400">({{ sede.direccion }})</span>
+                    </span>
                   </label>
                 </div>
               </div>
@@ -391,6 +377,10 @@ function diaSemanaLargoFromDate(dateStr) {
                         <Link :href="claseHref(actividad.id)" class="hover:underline">
                           {{ itemLabel(actividad) }}
                         </Link>
+                        <p v-if="actividad.sede_direccion" class="mt-1 flex items-start gap-1 text-xs text-amber-800/80 dark:text-amber-300/80">
+                          <i class="pi pi-map-marker text-[10px] mt-0.5"></i>
+                          <span>{{ actividad.sede_direccion }}</span>
+                        </p>
                       </div>
                       <Link
                         v-else-if="!actividad.esOracionCantada"
@@ -452,7 +442,7 @@ function diaSemanaLargoFromDate(dateStr) {
                       <div
                         v-if="actividad.esClase"
                         class="block rounded-md border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 text-xs leading-tight text-amber-900 dark:text-amber-200"
-                        :title="itemLabel(actividad)"
+                        :title="claseTitle(actividad)"
                       >
                         <Link
                           :href="claseHref(actividad.id)"

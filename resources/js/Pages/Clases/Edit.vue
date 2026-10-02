@@ -22,6 +22,10 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
+    lugares: {
+        type: Array,
+        default: () => []
+    },
     maestros: {
         type: Array,
         default: () => []
@@ -56,6 +60,7 @@ const form = useForm({
     nombre: props.clase.nombre,
     ciclo_id: props.clase.ciclo_id,
     entidad_id: props.clase.entidad_id || null,
+    lugar_id: props.clase.lugar_id ?? null,
     mes_referencia: props.clase.mes_referencia || '',
     descripcion: props.clase.descripcion || '',
     imagen_id: props.clase.imagen_id || null,
@@ -77,7 +82,7 @@ const form = useForm({
     activa: props.clase.activa ?? true,
 });
 
-const CATALOGOS_RECARGABLES = new Set(['ciclos', 'entidades', 'esquemaPrecios', 'streams']);
+const CATALOGOS_RECARGABLES = new Set(['ciclos', 'entidades', 'lugares', 'esquemaPrecios', 'streams']);
 
 function reloadCatalogo(catalogo) {
     if (!CATALOGOS_RECARGABLES.has(catalogo)) return;
@@ -121,6 +126,7 @@ const handleSubmit = () => {
                                 :form="form"
                                 :ciclos="ciclos"
                                 :entidades="entidades"
+                                :lugares="lugares"
                                 :maestros="maestros"
                                 :coordinadores="coordinadores"
                                 :esquema-precios="esquemaPrecios"
