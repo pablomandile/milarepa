@@ -28,7 +28,7 @@
             required: true
         }
     });
-    const lugareshospedaje = props.lugareshospedaje;
+    const lugareshospedaje = computed(() => props.lugareshospedaje);
 
     const filters = ref({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -44,7 +44,7 @@
     });
 
     const verLugarHospedaje = (id) => {
-        const lugar = lugareshospedaje.find((ent) => ent.id === id);
+        const lugar = lugareshospedaje.value.find((ent) => ent.id === id);
         if (lugar) {
             lugarHospedajeSeleccionado.value = lugar;
             visible.value = true;
@@ -177,7 +177,7 @@
                             :globalFilterFields="['nombre', 'direccion', 'telefono', 'email']"
                             stripedRows
                             paginator
-                            :rows="5"
+                            :rows="10"
                             :rowsPerPageOptions="[5, 10, 20, 50]"
                             tableStyle="min-width: 50rem"
                         >

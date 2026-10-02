@@ -25,7 +25,7 @@
             required: true
         }
     });
-    const programas = props.programas;
+    const programas = computed(() => props.programas);
 
     const visible = ref(false);
     const programaSeleccionado = ref('');
@@ -54,6 +54,8 @@
     }).then((result) => {
         if (result.isConfirmed) {
         router.delete(route('programas.destroy', id), {
+                preserveState: true,
+                preserveScroll: true,
                 onSuccess: () => {
                 Swal.fire("¡Eliminado!", "La Programa ha sido eliminado.", "success");
                 },
@@ -66,7 +68,7 @@
     };
 
     const verPrograma = (id) => {
-        const programa = programas.find((pro) => pro.id === id);
+        const programa = programas.value.find((pro) => pro.id === id);
         if (programa) {
             programaSeleccionado.value = programa;
             visible.value = true;

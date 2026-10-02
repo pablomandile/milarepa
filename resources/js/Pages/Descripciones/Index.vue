@@ -25,7 +25,7 @@
             required: true
         }
     });
-    const descripciones = props.descripciones;
+    const descripciones = computed(() => props.descripciones);
 
     const visible = ref(false);
     const descripcionSeleccionada = ref('');
@@ -66,7 +66,7 @@
     };
 
     const verDescripcion = (id) => {
-        const descripcion = descripciones.find((desc) => desc.id === id);
+        const descripcion = descripciones.value.find((desc) => desc.id === id);
         if (descripcion) {
             descripcionSeleccionada.value = descripcion;
             visible.value = true;

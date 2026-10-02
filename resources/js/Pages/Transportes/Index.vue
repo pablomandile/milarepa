@@ -22,7 +22,7 @@
             required: true
         }
     });
-    const transportes = props.transportes;
+    const transportes = computed(() => props.transportes);
 
     const filters = ref({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS }
@@ -144,7 +144,7 @@
 
                     <!-- Tabla desktop -->
                     <div class="mt-4 hidden sm:block">
-                        <DataTable v-model:filters="filters" :value="transportes" stripedRows paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem"
+                        <DataTable v-model:filters="filters" :value="transportes" stripedRows paginator :rows="10" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem"
                         :globalFilterFields="['descripcion']">
                             <template #header>
                                 <div class="flex justify-end">

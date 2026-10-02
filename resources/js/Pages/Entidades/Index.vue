@@ -28,7 +28,7 @@
             required: true
         }
     });
-    const entidades = props.entidades;
+    const entidades = computed(() => props.entidades);
 
     const filters = ref({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -44,7 +44,7 @@
     });
 
     const verEntidad = (id) => {
-        const entidad = entidades.find((ent) => ent.id === id);
+        const entidad = entidades.value.find((ent) => ent.id === id);
         if (entidad) {
             entidadSeleccionada.value = entidad;
             visible.value = true;
@@ -192,7 +192,7 @@
                             stripedRows
                             removableSort
                             paginator
-                            :rows="5"
+                            :rows="10"
                             :rowsPerPageOptions="[5, 10, 20, 50]"
                             tableStyle="min-width: 50rem"
                         >

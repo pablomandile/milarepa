@@ -191,7 +191,7 @@
                             :sortOrder="1"
                             stripedRows
                             paginator
-                            :rows="5"
+                            :rows="10"
                             :rowsPerPageOptions="[5, 10, 20, 50]"
                             tableStyle="min-width: 50rem"
                         >

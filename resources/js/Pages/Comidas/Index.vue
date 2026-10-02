@@ -161,7 +161,7 @@
                             :globalFilterFields="['nombre', 'descripcion', 'boton_pago.nombre']"
                             stripedRows
                             paginator
-                            :rows="5"
+                            :rows="10"
                             :rowsPerPageOptions="[5, 10, 20, 50]"
                             tableStyle="min-width: 50rem"
                         >
