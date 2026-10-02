@@ -26,6 +26,7 @@
         telefono: props.maestro.telefono,
         email: props.maestro.email,
         sobre_maestro: props.maestro.sobre_maestro || '',
+        residente: !!props.maestro.residente,
         imagen_id: props.maestro.imagen_id || null,
         imagen: null
     });

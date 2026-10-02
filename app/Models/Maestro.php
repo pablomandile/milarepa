@@ -17,7 +17,17 @@ class Maestro extends Model
         'email',
         'sobre_maestro',
         'imagen_id',
+        'residente',
     ];
+
+    protected $casts = [
+        'residente' => 'boolean',
+    ];
+
+    public function scopeOrdenParaSelect($query)
+    {
+        return $query->orderByDesc('residente')->orderBy('nombre');
+    }
 
     public function imagen()
     {

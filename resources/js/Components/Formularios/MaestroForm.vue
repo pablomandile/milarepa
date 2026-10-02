@@ -113,6 +113,19 @@ import SingleImageUploader from '@/Components/SingleImageUploader.vue';
                 <InputError :message="$page.props.errors.telefono" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-6 mt-3">
+                <label for="residente" class="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                        id="residente"
+                        v-model="form.residente"
+                        type="checkbox"
+                        class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                    />
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Es maestr@ residente</span>
+                </label>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Aparece primero en los listados para elegir maestr@.</p>
+                <InputError :message="$page.props.errors.residente" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-6 mt-3">
                 <InputLabel for="sobre_maestro" value="Sobre el maestr@" :required="false"/>
                 <div class="mt-1 mb-2 w-full flex items-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 p-2">
                     <button type="button" class="h-9 w-12 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100" title="Título (#, ##, ###)" aria-label="Título" @click="applyTitle">T</button>

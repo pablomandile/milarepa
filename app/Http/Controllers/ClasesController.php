@@ -70,7 +70,7 @@ class ClasesController extends Controller
         return inertia('Clases/Create', [
             'ciclos' => Ciclo::orderBy('nombre')->get(),
             'entidades' => Entidad::orderBy('nombre')->get(),
-            'maestros' => Maestro::orderBy('nombre')->get(),
+            'maestros' => Maestro::ordenParaSelect()->get(),
             'coordinadores' => Coordinador::orderBy('nombre')->get(),
             'esquemaPrecios' => $this->esquemaPreciosParaFormulario(),
             'modalidades' => Modalidad::orderBy('nombre')->get(),
@@ -301,7 +301,7 @@ class ClasesController extends Controller
             'clase' => $clase,
             'ciclos' => Ciclo::orderBy('nombre')->get(),
             'entidades' => Entidad::orderBy('nombre')->get(),
-            'maestros' => Maestro::orderBy('nombre')->get(),
+            'maestros' => Maestro::ordenParaSelect()->get(),
             'coordinadores' => Coordinador::orderBy('nombre')->get(),
             'esquemaPrecios' => $this->esquemaPreciosParaFormulario(),
             'modalidades' => Modalidad::orderBy('nombre')->get(),

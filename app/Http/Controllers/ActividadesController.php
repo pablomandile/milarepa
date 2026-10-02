@@ -80,7 +80,7 @@ class ActividadesController extends Controller
             'membresias.membresia.entidad'  // <- Eager load de la Entidad
         ])->get();
         $tiposActividad = TipoActividad::orderBy('nombre')->get();
-        $maestros = Maestro::all();
+        $maestros = Maestro::ordenParaSelect()->get();
         $coordinadores = Coordinador::orderBy('nombre')->get();
         $descripciones = Descripcion::orderByDesc('created_at')->get();
         $entidades = Entidad::all();
@@ -291,7 +291,7 @@ class ActividadesController extends Controller
                 'membresias.membresia.entidad'
             ])->get();
             $tiposActividad = TipoActividad::orderBy('nombre')->get();
-            $maestros = Maestro::all();
+            $maestros = Maestro::ordenParaSelect()->get();
             $coordinadores = Coordinador::orderBy('nombre')->get();
             $descripciones = Descripcion::orderByDesc('created_at')->get();
             $entidades = Entidad::all();

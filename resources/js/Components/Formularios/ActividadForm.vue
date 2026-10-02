@@ -157,7 +157,7 @@ function ordenarPorNombre(items = []) {
 }
 
 const maestrosOrdenados = computed(() => {
-  return ordenarPorNombre(props.maestros || []);
+  return ordenarPorNombre(props.maestros || []).sort((a, b) => Number(!!b?.residente) - Number(!!a?.residente));
 });
 
 const tiposActividadOrdenados = computed(() => {

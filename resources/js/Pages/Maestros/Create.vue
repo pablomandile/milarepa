@@ -15,6 +15,7 @@
         telefono: '',
         email: '',
         sobre_maestro: '',
+        residente: false,
         imagen_id: null,
         imagen: null
     })
