@@ -201,11 +201,13 @@ const groupFechasByWeekday = (fechas) => {
                             class="activity-card mt-8 mb-10 first:mt-0 last:mb-0 rounded-lg border border-gray-200 dark:border-gray-700 p-3"
                         >
                             <div class="activity-image-col">
-                                <img
-                                    :src="clase.image_url || fallbackImage"
-                                    :alt="clase.nombre"
-                                    class="activity-card-image h-auto rounded object-contain border border-gray-200 dark:border-gray-700"
-                                />
+                                <div class="activity-image-frame">
+                                    <img
+                                        :src="clase.image_url || fallbackImage"
+                                        :alt="clase.nombre"
+                                        class="w-full h-full rounded-sm object-cover"
+                                    />
+                                </div>
                             </div>
                             <div class="activity-right-col">
                                 <h4 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2 mt-2 leading-tight whitespace-pre-line break-words">
@@ -310,8 +312,11 @@ const groupFechasByWeekday = (fechas) => {
     min-width: 0;
 }
 
-.activity-card-image {
+/* Misma proporción que la tarjeta de Grid 2: cuadrada, hasta 702px. */
+.activity-image-frame {
     width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 702px;
 }
 
 @media (min-width: 768px) {
@@ -321,28 +326,14 @@ const groupFechasByWeekday = (fechas) => {
     }
 
     .activity-image-col {
-        flex: 0 0 auto;
-        width: auto;
+        flex: 0 0 50%;
+        width: 50%;
         min-width: 0;
     }
 
     .activity-right-col {
         flex: 1 1 auto;
         min-width: 0;
-    }
-
-    .activity-card-image {
-        width: 100%;
-    }
-}
-
-@media (min-width: 768px) and (max-width: 1366px) {
-    .activity-image-col {
-        width: 50%;
-    }
-
-    .activity-card-image {
-        width: 100%;
     }
 }
 </style>
