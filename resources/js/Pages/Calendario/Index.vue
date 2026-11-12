@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import VolverAlMenu from '@/Components/VolverAlMenu.vue';
 
 const props = defineProps({
   calendar: {
@@ -239,6 +240,7 @@ function diaSemanaLargoFromDate(dateStr) {
 
     <div class="min-h-screen bg-slate-50 dark:bg-gray-900 py-6">
       <div class="mx-auto w-full max-w-7xl px-3 sm:px-6">
+        <VolverAlMenu />
         <div class="mb-4 rounded-2xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>

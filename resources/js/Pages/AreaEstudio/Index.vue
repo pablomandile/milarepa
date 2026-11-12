@@ -8,6 +8,7 @@ export default {
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import VolverAlMenu from '@/Components/VolverAlMenu.vue';
 
 const props = defineProps({
     programa: {
@@ -72,6 +73,7 @@ function urlArchivo(ruta) {
 
         <div class="py-12">
             <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
+                <div class="px-3 sm:px-0 -mb-2"><VolverAlMenu /></div>
 
                 <!-- Sin programa asignado -->
                 <div

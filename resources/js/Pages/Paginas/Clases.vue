@@ -2,6 +2,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import VolverAlMenu from '@/Components/VolverAlMenu.vue';
 
 const props = defineProps({
     headerImageUrl: {
@@ -144,6 +145,7 @@ const groupFechasByWeekday = (fechas) => {
 
         <div class="py-10">
             <div class="w-full sm:px-6 lg:px-8">
+                <div class="px-3 sm:px-0"><VolverAlMenu /></div>
                 <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
                     <div v-if="headerImageUrl" class="px-0 sm:px-6 pt-5 mb-5">
                         <img

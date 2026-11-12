@@ -2,6 +2,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import NudoImg from '/resources/images/nudo.webp';
+import VolverAlMenu from '@/Components/VolverAlMenu.vue';
 </script>
 
 <template>
@@ -16,6 +17,7 @@ import NudoImg from '/resources/images/nudo.webp';
 
         <div class="py-12">
             <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+                <div class="px-3 sm:px-0"><VolverAlMenu /></div>
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                     <div class="flex flex-col items-center text-center px-6 py-16 sm:py-24">
                         <img
