@@ -189,7 +189,7 @@ const horarioTexto = computed(() => formatHora(props.actividad?.fecha_inicio) ||
                     <div class="flip-image-inner">
                         <div class="flip-image-front">
                             <img
-                                class="w-full h-full object-cover rounded-sm"
+                                class="block w-full h-auto rounded-sm"
                                 :src="actividad.imagen?.ruta ? `/storage/${actividad.imagen.ruta}` : '/storage/img/actividades/imagen-no-disponible.jpg'"
                                 :alt="actividad.nombre"
                             />
@@ -221,13 +221,11 @@ const horarioTexto = computed(() => formatHora(props.actividad?.fecha_inicio) ||
 .flip-image-wrapper {
     perspective: 1200px;
     cursor: pointer;
-    aspect-ratio: 1 / 1;
     max-width: 702px;
 }
 
 .flip-image-inner {
     width: 100%;
-    height: 100%;
     position: relative;
     transition: transform 0.7s;
     transform-style: preserve-3d;
@@ -237,17 +235,21 @@ const horarioTexto = computed(() => formatHora(props.actividad?.fecha_inicio) ||
     transform: rotateY(180deg);
 }
 
+/* La imagen se muestra completa y es la que define el alto de la tarjeta;
+   el reverso (descripción) se superpone con ese mismo tamaño. */
 .flip-image-front,
 .flip-image-back {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
-    height: 100%;
     backface-visibility: hidden;
 }
 
+.flip-image-front {
+    position: relative;
+}
+
 .flip-image-back {
+    position: absolute;
+    inset: 0;
     transform: rotateY(180deg);
 }
 

@@ -659,7 +659,8 @@ watch(
               optionValue="id"
               filter
               filterPlaceholder="Buscar descripción"
-              placeholder="Seleccione Descripción"
+              placeholder="Seleccione Descripción (opcional)"
+              showClear
               class="grow border border-gray-300 dark:border-gray-600 my-dropdown"
             />
 
@@ -942,7 +943,8 @@ watch(
             :options="disponibilidadesOrdenadas"
             optionLabel="descripcion"
             optionValue="id"
-            placeholder="Seleccione la Disponibilidad"
+            placeholder="Seleccione la Disponibilidad (opcional)"
+            showClear
             class="w-full mt-1 border border-gray-300 dark:border-gray-600"
           />
           <InputError :message="$page.props.errors.disponibilidad_id" class="mt-2" />
@@ -1057,7 +1059,8 @@ watch(
               optionValue="id"
               filter
               filterPlaceholder="Buscar esquema de descuentos"
-              placeholder="Seleccione el esquema de desc."
+              placeholder="Seleccione el esquema de desc. (opcional)"
+              showClear
               class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <!-- Botón ver -->
@@ -1127,7 +1130,8 @@ watch(
               optionValue="id"
               filter
               filterPlaceholder="Buscar programa"
-              placeholder="Seleccione un programa"
+              placeholder="Seleccione un programa (opcional)"
+              showClear
               class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <!-- Botón ver -->
@@ -1238,7 +1242,8 @@ watch(
                 :options="grabacionesOrdenadas"
                 optionLabel="nombre"
                 optionValue="id"
-                placeholder="Seleccione Grabación"
+                placeholder="Seleccione Grabación (opcional)"
+                showClear
                 class="w-full mt-1 border border-gray-300 dark:border-gray-600"
               />
               <button
@@ -1287,7 +1292,8 @@ watch(
               :options="streamsOrdenados"
               optionLabel="nombre"
               optionValue="id"
-              placeholder="Seleccione Stream"
+              placeholder="Seleccione Stream (opcional)"
+              showClear
               class="w-full mt-1 border border-gray-300 dark:border-gray-600"
             />
             <!-- Botón ver -->
