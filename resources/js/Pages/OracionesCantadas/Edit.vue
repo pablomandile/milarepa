@@ -56,6 +56,7 @@ const form = useForm({
             fecha: excepcion.fecha ?? null,
             hora: excepcion.hora ? String(excepcion.hora).slice(0, 5) : '',
             mensaje: excepcion.mensaje ?? '',
+            sin_actividad: !!excepcion.sin_actividad,
         }))
         : [],
     modalidad_id: props.oracionCantada.modalidad_id ?? null,

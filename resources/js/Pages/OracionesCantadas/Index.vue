@@ -190,6 +190,7 @@ const excepcionesDe = (oracion) => {
             fechaLabel: formatFechaLabel(e.fecha),
             hora: e.hora ? String(e.hora).slice(0, 5) : null,
             mensaje: e.mensaje || null,
+            sinActividad: !!e.sin_actividad,
         }));
 };
 
@@ -541,6 +542,12 @@ const openDetailsDialog = (oracion) => {
                             class="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-900 p-3 text-sm"
                         >
                             <span class="font-semibold text-slate-800 dark:text-gray-100">{{ exc.fechaLabel }}</span>
+                            <span
+                                v-if="exc.sinActividad"
+                                class="inline-flex items-center gap-1 rounded-md bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-200"
+                            >
+                                <i class="pi pi-ban text-xs"></i>Sin actividad
+                            </span>
                             <span v-if="exc.hora" class="text-slate-600 dark:text-gray-300">{{ exc.hora }} hs.</span>
                             <span
                                 v-if="exc.mensaje"

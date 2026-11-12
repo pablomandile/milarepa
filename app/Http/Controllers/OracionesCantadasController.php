@@ -261,8 +261,10 @@ class OracionesCantadasController extends Controller
 
     /**
      * Normaliza las excepciones por fecha: conserva la fecha (Y-m-d), la hora en
-     * formato HH:mm (o null) y el mensaje sin espacios sobrantes (o null). Descarta
-     * las excepciones que no aportan nada (sin hora ni mensaje) y las duplicadas.
+     * formato HH:mm (o null), el mensaje sin espacios sobrantes (o null) y si ese día
+     * es "sin actividad" (en ese caso hora y mensaje no aplican). Descarta las
+     * excepciones que no aportan nada (sin hora, mensaje ni "sin actividad") y las
+     * duplicadas.
      */
     private function normalizeExcepcionesPorFecha(array $excepciones): ?array
     {
@@ -277,6 +279,10 @@ class OracionesCantadasController extends Controller
                     return null;
                 }
 
+                if (filter_var($excepcion['sin_actividad'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                    return ['fecha' => $fecha, 'hora' => null, 'mensaje' => null, 'sin_actividad' => true];
+                }
+
                 $hora = $excepcion['hora'] ?? null;
                 $hora = is_string($hora) && preg_match('/^\d{2}:\d{2}$/', $hora) === 1 ? $hora : null;
 
@@ -287,7 +293,7 @@ class OracionesCantadasController extends Controller
                     return null;
                 }
 
-                return ['fecha' => $fecha, 'hora' => $hora, 'mensaje' => $mensaje];
+                return ['fecha' => $fecha, 'hora' => $hora, 'mensaje' => $mensaje, 'sin_actividad' => false];
             })
             ->filter()
             ->unique('fecha')

@@ -98,6 +98,8 @@ class OracionCantadaRequest extends FormRequest
             'excepciones_por_fecha.*.fecha' => ['required', 'date_format:Y-m-d', 'distinct'],
             'excepciones_por_fecha.*.hora' => ['nullable', 'date_format:H:i'],
             'excepciones_por_fecha.*.mensaje' => ['nullable', 'string', 'max:255'],
+            // "Sin actividad": ese día no hay oración (no se genera la fecha).
+            'excepciones_por_fecha.*.sin_actividad' => ['nullable', 'boolean'],
             'modalidad_id' => ['nullable', 'exists:modalidades,id'],
             'stream_id' => ['nullable', 'exists:streams,id'],
             'imagen' => ['nullable', 'string', 'max:2048'],
@@ -137,8 +139,9 @@ class OracionCantadaRequest extends FormRequest
             foreach ((array) $this->input('excepciones_por_fecha', []) as $index => $excepcion) {
                 $tieneHora = is_string($excepcion['hora'] ?? null) && ($excepcion['hora'] ?? '') !== '';
                 $tieneMensaje = is_string($excepcion['mensaje'] ?? null) && trim($excepcion['mensaje'] ?? '') !== '';
+                $sinActividad = filter_var($excepcion['sin_actividad'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-                if (!$tieneHora && !$tieneMensaje) {
+                if (!$sinActividad && !$tieneHora && !$tieneMensaje) {
                     $validator->errors()->add("excepciones_por_fecha.$index.hora", 'Indica una hora o un mensaje para la fecha.');
                 }
             }

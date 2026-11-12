@@ -115,7 +115,10 @@ class OracionCantada extends Model
             }
 
             if ($dia >= 1 && $dia <= $monthStart->daysInMonth) {
-                $sesiones[] = $this->aplicarExcepcion($monthStart->copy()->day($dia)->toDateString(), $hora);
+                $sesion = $this->aplicarExcepcion($monthStart->copy()->day($dia)->toDateString(), $hora);
+                if ($sesion) {
+                    $sesiones[] = $sesion;
+                }
             }
 
             return $sesiones;
@@ -137,10 +140,13 @@ class OracionCantada extends Model
             }
 
             $horaDia = $this->horaParaDia($config, $weekday);
-            $sesiones[] = $this->aplicarExcepcion(
+            $sesion = $this->aplicarExcepcion(
                 $cursor->toDateString(),
                 $horaDia ? Carbon::parse($horaDia)->format('H:i') : null
             );
+            if ($sesion) {
+                $sesiones[] = $sesion;
+            }
         }
 
         return $sesiones;
@@ -149,11 +155,17 @@ class OracionCantada extends Model
     /**
      * Devuelve el item de sesión {fecha, hora, mensaje} para una fecha, aplicando la
      * excepción puntual si existe: la hora de la excepción reemplaza a la de la config
-     * y se adjunta el mensaje (o null si no hay excepción).
+     * y se adjunta el mensaje (o null si no hay excepción). Si la excepción marca el
+     * día como "sin actividad" devuelve null: esa fecha no se genera, así que no
+     * aparece en el calendario, la página pública ni las actividades online.
      */
-    private function aplicarExcepcion(string $fecha, ?string $hora): array
+    private function aplicarExcepcion(string $fecha, ?string $hora): ?array
     {
         $excepcion = $this->excepcionParaFecha($fecha);
+
+        if ($excepcion && !empty($excepcion['sin_actividad'])) {
+            return null;
+        }
 
         if ($excepcion && !empty($excepcion['hora'])) {
             $hora = Carbon::parse($excepcion['hora'])->format('H:i');

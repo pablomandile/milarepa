@@ -210,7 +210,7 @@ function opcionesFechaParaExcepcion(excepcion) {
 }
 
 function nuevaExcepcionPorFecha() {
-    return { anio: anioActual, mes: null, fecha: null, hora: '', mensaje: '' };
+    return { anio: anioActual, mes: null, fecha: null, hora: '', mensaje: '', sin_actividad: false };
 }
 
 function agregarExcepcionPorFecha() {
@@ -572,7 +572,7 @@ watch(
                     <div>
                         <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Excepciones por fecha</h3>
                         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                            Cambia la hora de una fecha puntual o marca un mensaje (ej. "Centro cerrado"). Se aplica solo a esa fecha; el resto del mes usa la configuracion general.
+                            Cambia la hora de una fecha puntual, marca un mensaje (ej. "Centro cerrado") o indica que ese dia no hay actividad. Se aplica solo a esa fecha; el resto del mes usa la configuracion general.
                         </p>
                     </div>
 
@@ -656,7 +656,8 @@ watch(
                                 v-model="excepcion.hora"
                                 type="time"
                                 step="60"
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                :disabled="excepcion.sin_actividad"
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
                             />
                             <InputError :message="$page.props.errors[`excepciones_por_fecha.${index}.hora`]" class="mt-2" />
                         </div>
@@ -670,14 +671,30 @@ watch(
                                 maxlength="255"
                                 list="excepcion-mensaje-sugerencias"
                                 placeholder="Ej. Centro cerrado"
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                :disabled="excepcion.sin_actividad"
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
                             />
                             <InputError :message="$page.props.errors[`excepciones_por_fecha.${index}.mensaje`]" class="mt-2" />
                         </div>
                     </div>
 
+                    <label :for="`excepcion_sin_actividad_${index}`" class="mt-3 inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <input
+                            :id="`excepcion_sin_actividad_${index}`"
+                            v-model="excepcion.sin_actividad"
+                            type="checkbox"
+                            class="rounded border-gray-300 text-red-600 shadow-sm focus:ring-red-500"
+                        />
+                        Sin actividad
+                    </label>
+
                     <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        Indica una hora, un mensaje, o ambos. Si dejas un mensaje, se muestra en lugar de la hora en la grilla publica.
+                        <template v-if="excepcion.sin_actividad">
+                            Ese dia no hay oracion: la fecha no se muestra en el calendario, la pagina publica ni las actividades online.
+                        </template>
+                        <template v-else>
+                            Indica una hora, un mensaje, o ambos. Si dejas un mensaje, se muestra en lugar de la hora en la grilla publica.
+                        </template>
                     </p>
                 </div>
 
