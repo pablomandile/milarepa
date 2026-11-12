@@ -2,12 +2,14 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\VerComoUsuarioController;
 use App\Models\ConfiguracionSistema;
 use App\Models\Entidad;
 use Closure;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Inertia\Support\Header;
+use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpFoundation\Response;
 
 class HandleInertiaRequests extends Middleware
@@ -95,9 +97,31 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $puedeSimular = $user && ! $user->hasRole('asistant');
+        $simulando = $puedeSimular
+            && $request->hasSession()
+            && $request->session()->get(VerComoUsuarioController::SESSION_KEY);
+
+        // "Ver como usuario": todo el frontend decide qué mostrar con estos dos
+        // props, así que mientras dura la simulación se comparten los del rol
+        // asistant en lugar de los reales. Es solo visual: los permisos del
+        // server siguen siendo los del usuario.
+        if ($simulando) {
+            $roles = collect(['asistant']);
+            $permissions = Role::where('name', 'asistant')->first()?->permissions->pluck('name') ?? collect();
+        } else {
+            $roles = $user ? $user->roles->pluck('name') : [];
+            $permissions = $user ? $user->getPermissionsViaRoles()->pluck('name') : [];
+        }
+
         return array_merge(parent::share($request), [
-            'user.roles' => $request->user() ? $request->user()->roles->pluck('name') : [],
-            'user.permissions' => $request->user() ? $request->user()->getPermissionsViaRoles()->pluck('name') : [],
+            'user.roles' => $roles,
+            'user.permissions' => $permissions,
+            'simulacion' => [
+                'activa' => (bool) $simulando,
+                'disponible' => (bool) $puedeSimular,
+            ],
             'auth.theme_preference' => fn () => $request->user()?->theme_preference,
             'ui' => fn () => $this->resolverUiConfig(),
             'flash' => [

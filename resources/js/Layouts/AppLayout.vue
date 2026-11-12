@@ -53,6 +53,22 @@ const logout = () => {
     router.post(route('logout'));
 };
 
+// "Ver como usuario": simulación visual de la interfaz del rol asistant. Mientras
+// está activa el server comparte los roles/permisos del asistant, así que
+// isAsistant y el resto de las pantallas ya se comportan como para un usuario.
+const simulacionActiva = computed(() => Boolean(page.props.simulacion?.activa));
+const simulacionDisponible = computed(() => Boolean(page.props.simulacion?.disponible));
+
+const verComoUsuario = () => {
+    showingNavigationDropdown.value = false;
+    router.post(route('ver-como-usuario.iniciar'));
+};
+
+const verComoAdmin = () => {
+    showingNavigationDropdown.value = false;
+    router.post(route('ver-como-usuario.salir'));
+};
+
 const isMobileSectionOpen = (key) => Boolean(mobileMenuSections.value[key]);
 
 const toggleMobileSection = (key) => {
@@ -626,6 +642,16 @@ const toggleMobileSection = (key) => {
                                         API Tokens
                                     </DropdownLink>
 
+                                    <template v-if="simulacionDisponible">
+                                        <div class="mt-2 border-t border-gray-200 dark:border-gray-700" />
+                                        <form @submit.prevent="simulacionActiva ? verComoAdmin() : verComoUsuario()">
+                                            <DropdownLink as="button">
+                                                <i :class="simulacionActiva ? 'fas fa-user-shield' : 'fas fa-eye'" class="mr-1 text-indigo-500"></i>
+                                                {{ simulacionActiva ? 'Ver como Admin' : 'Ver como usuario' }}
+                                            </DropdownLink>
+                                        </form>
+                                    </template>
+
                                     <div class="mt-2 border-t border-gray-200 dark:border-gray-700" />
 
                                     <ThemeToggle variant="dropdown" />
@@ -1114,6 +1140,13 @@ const toggleMobileSection = (key) => {
                             API Tokens
                         </ResponsiveNavLink>
 
+                        <form v-if="simulacionDisponible" @submit.prevent="simulacionActiva ? verComoAdmin() : verComoUsuario()">
+                            <ResponsiveNavLink as="button">
+                                <i :class="simulacionActiva ? 'fas fa-user-shield' : 'fas fa-eye'" class="mr-1 text-indigo-500"></i>
+                                {{ simulacionActiva ? 'Ver como Admin' : 'Ver como usuario' }}
+                            </ResponsiveNavLink>
+                        </form>
+
                         <ThemeToggle variant="responsive" />
 
                         <!-- Authentication -->
@@ -1179,6 +1212,25 @@ const toggleMobileSection = (key) => {
             <slot />
         </main>
         <Footer v-if="$page.props.auth?.user" />
+
+        <!-- "Ver como usuario" activo: pastilla fija para volver desde cualquier pantalla -->
+        <div
+            v-if="simulacionActiva"
+            class="fixed right-4 z-40 flex items-center gap-2 rounded-full border border-indigo-200 bg-white/95 py-1.5 pl-3 pr-1.5 text-xs shadow-lg backdrop-blur dark:border-indigo-800 dark:bg-gray-800/95 sm:text-sm"
+            style="bottom: calc(1rem + env(safe-area-inset-bottom, 0px));"
+            role="status"
+        >
+            <i class="fas fa-eye text-indigo-500" aria-hidden="true"></i>
+            <span class="text-gray-600 dark:text-gray-300">Viendo como usuario</span>
+            <button
+                type="button"
+                class="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1 font-semibold text-white hover:bg-indigo-700"
+                @click="verComoAdmin"
+            >
+                <i class="fas fa-user-shield" aria-hidden="true"></i>
+                Ver como Admin
+            </button>
+        </div>
     </div>
 </template>
 

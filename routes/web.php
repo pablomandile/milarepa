@@ -92,6 +92,7 @@ use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\ThemePreferenceController;
 use App\Http\Controllers\FrasesDeDharmaController;
 use App\Http\Controllers\AreaEstudioController;
+use App\Http\Controllers\VerComoUsuarioController;
 
 
 Route::get('/', [DashboardController::class, 'index']);
@@ -223,6 +224,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::put('/user/theme-preference', [ThemePreferenceController::class, 'update'])
         ->name('user.theme-preference.update');
 
+    // "Ver como usuario": simulación visual de la interfaz del rol asistant.
+    Route::post('/ver-como-usuario', [VerComoUsuarioController::class, 'iniciar'])
+        ->name('ver-como-usuario.iniciar');
+    Route::post('/ver-como-admin', [VerComoUsuarioController::class, 'salir'])
+        ->name('ver-como-usuario.salir');
+
     Route::get('/frases-de-dharma', [FrasesDeDharmaController::class, 'index'])
         ->name('frases-de-dharma.index');
     Route::post('/frases-de-dharma/import', [FrasesDeDharmaController::class, 'import'])
@@ -241,7 +248,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
             return redirect()->route('profile.complete');
         }
 
-        if ($user->hasRole('asistant')) {
+        if ($user->hasRole('asistant') || session(VerComoUsuarioController::SESSION_KEY)) {
             return redirect()->route('asistant.panel');
         }
 
