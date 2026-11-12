@@ -546,6 +546,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
     Route::resource('/programa-estudios', ProgramaEstudiosController::class, [
         'parameters' => ['programa-estudios' => 'programaEstudio'],
     ]);
+    // Ruta bulk ANTES del resource, igual que en actividades y clases.
+    Route::post('/oracionescantadas/bulk-destroy', [OracionesCantadasController::class, 'bulkDestroy'])
+        ->name('oracionescantadas.bulkDestroy');
     Route::resource('/oracionescantadas', OracionesCantadasController::class, [
         'parameters' => ['oracionescantadas' => 'oracionCantada'],
     ]);

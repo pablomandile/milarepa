@@ -196,6 +196,23 @@ class OracionesCantadasController extends Controller
         }
     }
 
+    public function bulkDestroy(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:oraciones_cantadas,id'],
+        ]);
+
+        try {
+            OracionCantada::whereIn('id', $data['ids'])->get()->each->delete();
+        } catch (\Throwable $e) {
+            return redirect()->back()
+                ->with('error', 'No se pudieron eliminar algunas oraciones cantadas.');
+        }
+
+        return redirect()->back()->with('success', 'Oraciones cantadas eliminadas correctamente.');
+    }
+
     private function normalizePayload(array $data): array
     {
         $periodicidad = $data['periodicidad'] ?? null;

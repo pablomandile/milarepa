@@ -49,6 +49,40 @@ const deleteOracionCantada = (id) => {
     });
 };
 
+// --- Selección múltiple y borrado en lote (mismo patrón que Actividades) ---
+const modoSeleccion = ref(false);
+const seleccionadas = ref([]);
+
+const toggleModoSeleccion = () => {
+    modoSeleccion.value = !modoSeleccion.value;
+    if (!modoSeleccion.value) {
+        seleccionadas.value = [];
+    }
+};
+
+const bulkBorrar = () => {
+    if (!seleccionadas.value.length) return;
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: `Se eliminarán ${seleccionadas.value.length} oración(es) cantada(s). Esta acción no se puede deshacer.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+        router.post(route('oracionescantadas.bulkDestroy'), { ids: seleccionadas.value.map((o) => o.id) }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                seleccionadas.value = [];
+                Swal.fire('¡Eliminado!', 'Las oraciones cantadas fueron eliminadas.', 'success');
+            },
+            onError: () => Swal.fire('Error', 'Hubo un problema al eliminar las oraciones cantadas.', 'error'),
+        });
+    });
+};
+
 const dayLabels = {
     lunes: 'Lun',
     martes: 'Mar',
@@ -303,8 +337,11 @@ const openDetailsDialog = (oracion) => {
                     <!-- Tabla desktop -->
                     <div class="mt-4 hidden sm:block">
                         <DataTable
+                            :key="modoSeleccion ? 'con-seleccion' : 'sin-seleccion'"
                             :value="oracionesCantadas"
                             v-model:filters="filters"
+                            v-model:selection="seleccionadas"
+                            dataKey="id"
                             :globalFilterFields="['nombre', 'periodicidad']"
                             stripedRows
                             paginator
@@ -313,7 +350,32 @@ const openDetailsDialog = (oracion) => {
                             tableStyle="min-width: 68rem"
                         >
                             <template #header>
-                                <div class="flex justify-end">
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <!-- Izquierda: modo selección + borrado en lote -->
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <button
+                                            type="button"
+                                            @click="toggleModoSeleccion"
+                                            class="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium"
+                                            :class="modoSeleccion ? 'border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100' : 'border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'"
+                                        >
+                                            <i :class="modoSeleccion ? 'fas fa-xmark' : 'fas fa-check-double'"></i>
+                                            {{ modoSeleccion ? 'Cancelar' : 'Seleccionar' }}
+                                        </button>
+
+                                        <template v-if="modoSeleccion">
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ seleccionadas.length }} seleccionada(s)</span>
+                                            <button
+                                                type="button"
+                                                :disabled="!seleccionadas.length"
+                                                @click="bulkBorrar"
+                                                class="inline-flex items-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <i class="fas fa-trash"></i> Borrar
+                                            </button>
+                                        </template>
+                                    </div>
+
                                     <IconField iconPosition="right">
                                         <InputIcon>
                                             <i class="pi pi-search" />
@@ -322,6 +384,7 @@ const openDetailsDialog = (oracion) => {
                                     </IconField>
                                 </div>
                             </template>
+                            <Column v-if="modoSeleccion" selectionMode="multiple" headerStyle="width: 3rem" />
                             <Column field="imagen" header="Imagen">
                                 <template #body="slotProps">
                                     <div class="flex items-center justify-center">
@@ -369,7 +432,7 @@ const openDetailsDialog = (oracion) => {
                                 </template>
                             </Column>
 
-                            <Column header="Acciones" class="flex justify-center space-x-2">
+                            <Column v-if="!modoSeleccion" header="Acciones" class="flex justify-center space-x-2">
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
                                         <button
