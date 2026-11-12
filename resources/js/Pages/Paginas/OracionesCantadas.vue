@@ -198,9 +198,10 @@ const groupFechasByWeekday = (fechas) => {
         align-items: flex-start;
     }
 
+    /* Tablet: la imagen ocupa la mitad de la tarjeta. */
     .activity-image-col {
         flex: 0 0 auto;
-        width: auto;
+        width: 50%;
         min-width: 0;
     }
 
@@ -214,13 +215,12 @@ const groupFechasByWeekday = (fechas) => {
     }
 }
 
-@media (min-width: 768px) and (max-width: 1366px) {
+/* Pantallas grandes: todas las imágenes a 720px de ancho (las de referencia son
+   720x720), sea cual sea el tamaño del archivo subido. Antes salían a su tamaño
+   natural: 600px unas, 1080px otras. */
+@media (min-width: 1280px) {
     .activity-image-col {
-        width: 50%;
-    }
-
-    .activity-card-image {
-        width: 100%;
+        width: 720px;
     }
 }
 </style>
