@@ -207,7 +207,7 @@ const groupFechasByWeekday = (fechas) => {
                                     <img
                                         :src="clase.image_url || fallbackImage"
                                         :alt="clase.nombre"
-                                        class="w-full h-full rounded-sm object-cover"
+                                        class="block w-full h-auto rounded-sm"
                                     />
                                 </div>
                             </div>
@@ -314,10 +314,10 @@ const groupFechasByWeekday = (fechas) => {
     min-width: 0;
 }
 
-/* Misma proporción que la tarjeta de Grid 2: cuadrada, hasta 702px. */
+/* Igual que la tarjeta de Grid 2: la imagen se ve completa con su alto
+   natural (sin recortar a cuadrado), hasta 702px de ancho. */
 .activity-image-frame {
     width: 100%;
-    aspect-ratio: 1 / 1;
     max-width: 702px;
 }
 
