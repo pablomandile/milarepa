@@ -240,6 +240,17 @@ const groupFechasByWeekday = (fechas) => {
                                         <i class="pi pi-clock mt-1.5 text-slate-400"></i>
                                         <span><span class="font-semibold">Horario:</span> {{ clase.horario_label || '-' }}</span>
                                     </div>
+                                    <!-- Lugar propio de la clase o, si no tiene, la dirección de la entidad -->
+                                    <div class="flex items-start gap-3">
+                                        <i class="pi pi-map-marker mt-1.5 text-slate-400"></i>
+                                        <span class="min-w-0 break-words">
+                                            <span class="font-semibold">Lugar:</span>
+                                            <template v-if="clase.lugar">
+                                                {{ [clase.lugar.nombre, clase.lugar.direccion].filter(Boolean).join(' — ') }}
+                                            </template>
+                                            <template v-else>-</template>
+                                        </span>
+                                    </div>
                                     <div class="flex items-start gap-3">
                                         <i class="pi pi-credit-card mt-1.5 text-slate-400"></i>
                                         <span v-if="clase.precio && clase.precio.es_gratis" class="font-bold text-emerald-600 dark:text-emerald-400">GRATIS</span>
