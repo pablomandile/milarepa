@@ -181,7 +181,7 @@ function abrirImagenMaestro(url) {
                   </div>
                     <div class="mt-1 text-sm text-slate-900">{{ lugarNombre || '-' }}</div>
                       <div class="mt-1 inline-flex items-center gap-2 text-sm text-slate-700">
-                        <span>{{ lugarDireccion || '-' }}</span>
+                        <span> {{ lugarDireccion || '-' }}</span>
                         <button
                           v-if="lugarDireccion"
                           type="button"
