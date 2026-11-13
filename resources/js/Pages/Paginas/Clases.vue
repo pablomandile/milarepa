@@ -3,6 +3,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import VolverAlMenu from '@/Components/VolverAlMenu.vue';
+import FlipImagenDescripcion from '@/Components/FlipImagenDescripcion.vue';
 
 const props = defineProps({
     headerImageUrl: {
@@ -32,6 +33,15 @@ const props = defineProps({
 });
 
 const fallbackImage = '/storage/img/actividades/imagen-no-disponible.jpg';
+
+// "Nombre — Dirección" del lugar (o solo la dirección de la entidad).
+const lugarLabel = (lugar) => (lugar ? [lugar.nombre, lugar.direccion].filter(Boolean).join(' — ') : '') || '-';
+
+// Tarjetas dadas vuelta (mostrando la descripción), por id de clase.
+const flippedCards = ref({});
+const toggleFlip = (id) => {
+    flippedCards.value[id] = !flippedCards.value[id];
+};
 const weekdayOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 const diaCanonOrder = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
@@ -203,13 +213,15 @@ const groupFechasByWeekday = (fechas) => {
                             class="activity-card mt-8 mb-10 first:mt-0 last:mb-0 rounded-lg border border-gray-200 dark:border-gray-700 p-3"
                         >
                             <div class="activity-image-col">
-                                <div class="activity-image-frame">
-                                    <img
-                                        :src="clase.image_url || fallbackImage"
-                                        :alt="clase.nombre"
-                                        class="block w-full h-auto rounded-sm"
-                                    />
-                                </div>
+                                <!-- Al tocar la imagen (o "Descripción") se da vuelta y muestra la descripción -->
+                                <FlipImagenDescripcion
+                                    class="activity-image-frame"
+                                    :src="clase.image_url || fallbackImage"
+                                    :alt="clase.nombre"
+                                    :descripcion="clase.descripcion || ''"
+                                    :flipped="!!flippedCards[clase.id]"
+                                    @toggle="toggleFlip(clase.id)"
+                                />
                             </div>
                             <div class="activity-right-col">
                                 <h4 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2 mt-2 leading-tight whitespace-pre-line break-words">
@@ -243,13 +255,7 @@ const groupFechasByWeekday = (fechas) => {
                                     <!-- Lugar propio de la clase o, si no tiene, la dirección de la entidad -->
                                     <div class="flex items-start gap-3">
                                         <i class="pi pi-map-marker mt-1.5 text-slate-400"></i>
-                                        <span class="min-w-0 break-words">
-                                            <span class="font-semibold">Lugar:</span>
-                                            <template v-if="clase.lugar">
-                                                {{ [clase.lugar.nombre, clase.lugar.direccion].filter(Boolean).join(' — ') }}
-                                            </template>
-                                            <template v-else>-</template>
-                                        </span>
+                                        <span class="min-w-0 break-words"><span class="font-semibold">Lugar:</span> {{ lugarLabel(clase.lugar) }}</span>
                                     </div>
                                     <div class="flex items-start gap-3">
                                         <i class="pi pi-credit-card mt-1.5 text-slate-400"></i>

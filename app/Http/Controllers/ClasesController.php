@@ -163,7 +163,7 @@ class ClasesController extends Controller
             ->when($entidadPrincipalId, fn ($q) => $q->orderByRaw('CASE WHEN entidad_id = ? THEN 0 ELSE 1 END', [$entidadPrincipalId]))
             ->orderByRaw('CASE WHEN LOWER(TRIM(nombre)) = ? THEN 0 ELSE 1 END', [self::CLASE_DESTACADA])
             ->orderBy('nombre')
-            ->get(['id', 'nombre', 'entidad_id', 'lugar_id', 'esquema_precio_id', 'mes_referencia', 'dias_semana', 'horario_desde', 'horario_hasta', 'titulos_por_fecha', 'imagen_id']);
+            ->get(['id', 'nombre', 'descripcion', 'entidad_id', 'lugar_id', 'esquema_precio_id', 'mes_referencia', 'dias_semana', 'horario_desde', 'horario_hasta', 'titulos_por_fecha', 'imagen_id']);
 
         $clasesData = $clases->map(fn (Clase $clase) => [
             'id' => $clase->id,
@@ -171,6 +171,8 @@ class ClasesController extends Controller
             'entidad_id' => $clase->entidad_id,
             'entidad' => $clase->entidad?->nombre,
             'lugar' => $this->lugarPublicoClase($clase),
+            // Se muestra en el reverso de la imagen (efecto flip).
+            'descripcion' => $clase->descripcion,
             'mes_referencia' => $clase->mes_referencia,
             'image_url' => $clase->imagen ? '/storage/' . $clase->imagen->ruta : null,
             'dias_semana' => collect($clase->dias_semana ?? [])->map(fn ($d) => (string) $d)->values(),

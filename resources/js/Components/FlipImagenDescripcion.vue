@@ -1,10 +1,12 @@
 <script setup>
 /**
- * Imagen que se da vuelta al tocarla y muestra la descripción en el reverso.
+ * Imagen que se da vuelta al tocarla (o con el botón "Descripción") y muestra
+ * la descripción en el reverso. Si no hay descripción, queda la imagen sola,
+ * sin botón ni flip.
  * La imagen se ve completa (con su alto natural) y define el tamaño de la
  * tarjeta; el reverso se superpone con ese mismo tamaño y scrollea si el texto
- * no entra. Lo usan la Grilla de cursos y retiros (Grid 2) y la página pública
- * de Oraciones cantadas.
+ * no entra. Lo usan la Grilla de cursos y retiros (Grid 2) y las páginas
+ * públicas de Clases y de Oraciones cantadas.
  */
 import { computed } from 'vue';
 import { renderMarkdown } from '@/composables/useActividadHelpers';
@@ -18,7 +20,13 @@ const props = defineProps({
 
 const emit = defineEmits(['toggle']);
 
-const descripcionTexto = computed(() => props.descripcion?.trim() || 'No hay descripción disponible');
+const descripcionTexto = computed(() => props.descripcion?.trim() || '');
+const tieneDescripcion = computed(() => descripcionTexto.value !== '');
+const dadaVuelta = computed(() => tieneDescripcion.value && props.flipped);
+
+const toggle = () => {
+    if (tieneDescripcion.value) emit('toggle');
+};
 
 // La letra se agranda según cuánto texto haya, para que llene la tarjeta sin
 // necesitar scroll (en celular queda siempre en text-base).
@@ -31,22 +39,29 @@ const descripcionTamanio = computed(() => {
 </script>
 
 <template>
+    <!-- Toda la tarjeta se puede tocar; los botones son la vía visible y la de teclado. -->
     <div
         class="flip-image-wrapper w-full"
-        :class="{ 'is-flipped': flipped }"
-        role="button"
-        tabindex="0"
-        :aria-pressed="flipped"
-        :aria-label="flipped ? 'Volver a la imagen' : 'Ver la descripción'"
-        @click="emit('toggle')"
-        @keydown.enter.prevent="emit('toggle')"
-        @keydown.space.prevent="emit('toggle')"
+        :class="{ 'is-flipped': dadaVuelta, 'tiene-descripcion': tieneDescripcion }"
+        @click="toggle"
     >
         <div class="flip-image-inner">
             <div class="flip-image-front">
                 <img class="block w-full h-auto rounded-sm" :src="src" :alt="alt" />
+                <button
+                    v-if="tieneDescripcion"
+                    type="button"
+                    class="absolute bottom-3 right-3 inline-flex items-center gap-2 rounded-full bg-sky-600 hover:bg-sky-700 px-4 py-2 text-xs md:text-sm font-bold uppercase tracking-wide text-white shadow-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-sky-600"
+                    :tabindex="dadaVuelta ? -1 : 0"
+                    @click.stop="toggle"
+                >
+                    <i class="pi pi-refresh text-xs md:text-sm" aria-hidden="true"></i>
+                    Descripción
+                </button>
             </div>
-            <div class="flip-image-back flex flex-col overflow-y-auto rounded-sm bg-gradient-to-br from-indigo-50 via-white to-amber-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950 text-gray-700 dark:text-gray-300 p-6 md:p-10">
+            <div
+                v-if="tieneDescripcion"
+                class="flip-image-back flex flex-col overflow-y-auto rounded-sm bg-gradient-to-br from-indigo-50 via-white to-amber-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950 text-gray-700 dark:text-gray-300 p-6 md:p-10">
                 <!-- my-auto centra el texto en el alto de la tarjeta sin cortar el principio si es largo -->
                 <div class="my-auto">
                     <h3 class="text-2xl md:text-3xl font-semibold text-indigo-700 dark:text-indigo-300">Descripción</h3>
@@ -57,10 +72,15 @@ const descripcionTamanio = computed(() => {
                         v-html="renderMarkdown(descripcionTexto)"
                     ></div>
                 </div>
-                <p class="mt-6 flex items-center gap-2 text-xs md:text-sm text-gray-400 dark:text-gray-500">
+                <button
+                    type="button"
+                    class="mt-6 self-start flex items-center gap-2 text-xs md:text-sm text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                    :tabindex="dadaVuelta ? 0 : -1"
+                    @click.stop="toggle"
+                >
                     <i class="pi pi-replay" aria-hidden="true"></i>
                     Tocá para volver a la imagen
-                </p>
+                </button>
             </div>
         </div>
     </div>
@@ -69,6 +89,9 @@ const descripcionTamanio = computed(() => {
 <style scoped>
 .flip-image-wrapper {
     perspective: 1200px;
+}
+
+.flip-image-wrapper.tiene-descripcion {
     cursor: pointer;
 }
 
