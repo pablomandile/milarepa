@@ -91,6 +91,8 @@ class OracionesCantadasController extends Controller
                 'id' => $oracion->id,
                 'nombre' => $oracion->nombre,
                 'image_url' => $oracion->imagen ?: null,
+                // Se muestra en el reverso de la imagen (efecto flip).
+                'descripcion' => $oracion->descripcion,
                 'periodicidad' => $config['periodicidad'],
                 'dia_label' => $this->oracionDiaLabel($config),
                 'hora_label' => $config['hora'] ? Carbon::parse($config['hora'])->format('H:i') . ' hs' : null,

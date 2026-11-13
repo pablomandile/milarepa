@@ -2,6 +2,8 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
 import VolverAlMenu from '@/Components/VolverAlMenu.vue';
+import FlipImagenDescripcion from '@/Components/FlipImagenDescripcion.vue';
+import { ref } from 'vue';
 
 defineProps({
     monthLabel: {
@@ -15,6 +17,12 @@ defineProps({
 });
 
 const fallbackImage = '/storage/img/actividades/imagen-no-disponible.jpg';
+
+// Tarjetas dadas vuelta (mostrando la descripción), por id de oración.
+const flippedCards = ref({});
+const toggleFlip = (id) => {
+    flippedCards.value[id] = !flippedCards.value[id];
+};
 const weekdayOrder = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 const parseLocalDate = (value) => {
@@ -93,10 +101,13 @@ const groupFechasByWeekday = (fechas) => {
                             class="activity-card mt-8 mb-10 first:mt-0 last:mb-0 rounded-lg border border-gray-200 dark:border-gray-700 p-3"
                         >
                             <div class="activity-image-col">
-                                <img
+                                <!-- Al tocar la imagen se da vuelta y muestra la descripción -->
+                                <FlipImagenDescripcion
                                     :src="oracion.image_url || fallbackImage"
                                     :alt="oracion.nombre"
-                                    class="activity-card-image h-auto rounded object-contain border border-gray-200 dark:border-gray-700"
+                                    :descripcion="oracion.descripcion || ''"
+                                    :flipped="!!flippedCards[oracion.id]"
+                                    @toggle="toggleFlip(oracion.id)"
                                 />
                             </div>
                             <div class="activity-right-col">
@@ -190,10 +201,6 @@ const groupFechasByWeekday = (fechas) => {
     min-width: 0;
 }
 
-.activity-card-image {
-    width: 100%;
-}
-
 @media (min-width: 768px) {
     .activity-card {
         display: flex;
@@ -210,10 +217,6 @@ const groupFechasByWeekday = (fechas) => {
     .activity-right-col {
         flex: 1 1 auto;
         min-width: 0;
-    }
-
-    .activity-card-image {
-        width: 100%;
     }
 }
 
