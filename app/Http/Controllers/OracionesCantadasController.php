@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\OracionCantadaRequest;
+use App\Models\Entidad;
+use App\Models\Lugar;
 use App\Models\Modalidad;
 use App\Models\OracionCantada;
 use App\Models\Stream;
@@ -28,6 +30,8 @@ class OracionesCantadasController extends Controller
     public function create()
     {
         return Inertia::render('OracionesCantadas/Create', [
+            'entidades' => Entidad::orderBy('nombre')->get(),
+            'lugares' => Lugar::orderBy('nombre')->get(),
             'streams' => Stream::orderBy('nombre')->get(),
             'modalidades' => Modalidad::orderBy('nombre')->get(),
         ]);
@@ -76,9 +80,9 @@ class OracionesCantadasController extends Controller
         $monthLabel = ucfirst($monthStart->locale('es')->translatedFormat('F'));
 
         $oraciones = OracionCantada::query()
-            ->with(['modalidad:id,nombre'])
+            ->with(['modalidad:id,nombre', 'entidad:id,nombre,direccion', 'lugar:id,nombre,direccion'])
             ->orderBy('nombre')
-            ->get(['id', 'nombre', 'imagen', 'descripcion', 'periodicidad', 'dia', 'dias_semana', 'hora', 'horarios_por_dia', 'configuracion_por_mes', 'excepciones_por_fecha', 'stream_id', 'modalidad_id'])
+            ->get(['id', 'nombre', 'imagen', 'descripcion', 'entidad_id', 'lugar_id', 'periodicidad', 'dia', 'dias_semana', 'hora', 'horarios_por_dia', 'configuracion_por_mes', 'excepciones_por_fecha', 'stream_id', 'modalidad_id'])
             // "Todas menos las que son online": se descartan las transmitidas por stream
             // o cuya modalidad es exclusivamente "Online".
             ->reject(fn (OracionCantada $oracion) => $this->esOracionOnline($oracion))
@@ -93,6 +97,9 @@ class OracionesCantadasController extends Controller
                 'image_url' => $oracion->imagen ?: null,
                 // Se muestra en el reverso de la imagen (efecto flip).
                 'descripcion' => $oracion->descripcion,
+                'entidad' => $oracion->entidad?->nombre,
+                // Lugar propio de la oración o, si no tiene, la dirección de la entidad.
+                'lugar' => Lugar::datosPublicos($oracion->lugar, $oracion->entidad),
                 'periodicidad' => $config['periodicidad'],
                 'dia_label' => $this->oracionDiaLabel($config),
                 'hora_label' => $config['hora'] ? Carbon::parse($config['hora'])->format('H:i') . ' hs' : null,
@@ -173,6 +180,8 @@ class OracionesCantadasController extends Controller
 
         return Inertia::render('OracionesCantadas/Edit', [
             'oracionCantada' => $oracionCantada,
+            'entidades' => Entidad::orderBy('nombre')->get(),
+            'lugares' => Lugar::orderBy('nombre')->get(),
             'streams' => Stream::orderBy('nombre')->get(),
             'modalidades' => Modalidad::orderBy('nombre')->get(),
         ]);

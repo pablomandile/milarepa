@@ -9,7 +9,15 @@ import { Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import OracionCantadaForm from '@/Components/Formularios/OracionCantadaForm.vue';
 
-defineProps({
+const props = defineProps({
+    entidades: {
+        type: Array,
+        default: () => [],
+    },
+    lugares: {
+        type: Array,
+        default: () => [],
+    },
     streams: {
         type: Array,
         default: () => [],
@@ -30,6 +38,9 @@ const form = useForm({
     periodicidad: 'Mensual',
     configuracion_por_mes: [],
     excepciones_por_fecha: [],
+    // Por defecto, la entidad principal (como casi todas las oraciones).
+    entidad_id: props.entidades.find((e) => e.entidad_principal)?.id ?? null,
+    lugar_id: null,
     modalidad_id: null,
     stream_id: null,
     imagen: '',
@@ -63,6 +74,8 @@ const form = useForm({
                             :form="form"
                             :streams="streams"
                             :modalidades="modalidades"
+                            :entidades="entidades"
+                            :lugares="lugares"
                             @submit="form.post(route('oracionescantadas.store'))"
                         />
                     </div>

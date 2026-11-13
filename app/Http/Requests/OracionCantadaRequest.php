@@ -78,6 +78,9 @@ class OracionCantadaRequest extends FormRequest
                 'max:255',
             ],
             'descripcion' => ['required', 'string', 'max:5000'],
+            'entidad_id' => ['required', 'exists:entidades,id'],
+            // Opcional: sin lugar se usa la dirección de la entidad.
+            'lugar_id' => ['nullable', 'exists:lugares,id'],
             'dia' => ['nullable', 'integer', 'min:1', 'max:31'],
             'dias_semana' => ['nullable', 'array'],
             'dias_semana.*' => ['string', Rule::in(['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'])],
@@ -153,6 +156,7 @@ class OracionCantadaRequest extends FormRequest
         return [
             'nombre.required' => __('El nombre no puede quedar vacio'),
             'descripcion.required' => __('La descripcion no puede quedar vacia'),
+            'entidad_id.required' => __('Debe seleccionar una entidad'),
             'dia.required' => __('El dia es obligatorio'),
             'dia.min' => __('El dia debe ser mayor o igual a 1'),
             'dia.max' => __('El dia debe ser menor o igual a 31'),

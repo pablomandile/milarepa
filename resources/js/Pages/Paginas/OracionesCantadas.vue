@@ -18,6 +18,9 @@ defineProps({
 
 const fallbackImage = '/storage/img/actividades/imagen-no-disponible.jpg';
 
+// "Nombre — Dirección" del lugar (o solo la dirección de la entidad).
+const lugarLabel = (lugar) => (lugar ? [lugar.nombre, lugar.direccion].filter(Boolean).join(' — ') : '') || '-';
+
 // Tarjetas dadas vuelta (mostrando la descripción), por id de oración.
 const flippedCards = ref({});
 const toggleFlip = (id) => {
@@ -124,6 +127,15 @@ const groupFechasByWeekday = (fechas) => {
                                     <div class="flex items-start gap-3">
                                         <i class="pi pi-clock mt-1.5 text-slate-400"></i>
                                         <span><span class="font-semibold">Horario:</span> {{ oracion.hora_label || '-' }}</span>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <i class="pi pi-building mt-1.5 text-slate-400"></i>
+                                        <span class="min-w-0 break-words"><span class="font-semibold">Entidad:</span> {{ oracion.entidad || '-' }}</span>
+                                    </div>
+                                    <!-- Lugar propio de la oración o, si no tiene, la dirección de la entidad -->
+                                    <div class="flex items-start gap-3">
+                                        <i class="pi pi-map-marker mt-1.5 text-slate-400"></i>
+                                        <span class="min-w-0 break-words"><span class="font-semibold">Lugar:</span> {{ lugarLabel(oracion.lugar) }}</span>
                                     </div>
                                 </div>
 

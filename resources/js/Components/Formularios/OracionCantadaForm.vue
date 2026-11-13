@@ -38,6 +38,14 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
+    entidades: {
+        type: Array,
+        default: () => []
+    },
+    lugares: {
+        type: Array,
+        default: () => []
+    },
 })
 
 defineEmits(['submit'])
@@ -74,6 +82,21 @@ const diasSemanaOptions = [
 
 const allDaysValues = diasSemanaOptions.map(item => item.value);
 const isDiaria = computed(() => props.form.periodicidad === 'Diaria');
+
+// Entidad principal primero y el resto alfabético (igual que en Clases).
+const entidadesOrdenadas = computed(() =>
+    [...(props.entidades || [])]
+        .sort((a, b) => String(a?.nombre || '').localeCompare(String(b?.nombre || ''), 'es', { sensitivity: 'base' }))
+        .sort((a, b) => (b?.entidad_principal ? 1 : 0) - (a?.entidad_principal ? 1 : 0))
+);
+const lugaresOrdenados = computed(() =>
+    [...(props.lugares || [])].sort((a, b) =>
+        String(a?.nombre || '').localeCompare(String(b?.nombre || ''), 'es', { sensitivity: 'base' })
+    )
+);
+const direccionEntidadSeleccionada = computed(() =>
+    (props.entidades || []).find((e) => e.id === props.form.entidad_id)?.direccion || ''
+);
 const configuracionesPorMes = computed(() => Array.isArray(props.form.configuracion_por_mes) ? props.form.configuracion_por_mes : []);
 const modalidadSeleccionada = computed(() => {
     const selectedId = props.form.modalidad_id;
@@ -363,6 +386,40 @@ watch(
                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 />
                 <InputError :message="$page.props.errors.hora" class="mt-2" />
+            </div>
+
+            <div class="col-span-6 sm:col-span-3 mt-3">
+                <InputLabel for="entidad_id" value="Entidad" :required="true" />
+                <Dropdown
+                    id="entidad_id"
+                    v-model="form.entidad_id"
+                    :options="entidadesOrdenadas"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccione una entidad"
+                    class="mt-1 w-full border border-gray-300 dark:border-gray-600"
+                />
+                <InputError :message="$page.props.errors.entidad_id" class="mt-2" />
+            </div>
+
+            <div class="col-span-6 sm:col-span-3 mt-3">
+                <InputLabel for="lugar_id" value="Lugar" />
+                <Dropdown
+                    id="lugar_id"
+                    v-model="form.lugar_id"
+                    :options="lugaresOrdenados"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    filter
+                    filterPlaceholder="Buscar lugar"
+                    placeholder="Seleccione Lugar (opcional)"
+                    showClear
+                    class="mt-1 w-full border border-gray-300 dark:border-gray-600"
+                />
+                <p v-if="!form.lugar_id" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Sin lugar se usa la dirección de la entidad{{ direccionEntidadSeleccionada ? `: ${direccionEntidadSeleccionada}` : '' }}.
+                </p>
+                <InputError :message="$page.props.errors.lugar_id" class="mt-2" />
             </div>
 
             <div class="col-span-6 sm:col-span-3 mt-3">

@@ -16,6 +16,8 @@ class OracionCantada extends Model
     protected $fillable = [
         'nombre',
         'descripcion',
+        'entidad_id',
+        'lugar_id',
         'dia',
         'dias_semana',
         'hora',
@@ -176,6 +178,16 @@ class OracionCantada extends Model
             'hora' => $hora,
             'mensaje' => $excepcion['mensaje'] ?? null,
         ];
+    }
+
+    public function entidad()
+    {
+        return $this->belongsTo(Entidad::class, 'entidad_id');
+    }
+
+    public function lugar()
+    {
+        return $this->belongsTo(Lugar::class, 'lugar_id');
     }
 
     public function stream()

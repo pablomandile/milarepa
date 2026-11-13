@@ -14,6 +14,14 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    entidades: {
+        type: Array,
+        default: () => [],
+    },
+    lugares: {
+        type: Array,
+        default: () => [],
+    },
     streams: {
         type: Array,
         default: () => [],
@@ -59,6 +67,8 @@ const form = useForm({
             sin_actividad: !!excepcion.sin_actividad,
         }))
         : [],
+    entidad_id: props.oracionCantada.entidad_id ?? null,
+    lugar_id: props.oracionCantada.lugar_id ?? null,
     modalidad_id: props.oracionCantada.modalidad_id ?? null,
     stream_id: props.oracionCantada.stream_id ?? null,
     imagen: props.oracionCantada.imagen ?? '',
@@ -96,6 +106,8 @@ const handleSubmit = () => {
                             :form="form"
                             :streams="props.streams"
                             :modalidades="props.modalidades"
+                            :entidades="props.entidades"
+                            :lugares="props.lugares"
                             @submit="handleSubmit"
                         />
                     </div>

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\OracionesCantadas;
 
+use App\Models\Entidad;
 use App\Models\OracionCantada;
 use App\Models\User;
 use Carbon\Carbon;
@@ -23,6 +24,11 @@ class ExcepcionSinActividadTest extends TestCase
         $admin->assignRole('admin');
 
         return $admin;
+    }
+
+    private function entidad(): Entidad
+    {
+        return Entidad::create(['nombre' => 'Sede Excepcion Test', 'entidad_principal' => false]);
     }
 
     /** Oración diaria los martes de diciembre 2030 (3, 10, 17, 24, 31) a las 19:00. */
@@ -86,6 +92,7 @@ class ExcepcionSinActividadTest extends TestCase
             ->put(route('oracionescantadas.update', $oracion->id), [
                 'nombre' => $oracion->nombre,
                 'descripcion' => $oracion->descripcion,
+                'entidad_id' => $this->entidad()->id,
                 'periodicidad' => 'Diaria',
                 'dias_semana' => ['martes'],
                 'hora' => '19:00',
@@ -111,6 +118,7 @@ class ExcepcionSinActividadTest extends TestCase
             ->put(route('oracionescantadas.update', $oracion->id), [
                 'nombre' => $oracion->nombre,
                 'descripcion' => $oracion->descripcion,
+                'entidad_id' => $this->entidad()->id,
                 'periodicidad' => 'Diaria',
                 'dias_semana' => ['martes'],
                 'hora' => '19:00',

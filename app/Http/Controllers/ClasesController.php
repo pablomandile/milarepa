@@ -170,7 +170,8 @@ class ClasesController extends Controller
             'nombre' => $clase->nombre,
             'entidad_id' => $clase->entidad_id,
             'entidad' => $clase->entidad?->nombre,
-            'lugar' => $this->lugarPublicoClase($clase),
+            // Lugar propio de la clase o, si no tiene, la dirección de la entidad.
+            'lugar' => Lugar::datosPublicos($clase->lugar, $clase->entidad),
             // Se muestra en el reverso de la imagen (efecto flip).
             'descripcion' => $clase->descripcion,
             'mes_referencia' => $clase->mes_referencia,
@@ -248,27 +249,6 @@ class ClasesController extends Controller
         }
 
         return $fechas;
-    }
-
-    /**
-     * Lugar donde se dicta la clase: el lugar propio si la clase lo especifica, y si
-     * no, la dirección de su entidad (sede). Null si no hay ningún dato para mostrar.
-     */
-    private function lugarPublicoClase(Clase $clase): ?array
-    {
-        if ($clase->lugar) {
-            $nombre = filled($clase->lugar->nombre) ? trim($clase->lugar->nombre) : null;
-            $direccion = filled($clase->lugar->direccion) ? trim($clase->lugar->direccion) : null;
-        } else {
-            $nombre = null;
-            $direccion = filled($clase->entidad?->direccion) ? trim($clase->entidad->direccion) : null;
-        }
-
-        if (!$nombre && !$direccion) {
-            return null;
-        }
-
-        return ['nombre' => $nombre, 'direccion' => $direccion];
     }
 
     /**
