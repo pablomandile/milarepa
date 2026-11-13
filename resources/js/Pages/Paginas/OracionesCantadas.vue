@@ -114,9 +114,17 @@ const groupFechasByWeekday = (fechas) => {
                                 />
                             </div>
                             <div class="activity-right-col">
-                                <h4 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4 mt-2 leading-tight whitespace-pre-line break-words">
+                                <h4 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2 mt-2 leading-tight whitespace-pre-line break-words">
                                     {{ oracion.nombre }}
                                 </h4>
+                                <!-- Entidad destacada, igual que en Clases -->
+                                <div v-if="oracion.entidad" class="mb-4 flex flex-wrap items-center gap-2 text-sm">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-900/40 px-3 py-1 font-medium text-indigo-700 dark:text-indigo-200">
+                                        <i class="pi pi-building"></i>
+                                        {{ oracion.entidad }}
+                                    </span>
+                                </div>
+                                <div v-else class="mb-4"></div>
 
                                 <!-- Info de la oración: día/días y horario -->
                                 <div class="mb-6 space-y-2 text-lg text-slate-700 dark:text-gray-200">
@@ -127,10 +135,6 @@ const groupFechasByWeekday = (fechas) => {
                                     <div class="flex items-start gap-3">
                                         <i class="pi pi-clock mt-1.5 text-slate-400"></i>
                                         <span><span class="font-semibold">Horario:</span> {{ oracion.hora_label || '-' }}</span>
-                                    </div>
-                                    <div class="flex items-start gap-3">
-                                        <i class="pi pi-building mt-1.5 text-slate-400"></i>
-                                        <span class="min-w-0 break-words"><span class="font-semibold">Entidad:</span> {{ oracion.entidad || '-' }}</span>
                                     </div>
                                     <!-- Lugar propio de la oración o, si no tiene, la dirección de la entidad -->
                                     <div class="flex items-start gap-3">
