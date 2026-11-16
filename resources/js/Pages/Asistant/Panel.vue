@@ -1,6 +1,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
+import InstalarApp from '@/Components/InstalarApp.vue';
 import CaracolaUrl from '/resources/images/caracola.webp';
 
 defineProps({
@@ -36,6 +37,8 @@ const iconUrl = (file) => `/storage/img/menu_asistente/${encodeURIComponent(file
 
         <div class="py-12">
             <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
+                <!-- Invitación a instalar la app: solo si el navegador puede instalarla -->
+                <InstalarApp variant="tarjeta" class="mb-6 mx-3 sm:mx-0" />
                 <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 shadow-sm">
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 place-items-center">
                         <Link

@@ -9,6 +9,7 @@ import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import Footer from '@/Components/Footer.vue';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
+import InstalarApp from '@/Components/InstalarApp.vue';
 
 const props = defineProps({
   title: {
@@ -654,6 +655,8 @@ const toggleMobileSection = (key) => {
 
                                     <div class="mt-2 border-t border-gray-200 dark:border-gray-700" />
 
+                                    <!-- Solo aparece si el navegador puede instalar la app (PWA) -->
+                                    <InstalarApp variant="dropdown" />
                                     <ThemeToggle variant="dropdown" />
 
                                     <div class="border-t border-gray-200 dark:border-gray-700" />
@@ -1147,6 +1150,7 @@ const toggleMobileSection = (key) => {
                             </ResponsiveNavLink>
                         </form>
 
+                        <InstalarApp variant="responsive" />
                         <ThemeToggle variant="responsive" />
 
                         <!-- Authentication -->
