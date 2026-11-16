@@ -26,8 +26,6 @@
     const toast = useToast();
     const visible = ref(false);
     const actividadSeleccionada = ref(null);
-    const imagenVisible = ref(false);
-    const imagenSeleccionada = ref(null);
     const programaVisible = ref(false);
     const programaSeleccionado = ref(null);
     const esquemaVisible = ref(false);
@@ -124,16 +122,25 @@
         esquemaVisible.value = true;
     };
 
-    const verImagen = (actividad) => {
-        if (!actividad) return;
-        const src = actividad.imagen
-            ? `/storage/${actividad.imagen.ruta}`
-            : '/storage/img/actividades/imagen-no-disponible.jpg';
-        imagenSeleccionada.value = {
-            src,
-            nombre: actividad.nombre || 'Actividad'
-        };
-        imagenVisible.value = true;
+    // La imagen lleva a la landing publica (con return_url para volver al listado).
+    const landingUrl = (actividad) =>
+        `${route('grid-actividades.show-public', actividad.id)}?return_url=${encodeURIComponent(route('actividades.index'))}`;
+
+    const clonarActividad = (actividad) => {
+        Swal.fire({
+            title: '¿Clonar esta actividad?',
+            text: `Se creará una copia no visible de "${actividad.nombre}" con toda su estructura, lista para editar.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, clonar',
+            cancelButtonText: 'Cancelar',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(route('actividades.clonar', parseInt(actividad.id)), {}, {
+                    onError: () => Swal.fire('Error', 'Hubo un problema al clonar la actividad.', 'error'),
+                });
+            }
+        });
     };
 
     const updateEstado = (row, nuevoEstado) => {
@@ -356,11 +363,10 @@
                                 :key="actividad.id"
                                 class="overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
                             >
-                                <button
-                                    type="button"
+                                <Link
+                                    :href="landingUrl(actividad)"
                                     class="block w-full bg-gray-100 dark:bg-gray-900"
-                                    title="Ver imagen"
-                                    @click="verImagen(actividad)"
+                                    title="Ver landing"
                                 >
                                     <img
                                         v-if="actividad.imagen"
@@ -374,7 +380,7 @@
                                         alt="Sin imagen"
                                         class="h-auto w-full object-contain"
                                     />
-                                </button>
+                                </Link>
 
                                 <div class="space-y-3 p-4">
                                     <div class="space-y-1">
@@ -556,15 +562,17 @@
 
                                 <div class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3">
                                     <div class="flex flex-wrap items-center justify-center gap-2">
-                                        <Link
-                                            :href="`${route('grid-actividades.show-public', actividad.id)}?return_url=${encodeURIComponent(route('actividades.index'))}`"
-                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-3"
-                                            title="Ver landing publica"
-                                            aria-label="Ver landing publica"
+                                        <button
+                                            v-if="$page.props.user.permissions.includes('create actividades')"
+                                            type="button"
+                                            class="inline-flex items-center justify-center gap-2 h-9 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3"
+                                            title="Clonar actividad"
+                                            aria-label="Clonar actividad"
+                                            @click="clonarActividad(actividad)"
                                         >
-                                            <i class="fas fa-eye"></i>
-                                            <span class="text-xs font-semibold">Ver landing publica</span>
-                                        </Link>
+                                            <i class="fas fa-clone"></i>
+                                            <span class="text-xs font-semibold">Clonar actividad</span>
+                                        </button>
                                         <Link
                                             v-if="$page.props.user.permissions.includes('update actividades')"
                                             :href="route('actividades.edit', { actividad: parseInt(actividad.id) })"
@@ -675,24 +683,26 @@
                             <Column expander style="width: 5rem" />
                             <Column header="Imagen">
                                 <template #body="slotProps">
-                                    <div>
+                                    <Link
+                                        :href="landingUrl(slotProps.data)"
+                                        class="inline-flex"
+                                        v-tooltip="'Ver landing'"
+                                    >
                                         <img
                                             v-if="slotProps.data.imagen"
                                             :src="'/storage/' + slotProps.data.imagen.ruta"
                                             alt="Imagen de la Actividad"
                                             style="max-width: 50px; max-height: 50px;"
-                                            class="cursor-zoom-in hover:opacity-80"
-                                            @click="verImagen(slotProps.data)"
+                                            class="hover:opacity-80"
                                         />
                                         <img
                                             v-else
                                             src="/storage/img/actividades/imagen-no-disponible.jpg"
                                             alt="Sin imagen"
                                             style="max-width: 50px; max-height: 50px;"
-                                            class="cursor-zoom-in hover:opacity-80"
-                                            @click="verImagen(slotProps.data)"
+                                            class="hover:opacity-80"
                                         />
-                                    </div>
+                                    </Link>
                                 </template>
                             </Column>
                             <Column field="nombre" header="Nombre" sortable></Column>
@@ -726,14 +736,14 @@
                             <Column v-if="!modoSeleccion" header="Acciones">
                                 <template #body="slotProps">
                                     <div class="flex justify-center items-center space-x-4">
-                                        <Link
-                                            :href="`${route('grid-actividades.show-public', slotProps.data.id)}?return_url=${encodeURIComponent(route('actividades.index'))}`"
-                                            v-tooltip="'Ver landing publica'"
-                                            class="text-sky-600 hover:text-sky-800"
-                                            style="display: flex; align-items: center;"
-                                        >
-                                            <i class="fas fa-eye" style="font-size: 18px !important; line-height: 1;"></i>
-                                        </Link>
+                                        <button
+                                            @click="clonarActividad(slotProps.data)"
+                                            v-if="$page.props.user.permissions.includes('create actividades')"
+                                            v-tooltip="'Clonar actividad'"
+                                            class="text-emerald-600 hover:text-emerald-800"
+                                            style="background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                                            <i class="fas fa-clone" style="font-size: 18px !important; line-height: 1;"></i>
+                                        </button>
                                         <button
                                             @click="abrirLinkPublico(slotProps.data)"
                                             v-tooltip="'Link público para compartir'"
@@ -1029,27 +1039,6 @@
             <i class="pi pi-external-link"></i>
             Abrir en una pestaña nueva
         </a>
-    </Dialog>
-
-    <!-- Dialog para mostrar imagen -->
-    <Dialog
-        v-model:visible="imagenVisible"
-        modal
-        :header="imagenSeleccionada ? `Imagen de ${imagenSeleccionada.nombre}` : 'Imagen'"
-        :style="{ width: '60rem' }"
-        :breakpoints="{ '1199px': '85vw', '575px': '95vw' }"
-        dismissableMask
-    >
-        <template v-if="imagenSeleccionada">
-            <div class="flex justify-center">
-                <img
-                    :src="imagenSeleccionada.src"
-                    :alt="`Imagen de ${imagenSeleccionada.nombre}`"
-                    class="max-w-full h-auto"
-                />
-            </div>
-        </template>
-        <p v-else>Cargando...</p>
     </Dialog>
 
     <!-- Dialog para mostrar programa -->

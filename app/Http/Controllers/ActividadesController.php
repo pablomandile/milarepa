@@ -449,6 +449,38 @@ class ActividadesController extends Controller
     }
 
     /**
+     * Clona una actividad (curso, retiro, etc.) con toda su estructura: campos,
+     * FKs compartidas (imagen, descripcion, esquemas, programa...) y los pivotes
+     * (metodos de pago, hospedajes con su cantidad, comidas, transportes,
+     * coordinadores y maestros). El clon nace SIEMPRE no visible (estado=false)
+     * hasta activarlo a mano. No se copian las inscripciones.
+     */
+    public function clonar(Actividad $actividad)
+    {
+        $actividad->load(['metodosPago', 'hospedajes', 'comidas', 'transportes', 'coordinadores', 'maestros']);
+
+        // ActividadRequest limita el nombre a 80: si el clon lo supera, no se
+        // podria volver a guardar desde el formulario de edicion.
+        $clon = $actividad->replicate();
+        $clon->nombre = mb_substr($actividad->nombre . ' (copia)', 0, 80);
+        $clon->estado = false;
+        $clon->save();
+
+        $clon->metodosPago()->sync($actividad->metodosPago->pluck('id'));
+        $clon->comidas()->sync($actividad->comidas->pluck('id'));
+        $clon->transportes()->sync($actividad->transportes->pluck('id'));
+        $clon->coordinadores()->sync($actividad->coordinadores->pluck('id'));
+        $clon->maestros()->sync($actividad->maestros->pluck('id'));
+        $clon->hospedajes()->sync(
+            $actividad->hospedajes->mapWithKeys(fn ($h) => [$h->id => ['cantidad' => $h->pivot->cantidad]])->all()
+        );
+
+        // Directo al form de edicion del clon: el objetivo es ajustarlo ya mismo.
+        return redirect()->route('actividades.edit', $clon->id)
+            ->with('success', 'Actividad clonada (no visible). Ajustá los datos y activala cuando esté lista.');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)

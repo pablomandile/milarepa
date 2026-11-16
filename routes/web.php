@@ -301,6 +301,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
         'parameters' => ['actividades' => 'actividad'],]);
     Route::patch('/actividades/{actividad}/estado', [ActividadesController::class, 'updateEstado'])
         ->name('actividades.updateEstado');
+    Route::post('/actividades/{actividad}/clonar', [ActividadesController::class, 'clonar'])
+        ->name('actividades.clonar');
     Route::resource('/grid-actividades', GridActividadesController::class, [
         'parameters' => ['grid-actividades' => 'grid-actividad'],
     ])->except(['index']);
