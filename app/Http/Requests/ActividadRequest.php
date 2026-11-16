@@ -46,6 +46,7 @@ class ActividadRequest extends FormRequest
             'programa_id' => ['nullable','exists:programas,id'],
             'botonpago_id' => ['nullable', 'exists:botones_pago,id'],
             'estado' => ['nullable', 'boolean'],
+            'promo_2x1' => ['boolean'],
             'metodos_pago_ids' => ['nullable', 'array'],
             'metodos_pago_ids.*' => ['exists:metodos_pago,id'],
             'hospedajes_ids' => ['nullable', 'array'],
@@ -80,5 +81,10 @@ class ActividadRequest extends FormRequest
         // Solo log para diagnóstico
         Log::info('Datos originales del request:', $this->all());
 
+        // La columna no admite null: ausente o vacío = sin promoción 2x1.
+        $promo = $this->input('promo_2x1');
+        $this->merge([
+            'promo_2x1' => filter_var($promo, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+        ]);
     }
 }

@@ -342,8 +342,25 @@ const permiteInvitados = computed(
   () => normalizarNombre(props.actividad?.modalidad?.nombre) !== 'online'
 );
 
+// Promoción 2x1: el acompañante es obligatorio y el PRIMERO no paga la actividad
+// (sí los servicios). El backend aplica la misma regla y es el que manda.
+const es2x1 = computed(() => !!props.actividad?.promo_2x1 && permiteInvitados.value);
+
 const MAX_INVITADOS = 10;
-const invitados = ref([]);
+// "Pagar" de una inscripción existente: el backend borra y recrea los invitados,
+// así que se precargan los que ya tenía para no perderlos.
+const invitados = ref(
+  (props.inscripcion?.invitados || []).map((inv) => ({
+    nombre: inv.nombre || '',
+    apellido: inv.apellido || '',
+    telefono: inv.telefono || '',
+    online: !!inv.online,
+    grabacion: !!inv.incluye_grabacion,
+    comidas: (inv.comidas || []).map((c) => c.id),
+    transportes: (inv.transportes || []).map((t) => t.id),
+    hospedajes: (inv.hospedajes || []).map((h) => h.id),
+  }))
+);
 const invitadoDialog = ref(false);
 
 const nuevoInvitado = () => ({
@@ -360,10 +377,13 @@ const invitadoForm = ref(nuevoInvitado());
 
 const grabacionResuelta = () => resolverPrecioItemEnMoneda(props.actividad?.grabacion || {}, 'valor');
 
-const subtotalInvitado = (invitado) => {
+// En 2x1 el primer invitado (índice 0) no paga la actividad.
+const actividadSinCargo = (indice) => es2x1.value && indice === 0;
+
+const subtotalInvitado = (invitado, indice) => {
   const gr = grabacionResuelta();
   const totalGrabacion = invitado.grabacion && !gr.enPrincipal ? gr.precio : 0;
-  return precioGeneralActividad.value
+  return (actividadSinCargo(indice) ? 0 : precioGeneralActividad.value)
     + totalGrabacion
     + sumarSeleccionados(comidasDisponibles.value, invitado.comidas, precioComida)
     + sumarSeleccionados(transportesDisponibles.value, invitado.transportes, precioTransporte)
@@ -380,13 +400,14 @@ const subtotalInvitadoPrincipal = (invitado) => {
 };
 
 // Subtotal del invitado para mostrar: "USD 120" o "USD 120 + ARS 5.000".
-const subtotalInvitadoLabel = (invitado) => {
+const subtotalInvitadoLabel = (invitado, indice) => {
   const principal = subtotalInvitadoPrincipal(invitado);
-  const base = formatMoney(subtotalInvitado(invitado));
+  const base = formatMoney(subtotalInvitado(invitado, indice));
   return principal > 0 ? `${base} + ${formatMoney(principal, simboloPrincipal.value)}` : base;
 };
 
-const totalInvitados = computed(() => invitados.value.reduce((acc, inv) => acc + subtotalInvitado(inv), 0));
+const totalInvitados = computed(() => invitados.value.reduce((acc, inv, idx) => acc + subtotalInvitado(inv, idx), 0));
+const faltaAcompanante = computed(() => es2x1.value && invitados.value.length === 0);
 const totalInvitadosPrincipal = computed(() => invitados.value.reduce((acc, inv) => acc + subtotalInvitadoPrincipal(inv), 0));
 
 const abrirDialogInvitado = () => {
@@ -490,6 +511,7 @@ const esMetodoTipoEfectivo = computed(() => {
 });
 
 const puedeFinalizar = computed(() => {
+  if (faltaAcompanante.value) return false;
   if (esPagoCero.value) return true;
   if (!pagoMetodo.value) return false;
   if (esMetodoTipoEfectivo.value) return true;
@@ -904,20 +926,33 @@ watch(
               id-prefix="principal"
             />
 
-            <div v-if="permiteInvitados" class="border rounded-lg p-4">
+            <div
+              v-if="permiteInvitados"
+              class="border rounded-lg p-4"
+              :class="faltaAcompanante ? 'border-amber-400 bg-amber-50' : ''"
+            >
               <div class="flex items-center justify-between gap-2 mb-2">
-                <p class="text-sm font-semibold text-gray-700">Invitados ({{ invitados.length }}/{{ MAX_INVITADOS }})</p>
+                <p class="text-sm font-semibold text-gray-700">
+                  {{ es2x1 ? 'Acompañante 2x1' : 'Invitados' }} ({{ invitados.length }}/{{ MAX_INVITADOS }})
+                </p>
                 <button
                   type="button"
                   class="px-3 py-1 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700 disabled:bg-gray-300"
                   :disabled="invitados.length >= MAX_INVITADOS"
                   @click="abrirDialogInvitado"
                 >
-                  Agregar invitado
+                  {{ es2x1 && !invitados.length ? 'Agregar acompañante' : 'Agregar invitado' }}
                 </button>
               </div>
+              <div v-if="es2x1" class="mb-3 rounded border border-emerald-200 bg-emerald-50 p-2 text-sm text-emerald-800">
+                <i class="fas fa-user-group mr-1"></i>
+                Esta actividad es <strong>2x1</strong>: tu acompañante no paga la actividad (sí los servicios que elijas para él o ella).
+                Ingresá su nombre y apellido para completar la inscripción.
+              </div>
               <p class="text-xs text-gray-500 mb-3">
-                Los invitados pagan precio general (sin descuento) y reciben los servicios que elijas para cada uno.
+                {{ es2x1
+                  ? 'Si sumás más invitados, desde el segundo pagan precio general (sin descuento).'
+                  : 'Los invitados pagan precio general (sin descuento) y reciben los servicios que elijas para cada uno.' }}
               </p>
               <div v-if="invitados.length" class="space-y-2">
                 <div
@@ -929,9 +964,10 @@ watch(
                     <span class="font-semibold">{{ inv.nombre }} {{ inv.apellido }}</span>
                     <span v-if="inv.telefono" class="text-gray-500"> · {{ inv.telefono }}</span>
                     <span v-if="inv.online" class="ml-2 text-xs text-indigo-600">Online</span>
+                    <span v-if="actividadSinCargo(idx)" class="ml-2 text-xs font-semibold text-emerald-700">2x1 · actividad sin cargo</span>
                   </div>
                   <div class="flex items-center gap-3">
-                    <span class="text-sm font-semibold text-gray-800">{{ subtotalInvitadoLabel(inv) }}</span>
+                    <span class="text-sm font-semibold text-gray-800">{{ subtotalInvitadoLabel(inv, idx) }}</span>
                     <button
                       type="button"
                       class="text-red-600 text-sm hover:underline"
@@ -942,6 +978,7 @@ watch(
                   </div>
                 </div>
               </div>
+              <p v-else-if="es2x1" class="text-xs font-semibold text-amber-700">Falta agregar a tu acompañante.</p>
               <p v-else class="text-xs text-gray-400">Sin invitados agregados.</p>
             </div>
 
@@ -958,7 +995,10 @@ watch(
 
           
 
-          <div class="mt-6 flex justify-end">
+          <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
+            <p v-if="faltaAcompanante" class="text-sm text-amber-700">
+              Para terminar, agregá a tu acompañante (actividad 2x1).
+            </p>
             <button
               class="px-5 py-2 rounded text-white disabled:cursor-not-allowed"
               :class="(isFinalizing || !puedeFinalizar) ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'"
@@ -1087,7 +1127,8 @@ watch(
         </div>
 
         <div class="border rounded-lg p-3 bg-gray-50 text-sm text-gray-800">
-          Subtotal invitado: <span class="font-semibold">{{ subtotalInvitadoLabel(invitadoForm) }}</span>
+          Subtotal invitado: <span class="font-semibold">{{ subtotalInvitadoLabel(invitadoForm, invitados.length) }}</span>
+          <span v-if="actividadSinCargo(invitados.length)" class="ml-1 text-xs text-emerald-700">(2x1: actividad sin cargo)</span>
         </div>
       </div>
       <template #footer>

@@ -42,6 +42,7 @@ class GridActividadesController extends Controller
     // Mensaje único de duplicado, usado por los guards de preparePago/pago/finalizarPago
     // y asserteado por tests. Para autenticados se le suma el hint de "Mis inscripciones".
     public const MSG_YA_INSCRIPTO = 'Ya estás inscripto a esta actividad.';
+    public const MSG_FALTA_ACOMPANANTE = 'Esta actividad es 2x1: ingresá nombre y apellido de tu acompañante.';
 
     /**
      * Display a listing of the resource.
@@ -447,7 +448,14 @@ class GridActividadesController extends Controller
 
         $inscripcionExistente = null;
         if (!empty($pago['inscripcion_id'])) {
-            $inscripcionExistente = Inscripcion::with(['comidas'])
+            // Los invitados viajan con sus servicios: finalizarPago() los borra y
+            // recrea, así que la pantalla tiene que precargarlos o se perderían.
+            $inscripcionExistente = Inscripcion::with([
+                'comidas',
+                'invitados.comidas',
+                'invitados.transportes',
+                'invitados.hospedajes',
+            ])
                 ->where('id', $pago['inscripcion_id'])
                 ->where('actividad_id', $actividad->id)
                 ->first();
@@ -587,6 +595,15 @@ class GridActividadesController extends Controller
             return response()->json([
                 'ok' => false,
                 'message' => 'The selected pago metodo is invalid.',
+            ], 422);
+        }
+
+        // Promoción 2x1: la inscripción exige el acompañante (el primero no paga
+        // la actividad; ver InscripcionServiciosService::prepararInvitados).
+        if ($servicios->requiereAcompanante($actividad) && empty($data['invitados'])) {
+            return response()->json([
+                'ok' => false,
+                'message' => self::MSG_FALTA_ACOMPANANTE,
             ], 422);
         }
 

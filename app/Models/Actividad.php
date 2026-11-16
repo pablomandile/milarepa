@@ -31,11 +31,13 @@ class Actividad extends Model
         'stream_id', 
         'programa_id',
         'botonpago_id',
-        'estado'
+        'estado',
+        'promo_2x1',
     ];
 
     protected $casts = [
         'estado' => 'boolean',
+        'promo_2x1' => 'boolean',
         'fecha_inicio' => 'datetime',
         'fecha_fin' => 'datetime',
     ];

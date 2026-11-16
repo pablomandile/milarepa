@@ -156,6 +156,7 @@
         programa_id: props.actividad.programa_id,
         botonpago_id: props.actividad.botonpago_id || null,
         estado: props.actividad.estado,
+        promo_2x1: !!props.actividad.promo_2x1,
         metodos_pago_ids: props.actividad.metodos_pago ? props.actividad.metodos_pago.map(m => m.id) : [],
         hospedajes_ids: props.actividad.hospedajes ? props.actividad.hospedajes.map(h => h.id) : [],
         hospedajes_cupos: props.actividad.hospedajes

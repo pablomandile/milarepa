@@ -230,6 +230,19 @@ Reglas:
 - **Fuera de alcance v1**: edición/eliminación de invitados post-inscripción por el asistente. En
   actividades **puramente online** se oculta "Agregar invitado" (el flujo apunta a eventos con
   componente presencial). *(El cupo de hospedaje sí se controla — ver 2.7.)*
+- **Promoción 2x1** ("van dos, paga uno"): casilla `actividades.promo_2x1` en el formulario de la
+  actividad (independiente del tipo de actividad). Si está activa y la actividad **no es solo
+  online**:
+  - la inscripción **exige** al menos un invitado (el acompañante, con nombre y apellido):
+    `finalizarPago()` responde 422 sin él (`InscripcionServiciosService::requiereAcompanante()`).
+    Aplica también a "Crear inscripción" del admin, que pasa por el mismo método; la edición admin
+    (`EstadoInscripcionesController::update`) **no** lo exige.
+  - el **primer** invitado tiene `montoActividad = 0`; sus servicios se cobran igual. Desde el
+    segundo, precio general como siempre. La regla vive en `prepararInvitados()`, así que vale
+    para el checkout y para la edición admin.
+  - la copia de una actividad clonada conserva la promoción.
+- **"Pagar" de una inscripción existente**: la pantalla de pago precarga los invitados que ya
+  tenía (con sus servicios), porque `finalizarPago()` los borra y recrea. Antes se perdían.
 
 Backend en `GridActividadesController::finalizarPago()` (validación `invitados[] max:10`); el cálculo
 y la persistencia viven en `App\Services\InscripcionServiciosService` (`prepararInvitados()` /

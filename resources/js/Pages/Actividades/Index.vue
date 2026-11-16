@@ -386,6 +386,7 @@
                                     <div class="space-y-1">
                                         <p class="text-base font-semibold text-gray-800 dark:text-gray-100">
                                             {{ actividad.nombre || '-' }}
+                                            <Tag v-if="actividad.promo_2x1" value="2x1" severity="success" class="ml-1" />
                                         </p>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">
                                             {{ actividad.tipo_actividad?.abreviacion || '-' }}
@@ -705,7 +706,12 @@
                                     </Link>
                                 </template>
                             </Column>
-                            <Column field="nombre" header="Nombre" sortable></Column>
+                            <Column field="nombre" header="Nombre" sortable>
+                                <template #body="slotProps">
+                                    {{ slotProps.data.nombre }}
+                                    <Tag v-if="slotProps.data.promo_2x1" value="2x1" severity="success" class="ml-1" v-tooltip="'Promoción 2x1: el acompañante no paga la actividad'" />
+                                </template>
+                            </Column>
                             <Column field="tipo_actividad.abreviacion" header="Tipo" sortable></Column>
                             <Column header="Lugar" sortable>
                                 <template #body="slotProps">

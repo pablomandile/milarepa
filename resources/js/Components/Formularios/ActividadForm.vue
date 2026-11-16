@@ -180,6 +180,12 @@ const modalidadesOrdenadas = computed(() => {
   return ordenarUltimosRegistros(props.modalidades || []);
 });
 
+// Mismo criterio que la pantalla de pago: en las "Online" puras no hay invitados.
+const modalidadEsSoloOnline = computed(() => {
+  const modalidad = (props.modalidades || []).find((m) => m.id === props.form?.modalidad_id);
+  return (modalidad?.nombre || '').trim().toLowerCase() === 'online';
+});
+
 const disponibilidadesOrdenadas = computed(() => {
   return ordenarUltimosRegistros(props.disponibilidades || []);
 });
@@ -928,6 +934,28 @@ watch(
             class="w-full mt-1 border border-gray-300 dark:border-gray-600"
           />
           <InputError :message="$page.props.errors.modalidad_id" class="mt-2" />
+        </div>
+
+        <!-- Switch: promoción 2x1 -->
+        <div class="col-span-6 sm:col-span-6">
+          <InputLabel
+            for="promo_2x1"
+            class="text-indigo-400"
+            value="Promoción 2x1 (van dos, paga uno)"
+          />
+          <div class="flex items-center gap-3 mt-2">
+            <InputSwitch id="promo_2x1" v-model="form.promo_2x1" />
+            <span class="text-sm text-gray-600 dark:text-gray-400">
+              {{ form.promo_2x1 ? 'Activa' : 'Inactiva' }}
+            </span>
+          </div>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Al inscribirse se pide nombre y apellido del acompañante. Su actividad es sin cargo; los servicios que elija se cobran.
+          </p>
+          <p v-if="form.promo_2x1 && modalidadEsSoloOnline" class="mt-1 text-xs text-amber-600">
+            En actividades solo online no se piden acompañantes: la promoción no tiene efecto.
+          </p>
+          <InputError :message="$page.props.errors.promo_2x1" class="mt-2" />
         </div>
 
         <!-- Disponibilidad (MultiSelect o Dropdown) -->

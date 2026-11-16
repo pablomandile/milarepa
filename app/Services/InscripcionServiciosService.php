@@ -78,8 +78,22 @@ class InscripcionServiciosService
     }
 
     /**
+     * ¿La inscripción a esta actividad exige un acompañante? Sí cuando la
+     * actividad tiene la promoción 2x1 y no es solo online (en las online no hay
+     * flujo de invitados).
+     */
+    public function requiereAcompanante(Actividad $actividad): bool
+    {
+        $actividad->loadMissing('modalidad');
+
+        return (bool) $actividad->promo_2x1
+            && $this->normalizarTexto($actividad->modalidad?->nombre) !== 'online';
+    }
+
+    /**
      * Construye el payload de cada invitado calculando sus montos.
      * Los invitados NUNCA tienen descuento: pagan siempre el precio general.
+     * Excepción 2x1: el PRIMER invitado no paga la actividad (sí sus servicios).
      * Sólo pueden cursar online si la actividad es "Presencial y Online Abierta".
      *
      * @param  array<int, array<string, mixed>>  $invitados
@@ -92,9 +106,12 @@ class InscripcionServiciosService
         }
 
         $modalidadAbierta = $this->modalidadPermiteInvitadoOnline($actividad);
+        $promo2x1 = (bool) $actividad->promo_2x1;
 
         $preparados = [];
-        foreach ($invitados as $invitado) {
+        foreach (array_values($invitados) as $indice => $invitado) {
+            $precioActividad = ($promo2x1 && $indice === 0) ? 0.0 : $precioGeneral;
+
             $comidasIds = array_values(array_unique(array_map('intval', $invitado['comidas_ids'] ?? [])));
             $transportesIds = array_values(array_unique(array_map('intval', $invitado['transportes_ids'] ?? [])));
             $hospedajesIds = array_values(array_unique(array_map('intval', $invitado['hospedajes_ids'] ?? [])));
@@ -106,7 +123,7 @@ class InscripcionServiciosService
 
             // Porción en la moneda de la inscripción; lo que no tiene precio en
             // ella queda aparte, en la moneda principal (total dividido).
-            $montoApagar = $precioGeneral
+            $montoApagar = $precioActividad
                 + (float) ($montos['montoGrabacion'] ?? 0)
                 + (float) ($montos['montoComidas'] ?? 0)
                 + (float) ($montos['montoTransporte'] ?? 0)
@@ -118,7 +135,7 @@ class InscripcionServiciosService
                 'telefono' => $invitado['telefono'] ?? null,
                 'online' => $online,
                 'incluye_grabacion' => $incluyeGrabacion,
-                'montoActividad' => $precioGeneral,
+                'montoActividad' => $precioActividad,
                 'montoGrabacion' => $montos['montoGrabacion'],
                 'montoComidas' => $montos['montoComidas'],
                 'montoTransporte' => $montos['montoTransporte'],

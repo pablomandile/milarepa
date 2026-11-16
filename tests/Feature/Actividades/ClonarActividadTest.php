@@ -34,6 +34,7 @@ class ClonarActividadTest extends TestCase
             'fecha_fin' => '2026-12-03 18:00:00',
             'link_web' => 'https://ejemplo.test/retiro',
             'estado' => true,
+            'promo_2x1' => true,
         ]);
 
         $actividad->maestros()->sync([Maestro::create(['nombre' => 'Maestro Clon'])->id]);
@@ -66,6 +67,7 @@ class ClonarActividadTest extends TestCase
         $this->assertSame($original->tipo_actividad_id, $clon->tipo_actividad_id);
         $this->assertSame($original->entidad_id, $clon->entidad_id);
         $this->assertSame('https://ejemplo.test/retiro', $clon->link_web);
+        $this->assertTrue($clon->promo_2x1, 'La copia conserva la promoción 2x1');
         $this->assertEquals($original->fecha_inicio, $clon->fecha_inicio);
 
         $this->assertEquals($original->maestros->pluck('id'), $clon->maestros->pluck('id'));

@@ -151,6 +151,7 @@
         comidas_ids: [],
         transportes_ids: [],
         estado: true,
+        promo_2x1: false,
         maestros_ids: [],
         coordinadores_ids: []
     });
